@@ -166,18 +166,50 @@
 	<References>
 	</References>
 	<Files>
-		<File
-			RelativePath="..\..\src\objdef\compile.cpp"
+		<Filter
+			Name="src"
 			>
-		</File>
-		<File
-			RelativePath="..\..\src\objdef\compile.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\fieldtypes.h"
-			>
-		</File>
+			<Filter
+				Name="putki"
+				>
+				<File
+					RelativePath="..\..\src\putki\domains.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\putki\field.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\putki\fieldtypes.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="parser"
+				>
+				<File
+					RelativePath="..\..\src\parser\parse.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\parser\parse.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="generator"
+				>
+				<File
+					RelativePath="..\..\src\generator\generator.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\generator\generator.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
 		<File
 			RelativePath="..\..\src\objdef\main.cpp"
 			>

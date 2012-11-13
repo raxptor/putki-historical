@@ -1,0 +1,12 @@
+tiledata
+{
+	string flerp;
+}
+
+gamedescription [in,out] 
+{
+	string name;
+	u32 number;
+	tiledata flerp1;
+	tiledata flerp2;
+}
