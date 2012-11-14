@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="objdef"
-	ProjectGUID="{4FD1AD3C-89E7-413F-B54E-B647B3BA733E}"
-	RootNamespace="objdef"
+	Name="compiler"
+	ProjectGUID="{01092279-E133-4DAA-A53A-EBF5B93F7E9F}"
+	RootNamespace="compiler"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src"
+				AdditionalIncludeDirectories="../../src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -169,49 +169,41 @@
 		<Filter
 			Name="src"
 			>
-			<Filter
-				Name="putki"
+			<File
+				RelativePath="..\..\src\putki\domains.h"
 				>
-				<File
-					RelativePath="..\..\src\putki\domains.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\putki\field.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\putki\fieldtypes.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="parser"
+			</File>
+			<File
+				RelativePath="..\..\src\putki\field.h"
 				>
-				<File
-					RelativePath="..\..\src\parser\parse.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\parser\parse.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="generator"
+			</File>
+			<File
+				RelativePath="..\..\src\putki\fieldtypes.h"
 				>
-				<File
-					RelativePath="..\..\src\generator\generator.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\generator\generator.h"
-					>
-				</File>
-			</Filter>
+			</File>
+			<File
+				RelativePath="..\..\src\generator\generator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\generator\generator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\parser\parse.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\parser\parse.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\putki\runtime.h"
+				>
+			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\src\objdef\main.cpp"
+			RelativePath="..\main.cpp"
 			>
 		</File>
 	</Files>
