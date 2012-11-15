@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="compiler"
-	ProjectGUID="{01092279-E133-4DAA-A53A-EBF5B93F7E9F}"
-	RootNamespace="compiler"
+	Name="test"
+	ProjectGUID="{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}"
+	RootNamespace="test"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -182,25 +182,21 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\generator\generator.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\generator\generator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\parser\parse.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\parser\parse.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\putki\runtime.h"
 				>
 			</File>
+			<Filter
+				Name="runtime"
+				>
+				<File
+					RelativePath="..\..\src\putki\cpp-runtime\resolve.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\putki\cpp-runtime\resolve.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\main.cpp"
