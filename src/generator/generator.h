@@ -1,5 +1,5 @@
-#ifndef __GENERATOR_H__
-#define __GENERATOR_H__
+#ifndef __PUTKI_GENERATOR_H__
+#define __PUTKI_GENERATOR_H__
 
 #include <parser/parse.h>
 #include <putki/runtime.h>

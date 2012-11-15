@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <parser/parse.h>
+#include <putki/domains.h>
 
 namespace putki
 {
@@ -15,6 +16,7 @@ namespace putki
 
 		out->name = "";
 		out->domains = 0;
+		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 
 		while (tok)
 		{
@@ -34,8 +36,8 @@ namespace putki
 
 	void parse_field(const char *input, putki::parsed_field *out)
 	{
-		out->type = putki::FIELDTYPE_INT32;
-		out->name = "int32";		
+		out->type = putki::FIELDTYPE_STRING;
+		out->name = "name";		
 	}
 
 	void parse(const char *in_path, parsed_file *out)

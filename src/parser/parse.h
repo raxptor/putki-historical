@@ -1,3 +1,6 @@
+#ifndef __PUTKI_PARSE_H__
+#define __PUTKI_PARSE_H__
+
 #include <putki/fieldtypes.h>
 
 #include <sstream>
@@ -8,7 +11,8 @@ namespace putki
 	struct parsed_field
 	{
 		putki::field_type type;
-		std::string name;		
+		std::string name;	
+		std::string ptr_type;
 	};
 
 	struct parsed_struct
@@ -25,3 +29,5 @@ namespace putki
 
 	void parse(const char *in_path, parsed_file *out);
 }
+
+#endif

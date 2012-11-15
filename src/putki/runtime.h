@@ -5,7 +5,7 @@ namespace putki
 {
 	enum runtime
 	{
-		RUNTIME_WIN32	
+		RUNTIME_CPP_WIN32
 	};
 }
 
