@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="test"
-	ProjectGUID="{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}"
-	RootNamespace="test"
+	Name="test-databuilder"
+	ProjectGUID="{88693750-CDB7-4081-BA6F-C4C565ED18C3}"
+	RootNamespace="testdatabuilder"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../src"
+				AdditionalIncludeDirectories="../../src;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compiler", "compiler\compil
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcproj", "{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-databuilder", "test-databuilder\test-databuilder.vcproj", "{88693750-CDB7-4081-BA6F-C4C565ED18C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}.Debug|Win32.Build.0 = Debug|Win32
 		{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}.Release|Win32.ActiveCfg = Release|Win32
 		{B0ABDE45-F239-4911-B4D2-B27E1F1FFEB1}.Release|Win32.Build.0 = Release|Win32
+		{88693750-CDB7-4081-BA6F-C4C565ED18C3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{88693750-CDB7-4081-BA6F-C4C565ED18C3}.Debug|Win32.Build.0 = Debug|Win32
+		{88693750-CDB7-4081-BA6F-C4C565ED18C3}.Release|Win32.ActiveCfg = Release|Win32
+		{88693750-CDB7-4081-BA6F-C4C565ED18C3}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
