@@ -115,6 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -179,6 +180,14 @@
 			</File>
 			<File
 				RelativePath="..\..\src\putki\fieldtypes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\putki\sys\files.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\putki\sys\files_win32.cpp"
 				>
 			</File>
 			<File
