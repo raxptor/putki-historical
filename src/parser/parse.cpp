@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <string>
 
 #include <parser/parse.h>
 #include <putki/domains.h>
@@ -10,9 +11,8 @@ namespace putki
 {
 	void parse_header(const char *input, putki::parsed_struct *out)
 	{
-		char *dup = _strdup(input);
-		char *next = 0;
-		char *tok = strtok_s(dup, " ", &next);
+		char *dup = strdup(input);
+		char *tok = strtok(dup, " ");
 
 		out->name = "";
 		out->domains = 0;
@@ -28,7 +28,7 @@ namespace putki
 			{
 				std::cout << "flag is '" << tok << "'\n";
 			}
-			tok = strtok_s(0, " ", &next);
+			tok = strtok(0, " ");
 		}
 
 		free(dup);

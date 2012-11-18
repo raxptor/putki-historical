@@ -1,0 +1,283 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9C1BB09E16596E210090A5A7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C1BB09D16596E210090A5A7 /* main.cpp */; };
+		9C6FA99116596D09008EB5BC /* builder-config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C6FA98516596D09008EB5BC /* builder-config.cpp */; };
+		9C6FA99216596D09008EB5BC /* config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C6FA98716596D09008EB5BC /* config.cpp */; };
+		9C6FA99A16596D24008EB5BC /* generator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C6FA99516596D24008EB5BC /* generator.cpp */; };
+		9C6FA99B16596D24008EB5BC /* parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C6FA99816596D24008EB5BC /* parse.cpp */; };
+		9C6FA99D16596DD0008EB5BC /* files-osx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C6FA99C16596DD0008EB5BC /* files-osx.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9C6FA97616596CD1008EB5BC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		9C1BB09D16596E210090A5A7 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		9C6FA97816596CD1008EB5BC /* Putki */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Putki; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6FA98516596D09008EB5BC /* builder-config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "builder-config.cpp"; path = "../../../src/putki/builder-config.cpp"; sourceTree = "<group>"; };
+		9C6FA98616596D09008EB5BC /* builder-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "builder-config.h"; path = "../../../src/putki/builder-config.h"; sourceTree = "<group>"; };
+		9C6FA98716596D09008EB5BC /* config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = config.cpp; path = ../../../src/putki/config.cpp; sourceTree = "<group>"; };
+		9C6FA98816596D09008EB5BC /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = ../../../src/putki/config.h; sourceTree = "<group>"; };
+		9C6FA98916596D09008EB5BC /* data-builder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "data-builder.h"; path = "../../../src/putki/data-builder.h"; sourceTree = "<group>"; };
+		9C6FA98A16596D09008EB5BC /* domains.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = domains.h; path = ../../../src/putki/domains.h; sourceTree = "<group>"; };
+		9C6FA98B16596D09008EB5BC /* field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = field.h; path = ../../../src/putki/field.h; sourceTree = "<group>"; };
+		9C6FA98C16596D09008EB5BC /* fieldtypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fieldtypes.h; path = ../../../src/putki/fieldtypes.h; sourceTree = "<group>"; };
+		9C6FA98D16596D09008EB5BC /* runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = runtime.h; path = ../../../src/putki/runtime.h; sourceTree = "<group>"; };
+		9C6FA98F16596D09008EB5BC /* files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = files.h; sourceTree = "<group>"; };
+		9C6FA99516596D24008EB5BC /* generator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = generator.cpp; sourceTree = "<group>"; };
+		9C6FA99616596D24008EB5BC /* generator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = generator.h; sourceTree = "<group>"; };
+		9C6FA99816596D24008EB5BC /* parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parse.cpp; sourceTree = "<group>"; };
+		9C6FA99916596D24008EB5BC /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
+		9C6FA99C16596DD0008EB5BC /* files-osx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "files-osx.cpp"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9C6FA97516596CD1008EB5BC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9C6FA96D16596CD1008EB5BC = {
+			isa = PBXGroup;
+			children = (
+				9C1BB09D16596E210090A5A7 /* main.cpp */,
+				9C6FA97B16596CD1008EB5BC /* Putki */,
+				9C6FA97916596CD1008EB5BC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9C6FA97916596CD1008EB5BC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9C6FA97816596CD1008EB5BC /* Putki */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9C6FA97B16596CD1008EB5BC /* Putki */ = {
+			isa = PBXGroup;
+			children = (
+				9C6FA99416596D24008EB5BC /* generator */,
+				9C6FA99716596D24008EB5BC /* parser */,
+				9C6FA98516596D09008EB5BC /* builder-config.cpp */,
+				9C6FA98616596D09008EB5BC /* builder-config.h */,
+				9C6FA98716596D09008EB5BC /* config.cpp */,
+				9C6FA98816596D09008EB5BC /* config.h */,
+				9C6FA98916596D09008EB5BC /* data-builder.h */,
+				9C6FA98A16596D09008EB5BC /* domains.h */,
+				9C6FA98B16596D09008EB5BC /* field.h */,
+				9C6FA98C16596D09008EB5BC /* fieldtypes.h */,
+				9C6FA98D16596D09008EB5BC /* runtime.h */,
+				9C6FA98E16596D09008EB5BC /* sys */,
+			);
+			path = Putki;
+			sourceTree = "<group>";
+		};
+		9C6FA98E16596D09008EB5BC /* sys */ = {
+			isa = PBXGroup;
+			children = (
+				9C6FA98F16596D09008EB5BC /* files.h */,
+				9C6FA99C16596DD0008EB5BC /* files-osx.cpp */,
+			);
+			name = sys;
+			path = ../../../src/putki/sys;
+			sourceTree = "<group>";
+		};
+		9C6FA99416596D24008EB5BC /* generator */ = {
+			isa = PBXGroup;
+			children = (
+				9C6FA99516596D24008EB5BC /* generator.cpp */,
+				9C6FA99616596D24008EB5BC /* generator.h */,
+			);
+			name = generator;
+			path = ../../../src/generator;
+			sourceTree = "<group>";
+		};
+		9C6FA99716596D24008EB5BC /* parser */ = {
+			isa = PBXGroup;
+			children = (
+				9C6FA99816596D24008EB5BC /* parse.cpp */,
+				9C6FA99916596D24008EB5BC /* parse.h */,
+			);
+			name = parser;
+			path = ../../../src/parser;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9C6FA97716596CD1008EB5BC /* Putki */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C6FA98216596CD1008EB5BC /* Build configuration list for PBXNativeTarget "Putki" */;
+			buildPhases = (
+				9C6FA97416596CD1008EB5BC /* Sources */,
+				9C6FA97516596CD1008EB5BC /* Frameworks */,
+				9C6FA97616596CD1008EB5BC /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Putki;
+			productName = Putki;
+			productReference = 9C6FA97816596CD1008EB5BC /* Putki */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9C6FA96F16596CD1008EB5BC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = "Dan Nilsson";
+			};
+			buildConfigurationList = 9C6FA97216596CD1008EB5BC /* Build configuration list for PBXProject "Putki" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 9C6FA96D16596CD1008EB5BC;
+			productRefGroup = 9C6FA97916596CD1008EB5BC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9C6FA97716596CD1008EB5BC /* Putki */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9C6FA97416596CD1008EB5BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C6FA99116596D09008EB5BC /* builder-config.cpp in Sources */,
+				9C6FA99216596D09008EB5BC /* config.cpp in Sources */,
+				9C6FA99A16596D24008EB5BC /* generator.cpp in Sources */,
+				9C6FA99B16596D24008EB5BC /* parse.cpp in Sources */,
+				9C6FA99D16596DD0008EB5BC /* files-osx.cpp in Sources */,
+				9C1BB09E16596E210090A5A7 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		9C6FA98016596CD1008EB5BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		9C6FA98116596CD1008EB5BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		9C6FA98316596CD1008EB5BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = ../../src;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		9C6FA98416596CD1008EB5BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = ../../src;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9C6FA97216596CD1008EB5BC /* Build configuration list for PBXProject "Putki" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C6FA98016596CD1008EB5BC /* Debug */,
+				9C6FA98116596CD1008EB5BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9C6FA98216596CD1008EB5BC /* Build configuration list for PBXNativeTarget "Putki" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C6FA98316596CD1008EB5BC /* Debug */,
+				9C6FA98416596CD1008EB5BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9C6FA96F16596CD1008EB5BC /* Project object */;
+}
