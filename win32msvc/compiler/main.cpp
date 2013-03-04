@@ -24,8 +24,6 @@ void file(const char *fullpath, const char *name)
 
 int main (int argc, char *argv[])
 {
-	putki::sys::search_tree("../src", file);
-	/*
 	if (argc > 1)
 	{
 		try 
@@ -34,13 +32,13 @@ int main (int argc, char *argv[])
 			putki::parse(argv[1], &pf);
 
 			putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN32);
+			putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN32);
 		}
 		catch (...)
 		{
 			std::cout << "Exception!" << std::endl;
 		}
 	}
-	*/
 
 	return 0;
 }

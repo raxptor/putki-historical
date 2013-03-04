@@ -1,12 +1,26 @@
 tiledata
 {
-	string flerp;
+	string flerp
+}
+
+difficulty_setting [in, out]
+{
+	string name
+	u32 level
+}
+
+difficulties [in, out]
+{
+	difficulty_setting[] difficulties
+}
+
+map_description [in, out]
+{
+	string name
 }
 
 gamedescription [in,out] 
 {
-	string name;
-	u32 number;
-	tiledata flerp1;
-	tiledata flerp2;
+	string[] name
+	u32[] level
 }

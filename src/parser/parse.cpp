@@ -36,8 +36,61 @@ namespace putki
 
 	void parse_field(const char *input, putki::parsed_field *out)
 	{
-		out->type = putki::FIELDTYPE_STRING;
-		out->name = "name";		
+		const char *delim = " \t";
+		char *dup = strdup(input);
+		char *tok = strtok(dup, delim);
+
+		out->type = putki::FIELDTYPE_INT32;
+		out->name = "<invalid>";
+		out->is_array =	false;
+
+		bool read_type = true;
+		bool read_ptr_type = false;
+
+		std::string type_unresolved;
+
+		while (tok)
+		{
+			if (read_type)
+			{
+				read_type = false;
+
+				std::string type = tok;
+				if (strlen(tok) > 2 && type.substr(type.size() - 2, 2) == "[]")
+				{
+					type.erase(type.size() - 2, 2);
+					out->is_array = true;
+				}
+					
+				std::cout << " Type is '" << type << "'" << std::endl;
+				if (!strcmp(type.c_str(), "string"))
+					out->type = putki::FIELDTYPE_STRING;
+				else if (!strcmp(type.c_str(), "u32"))
+					out->type = putki::FIELDTYPE_INT32;
+				else if (!strcmp(type.c_str(), "pointer"))
+				{
+					out->type = putki::FIELDTYPE_POINTER;
+				read_ptr_type = true;
+				}
+				else
+				{
+					out->type = putki::FIELDTYPE_STRUCT_INSTANCE;
+					out->ref_type = type;
+				}
+			}
+			else if (read_ptr_type)
+			{
+				out->ref_type = tok;
+			}
+			else
+			{
+				out->name = tok;
+			}
+
+			tok = strtok(0, delim);
+		}
+
+		free(dup);
 	}
 
 	void parse(const char *in_path, parsed_file *out)

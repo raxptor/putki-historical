@@ -11,8 +11,10 @@ namespace putki
 	struct parsed_field
 	{
 		putki::field_type type;
+		bool is_array;
+
 		std::string name;	
-		std::string ptr_type;
+		std::string ref_type;
 	};
 
 	struct parsed_struct
