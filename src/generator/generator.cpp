@@ -5,9 +5,9 @@
 
 namespace putki
 {
-	void write_runtime_header(putki::parsed_file *file, putki::runtime rt)
+	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out)
 	{
-		std::cout << "#pragma pack(push, 1)" << std::endl;
+		out << "#pragma pack(push, 1)" << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -16,42 +16,42 @@ namespace putki
 
 			if (rt == putki::RUNTIME_CPP_WIN32)
 			{				
-				std::cout << "namespace outki {" << std::endl;
-				std::cout << "	struct " << s->name << " {" << std::endl;
+				out << "namespace outki {" << std::endl;
+				out << "	struct " << s->name << " {" << std::endl;
 
 				for (size_t i=0;i<s->fields.size();i++)
 				{
-					std::cout << "		";
+					out << "		";
 					switch (s->fields[i].type)
 					{
 						case FIELDTYPE_INT32:
-							std::cout << "int ";
+							out << "int ";
 							break;
 						case FIELDTYPE_POINTER:
-							std::cout << s->fields[i].ref_type << " *";
+							out << s->fields[i].ref_type << " *";
 							break;
 						case FIELDTYPE_STRUCT_INSTANCE:
-							std::cout << s->fields[i].ref_type << " ";
+							out << s->fields[i].ref_type << " ";
 							break;
 						case FIELDTYPE_STRING:
-							std::cout << "const char *";
+							out << "const char *";
 							break;
 					}
 
 					if (s->fields[i].is_array)
-						std::cout << "*";
+						out << "*";
 
-					std::cout << s->fields[i].name << ";" <<std::endl;
+					out << s->fields[i].name << ";" <<std::endl;
 
 					if (s->fields[i].is_array)
-						std::cout << "		int " << s->fields[i].name << "_count;" << std::endl;
+						out << "		int " << s->fields[i].name << "_count;" << std::endl;
 				}
 
-				std::cout << "	};" << std::endl;
-				std::cout << "}" << std::endl;				
+				out << "	};" << std::endl;
+				out << "}" << std::endl;				
 			}
 		}
-		std::cout << "#pragma pack(pop)" << std::endl;
+		out << "#pragma pack(pop)" << std::endl;
 	}
 
 	const char *win32_field_type(putki::field_type f)
@@ -67,9 +67,9 @@ namespace putki
 		}
 	}
 
-	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt)
+	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, std::ostream &out)
 	{		
-		std::cout << "namespace outki {" << std::endl;
+		out << "namespace outki {" << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -78,89 +78,89 @@ namespace putki
 
 			if (rt == putki::RUNTIME_CPP_WIN32)
 			{								
-				std::cout << "	char* post_blob_load_" << s->name << "(" << s->name << " *d, char *aux_cur, char *aux_end)" << std::endl;
-				std::cout << "	{" << std::endl;
+				out << "	char* post_blob_load_" << s->name << "(" << s->name << " *d, char *aux_cur, char *aux_end)" << std::endl;
+				out << "	{" << std::endl;
 
 				for (size_t j=0;j<s->fields.size();j++)
 				{				
 					if (j > 0)
-						std::cout << std::endl;
-					std::cout << "		// field " << s->fields[j].name << std::endl;
+						out << std::endl;
+					out << "		// field " << s->fields[j].name << std::endl;
 					if (s->fields[j].is_array)
 					{
 						if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
 						{
-							std::cout << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "*>(aux_cur);" << std::endl;
-							std::cout << "		" << "aux_cur += sizeof(" << s->fields[j].ref_type << ") * d->" << s->fields[j].name << "_count;" << std::endl;
+							out << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "*>(aux_cur);" << std::endl;
+							out << "		" << "aux_cur += sizeof(" << s->fields[j].ref_type << ") * d->" << s->fields[j].name << "_count;" << std::endl;
 						}
 						else if (s->fields[j].type == FIELDTYPE_POINTER)
 						{
-							std::cout << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);" << std::endl;
-							std::cout << "		" << "aux_cur += sizeof(" << s->fields[j].ref_type << "*) * d->" << s->fields[j].name << "_count;" << std::endl;
+							out << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);" << std::endl;
+							out << "		" << "aux_cur += sizeof(" << s->fields[j].ref_type << "*) * d->" << s->fields[j].name << "_count;" << std::endl;
 						}
 						else
 						{
-							std::cout << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << win32_field_type(s->fields[j].type) << "*>(aux_cur);" << std::endl;
-							std::cout << "		" << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_count;" << std::endl;
+							out << "		" << "d->" << s->fields[j].name << " = reinterpret_cast<" << win32_field_type(s->fields[j].type) << "*>(aux_cur);" << std::endl;
+							out << "		" << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_count;" << std::endl;
 						}
 						
 
-						std::cout << "		for (int i=0;i<d->" << s->fields[j].name + "_count;i++)" << std::endl;
+						out << "		for (int i=0;i<d->" << s->fields[j].name + "_count;i++)" << std::endl;
 					}
 
 					switch (s->fields[j].type)
 					{
 						case FIELDTYPE_POINTER:
 							if (s->fields[j].is_array)
-								std::cout << "			resolve_" << s->fields[j].ref_type << "_ptr(&d->" << s->name << "[i]);" << std::endl;
+								out << "			resolve_" << s->fields[j].ref_type << "_ptr(&d->" << s->name << "[i]);" << std::endl;
 							else
-								std::cout << "		resolve_" << s->fields[j].ref_type << "_ptr(d->" << s->name << ");" << std::endl;
+								out << "		resolve_" << s->fields[j].ref_type << "_ptr(d->" << s->name << ");" << std::endl;
 							break;
 						case FIELDTYPE_STRUCT_INSTANCE:							
 
 							if (s->fields[j].is_array)
-								std::cout << "			aux_cur = post_blob_load_" << s->fields[j].ref_type << "(&s->" << s->fields[j].name << "[i], aux_cur, aux_end);" << std::endl;
+								out << "			aux_cur = post_blob_load_" << s->fields[j].ref_type << "(&s->" << s->fields[j].name << "[i], aux_cur, aux_end);" << std::endl;
 							else
-								std::cout << "		aux_cur = post_blob_load_" << s->fields[j].ref_type << "(&s->" << s->fields[j].name << ", aux_cur, aux_end);" << std::endl;
+								out << "		aux_cur = post_blob_load_" << s->fields[j].ref_type << "(&s->" << s->fields[j].name << ", aux_cur, aux_end);" << std::endl;
 							
 							break;						
 						case FIELDTYPE_STRING:
 							if (s->fields[j].is_array)
-								std::cout << "			aux_cur = post_blob_load_string(&s->" << s->fields[j].name << "[i], aux_cur, aux_end);" << std::endl;
+								out << "			aux_cur = post_blob_load_string(&s->" << s->fields[j].name << "[i], aux_cur, aux_end);" << std::endl;
 							else
-								std::cout << "		aux_cur = post_blob_load_string(&s->" << s->fields[j].name << ", aux_cur, aux_end);" << std::endl;							
+								out << "		aux_cur = post_blob_load_string(&s->" << s->fields[j].name << ", aux_cur, aux_end);" << std::endl;							
 							break;
 						default:												
 							if (s->fields[j].is_array)
-								std::cout << "			;" << std::endl;
+								out << "			;" << std::endl;
 							break;
 					}
 
 				/*
 					if (s->fields[i].is_array)
-						std::cout << "*";
+						out << "*";
 
-					std::cout << s->fields[i].name << ";" <<std::endl;
+					out << s->fields[i].name << ";" <<std::endl;
 
 					if (s->fields[i].is_array)
-						std::cout << "		int " << s->fields[i].name << "_count;" << std::endl;						
+						out << "		int " << s->fields[i].name << "_count;" << std::endl;						
 				}
 				*/				
 				}
 
-				std::cout << "		return aux_cur;" << std::endl;
-				std::cout << "	}" << std::endl;				
+				out << "		return aux_cur;" << std::endl;
+				out << "	}" << std::endl;				
 			}
 		}
-		std::cout << "}" << std::endl;
+		out << "}" << std::endl;
 	}
 
-	void write_meta_header(putki::parsed_file *file)
+	void write_meta_header(putki::parsed_file *file, std::ostream &out)
 	{
 
 	}
 
-	void write_meta_impl(putki::parsed_file *file)
+	void write_meta_impl(putki::parsed_file *file, std::ostream &out)
 	{
 
 	}
