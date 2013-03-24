@@ -26,6 +26,7 @@ namespace putki
 
 	struct parsed_file
 	{
+        std::string filename;
 		std::vector<parsed_struct> structs;
 	};
 

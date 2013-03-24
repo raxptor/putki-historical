@@ -11,7 +11,7 @@ difficulty_setting [in, out]
 
 difficulties [in, out]
 {
-	difficulty_setting[] difficulties
+	difficulty_setting[] difficulty
 }
 
 map_description [in, out]

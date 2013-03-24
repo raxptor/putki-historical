@@ -97,7 +97,19 @@ namespace putki
 	{
 		std::cout << "Compiling [" << in_path << "]" << std::endl;
 		std::ifstream f(in_path);
-
+        
+        std::string fn(in_path);
+    
+        out->filename = "unknown";
+        
+        std::string::size_type lp = fn.find_last_of("/");
+        if (lp != std::string::npos)
+        {
+            std::string::size_type np = fn.find_last_of(".");
+            if (np != std::string::npos)
+                out->filename = fn.substr(lp + 1, np - lp - 1);
+        }
+        
 		bool in_struct = false;
 		bool in_scope = false;
 

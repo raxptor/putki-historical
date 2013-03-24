@@ -28,6 +28,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9C01D0B616FE818100E733C4 /* blob.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = blob.h; sourceTree = "<group>"; };
+		9C01D0B716FE818100E733C4 /* resolve.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = resolve.cpp; sourceTree = "<group>"; };
+		9C01D0B816FE818100E733C4 /* resolve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = resolve.h; sourceTree = "<group>"; };
+		9C01D0BB16FE855100E733C4 /* blob.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blob.cpp; sourceTree = "<group>"; };
 		9C1BB09D16596E210090A5A7 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		9C6FA97816596CD1008EB5BC /* Putki */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Putki; sourceTree = BUILT_PRODUCTS_DIR; };
 		9C6FA98516596D09008EB5BC /* builder-config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "builder-config.cpp"; path = "../../../src/putki/builder-config.cpp"; sourceTree = "<group>"; };
@@ -40,7 +44,7 @@
 		9C6FA98C16596D09008EB5BC /* fieldtypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fieldtypes.h; path = ../../../src/putki/fieldtypes.h; sourceTree = "<group>"; };
 		9C6FA98D16596D09008EB5BC /* runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = runtime.h; path = ../../../src/putki/runtime.h; sourceTree = "<group>"; };
 		9C6FA98F16596D09008EB5BC /* files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = files.h; sourceTree = "<group>"; };
-		9C6FA99516596D24008EB5BC /* generator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = generator.cpp; sourceTree = "<group>"; };
+		9C6FA99516596D24008EB5BC /* generator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = generator.cpp; sourceTree = "<group>"; wrapsLines = 0; };
 		9C6FA99616596D24008EB5BC /* generator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = generator.h; sourceTree = "<group>"; };
 		9C6FA99816596D24008EB5BC /* parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parse.cpp; sourceTree = "<group>"; };
 		9C6FA99916596D24008EB5BC /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
@@ -58,6 +62,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9C01D0B416FE818100E733C4 /* cpp-runtime */ = {
+			isa = PBXGroup;
+			children = (
+				9C01D0B516FE818100E733C4 /* putki */,
+			);
+			name = "cpp-runtime";
+			path = "../../../src/cpp-runtime";
+			sourceTree = "<group>";
+		};
+		9C01D0B516FE818100E733C4 /* putki */ = {
+			isa = PBXGroup;
+			children = (
+				9C01D0BB16FE855100E733C4 /* blob.cpp */,
+				9C01D0B616FE818100E733C4 /* blob.h */,
+				9C01D0B716FE818100E733C4 /* resolve.cpp */,
+				9C01D0B816FE818100E733C4 /* resolve.h */,
+			);
+			path = putki;
+			sourceTree = "<group>";
+		};
 		9C6FA96D16596CD1008EB5BC = {
 			isa = PBXGroup;
 			children = (
@@ -78,6 +102,7 @@
 		9C6FA97B16596CD1008EB5BC /* Putki */ = {
 			isa = PBXGroup;
 			children = (
+				9C01D0B416FE818100E733C4 /* cpp-runtime */,
 				9C6FA99416596D24008EB5BC /* generator */,
 				9C6FA99716596D24008EB5BC /* parser */,
 				9C6FA98516596D09008EB5BC /* builder-config.cpp */,

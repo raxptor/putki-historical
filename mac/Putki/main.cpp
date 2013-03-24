@@ -3,28 +3,92 @@
 #include <putki/sys/files.h>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <unistd.h>
+
+namespace
+{
+	const char *s_inpath;
+	const char *s_rt_outpath;
+    const char *s_putki_outpath;
+}
 
 void file(const char *fullpath, const char *name)
 {
 	const char *ending = ".typedef";
-	const size_t len = strlen(ending);
+	const unsigned int len = (unsigned int)strlen(ending);
 	std::string fn(name);
 	if (fn.size() <= len)
 		return;
-    
+
 	if (fn.substr(fn.size() - len, len) == ending)
 	{
-		std::cout << "File [" << name << "] => opening " << fullpath << std::endl;
+		std::string out_base = std::string(fullpath).substr(strlen(s_inpath), strlen(fullpath) - strlen(s_inpath));
+        
+		out_base = out_base.substr(0, out_base.size() - len);
+
+        putki::sys::mk_dir_for_path((s_rt_outpath + out_base).c_str());
+        putki::sys::mk_dir_for_path((s_putki_outpath + out_base).c_str());
+		
+		std::cout << "File [" << name << "]" << std::endl;
+		
 		putki::parsed_file pf;
 		putki::parse(fullpath, &pf);
-		putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN32);
+
+		std::string rt_header = s_rt_outpath + out_base + ".h";
+		std::string rt_impl   = s_rt_outpath + out_base + "_rt.cpp";
+        
+        std::ofstream f_rt_header(rt_header);
+        std::ofstream f_rt_impl(rt_impl);
+
+ 		std::cout << " -> writing [" << rt_header << "] and [" << rt_impl << "]" << std::endl;
+		putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, f_rt_header);
+		putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN64, f_rt_impl);
+
+ 		std::string putki_header = s_putki_outpath + out_base + ".h";
+		std::string putki_impl   = s_putki_outpath + out_base + "_putki.cpp";
+        
+        std::ofstream f_putki_header(putki_header);
+        std::ofstream f_putki_impl(putki_impl);
+       
+ 		std::cout << " -> writing [" << putki_header << "] and [" << putki_impl << "]" << std::endl;
+        putki::write_putki_header(&pf, f_putki_header);
+        putki::write_putki_impl(&pf, f_putki_impl);
 	}
 }
 
+
 int main (int argc, char *argv[])
 {
-    std::cout << "Putki compiler iOS verison." << std::endl;
-	putki::sys::search_tree("../../src", file);
+	{
+/*
+		s_inpath = argv[1];
+		s_outpath = argv[2];
+*/
+        chdir("/Users/dannilsson/git/putki/test-project/");
+        
+        s_inpath = "src";
+        s_rt_outpath = "_gen/outki";
+        s_putki_outpath = "_gen/putki";
+        
+		putki::sys::search_tree(argv[1], file);
+	
+		/*
+		try 
+		{
+			putki::parsed_file pf;
+			putki::parse(argv[1], &pf);
+
+			putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN32, std::cout);
+			putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN32, std::cout);
+		}
+		catch (...)
+		{
+			std::cout << "Exception!" << std::endl;
+		}
+		*/
+
+    }
 	return 0;
 }
