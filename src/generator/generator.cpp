@@ -81,7 +81,6 @@ namespace putki
         write_runtime_header(file, rt, out, false);
     }
    
-
 	const char *win32_field_type(putki::field_type f)
 	{
 		switch (f)
@@ -188,17 +187,6 @@ namespace putki
                     
                     if (s->fields[j].is_array)
                         out << "}" << std::endl;
-
-				/*
-					if (s->fields[i].is_array)
-						out << "*";
-
-					out << s->fields[i].name << ";" <<std::endl;
-
-					if (s->fields[i].is_array)
-						out << "		int " << s->fields[i].name << "_count;" << std::endl;						
-				}
-				*/				
 				}
 
 				out << "		return aux_cur;" << std::endl;
@@ -249,15 +237,31 @@ namespace putki
             
             if (s->domains & putki::DOMAIN_RUNTIME)
             {
-                /*
-                out << " char *write_" << s->name << "_aux(" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);" << std::endl;
-                 */
                 out << " char *write_" << s->name << "_into_blob(" << s->name << " *in, char *out_beg, char *out_end);" << std::endl;
             }
         }
+        out << std::endl;
         out << "} // namespace putki" << std::endl;
 	}
 
+    void write_putki_type_reg(putki::parsed_file *file, std::ostream &out)
+    {
+        out << "#include <putki/builder/typereg.h>" << std::endl;
+        out << "namespace putki {" << std::endl;
+        for (int i=0;i!=file->structs.size();i++)
+        {
+            putki::parsed_struct *s = &file->structs[i];
+            out << "struct " << s->name << "_handler : public i_type_handler {" << std::endl;
+            out << "    type_inst alloc() { return new putki::" << s->name << "; }" << std::endl;
+            out << "    void free(type_inst p) { delete (putki::" << s->name << "*) p; }" << std::endl;
+            out << std::endl;
+            out << "} s_" << s->name << "_handler;" << std::endl;
+            out << "void bind_type_" << s->name << "() { putki::typereg_register(\"" << s->name << "\", &s_" << file->structs[i].name << "_handler); } " << std::endl;
+
+        }
+        out << "}" << std::endl;
+    }
+    
 	void write_putki_impl(putki::parsed_file *file, std::ostream &out)
 	{
         out << "// Generated code!" << std::endl;
@@ -348,5 +352,18 @@ namespace putki
            
         }
         out << "}" << std::endl;
+        
+        write_putki_type_reg(file, out);
 	}
+    
+    void write_bind_calls(putki::parsed_file *file, std::ostream &out)
+    {
+        for (int i=0;i<file->structs.size();i++)
+        {
+ 			putki::parsed_struct *s = &file->structs[i];
+            out << "void bind_type_" << s->name << "();" << std::endl;
+            out << "bind_type_" << s->name << "();" << std::endl;
+        }
+    }
+  
 }

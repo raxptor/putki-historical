@@ -12,6 +12,7 @@ namespace
 	const char *s_inpath;
 	const char *s_rt_outpath;
     const char *s_putki_outpath;
+    std::ofstream *s_bind_file;
 }
 
 void file(const char *fullpath, const char *name)
@@ -55,6 +56,7 @@ void file(const char *fullpath, const char *name)
  		std::cout << " -> writing [" << putki_header << "] and [" << putki_impl << "]" << std::endl;
         putki::write_putki_header(&pf, f_putki_header);
         putki::write_putki_impl(&pf, f_putki_impl);
+        putki::write_bind_calls(&pf, *s_bind_file);        
 	}
 }
 
@@ -72,7 +74,19 @@ int main (int argc, char *argv[])
         s_rt_outpath = "_gen/outki";
         s_putki_outpath = "_gen/putki";
         
+        const char *module_name = "test_project";
+        
+        std::ofstream f_bind((std::string(s_putki_outpath) + "/bind.cpp").c_str());
+        s_bind_file = &f_bind;
+        
+        *s_bind_file << "#include <putki/builder/typereg.h>" << std::endl;
+        *s_bind_file << "namespace putki {";
+        *s_bind_file << "void bind_" << module_name << std::endl << "() {" << std::endl;
+        
 		putki::sys::search_tree(argv[1], file);
+        
+        *s_bind_file << "}" << std::endl;
+        *s_bind_file << "}" << std::endl;
 	
 		/*
 		try 

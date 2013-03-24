@@ -12,6 +12,8 @@ namespace putki
 
 	void write_putki_header(putki::parsed_file *file, std::ostream &out);
 	void write_putki_impl(putki::parsed_file *file, std::ostream &out);
+    
+  	void write_bind_calls(putki::parsed_file *file, std::ostream &out);
 }
 
 #endif

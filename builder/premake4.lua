@@ -8,10 +8,10 @@ solution "Putki"
 		language "C++"
 		files { "../external/json-parser/json.c" }
 
-	project "Compiler"
+	project "Databuilder"
 		kind "ConsoleApp"
 		language "C++"
-		targetname "compiler"
+		targetname "databuilder"
 		files { "../src/**.cpp", "../src/**.h" }
 		files { "src/main-osx.cpp" }
 		includedirs { "../src", "../src/cpp-runtime/", "../external" }

@@ -8,14 +8,21 @@ solution "Putki"
 		language "C++"
 		files { "../external/json-parser/json.c" }
 
-	project "Compiler"
+	project "testapp-putki"
+		kind "StaticLib"
+		language "C++"
+		files { "_gen/**.cpp", "_gen/**.h" }
+		files { "src/**.cpp" }
+		includedirs { "../src", "../src/cpp-runtime", "_gen" }
+
+	project "databuilder"
 		kind "ConsoleApp"
 		language "C++"
-		targetname "compiler"
+		targetname "databuilder"
 		files { "../src/**.cpp", "../src/**.h" }
-		files { "src/main-osx.cpp" }
+		files { "../builder/src/main-osx.cpp" }
 		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-		links {"json-parser"}
+		links {"json-parser", "testapp-putki"}
 
 		configuration "Release"
 			defines {"DEBUG"}
