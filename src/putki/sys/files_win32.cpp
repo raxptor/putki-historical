@@ -1,3 +1,5 @@
+#if defined(_WIN32)
+
 #include <putki/sys/files.h>
 #include <windows.h>
 #include <vector>
@@ -61,3 +63,6 @@ namespace putki
 
 	}
 }
+
+#endif
+

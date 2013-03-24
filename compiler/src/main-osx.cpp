@@ -39,8 +39,8 @@ void file(const char *fullpath, const char *name)
 		std::string rt_header = s_rt_outpath + out_base + ".h";
 		std::string rt_impl   = s_rt_outpath + out_base + "_rt.cpp";
         
-        std::ofstream f_rt_header(rt_header);
-        std::ofstream f_rt_impl(rt_impl);
+        std::ofstream f_rt_header(rt_header.c_str());
+        std::ofstream f_rt_impl(rt_impl.c_str());
 
  		std::cout << " -> writing [" << rt_header << "] and [" << rt_impl << "]" << std::endl;
 		putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, f_rt_header);
@@ -49,8 +49,8 @@ void file(const char *fullpath, const char *name)
  		std::string putki_header = s_putki_outpath + out_base + ".h";
 		std::string putki_impl   = s_putki_outpath + out_base + "_putki.cpp";
         
-        std::ofstream f_putki_header(putki_header);
-        std::ofstream f_putki_impl(putki_impl);
+        std::ofstream f_putki_header(putki_header.c_str());
+        std::ofstream f_putki_impl(putki_impl.c_str());
        
  		std::cout << " -> writing [" << putki_header << "] and [" << putki_impl << "]" << std::endl;
         putki::write_putki_header(&pf, f_putki_header);
