@@ -3,6 +3,9 @@ solution "Putki"
 	location "build"
 	targetdir "build"
 
+	configuration "Release"
+		flags { "NoPCH", "NoRTTI", "Symbols"}
+
 	project "json-parser"
 		kind "StaticLib"
 		language "C++"

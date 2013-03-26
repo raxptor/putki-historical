@@ -10,10 +10,12 @@ namespace putki
 {	
 	struct parsed_field
 	{
+		int domains;
+
 		putki::field_type type;
 		bool is_array;
 
-		std::string name;	
+		std::string name;
 		std::string ref_type;
 	};
 

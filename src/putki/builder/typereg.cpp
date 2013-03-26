@@ -29,4 +29,9 @@ namespace putki
         std::cout << "Registering type [" << type << "]" << std::endl;
         g_reg()->handlers[type] = dt;
     }
+
+	i_type_handler *typereg_get_handler(type_t t)
+	{
+		return g_reg()->handlers[t];
+	}
 }

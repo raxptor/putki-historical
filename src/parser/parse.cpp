@@ -26,7 +26,7 @@ namespace putki
 			}
 			else
 			{
-				std::cout << "flag is '" << tok << "'\n";
+			//	std::cout << "flag is '" << tok << "'\n";
 			}
 			tok = strtok(0, " ");
 		}
@@ -43,6 +43,7 @@ namespace putki
 		out->type = putki::FIELDTYPE_INT32;
 		out->name = "<invalid>";
 		out->is_array =	false;
+		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 
 		bool read_type = true;
 		bool read_ptr_type = false;
@@ -63,14 +64,18 @@ namespace putki
 				}
 					
 				std::cout << " Type is '" << type << "'" << std::endl;
-				if (!strcmp(type.c_str(), "string"))
+				if (!strcmp(type.c_str(), "[no-out]"))
+					out->domains = putki::DOMAIN_INPUT;
+				else if (!strcmp(type.c_str(), "string"))
 					out->type = putki::FIELDTYPE_STRING;
 				else if (!strcmp(type.c_str(), "u32"))
 					out->type = putki::FIELDTYPE_INT32;
+				else if (!strcmp(type.c_str(), "file"))
+					out->type = putki::FIELDTYPE_FILE;
 				else if (!strcmp(type.c_str(), "pointer"))
 				{
 					out->type = putki::FIELDTYPE_POINTER;
-				read_ptr_type = true;
+					read_ptr_type = true;
 				}
 				else
 				{
@@ -136,7 +141,7 @@ namespace putki
 				{
 					if (line[0] == '{')
 					{
-						in_scope = true;						
+						in_scope = true;
 					}
 				}
 				else if (in_scope)

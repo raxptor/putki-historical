@@ -3,10 +3,10 @@ solution "Putki"
 	location "build"
 	targetdir "build"
 
-	project "json-parser"
+	project "jsmn"
 		kind "StaticLib"
 		language "C++"
-		files { "../external/json-parser/json.c" }
+		files { "../external/jsmn/*.c", "../external/jsmn/*.h"}
 
 	project "Databuilder"
 		kind "ConsoleApp"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <putki/runtime.h>
 #include <cstring>
 
 namespace putki
@@ -16,18 +17,22 @@ namespace putki
     {
         return !strcmp(a, b);
     }
+
+	namespace parse { struct node; }
 	
 	struct i_type_handler
 	{
 		// instantiate / destruct.
 		virtual type_inst alloc() = 0;
 		virtual void free(type_inst) = 0;
-
-		// read/write
-//		virtual type_inst parse(const char *str, unsigned int len) = 0;
-//		virtual char* write_into_blob(type_inst d, char *beg, char *end) = 0;
+		virtual void fill_from_parsed(parse::node *pn, type_inst target) = 0;
+		virtual char* write_into_buffer(putki::runtime rt, type_inst source, char *beg, char *end) = 0;
+		virtual const char *name() = 0;
 	};
 
 	void typereg_init();
     void typereg_register(type_t, i_type_handler *dt);
+	i_type_handler *typereg_get_handler(type_t);
+
+
 }

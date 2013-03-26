@@ -1,6 +1,9 @@
 *.ncb
 *.suo
 *.user
+*.vcxproj
+*.filters
+obj
 Debug
 build
 .DS_Store

@@ -2,8 +2,12 @@
 
 #include <putki/sys/files.h>
 #include <windows.h>
+#include <direct.h>
+
 #include <vector>
 #include <string>
+#include <iostream>
+
 
 namespace putki
 {
@@ -16,7 +20,7 @@ namespace putki
 			if (root.empty())
 				root = ".";
 
-			std::string files_in_path = root + "\\*.*";
+			std::string files_in_path = root + "/*.*";
 
 			std::vector<std::string> dirs;
 
@@ -27,18 +31,14 @@ namespace putki
 				if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				{
 					if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
-						dirs.push_back(root + "\\" + fd.cFileName);
+						dirs.push_back(root + "/" + fd.cFileName);
 				}
 				else
 				{
-					std::string nice_name(root + "\\" + fd.cFileName);
+					std::string nice_name(root + "/" + fd.cFileName);
 					std::string full_name = nice_name;
 
 					nice_name = nice_name.erase(0, cut_length);
-
-					for (std::string::size_type i=0;i!=nice_name.size();i++)
-						if (nice_name[i] == '\\')
-							nice_name[i] = '/';
 
 					callback(full_name.c_str(), nice_name.c_str());
 				}
@@ -61,6 +61,25 @@ namespace putki
 			search_tree_internal(root_directory, callback, strlen(root_directory) + 1);
 		}
 
+
+       void mk_dir_for_path(const char *path)
+        {
+            std::string p(path);
+            
+            std::string::size_type i = 0;
+            while (true)
+            {
+                i = p.find_first_of("/", i);
+                if (i == std::string::npos)
+                    break;
+                
+                std::string fp = p.substr(0,i);
+                
+                _mkdir(fp.c_str());
+                std::cout << "Creating [" << fp << "]" << std::endl;
+                i++;
+            }
+        }
 	}
 }
 

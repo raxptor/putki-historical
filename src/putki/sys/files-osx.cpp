@@ -1,3 +1,5 @@
+#if !defined(_WIN32)
+
 #include <putki/sys/files.h>
 #include <string.h>
 #include <string>
@@ -32,7 +34,7 @@ namespace putki
                 i++;
             }
         }
-        
-
     }
 }
+
+#endif

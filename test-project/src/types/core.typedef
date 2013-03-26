@@ -11,7 +11,9 @@ difficulty_setting [in, out]
 
 difficulties [in, out]
 {
+	string kalle
 	difficulty_setting[] difficulty
+	u32[] outlist
 }
 
 map_description [in, out]
@@ -23,4 +25,17 @@ gamedescription [in,out]
 {
 	string[] name
 	u32[] level
+}
+
+level [in, out]
+{
+	[no-out] file mapfile
+	u32 width
+	u32 height
+}
+
+appdescription [in, out]
+{
+	string name
+	string version
 }
