@@ -11,7 +11,7 @@ namespace putki
 		struct entry
 		{
 			i_type_handler *th;
-			type_inst obj;
+			instance_t obj;
 		};
 
 		struct data
@@ -24,7 +24,7 @@ namespace putki
 			return new data();
 		}
 
-		void insert(data *d, const char *path, i_type_handler *th, type_inst i)	
+		void insert(data *d, const char *path, i_type_handler *th, instance_t i)	
 		{
 			entry e;
 			e.th = th;
@@ -32,7 +32,7 @@ namespace putki
 			d->objs[path] = e;
 		}
 
-		bool fetch(data *d, const char *path, i_type_handler **th, type_inst *obj)
+		bool fetch(data *d, const char *path, i_type_handler **th, instance_t *obj)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
@@ -44,12 +44,12 @@ namespace putki
 			return false;
 		}
 
-		void read_all(data *d, record_enum_t func)
+		void read_all(data *d, enum_i *eobj)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{
-				func(i->first.c_str(), i->second.th, i->second.obj);
+				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
 				++i;
 			}
 		}

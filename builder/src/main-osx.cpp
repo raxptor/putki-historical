@@ -3,6 +3,7 @@
 #include <putki/builder/source.h>
 #include <putki/builder/db.h>
 #include <putki/sys/files.h>
+#include <putki/runtime.h>
 
 #include <iostream>
 #include <fstream>
@@ -16,26 +17,34 @@ void app_on_db_loaded(putki::db::data *db);
 int app_builder_main();
 
 namespace
-{
-	const unsigned int xbufSize = 32*1024*1024;
-	char xbuf[xbufSize];
+{    
+    const unsigned int xbufSize = 32*1024*1024;
+    char xbuf[xbufSize];
+    
+    struct read_source : public putki::db::enum_i
+    {
+       
+        void record(const char *path, putki::i_type_handler* th, putki::instance_t obj)
+        {
+            std::cout << "Processing [" << path << "]..." << std::endl;
 
-	void on_record(const char *path, putki::i_type_handler* th, putki::type_inst obj)
-	{
-		std::cout << "Processing [" << path << "]..." << std::endl;
+            std::string outpath = std::string("output/") + path;
+            
+            char *ptr = th->write_into_buffer(putki::RUNTIME_CPP_WIN32,
+                                              obj,
+                                              xbuf,
+                                              xbuf + xbufSize);
+            if (ptr)
+            {
 
-		std::string outpath = std::string("output/") + path;
-		char *ptr = th->write_into_buffer(putki::runtime::RUNTIME_CPP_WIN32, obj, xbuf, xbuf + xbufSize);
-		if (ptr)
-		{
+                std::cout << "     => Writing " << outpath << std::endl;
 
-			std::cout << "     => Writing " << outpath << std::endl;
-
-			putki::sys::mk_dir_for_path(outpath.c_str());
-			std::ofstream out(outpath.c_str(), std::ios::binary);
-			out.write(xbuf, ptr - xbuf);
-		}
-	}
+                putki::sys::mk_dir_for_path(outpath.c_str());
+                std::ofstream out(outpath.c_str(), std::ios::binary);
+                out.write(xbuf, ptr - xbuf);
+            }
+        }
+    };
 }
 
 // Impl.
@@ -46,7 +55,9 @@ void do_build_steps()
 	app_on_db_loaded(d);
 
 	std::cout << "Building..." << std::endl;
-	putki::db::read_all(d, on_record);
+    
+    read_source rdr;
+	putki::db::read_all(d, &rdr);
 	std::cout << "Build done!" << std::endl;
 }
 

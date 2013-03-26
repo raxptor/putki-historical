@@ -39,7 +39,7 @@ namespace putki
 				i_type_handler *h = typereg_get_handler(objtype.c_str());
 				if (h)
 				{
-					type_inst obj = h->alloc();
+					instance_t obj = h->alloc();
 					h->fill_from_parsed(parse::get_object_item(root, "data"), obj);
 
 					db::insert(_db, asset_name.c_str(), h, obj);

@@ -359,17 +359,17 @@ namespace putki
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			out << "struct " << s->name << "_handler : public i_type_handler {" << std::endl;
-			out << "    type_inst alloc() { return new putki::" << s->name << "; }" << std::endl;
-			out << "    void free(type_inst p) { delete (putki::" << s->name << "*) p; }" << std::endl;
+			out << "    instance_t alloc() { return new putki::" << s->name << "; }" << std::endl;
+			out << "    void free(instance_t p) { delete (putki::" << s->name << "*) p; }" << std::endl;
 			out << "    const char *name() { return \"" << s->name << "\"; }" << std::endl;
-			out << "	char* write_into_buffer(putki::runtime rt, type_inst source, char *beg, char *end) {" << std::endl;
+			out << "	char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) {" << std::endl;
 
 			write_blob_writer_call(putki::RUNTIME_CPP_WIN32, s->name.c_str(), out);
 			write_blob_writer_call(putki::RUNTIME_CPP_WIN64, s->name.c_str(), out);
 
 			out << "   return 0; }" << std::endl;
 
-			out << "	void fill_from_parsed(parse::node *pn, type_inst target) {" << std::endl;
+			out << "	void fill_from_parsed(parse::node *pn, instance_t target) {" << std::endl;
 			out << "                 fill_" << s->name << "_from_parsed(pn, target);" << std::endl;
 			out << "	}" << std::endl;
 			out << std::endl;

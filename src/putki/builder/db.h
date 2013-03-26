@@ -8,12 +8,16 @@ namespace putki
 	{
 		struct data;
 
-		typedef void (*record_enum_t) (const char *path, i_type_handler *th, type_inst i);
+		struct enum_i
+		{
+			virtual void record(const char *path, i_type_handler *th, instance_t i) = 0;
+		};
 
 		data * create();
-		void insert(data *d, const char *path, i_type_handler *th, type_inst i);
-		bool fetch(data *d, const char *path, i_type_handler **th, type_inst *obj);
+		void insert(data *d, const char *path, i_type_handler *th, instance_t i);
+		bool fetch(data *d, const char *path, i_type_handler **th, instance_t *obj);
 
-		void read_all(data *d, record_enum_t func);
+		void read_all(data *d, enum_i *);
+		void read_all_by_type(i_type_handler *th, enum_i*);
 	}
 }

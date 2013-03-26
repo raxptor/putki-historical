@@ -11,7 +11,7 @@ namespace putki
 {
     namespace sys
     {
-		void search_tree(const char *root_directory, file_enum_t callback)
+	void search_tree(const char *root_directory, file_enum_t callback)
         {
             callback("src/types/core.typedef", "core.typedef");
         }
