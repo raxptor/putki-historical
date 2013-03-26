@@ -54,6 +54,7 @@ namespace putki
 						case FIELDTYPE_STRUCT_INSTANCE:
 							out <<f->ref_type << " ";
 							break;
+						case FIELDTYPE_FILE:
 						case FIELDTYPE_STRING:
 							{
 								if (for_putki)

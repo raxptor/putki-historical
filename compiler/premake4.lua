@@ -6,19 +6,13 @@ solution "Putki"
 	configuration "Release"
 		flags { "NoPCH", "NoRTTI", "Symbols"}
 
-	project "json-parser"
-		kind "StaticLib"
-		language "C++"
-		files { "../external/json-parser/json.c" }
-
 	project "Compiler"
 		kind "ConsoleApp"
 		language "C++"
 		targetname "compiler"
-		files { "../src/**.cpp", "../src/**.h" }
+		files { "../src/putki/sys/**.cpp", "../src/parser/**.cpp", "../src/generator/**.cpp", "../src/compiler/**.cpp", "../src/compiler/**.h" }
 		files { "src/main-osx.cpp" }
 		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-		links {"json-parser"}
 
 		configuration "Release"
 			defines {"DEBUG"}
