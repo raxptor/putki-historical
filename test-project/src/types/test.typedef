@@ -1,0 +1,13 @@
+
+datablob [in, out]
+{
+	byte[] bytes
+}
+
+testobj [in, out]
+{
+	string curken
+	ptr datablob dasblob
+}
+
+

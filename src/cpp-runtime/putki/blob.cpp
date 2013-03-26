@@ -34,7 +34,7 @@ namespace putki
         int *sz = (int*) where;
         pack_int32_field(where, len+1);
         
-        if (aux_end - aux_beg < (len+1))
+        if ((unsigned int)(aux_end - aux_beg) < (len+1))
             return 0;
         
         memcpy(aux_beg, src, len + 1);

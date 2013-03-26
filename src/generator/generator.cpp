@@ -43,6 +43,10 @@ namespace putki
 						case FIELDTYPE_INT32:
 							out << "int ";
 							break;
+						case FIELDTYPE_BYTE:
+							out << "char ";
+							break;
+
 						case FIELDTYPE_POINTER:
 							{
 								if (for_putki)
@@ -96,12 +100,14 @@ namespace putki
 			return "const char*";
 		case FIELDTYPE_INT32:
 			return "int";
+		case FIELDTYPE_BYTE:
+			return "char";
 		default:
 			return "???";
 		}
 	}
 
-	const char *putki_field_type(putki::field_type f)
+	const char *putki_field_type_pod(putki::field_type f)
 	{
 		switch (f)
 		{
@@ -110,19 +116,21 @@ namespace putki
 			return "std::string";
 		case FIELDTYPE_INT32:
 			return "int";
+		case FIELDTYPE_BYTE:
+			return "char";
 		default:
 			return 0;
 		}
 	}
 
-	const char *putki_field_type(putki::parsed_field *pf)
+	std::string putki_field_type(putki::parsed_field *pf)
 	{
 		if (pf->type == FIELDTYPE_STRUCT_INSTANCE)
 			return pf->ref_type.c_str();
 		else if (pf->type == FIELDTYPE_POINTER)
-			return (pf->ref_type + "*").c_str();
+			return pf->ref_type + "*";
 			
-		return putki_field_type(pf->type);
+		return putki_field_type_pod(pf->type);
 	}
 
 	// cross-platform definitions namespace encapsulation
@@ -254,8 +262,7 @@ namespace putki
 				}
 				else
 				{
-					out << "        " << putki_field_type(s->fields[j].type) << " " << s->fields[j].name
-						<< ";" << std::endl;
+					out << "        " << putki_field_type(&s->fields[j]) << " " << s->fields[j].name << ";" << std::endl;
 				}
 			}
 
@@ -286,8 +293,12 @@ namespace putki
 			out << "parse::node *arr = parse::get_object_item(pn, \"" << f->name << "\");" << std::endl;
 			out << "while (parse::node * n = parse::get_array_item(arr, i)) {" << std::endl;
 			out << "  " << type << " tmp;" << std::endl;
+			out << "  target->" << f->name << ".push_back(tmp); i++;" << std::endl;
+			out << "} i = 0; " << std::endl;
+			out << "while (parse::node * n = parse::get_array_item(arr, i)) {" << std::endl;
+			out << "   " << type << " & fixed_mem_obj = target->" << f->name << "[i];" << std::endl;
 
-			ref = "tmp";
+			ref = "fixed_mem_obj";
 			node = "n";
 		}
 
@@ -296,18 +307,21 @@ namespace putki
 		{
 			out << ref << " = " << " parse::get_value_string(" << node << "); " << std::endl;
 		}
-		else if (f->type == FIELDTYPE_INT32)
+		else if (f->type == FIELDTYPE_INT32 || f->type == FIELDTYPE_BYTE)
 		{
-			out << ref << " = " << " parse::get_value_int(" << node << "); " << std::endl;
+			out << ref << " = " << "(" << putki_field_type(f) << ") parse::get_value_int(" << node << "); " << std::endl;
 		}
 		else if (f->type == FIELDTYPE_STRUCT_INSTANCE)
 		{
-			out << "  fill_" << f->ref_type << "_from_parsed(" << node << ", &" << ref << ");" << std::endl;
+			out << "  fill_" << f->ref_type << "_from_parsed(" << node << ", &" << ref << ", resolver);" << std::endl;
+		}
+		else if (f->type == FIELDTYPE_POINTER) 
+		{
+			out << "   resolver->resolve_pointer((putki::instance_t *)&" << ref << ", parse::get_value_string(" << node << "));" << std::endl;
 		}
 
 		if (f->is_array)
 		{
-			out << "  target->" << f->name << ".push_back(tmp);" << std::endl;
 			out << " i++;" << std::endl;
 			out << "}" << std::endl;
 			out << "} // end array parse block" << std::endl;
@@ -322,7 +336,7 @@ namespace putki
 		{
 			putki::parsed_struct *s = &file->structs[i];
 
-			out << "void fill_" << s->name << "_from_parsed(parse::node *pn, void *target_)" << std::endl;
+			out << "void fill_" << s->name << "_from_parsed(parse::node *pn, void *target_, i_load_resolver *resolver)" << std::endl;
 			out << "{" << std::endl;
 			out << " " << s->name << " *target = (" << s->name << " *) target_;" << std::endl;
 
@@ -369,8 +383,9 @@ namespace putki
 
 			out << "   return 0; }" << std::endl;
 
-			out << "	void fill_from_parsed(parse::node *pn, instance_t target) {" << std::endl;
-			out << "                 fill_" << s->name << "_from_parsed(pn, target);" << std::endl;
+			out << "	void fill_from_parsed(parse::node *pn, instance_t target, i_load_resolver *resolver) {" << std::endl;
+			out << "                 fill_" << s->name << "_from_parsed(pn, target, resolver);" << std::endl;
+
 			out << "	}" << std::endl;
 			out << std::endl;
 			out << "} s_" << s->name << "_handler;" << std::endl;

@@ -70,9 +70,11 @@ namespace putki
 					out->type = putki::FIELDTYPE_STRING;
 				else if (!strcmp(type.c_str(), "u32"))
 					out->type = putki::FIELDTYPE_INT32;
+				else if (!strcmp(type.c_str(), "byte"))
+					out->type = putki::FIELDTYPE_BYTE;
 				else if (!strcmp(type.c_str(), "file"))
 					out->type = putki::FIELDTYPE_FILE;
-				else if (!strcmp(type.c_str(), "pointer"))
+				else if (!strcmp(type.c_str(), "ptr"))
 				{
 					out->type = putki::FIELDTYPE_POINTER;
 					read_ptr_type = true;
@@ -86,6 +88,7 @@ namespace putki
 			else if (read_ptr_type)
 			{
 				out->ref_type = tok;
+				read_ptr_type = false;
 			}
 			else
 			{

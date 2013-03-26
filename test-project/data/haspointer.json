@@ -1,0 +1,7 @@
+{ 
+	type: "testobj",
+	data: { 
+		curken: "Bananakalle", 
+		dasblob: "stuff/blob0" 
+	}
+}

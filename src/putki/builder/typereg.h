@@ -19,14 +19,20 @@ namespace putki
     }
 
 	namespace parse { struct node; }
+
+	struct i_load_resolver
+	{
+		virtual void resolve_pointer(instance_t *ptr, const char *path) = 0; 
+	};
 	
 	struct i_type_handler
 	{
 		// instantiate / destruct.
 		virtual instance_t alloc() = 0;
 		virtual void free(instance_t) = 0;
-		virtual void fill_from_parsed(parse::node *pn, instance_t target) = 0;
+		virtual void fill_from_parsed(parse::node *pn, instance_t target, i_load_resolver *resolver) = 0;
 		virtual char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) = 0;
+
 		virtual const char *name() = 0;
 	};
 

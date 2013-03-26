@@ -4,7 +4,7 @@
 #include <putki/builder/db.h>
 
 #include <putki/types/core.h>
-#include <outki/types/core.h>
+#include <putki/types/test.h>
 
 #include <fstream>
 
@@ -29,6 +29,13 @@ void bind_transforms()
 void app_on_db_loaded(putki::db::data *db)
 {
 	std::cout << "Source object db loaded!" << std::endl;
+
+	putki::i_type_handler *th;
+	putki::testobj *to;
+	if (putki::db::fetch(db, "haspointer", &th, (putki::instance_t*) &to))
+	{
+		std::cout << "loaded it [" << to->curken << "]" << std::endl;
+	}
 }
 
 int app_builder_main()
@@ -36,10 +43,6 @@ int app_builder_main()
 	putki::i_type_handler *handler = putki::typereg_get_handler("difficulty_setting");
 
 
-	putki::difficulty_setting *ds = new putki::difficulty_setting();
-
-	ds->level = 10;
-	ds->name = "hej";
 
 	do_build_steps();
 

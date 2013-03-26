@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <putki/sys/files.h>
 
@@ -14,6 +15,27 @@ namespace putki
 	namespace
 	{
 		db::data *_db;
+
+		struct resolve_entry
+		{
+			instance_t *inplace_ptr;
+			std::string path;
+		};
+
+		std::vector<resolve_entry> toresolve;
+
+		struct delayed_resolve : public i_load_resolver
+		{
+			void resolve_pointer(instance_t *ptr, const char *path)
+			{
+				*ptr = (instance_t) 0x6633112;
+				resolve_entry e;
+				e.inplace_ptr = ptr;
+				e.path = path;
+				toresolve.push_back(e);
+			}
+		};
+	
 
 		void add_file(const char *fullname, const char *name)
 		{
@@ -40,7 +62,9 @@ namespace putki
 				if (h)
 				{
 					instance_t obj = h->alloc();
-					h->fill_from_parsed(parse::get_object_item(root, "data"), obj);
+
+					delayed_resolve d;
+					h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
 					db::insert(_db, asset_name.c_str(), h, obj);
 				}
@@ -51,7 +75,6 @@ namespace putki
 
 				putki::parse::free(pd);
 			}
-
 		}
 	}
 
@@ -59,5 +82,23 @@ namespace putki
 	{
 		_db = d;
 		putki::sys::search_tree(sourcepath, add_file);
+
+		std::cout << toresolve.size() << " pointers to resolve!" << std::endl;
+
+		std::vector<resolve_entry> next_pass = toresolve;
+		for (unsigned int i=0;i!=next_pass.size();i++)
+		{
+			i_type_handler *th;
+			instance_t obj;
+			if (db::fetch(_db, next_pass[i].path.c_str(), &th, &obj))
+			{
+				// todo: check types here.
+				*(next_pass[i].inplace_ptr) = obj;
+			}
+			else
+			{
+				std::cout << "Unable to resolve [" << next_pass[i].path << "]!" << std::endl;
+			}
+		}
 	}
 }

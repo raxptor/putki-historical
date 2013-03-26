@@ -29,6 +29,7 @@ gamedescription [in,out]
 
 level [in, out]
 {
+	string name
 	[no-out] file mapfile
 	u32 width
 	u32 height
