@@ -26,7 +26,6 @@ namespace putki
     
     void typereg_register(const char *type, i_type_handler *dt)
     {
-        std::cout << "Registering type [" << type << "]" << std::endl;
         g_reg()->handlers[type] = dt;
     }
 

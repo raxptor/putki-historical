@@ -470,9 +470,6 @@ namespace putki
 
 			out << "char *write_" << s->name << "_into_blob(putki::" << s->name << " *in, char *out_beg, char *out_end)" << std::endl;
 			out << "{" << std::endl;
-			out << "   std::cout << \"packing a " << s->name;
-			out << " (\" << sizeof(" << out_n;
-			out << ") << \")!\" << std::endl;" << std::endl;
 			out << "  if (out_end - out_beg < sizeof(" << out_n << ")) return 0; " << std::endl;
 			out << "  " << out_n << " *d = (" << out_n << " *) out_beg;" << std::endl;
 			out << "  return write_" << s->name << "_aux(in, d, out_beg + sizeof(" << out_n << "),  out_end);" << std::endl;

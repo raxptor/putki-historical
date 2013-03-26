@@ -53,6 +53,11 @@ namespace putki
 				++i;
 			}
 		}
+
+		unsigned int size(data *d)
+		{
+			return (unsigned int) d->objs.size();
+		}
 		
 	}
 }

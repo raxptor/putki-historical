@@ -19,5 +19,7 @@ namespace putki
 
 		void read_all(data *d, enum_i *);
 		void read_all_by_type(i_type_handler *th, enum_i*);
+
+		unsigned int size(data *d);
 	}
 }

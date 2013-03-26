@@ -50,8 +50,6 @@ namespace putki
 
 			asset_name = asset_name.substr(0, p);
 
-			std::cout << "[Adding source [" << fullname << "] as [" << asset_name << "]" << std::endl;
-
 			parse::data *pd = parse::parse(fullname);
 			if (pd)
 			{
@@ -82,8 +80,8 @@ namespace putki
 	{
 		_db = d;
 		putki::sys::search_tree(sourcepath, add_file);
-
-		std::cout << toresolve.size() << " pointers to resolve!" << std::endl;
+		
+		std::cout << "Loaded " << db::size(_db) << " records. " << toresolve.size() << " pointers to resolve!" << std::endl;
 
 		std::vector<resolve_entry> next_pass = toresolve;
 		for (unsigned int i=0;i!=next_pass.size();i++)
