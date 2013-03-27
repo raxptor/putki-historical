@@ -64,6 +64,11 @@ void commit_package(putki::package::data *package, const char *out_path)
 	
 	long bytes_written = putki::package::write(package, output_runtime, xbuf, xbufSize);
 	std::cout << "Wrote " << bytes_written << " bytes" << std::endl;
+
+	putki::sys::mk_dir_for_path(final_path.c_str());
+
+	std::ofstream pkg(final_path.c_str(), std::ios::binary);
+	pkg.write(xbuf, bytes_written);
 	
 	putki::package::free(package);
 }

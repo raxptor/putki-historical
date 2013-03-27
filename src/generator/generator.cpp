@@ -16,12 +16,17 @@ namespace putki
 		out << std::endl;
 	}
 
+	const char *ptr_sub(putki::runtime rt)
+	{
+		if (rt == putki::RUNTIME_CPP_WIN32)
+			return "int ";
+		else
+			return "long long ";
+	}
+
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out, bool for_putki)
 	{
-		std::string ptr_subst("long long ");
 
-		if (rt == putki::RUNTIME_CPP_WIN32)
-			ptr_subst = "int ";
 
 		std::string deftok("__outki_header" + file->filename + "__h__");
 
@@ -54,7 +59,7 @@ namespace putki
 
 					if (for_putki &&f->is_array)
 					{
-						out << ptr_subst << " ";
+						out << ptr_sub(rt) << " ";
 					}
 					else
 					{
@@ -70,7 +75,7 @@ namespace putki
 						case FIELDTYPE_POINTER:
 							{
 								if (for_putki)
-									out << ptr_subst << " ";
+									out << ptr_sub(rt) << " ";
 								else
 									out <<f->ref_type << " *";
 							}
@@ -82,7 +87,7 @@ namespace putki
 						case FIELDTYPE_STRING:
 							{
 								if (for_putki)
-									out << ptr_subst << " ";
+									out << ptr_sub(rt) << " ";
 								else
 									out << "const char *";      
 							}
@@ -557,6 +562,10 @@ namespace putki
 				else if (fd.type == FIELDTYPE_STRUCT_INSTANCE)
 				{
 					out << " out_beg = write_" << fd.ref_type << "_aux(&" << srcd << ", &" << outd << ", out_beg, out_end);" << std::endl;
+				}
+				else if (fd.type == FIELDTYPE_POINTER || fd.type == FIELDTYPE_BYTE)
+				{
+					out << outd << " = (" << ptr_sub(rt) << ")" << srcd << ";" << std::endl;
 				}
 
 				if (fd.is_array)

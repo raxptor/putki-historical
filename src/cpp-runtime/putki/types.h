@@ -6,10 +6,13 @@
 namespace outki
 {
 	typedef void* instance_t;
-	typedef void (*reg_ptr_t)(instance_t *ptr);
 
 	struct depwalker_i
 	{
-		reg_ptr_t pointer;
+		virtual void pointer(instance_t *ptr) = 0;
 	};
+
+	typedef unsigned int u32;
 }
+
+

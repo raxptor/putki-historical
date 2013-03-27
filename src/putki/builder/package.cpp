@@ -163,7 +163,8 @@ namespace putki
 				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp);
 			}
 			
-			// change pointers
+			// change pointers and add pending strings.
+
 			int written = 0;
 			std::vector<std::string> unpacked;
 			
@@ -180,8 +181,15 @@ namespace putki
 								
 					if (!packorder.count(path))
 					{
-						unpacked.push_back(path);
-						write = - (int)unpacked.size();
+						for (unsigned int i=0;i<unpacked.size();i++)
+							if (unpacked[i] == path)
+								write = - (int)i - 1;
+
+						if (!write)
+						{
+							unpacked.push_back(path);
+							write = - ((int)unpacked.size());
+						}
 					}
 					else
 					{
@@ -190,47 +198,64 @@ namespace putki
 					
 					// clear whole field.
 					*(pp.ptrs[i].ptr) = 0;
-					*((short*)pp.ptrs[i].ptr) = packorder[path];
+					*((short*)pp.ptrs[i].ptr) = write;
 				
-					// std::cout << " " << path << " => slot " << packorder[path] << std::endl;
+					std::cout << " " << path << " => slot " << write << std::endl;
 					++written;
 				}
 			}
 			
 			std::cout << " * Did " << written << " pointer writes." << std::endl;
 			
-			// Header is just ,-separated list of unpacked assets.
-/*
-			strcpy(buf, "");
-			for (unsigned int i=0;i<unpacked.size();i++)
-			{
-				if (i)
-					strcat(buf, ",");
-				strcat(buf, unpacked[i]);
-			}
-
-			char *ptr = &buf[strlen(buf)+1];
-*/
 			char *ptr = buffer;
 			char *end = buffer + available;
+
+			ptr = pack_int32_field(ptr, packlist.size());
 			
 			for (unsigned int i=0;i<packlist.size();i++)
 			{
-				ptr = pack_int32_field(ptr, packlist[i]->th->id());
+				const unsigned int has_path_flag = 1 << 31;
+				if (packlist[i]->save_path)
+				{
+					ptr = pack_int32_field(ptr, packlist[i]->th->id() | has_path_flag);
+
+					/// write string prefixed with int16 length
+					ptr = pack_int16_field(ptr, (unsigned short) packlist[i]->path.size() + 1);
+					memcpy(ptr, packlist[i]->path.c_str(), packlist[i]->path.size() + 1);
+					ptr += packlist[i]->path.size() + 1;
+				}
+				else
+				{
+					ptr = pack_int32_field(ptr, packlist[i]->th->id());
+				}
+
+				char *start = ptr;
 				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
 				if (!ptr)
 				{
 					std::cout << "HELP! Buffer too small after packing " << i << " objects!" << std::endl;
 				}
+				else
+				{
+					std::cout << "Wrote " << (ptr - start) << " bytes for slot " << i << std::endl;
+				}
+			}
+
+			// Write all the pending paths that are indexed with negative numbers for ptr references.
+			ptr = pack_int32_field(ptr, unpacked.size());
+			for (unsigned int i=0;i<unpacked.size();i++)
+			{
+				std::cout << "  => Writing path for unresolved asset " << unpacked[i] << std::endl;
+				ptr = pack_int16_field(ptr, (unsigned short) unpacked[i].size() + 1);
+				memcpy(ptr, unpacked[i].c_str(), unpacked[i].size() + 1);
+				ptr += unpacked[i].size() + 1;
 			}
 			
-			std::cout << "Wrote " << (ptr - buffer) << " bytes." << std::endl;
-
 			// revert all the changes!
 			for (unsigned int i=0;i<pp.ptrs.size();i++)
 				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
 			
-			return 0;
+			return ptr - buffer;
 		}
 	}
 }
