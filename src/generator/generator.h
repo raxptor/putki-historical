@@ -9,7 +9,11 @@ namespace putki
 {
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out);
 	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, std::ostream &out);
-
+	void write_runtime_blob_load_cases(putki::parsed_file *file, std::ostream &out);
+	
+	void write_runtime_blob_load_cases(putki::parsed_file *file, std::ostream &out);
+	void write_runtime_blob_load_decl(const char *hpath, std::ostream &out);
+	
 	void write_putki_header(putki::parsed_file *file, std::ostream &out);
 	void write_putki_impl(putki::parsed_file *file, std::ostream &out);
  

@@ -2,6 +2,7 @@
 #include <putki/builder/typereg.h>
 #include <putki/builder/source.h>
 #include <putki/builder/db.h>
+#include <putki/builder/package.h>
 #include <putki/sys/files.h>
 #include <putki/runtime.h>
 
@@ -12,19 +13,25 @@
 // Putki data builder.
 
 // Application API
-void bind_app_types();
+void app_bind_types();
 void app_on_db_loaded(putki::db::data *db);
 int app_builder_main();
+void app_build_packages(putki::db::data *out);
 
 namespace
-{    
+{
+	std::string output_path = "output/win32/out-db/";
+	std::string package_path = "output/win32/packages/";
+
+	putki::runtime output_runtime = putki::RUNTIME_CPP_WIN32;
+
 	putki::db::data *output = 0;
-    const unsigned int xbufSize = 32*1024*1024;
-    char xbuf[xbufSize];
+	const unsigned long xbufSize = 32*1024*1024;
+	char xbuf[xbufSize];
     
     struct read_source : public putki::db::enum_i
     {
-		void record(const char *path, putki::i_type_handler* th, putki::instance_t obj)
+		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
 			std::cout << "Processing [" << path << "]..." << std::endl;
 
@@ -34,10 +41,10 @@ namespace
 
 	struct read_output : public putki::db::enum_i
 	{
-		void record(const char *path, putki::i_type_handler* th, putki::instance_t obj)
+		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			std::string outpath = std::string("output/") + path;
-			char *ptr = th->write_into_buffer(putki::runtime::RUNTIME_CPP_WIN32, obj, xbuf, xbuf + xbufSize);
+			std::string outpath = output_path + path;
+			char *ptr = th->write_into_buffer(output_runtime, obj, xbuf, xbuf + xbufSize);
 			if (ptr)
 			{
 				std::cout << "     => Writing " << outpath << std::endl;
@@ -47,6 +54,18 @@ namespace
 			}
 		}
 	};
+}
+
+// API
+void commit_package(putki::package::data *package, const char *out_path)
+{
+	std::string final_path = package_path + out_path;
+	std::cout << "Saving package to [" << final_path << "] ..." << std::endl;
+	
+	long bytes_written = putki::package::write(package, output_runtime, xbuf, xbufSize);
+	std::cout << "Wrote " << bytes_written << " bytes" << std::endl;
+	
+	putki::package::free(package);
 }
 
 // Impl.
@@ -63,17 +82,21 @@ void do_build_steps()
 	read_source s;
 	putki::db::read_all(input, &s);
 
+/*
 	std::cout << "Writing output records..." << std::endl;
-
 	read_output o;
 	putki::db::read_all(output, &o);
+*/
+	std::cout << "Building packages..." << std::endl;
+	app_build_packages(output);
+	
 
 	std::cout << "Build done!" << std::endl;
 }
 
 int main(int argc, char **argv)
 {
-	bind_app_types();
+	app_bind_types();
 
 	return app_builder_main();
 }

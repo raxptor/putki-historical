@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 namespace putki
 {
@@ -10,13 +11,14 @@ namespace putki
 	{
 		struct entry
 		{
-			i_type_handler *th;
+			type_handler_i *th;
 			instance_t obj;
 		};
 
 		struct data
 		{
 			std::map<std::string, entry> objs;
+			std::map<instance_t, std::string> paths;
 		};
 
 		db::data * create()
@@ -24,15 +26,25 @@ namespace putki
 			return new data();
 		}
 
-		void insert(data *d, const char *path, i_type_handler *th, instance_t i)	
+		const char *pathof(data *d, instance_t obj)
 		{
+			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);
+			if (i != d->paths.end())
+				return i->second.c_str();
+			return 0;
+		}
+		
+		void insert(data *d, const char *path, type_handler_i *th, instance_t i)	
+		{
+			std::cout << " db insert on path [" << path << "]" << std::endl;
 			entry e;
 			e.th = th;
 			e.obj = i;
 			d->objs[path] = e;
+			d->paths[i] = path;
 		}
 
-		bool fetch(data *d, const char *path, i_type_handler **th, instance_t *obj)
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())

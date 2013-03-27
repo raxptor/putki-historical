@@ -5,16 +5,47 @@
 #include <string>
 #include <iostream>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <unistd.h>
 
 namespace putki
 {
     namespace sys
-    {
-	void search_tree(const char *root_directory, file_enum_t callback)
+    {		
+		void search_tree(const char *root, const char *path_from_root, file_enum_t callback)
         {
-            callback("src/types/core.typedef", "core.typedef");
+			
+			DIR *dp = opendir(root);
+			if (dp)
+			{
+				while (dirent *ep = readdir(dp))
+				{
+					std::string rel_name = std::string(path_from_root) + "/" + ep->d_name;
+					std::string full_name = std::string(root) + "/" + ep->d_name;
+					if (!strcmp(ep->d_name, ".") || !strcmp(ep->d_name, ".."))
+						continue;
+					
+					if (ep->d_type & DT_DIR)
+					{
+						search_tree(full_name.c_str(), rel_name.c_str(), callback);
+					}
+					else
+					{
+						callback(full_name.c_str(), rel_name.substr(1).c_str());
+						std::cout << "Found " << full_name << "/" << rel_name << std::endl;
+					}
+				}
+				closedir(dp);
+			}
+			
+//            callback("src/types/core.typedef", "core.typedef");
         }
+		
+		void search_tree(const char *root_directory, file_enum_t callback)
+		{
+			search_tree(root_directory, "", callback);
+		}
         
         void mk_dir_for_path(const char *path)
         {

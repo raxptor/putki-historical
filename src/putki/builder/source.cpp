@@ -24,7 +24,7 @@ namespace putki
 
 		std::vector<resolve_entry> toresolve;
 
-		struct delayed_resolve : public i_load_resolver
+		struct delayed_resolve : public load_resolver_i
 		{
 			void resolve_pointer(instance_t *ptr, const char *path)
 			{
@@ -56,7 +56,7 @@ namespace putki
 				parse::node *root = parse::get_root(pd);
 				std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
 				
-				i_type_handler *h = typereg_get_handler(objtype.c_str());
+				type_handler_i *h = typereg_get_handler(objtype.c_str());
 				if (h)
 				{
 					instance_t obj = h->alloc();
@@ -86,7 +86,7 @@ namespace putki
 		std::vector<resolve_entry> next_pass = toresolve;
 		for (unsigned int i=0;i!=next_pass.size();i++)
 		{
-			i_type_handler *th;
+			type_handler_i *th;
 			instance_t obj;
 			if (db::fetch(_db, next_pass[i].path.c_str(), &th, &obj))
 			{

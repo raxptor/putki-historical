@@ -22,17 +22,18 @@ namespace putki
 	struct parsed_struct
 	{
 		int domains;
+		int unique_id;
 		std::string name;
 		std::vector<parsed_field> fields;
 	};
 
 	struct parsed_file
 	{
-        std::string filename;
+		std::string filename;
 		std::vector<parsed_struct> structs;
 	};
 
-	void parse(const char *in_path, parsed_file *out);
+	void parse(const char *in_path, int type_id_start, parsed_file *out);
 }
 
 #endif

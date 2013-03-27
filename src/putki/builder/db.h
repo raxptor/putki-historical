@@ -10,15 +10,16 @@ namespace putki
 
 		struct enum_i
 		{
-			virtual void record(const char *path, i_type_handler *th, instance_t i) = 0;
+			virtual void record(const char *path, type_handler_i *th, instance_t i) = 0;
 		};
 
 		data * create();
-		void insert(data *d, const char *path, i_type_handler *th, instance_t i);
-		bool fetch(data *d, const char *path, i_type_handler **th, instance_t *obj);
+		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj);
+		const char *pathof(data *d, instance_t obj);
 
 		void read_all(data *d, enum_i *);
-		void read_all_by_type(i_type_handler *th, enum_i*);
+		void read_all_by_type(type_handler_i *th, enum_i*);
 
 		unsigned int size(data *d);
 	}

@@ -7,7 +7,7 @@ namespace putki
 {
     struct registry
     {
-        std::map<std::string, i_type_handler*> handlers;
+        std::map<std::string, type_handler_i*> handlers;
     };
     
     namespace
@@ -24,12 +24,12 @@ namespace putki
 
     }
     
-    void typereg_register(const char *type, i_type_handler *dt)
+    void typereg_register(const char *type, type_handler_i *dt)
     {
         g_reg()->handlers[type] = dt;
     }
 
-	i_type_handler *typereg_get_handler(type_t t)
+	type_handler_i *typereg_get_handler(type_t t)
 	{
 		return g_reg()->handlers[t];
 	}

@@ -48,6 +48,33 @@ namespace outki
 {
     typedef unsigned short strsize_t;
     
+	namespace
+	{
+		const int max_modules = 16;
+		int modules = 0;
+		post_blob_load_t* pbl[max_modules];
+	}
+	
+	void add_blob_loader(post_blob_load_t func)
+	{
+		if (modules < max_modules)
+			pbl[modules++] = func;
+			
+		std::cout << "Got " << modules << " post loaders" << std::endl;
+	}
+	
+	char* post_load_by_type(int type, char *begin, char *end)
+	{
+		for (int i=0;i<modules;i++)
+		{
+			char *res = pbl[i](type, begin, end);
+			if (res)
+				return res;
+		}
+		return 0;
+	}
+
+    
     bool need_swap()
     {
         char b[] = {1, 0};
@@ -78,7 +105,7 @@ namespace outki
         }
     }
     
- 	char* post_blob_load_string(const char **string, char *aux_beg, char *aux_end)
+    char* post_blob_load_string(const char **string, char *aux_beg, char *aux_end)
     {
         if (!aux_beg)
             return 0;

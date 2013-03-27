@@ -4,10 +4,18 @@
 
 #include <stdio.h>
 
+// binding up the blob loads.
+namespace outki { void bind_test_project_loaders(); }
+
 int main(int argc, char *argv[])
 {
 	std::cout << "Test-App launching!" << std::endl;
+	
+	outki::bind_test_project_loaders();
 
+	outki::post_load_by_type(123, 0, 0);
+
+/*
 	char tmp[65536];
 	FILE *fp = fopen("output/bleh", "rb");
 	int num = fread(tmp, 1, 65536, fp);
@@ -33,7 +41,7 @@ int main(int argc, char *argv[])
 			std::cout << "blob read failed" << std::endl;
 		}
 	}
-
+*/
 
 	return 0;
 }

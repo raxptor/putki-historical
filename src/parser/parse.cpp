@@ -101,7 +101,7 @@ namespace putki
 		free(dup);
 	}
 
-	void parse(const char *in_path, parsed_file *out)
+	void parse(const char *in_path, int type_id_start, parsed_file *out)
 	{
 		std::cout << "Compiling [" << in_path << "]" << std::endl;
 		std::ifstream f(in_path);
@@ -153,6 +153,7 @@ namespace putki
 					{
 						in_scope = false;
 						in_struct = false;
+						datastruct.unique_id = type_id_start++;
 						out->structs.push_back(datastruct);
 
 						putki::parsed_struct tmp;
