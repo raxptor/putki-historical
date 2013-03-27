@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	
 	outki::bind_test_project_loaders();
 
-	outki::post_load_by_type(123, 0, 0);
+	outki::post_load_by_type(123, 0, 0, 0);
 
 /*
 	char tmp[65536];

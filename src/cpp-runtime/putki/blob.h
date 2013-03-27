@@ -1,3 +1,7 @@
+#pragma once
+
+#include "types.h"
+
 namespace outki
 {
 	char* post_blob_load_string(const char **string, char *aux_beg, char *aux_end);
@@ -5,9 +9,9 @@ namespace outki
 	void prep_int32_field(char *where);
 	
 	// register app-type blob loaders.
-	typedef char* (post_blob_load_t)(int type, char *begin, char *end);
+	typedef char* (post_blob_load_t)(int type, depwalker_i *, char *begin, char *end);
 	void add_blob_loader(post_blob_load_t func);
-	char* post_load_by_type(int type, char *begin, char *end);
+	char* post_load_by_type(int type, depwalker_i *ptrwalker, char *begin, char *end);
 }
 
 namespace putki

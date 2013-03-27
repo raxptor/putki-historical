@@ -63,11 +63,11 @@ namespace outki
 		std::cout << "Got " << modules << " post loaders" << std::endl;
 	}
 	
-	char* post_load_by_type(int type, char *begin, char *end)
+	char* post_load_by_type(int type, depwalker_i *ptrwalker, char *begin, char *end)
 	{
 		for (int i=0;i<modules;i++)
 		{
-			char *res = pbl[i](type, begin, end);
+			char *res = pbl[i](type, ptrwalker, begin, end);
 			if (res)
 				return res;
 		}

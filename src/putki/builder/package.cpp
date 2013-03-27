@@ -108,8 +108,14 @@ namespace putki
 		// temporarily rewrite them.
 		struct pointer_rewriter : putki::depwalker_i
 		{
+			struct entry
+			{
+				instance_t *ptr;
+				instance_t value;
+			};
+
 			db::data *db;
-			std::vector< std::pair<instance_t *, instance_t> > ptrs;
+			std::vector<entry> ptrs;
 			
 			void pointer(instance_t *p)
 			{
@@ -122,7 +128,10 @@ namespace putki
 				else if (*p) // don't modify null pointer
 				{
 					// save what we did so we can undo later
-					ptrs.push_back(std::make_pair<instance_t *, instance_t>(p, *p));
+					entry e;
+					e.ptr = p;
+					e.value = *p;
+					ptrs.push_back(e);
 				}
 			}
 		};
@@ -160,7 +169,7 @@ namespace putki
 			
 			for (unsigned int i=0;i<pp.ptrs.size();i++)
 			{
-				const char *path = db::pathof(data->source, pp.ptrs[i].second);
+				const char *path = db::pathof(data->source, pp.ptrs[i].value);
 				if (!path)
 				{
 					std::cout << "Un-packed asset [" << path << "]" << std::endl;
@@ -180,10 +189,10 @@ namespace putki
 					}
 					
 					// clear whole field.
-					*(pp.ptrs[i].first) = 0;
-					*((short*)pp.ptrs[i].first) = packorder[path];
+					*(pp.ptrs[i].ptr) = 0;
+					*((short*)pp.ptrs[i].ptr) = packorder[path];
 				
-					std::cout << " " << path << " => slot " << packorder[path] << std::endl;
+					// std::cout << " " << path << " => slot " << packorder[path] << std::endl;
 					++written;
 				}
 			}
@@ -219,7 +228,7 @@ namespace putki
 
 			// revert all the changes!
 			for (unsigned int i=0;i<pp.ptrs.size();i++)
-				*(pp.ptrs[i].first) = pp.ptrs[i].second;
+				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
 			
 			return 0;
 		}

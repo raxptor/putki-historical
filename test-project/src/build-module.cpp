@@ -41,6 +41,8 @@ void app_build_packages(putki::db::data *out)
 	putki::package::add(p, "bleh", true);
 	putki::package::add(p, "description", true);
 	putki::package::add(p, "haspointer", true);
+	putki::package::add(p, "ptr2", true);
+	putki::package::add(p, "haspointer-copy", true);
 	commit_package(p, "everything.pkg");
 }
 

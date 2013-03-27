@@ -105,8 +105,9 @@ int main (int argc, char *argv[])
 	std::ofstream f_switch((std::string(s_rt_outpath) + "/blobload.cpp").c_str());
 	f_switch << s_blob_load_decl.str() << std::endl;
 	f_switch << "#include <putki/blob.h>" << std::endl;
+	f_switch << "#include <putki/types.h>" << std::endl;
 	f_switch << "namespace outki {" << std::endl;
-	f_switch << "char* post_blob_load_" << module_name << "(int type, char *begin, char *end)" << std::endl << "{" << std::endl;
+	f_switch << "char* post_blob_load_" << module_name << "(int type, depwalker_i *ptr_reg, char *begin, char *end)" << std::endl << "{" << std::endl;
 	f_switch << "	switch (type) {" << std::endl;
 	f_switch << s_blob_load_calls.str() << std::endl;
 	f_switch << "		default: return 0;" << std::endl;

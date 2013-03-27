@@ -4,7 +4,18 @@
 #include <iostream>
 
 namespace putki
-{    
+{   
+	void write_ptr_walker(putki::parsed_file *file, std::ostream &out, bool runtime);
+
+	void write_comment_block(const char *name, std::ostream &out)
+	{
+		out << std::endl;
+		out << "/////////////////////////////////////////////////////////////////" << std::endl;
+		out << "// " << name << std::endl;
+		out << "/////////////////////////////////////////////////////////////////" << std::endl;
+		out << std::endl;
+	}
+
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out, bool for_putki)
 	{
 		std::string ptr_subst("long long ");
@@ -12,7 +23,16 @@ namespace putki
 		if (rt == putki::RUNTIME_CPP_WIN32)
 			ptr_subst = "int ";
 
+		std::string deftok("__outki_header" + file->filename + "__h__");
+
+		if (!for_putki)
+		{
+			out << "#ifndef " << deftok << std::endl;
+			out << "#define " << deftok << std::endl;
+		}
+
 		out << "#pragma pack(push, 1)" << std::endl;
+		out << "#include <putki/types.h>" << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -80,11 +100,20 @@ namespace putki
 				}
 
 				out << "	};" << std::endl;
-				out << "    char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);" << std::endl;
+
+				out << "// loading processing for " << s->name << std::endl;	
+				out << "	char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);" << std::endl;
+
+				if (!for_putki)
+					out << "	void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker);" << std::endl;
+
 				out << "}" << std::endl;
 			}
 		}
 		out << "#pragma pack(pop)" << std::endl;
+
+		if (!for_putki)
+			out << "#endif" << std::endl;
 	}
 
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out)
@@ -129,7 +158,7 @@ namespace putki
 			return pf->ref_type.c_str();
 		else if (pf->type == FIELDTYPE_POINTER)
 			return pf->ref_type + "*";
-			
+
 		return putki_field_type_pod(pf->type);
 	}
 
@@ -145,13 +174,13 @@ namespace putki
 
 	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, std::ostream &out)
 	{
-		std::string deftok = std::string("__OUTKI_") + file->filename + "_H__";
 		out << "// Generated code!" << std::endl;
-		out << "#ifndef " << deftok << std::endl;
-		out << "#define " << deftok << std::endl;
 		out << std::endl;
 		out << "#include \"" << file->filename << ".h\"" << std::endl;
+		out << std::endl;
+		out << "// These includes go to the runtime headers" << std::endl;
 		out << "#include <putki/blob.h>" << std::endl;
+		out << "#include <putki/types.h>" << std::endl;
 		out << "namespace outki {" << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
@@ -233,15 +262,21 @@ namespace putki
 			}
 		}
 		out << "}" << std::endl;
-		out << "#endif" << std::endl;
+
+		write_ptr_walker(file, out, true);
 	}
 
 	void write_putki_header(putki::parsed_file *file, std::ostream &out)
 	{
+		std::string deftok = std::string("__OUTKI_") + file->filename + "_H__";
+		out << "#ifndef " << deftok << std::endl;
+		out << "#define " << deftok << std::endl;
+
 		out << "#include <string>" << std::endl;
 		out << "#include <vector>" << std::endl;
 		out << std::endl;
 		out << "namespace putki {" << std::endl;
+		out << "struct depwalker_i;" << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -270,15 +305,18 @@ namespace putki
 
 			if (s->domains & putki::DOMAIN_RUNTIME)
 			{
-				out << " char *write_" << s->name << "_into_blob(putki::" << s->name << " *in, char *out_beg, char *out_end);" << std::endl;
+				out << "// writing processing for " << s->name << std::endl;
+				out << "char *write_" << s->name << "_into_blob(putki::" << s->name << " *in, char *out_beg, char *out_end);" << std::endl;
+				out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker);" << std::endl;
 			}
 		}
 		out << std::endl;
 		out << "} // namespace putki" << std::endl;
+		out << "#endif" << std::endl;
 	}
 
 	void write_putki_field_parse(putki::parsed_field *f, std::ostream &out)
-	{			
+	{		
 		out << "// parse field " << f->name << std::endl;
 
 		std::string ref = "target->" + f->name;
@@ -362,69 +400,68 @@ namespace putki
 
 		out << std::endl << "   return " << runtime_out_ns(rt) << "::write_" << name << "_into_blob((" << name << "*) source, beg, end);" << std::endl;
 	}
-    
 
-	 void write_comment_block(const char *name, std::ostream &out)
-	 {
-		  out << std::endl;
-		  out << "/////////////////////////////////////////////////////////////////" << std::endl;
-		  out << "// " << name << std::endl;
-		  out << "/////////////////////////////////////////////////////////////////" << std::endl;
-		  out << std::endl;
-	 }
-	 
-	 void write_putki_ptr_walker(putki::parsed_file *file, std::ostream &out)
-	 {
-		  write_comment_block("Dependency walking", out);
+	void write_ptr_walker(putki::parsed_file *file, std::ostream &out, bool runtime)
+	{
+		write_comment_block("Dependency walking", out);
 
-		  out << "namespace putki {" << std::endl;
+		if (runtime)
+			out << "namespace outki {" << std::endl;
+		else
+			out << "namespace putki {" << std::endl;
 
-	   for (int i=0;i!=file->structs.size();i++)
-	   {
-		putki::parsed_struct *s = &file->structs[i];
-		out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker)" << "{" << std::endl;
-	  
-		  for (size_t j=0;j<s->fields.size();j++)
-		  {
-			  putki::parsed_field & fd = s->fields[j];
-		
-			  std::string ref = "input->" + fd.name;
-			  
-			  if (fd.is_array)
-			  {
-				out << "for (unsigned int i=0;i<input->" << fd.name << ".size();i++) {" << std::endl;
-				ref = "input->" + fd.name + "[i]";
-			  }
-			  
-			  if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
-			  {
-				out << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker);" << std::endl;
-			  }
-			  else if (fd.type == putki::FIELDTYPE_POINTER)
-			  {
-				 out << " if (" << ref << ") walker->pointer((instance_t *)&" << ref << ");" << std::endl;
-			  }
-			  else
-			  {
-				 if (fd.is_array)
-					out << "{ } // do nothing loop implementation" << std::endl;
-			  }
-			
-			  if (fd.is_array)
-				out << "} // end array loop" << std::endl;
-		  }
-	 
-		  out << "}" << std::endl;
-	  }
-	  
-	  out << "} // dependency walker section" << std::endl;
-    }
-    
+		for (int i=0;i!=file->structs.size();i++)
+		{
+			putki::parsed_struct *s = &file->structs[i];
+			out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker)" << "{" << std::endl;
+
+			for (size_t j=0;j<s->fields.size();j++)
+			{
+				putki::parsed_field & fd = s->fields[j];
+
+				std::string ref = "input->" + fd.name;
+
+				if (fd.is_array)
+				{
+					if (!runtime)
+					{
+						out << "for (unsigned int i=0;i<input->" << fd.name << ".size();i++) {" << std::endl;
+						ref = "input->" + fd.name + "[i]";
+					}
+					else
+					{
+						out << "for (unsigned int i=0;i<input->" << fd.name << "_size;i++) {" << std::endl;
+						ref = "input->" + fd.name + "[i]";
+					}
+				}
+
+				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
+				{
+					out << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker);" << std::endl;
+				}
+				else if (fd.type == putki::FIELDTYPE_POINTER)
+				{
+					out << "	walker->pointer((instance_t *)&" << ref << ");" << std::endl;
+					out << "	if (" << ref << ") walk_dependencies_" << fd.ref_type << "(" << ref << ", walker);" << std::endl;
+				}
+				else
+				{
+					if (fd.is_array)
+						out << "{ } // do nothing loop implementation" << std::endl;
+				}
+				if (fd.is_array)
+					out << "} // end array loop" << std::endl;
+			}
+
+			out << "}" << std::endl;
+		}
+		out << "} // dependency walker section" << std::endl;
+	}
 
 	void write_putki_type_reg(putki::parsed_file *file, std::ostream &out)
 	{
-		  write_comment_block("Type registration", out);
-		  
+		write_comment_block("Type registration", out);
+
 		out << "#include <putki/builder/typereg.h>" << std::endl;
 		out << "#include <putki/runtime.h>" << std::endl;
 		out << "namespace putki {" << std::endl;
@@ -436,9 +473,9 @@ namespace putki
 			out << "    void free(instance_t p) { delete (putki::" << s->name << "*) p; }" << std::endl;
 			out << "    const char *name() { return \"" << s->name << "\"; }" << std::endl;
 			out << "    int id() { return " << s->unique_id << "; }" << std::endl;
-		     out << "    void walk_dependencies(instance_t source, depwalker_i *walker) {" << std::endl;
-		     out << "      walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker);" << std::endl;
-		     out << "    }" << std::endl;
+			out << "    void walk_dependencies(instance_t source, depwalker_i *walker) {" << std::endl;
+			out << "      walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker);" << std::endl;
+			out << "    }" << std::endl;
 			out << "	char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) {" << std::endl;
 
 			write_blob_writer_call(putki::RUNTIME_CPP_WIN32, s->name.c_str(), out);
@@ -466,7 +503,7 @@ namespace putki
 		write_runtime_header(file, rt, out, true);
 
 		std::string out_ns = ns + "::outki::";
-		
+
 		out << " namespace { typedef unsigned short length_t; }";
 		out << std::endl;
 		for (size_t i=0;i!=file->structs.size();i++)
@@ -547,6 +584,7 @@ namespace putki
 		out << "// Generated code!" << std::endl;
 		out << "#include \"" << file->filename << ".h\"" << std::endl;
 		out << "#include <putki/blob.h>" << std::endl;
+		out << "#include <putki/builder/typereg.h>" << std::endl;
 		out << "#include <iostream>" << std::endl;
 
 		out << std::endl;
@@ -556,8 +594,8 @@ namespace putki
 		write_blob_writers(file, out, putki::RUNTIME_CPP_WIN32);
 
 		write_putki_parse(file, out);
-	    
-	    write_putki_ptr_walker(file, out);
+
+		write_ptr_walker(file, out, false);
 		write_putki_type_reg(file, out);
 	}
 
@@ -580,13 +618,17 @@ namespace putki
 			out << "putki::bind_type_" << s->name << "();" << std::endl;
 		}
 	}
-	
+
 	void write_runtime_blob_load_cases(putki::parsed_file *file, std::ostream &out)
 	{
 		for (unsigned int i=0;i<file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
-			out << "case " << s->unique_id << ": return post_blob_load_" << s->name << "((" << s->name << "*)begin, begin + sizeof(" << s->name << "), end);" << std::endl;
+			out << "case " << s->unique_id << ":" << std::endl;
+			out << "	{ char *out = post_blob_load_" << s->name << "((" << s->name << "*)begin, begin + sizeof(" << s->name << "), end);" << std::endl;
+			out << "	  if (out) walk_dependencies_" << s->name << "((" << s->name << "*)begin, ptr_reg);"<< std::endl;
+			out << "	  return out;" << std::endl;
+			out << "	}" << std::endl;
 		}
 	}
 
