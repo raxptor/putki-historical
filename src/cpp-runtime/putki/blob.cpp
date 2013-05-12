@@ -31,7 +31,6 @@ namespace putki
         unsigned int len = strlen(src);
   
         // write the length into the pointer slot.
-        int *sz = (int*) where;
         pack_int32_field(where, len+1);
         
         if ((unsigned int)(aux_end - aux_beg) < (len+1))

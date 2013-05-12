@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
 	{
 		std::cout << "Failed loading everything pkg!" << std::endl;
 	}
+	
+	std::cout << "Loaded package! " << pkg << std::endl;
 
 	outki::pkgmgr::release(pkg);
 	

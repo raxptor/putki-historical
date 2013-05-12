@@ -565,7 +565,7 @@ namespace putki
 				}
 				else if (fd.type == FIELDTYPE_POINTER || fd.type == FIELDTYPE_BYTE)
 				{
-					out << outd << " = (" << ptr_sub(rt) << ")" << srcd << ";" << std::endl;
+					out << outd << " = (" << ptr_sub(rt) << ")((char*)" << srcd << " - (char*)0);" << std::endl;
 				}
 
 				if (fd.is_array)
