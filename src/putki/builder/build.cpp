@@ -142,7 +142,7 @@ namespace putki
 			
 			packaging_config pconf;
 			pconf.package_path = package_path;
-			pconf.rtd = builder::runtime(builder);
+			pconf.rt = builder::runtime(builder);
 			app_build_packages(bsf.output, &pconf);			
 		}
 
