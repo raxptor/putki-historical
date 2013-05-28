@@ -14,6 +14,6 @@ namespace outki
 		void release(loaded_package *);		
 
 		// resolev from package.
-		instance_t * resolve(loaded_package *, const char *path);
+		instance_t resolve(loaded_package *, const char *path);
 	}
 }

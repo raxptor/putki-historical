@@ -22,7 +22,7 @@ namespace putki
 
 	struct load_resolver_i
 	{
-		virtual void resolve_pointer(instance_t *ptr, const char *path) = 0; 
+		virtual void resolve_pointer(instance_t *ptr, const char *path) = 0;
 	};
 	
 	struct depwalker_i
@@ -45,11 +45,11 @@ namespace putki
 		virtual char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) = 0;
 
 		// recurse down and report all pointers
-		virtual void walk_dependencies(instance_t source, depwalker_i *walker) = 0;
+		virtual void walk_dependencies(instance_t source, depwalker_i *walker, bool traverseChildren) = 0;
 	};
 
 	void typereg_init();
-    void typereg_register(type_t, type_handler_i *dt);
+	void typereg_register(type_t, type_handler_i *dt);
 	type_handler_i *typereg_get_handler(type_t);
 
 

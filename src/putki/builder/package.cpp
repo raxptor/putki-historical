@@ -80,7 +80,7 @@ namespace putki
 				{
 					depwalker dw;
 					dw.db = data->source;
-					e.th->walk_dependencies(e.obj, &dw);
+					e.th->walk_dependencies(e.obj, &dw, true);
 					
 					std::cout << " * adding to package [" << path << "], pulling in " << dw.deps.size() << " dependencies" << std::endl;
 
@@ -160,7 +160,7 @@ namespace putki
 			// get all pointerts rewritten to be pure indices.
 			for (unsigned int i=0;i<packlist.size();i++)
 			{
-				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp);
+				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true);
 			}
 			
 			// change pointers and add pending strings.

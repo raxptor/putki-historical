@@ -157,10 +157,13 @@ namespace outki
 		}
 
 		// -
-		instance_t * resolve(loaded_package *, const char *path)
+		instance_t resolve(loaded_package *p, const char *path)
 		{
-
-			return 0;
+			for (int i=0;i<p->slots_size;i++)
+			{
+				if (p->slots[i].path && !strcmp(p->slots[i].path, path))
+					return p->slots[i].obj;
+			}
 		}
 	}
 

@@ -9,25 +9,27 @@ solution "Putki"
 		language "C"
 		files { "../external/jsmn/*.c", "../external/jsmn/*.h"}
 
-	project "testapp-putki-lib"
+	project "putki-databuilder-lib"
 		kind "StaticLib"
 		language "C++"
-		files { "_gen/**.cpp", "_gen/**.h" }
-		files { "src/**.cpp" }
-		excludes { "src/main.cpp" }
-		includedirs { "../src", "../src/cpp-runtime", "_gen" }
+		targetname "putki-databuilder-lib"
+		files { "../src/**.cpp", "../src/**.h" }
+		files { "../builder/src/*.cpp" }
+		includedirs { "../src", "../src/cpp-runtime/", "../external" }
+		links {"jsmn"}
+		configuration "Release"
+			defines {"DEBUG"}
 
 	project "testapp-databuilder"
 		kind "ConsoleApp"
 		language "C++"
-		targetname "databuilder"
-		files { "../src/**.cpp", "../src/**.h" }
-		files { "../builder/src/main-osx.cpp" }
-		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-		links {"jsmn", "testapp-putki-lib"}
-
-		configuration "Release"
-			defines {"DEBUG"}
+		targetname "testapp-databuildel"
+		files { "src/**.typedef" }
+		files { "_gen/putki/**.cpp", "_gen/putki/**.h" }
+		files { "src/builder/**.cpp", "src/builder/**.h" }
+		excludes { "src/main.cpp" }
+		includedirs { "../src", "../src/cpp-runtime", "_gen" }
+		links {"putki-databuilder-lib"}
 
 	project "testapp-runtime"
 		kind "ConsoleApp"
@@ -37,8 +39,8 @@ solution "Putki"
 		files { "../src/cpp-runtime/**.cpp", "../src/cpp-runtime/**.h" }
 		files { "_gen/outki/**.cpp", "_gen/outki/**.h" }
 		files { "src/**.cpp" }
+		excludes { "src/builder/**.*" }
 
-		excludes { "src/build-module.cpp" }
 		includedirs { "../src/cpp-runtime/", "_gen" }
 
 		configuration "Release"

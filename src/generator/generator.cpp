@@ -26,8 +26,6 @@ namespace putki
 
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, std::ostream &out, bool for_putki)
 	{
-
-
 		std::string deftok("__outki_header" + file->filename + "__h__");
 
 		if (!for_putki)
@@ -108,9 +106,9 @@ namespace putki
 
 				out << "// loading processing for " << s->name << std::endl;	
 				out << "	char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);" << std::endl;
-
+				
 				if (!for_putki)
-					out << "	void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker);" << std::endl;
+					out << "	void walk_dependencies_" << s->name << "(" << s->name << " *input, outki::depwalker_i *walker);" << std::endl;
 
 				out << "}" << std::endl;
 			}
@@ -305,16 +303,19 @@ namespace putki
 					out << "        " << putki_field_type(&s->fields[j]) << " " << s->fields[j].name << ";" << std::endl;
 				}
 			}
-
+			
 			out << "};" << std::endl;
-
+			 
 			if (s->domains & putki::DOMAIN_RUNTIME)
 			{
 				out << "// writing processing for " << s->name << std::endl;
 				out << "char *write_" << s->name << "_into_blob(putki::" << s->name << " *in, char *out_beg, char *out_end);" << std::endl;
-				out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker);" << std::endl;
 			}
+			
+			out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren = true);" << std::endl;
+		
 		}
+		
 		out << std::endl;
 		out << "} // namespace putki" << std::endl;
 		out << "#endif" << std::endl;
@@ -336,6 +337,7 @@ namespace putki
 			out << "parse::node *arr = parse::get_object_item(pn, \"" << f->name << "\");" << std::endl;
 			out << "while (parse::node * n = parse::get_array_item(arr, i)) {" << std::endl;
 			out << "  " << type << " tmp;" << std::endl;
+			out << "  (void)n;" << std::endl;
 			out << "  target->" << f->name << ".push_back(tmp); i++;" << std::endl;
 			out << "} i = 0; " << std::endl;
 			out << "while (parse::node * n = parse::get_array_item(arr, i)) {" << std::endl;
@@ -418,7 +420,13 @@ namespace putki
 		for (int i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
-			out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker)" << "{" << std::endl;
+			
+			if (runtime)
+				out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker)" << "{" << std::endl;
+			else
+				out << "void walk_dependencies_" << s->name << "(" << s->name << " *input, depwalker_i *walker, bool traverseChildren)" << "{" << std::endl;
+
+			const char *levelCheck = runtime ? "" : "if (traverseChildren) ";
 
 			for (size_t j=0;j<s->fields.size();j++)
 			{
@@ -442,12 +450,12 @@ namespace putki
 
 				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
 				{
-					out << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker);" << std::endl;
+				    out << levelCheck << " walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker);" << std::endl;
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
 					out << "	walker->pointer((instance_t *)&" << ref << ");" << std::endl;
-					out << "	if (" << ref << ") walk_dependencies_" << fd.ref_type << "(" << ref << ", walker);" << std::endl;
+					out << "	if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker); }" << std::endl;
 				}
 				else
 				{
@@ -478,8 +486,8 @@ namespace putki
 			out << "    void free(instance_t p) { delete (putki::" << s->name << "*) p; }" << std::endl;
 			out << "    const char *name() { return \"" << s->name << "\"; }" << std::endl;
 			out << "    int id() { return " << s->unique_id << "; }" << std::endl;
-			out << "    void walk_dependencies(instance_t source, depwalker_i *walker) {" << std::endl;
-			out << "      walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker);" << std::endl;
+			out << "    void walk_dependencies(instance_t source, putki::depwalker_i *walker, bool traverseChildren) {" << std::endl;
+			out << "      walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker, traverseChildren);" << std::endl;
 			out << "    }" << std::endl;
 			out << "	char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) {" << std::endl;
 

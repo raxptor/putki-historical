@@ -1,5 +1,6 @@
 #include "pkgloader.h"
 #include <fstream>
+#include <iostream>
 
 namespace outki
 {
@@ -9,7 +10,10 @@ namespace outki
 		{
 			std::ifstream in(file, std::ios::binary);
 			if (!in.good())
+			{
+				std::cout << "Failed to open file [" << file << "]!" << std::endl;
 				return 0;
+			}
 
 			in.seekg(0, std::ios::end);
 			std::streamoff size = in.tellg();
@@ -18,6 +22,8 @@ namespace outki
 			in.seekg(0, std::ios_base::beg);
 			in.read(buffer, size);
 			in.close();
+			
+			std::cout << "Read " << size << " bytes from [" << file << "]" << std::endl;
 
 			pkgmgr::loaded_package *p = pkgmgr::parse(buffer, buffer + size);
 			if (!p)

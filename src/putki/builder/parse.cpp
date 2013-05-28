@@ -164,7 +164,6 @@ namespace parse
 		std::stack<node*> pst;
 
 		int loc = 0;
-		int toexplore = 0;
 
 		node *root = 0;
 

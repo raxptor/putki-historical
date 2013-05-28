@@ -8,7 +8,7 @@ namespace putki
 		typedef void (*file_enum_t) (const char *fullname, const char *name);
 
 		void search_tree(const char *root_directory, file_enum_t callback);
-        void mk_dir_for_path(const char *path);
+		void mk_dir_for_path(const char *path);
 	}
 
 }
