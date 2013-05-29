@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace outki
+namespace putki
 {
 	namespace pkgloader
 	{

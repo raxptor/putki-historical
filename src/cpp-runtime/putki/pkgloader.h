@@ -2,7 +2,7 @@
 
 #include "pkgmgr.h"
 
-namespace outki
+namespace putki
 {
 	namespace pkgloader
 	{

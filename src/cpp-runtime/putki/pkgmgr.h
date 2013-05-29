@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-namespace outki
+namespace putki
 {	
 	namespace pkgmgr
 	{

@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Here are the typedefs needed to compile the generated code for the runtime
 
-namespace outki
+namespace putki
 {
 	typedef void* instance_t;
 

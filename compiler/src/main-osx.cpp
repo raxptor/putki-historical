@@ -24,7 +24,7 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 {
 	std::string out_base = std::string(fullpath).substr(strlen(s_inpath), strlen(fullpath) - strlen(s_inpath));
 	
-	out_base = out_base.substr(0, out_base.size() - len);
+	out_base = out_base.substr(0, out_base.size() - len);	
 	
 	putki::sys::mk_dir_for_path((s_rt_outpath + out_base).c_str());
 	putki::sys::mk_dir_for_path((s_putki_outpath + out_base).c_str());
@@ -50,7 +50,8 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	// putki
 
 	std::string putki_header = s_putki_outpath + out_base + ".h";
-	std::string putki_impl   = s_putki_outpath + out_base + "_putki.cpp";
+	std::string putki_impl   = s_putki_outpath + out_base + "_inki.cpp";
+	
 	
 	std::ofstream f_putki_header(putki_header.c_str());
 	std::ofstream f_putki_impl(putki_impl.c_str());
@@ -67,7 +68,11 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::cout << " -> writing [" << dll_impl << "]" << std::endl;
 
 	std::ofstream f_dll_impl(dll_impl.c_str());
+	f_dll_impl << "#pragma once" << std::endl;
+	f_dll_impl << "#include <inki" << out_base << ".h>" << std::endl;
+	
 	putki::write_dll_impl(&pf, f_dll_impl);
+
 	putki::write_bind_decl_dll(&pf, s_bind_decl_dll);
 	putki::write_bind_call_dll(&pf, s_bind_calls_dll);
 	
@@ -96,7 +101,7 @@ int main (int argc, char *argv[])
 {
 	s_inpath = "src";
 	s_rt_outpath = "_gen/outki";
-	s_putki_outpath = "_gen/putki";
+	s_putki_outpath = "_gen/inki";
 	s_dll_outpath = "_gen/data-dll";
 	
 	const char *module_name = "test_project";
@@ -110,7 +115,7 @@ int main (int argc, char *argv[])
 	std::ofstream f_bind((std::string(s_putki_outpath) + "/bind.cpp").c_str());        
 	f_bind << "#include <putki/builder/typereg.h>" << std::endl << std::endl;
 	f_bind << s_bind_decl.str() << std::endl;
-	f_bind << "namespace putki {" << std::endl;
+	f_bind << "namespace inki {" << std::endl;
 	f_bind << "void bind_" << module_name << "()" << std::endl << "{" << std::endl;
 	f_bind << s_bind_calls.str() << std::endl;
 	f_bind << "}" << std::endl;
@@ -120,7 +125,7 @@ int main (int argc, char *argv[])
 	std::ofstream f_bind_dll((std::string(s_putki_outpath) + "/bind-dll.cpp").c_str()); 
 	f_bind_dll << "#include <putki/data-dll/dllinterface.h>" << std::endl;
 	f_bind_dll << s_bind_decl_dll.str() << std::endl;
-	f_bind_dll << "namespace putki {" << std::endl;
+	f_bind_dll << "namespace inki {" << std::endl;
 	f_bind_dll << "void bind_" << module_name << "_dll()" << std::endl << "{" << std::endl;
 	f_bind_dll<< s_bind_calls_dll.str() << std::endl;
 	f_bind_dll << "}" << std::endl;
@@ -132,7 +137,7 @@ int main (int argc, char *argv[])
 	f_switch << "#include <putki/blob.h>" << std::endl;
 	f_switch << "#include <putki/types.h>" << std::endl;
 	f_switch << "namespace outki {" << std::endl;
-	f_switch << "char* post_blob_load_" << module_name << "(int type, depwalker_i *ptr_reg, char *begin, char *end)" << std::endl << "{" << std::endl;
+	f_switch << "char* post_blob_load_" << module_name << "(int type, putki::depwalker_i *ptr_reg, char *begin, char *end)" << std::endl << "{" << std::endl;
 	f_switch << "	switch (type) {" << std::endl;
 	f_switch << s_blob_load_calls.str() << std::endl;
 	f_switch << "		default: return 0;" << std::endl;

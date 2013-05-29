@@ -109,13 +109,17 @@ namespace putki
         std::string fn(in_path);
     
         out->filename = "unknown";
+		out->sourcepath = "unknown";
         
         std::string::size_type lp = fn.find_last_of("/");
         if (lp != std::string::npos)
         {
             std::string::size_type np = fn.find_last_of(".");
             if (np != std::string::npos)
+			{
                 out->filename = fn.substr(lp + 1, np - lp - 1);
+				out->sourcepath = fn.substr(0, np);
+			}
         }
         
 		bool in_struct = false;

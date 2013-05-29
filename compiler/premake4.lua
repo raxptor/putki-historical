@@ -1,4 +1,4 @@
-solution "Putki"
+solution "Compiler"
 	configurations {"Release"}
 	location "build"
 	targetdir "build"

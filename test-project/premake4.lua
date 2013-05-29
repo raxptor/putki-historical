@@ -1,36 +1,10 @@
-solution "Putki"
+solution "Testproj"
 	configurations {"Release"}
 	location "build"
 	targetdir "build"
 	flags { "Symbols" }
 
-	project "jsmn"
-		kind "StaticLib"
-		language "C"
-		files { "../external/jsmn/*.c", "../external/jsmn/*.h"}
-
-	project "putki-lib"
-		kind "StaticLib"
-		language "C++"
-		targetname "putki-lib"
-		files { "../src/**.cpp", "../src/**.h" }
-		files { "../builder/src/*.cpp" }
-		excludes { "../src/data-dll/**.*" }
-
-		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-		links {"jsmn"}
-		configuration "Release"
-			defines {"DEBUG"}	
-
-	project "putki-databuilder-lib"
-		kind "StaticLib"
-		language "C++"
-		targetname "putki-databuilder-lib"
-		files { "../builder/src/*.cpp" }
-		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-		links {"jsmn", "putki-lib"}
-		configuration "Release"
-			defines {"DEBUG"}
+	include "../src/putkilib-premake.lua"
 
 	project "testapp-putki-lib"
 		kind "StaticLib"
@@ -38,12 +12,12 @@ solution "Putki"
 		targetname "testapp-putki-lib"
 		
 		files { "src/putki/bind.cpp" }
-
 		files { "src/types/**.typedef" }
-		files { "_gen/putki/**.cpp", "_gen/putki/**.h" }
-		excludes { "_gen/putki/bind-dll.cpp" }
 
-		includedirs { "../src", "../src/cpp-runtime", "../src/builder" }
+		files { "_gen/inki/**.cpp", "_gen/inki/**.h" }
+		excludes { "_gen/inki/bind-dll.cpp" }
+
+		includedirs { "../src", "../src/builder" }
 
 	project "testapp-databuilder"
 		kind "ConsoleApp"
@@ -51,7 +25,9 @@ solution "Putki"
 		targetname "testapp-databuildel"
 
 		files { "src/builder/**.cpp", "src/builder/**.h" }
-		includedirs { "../src", "../src/cpp-runtime", "_gen" }
+		includedirs { "../src", "_gen" }
+		excludes { "../src/cpp-runtime/**" }
+
 		links {"putki-databuilder-lib"}
 		links {"testapp-putki-lib"}
 
@@ -61,14 +37,15 @@ solution "Putki"
 		targetname "testapp-data-dll"
 
 		files { "_gen/data-dll/**.cpp", "_gen/data-dll/**.h" }
-		files { "_gen/putki/bind-dll.cpp" }
+		files { "_gen/inki/bind-dll.cpp" }
 		files { "src/putki/bind-dll.cpp" }
 
 		files { "../src/data-dll/**.cpp", "../src/data-dll/**.h" }
 
 		includedirs { "../src/data-dll" }
 		includedirs { "../src", "../src/builder/" }
-
+		includedirs { "_gen" }
+		excludes { "../src/cpp-runtime/**" }
 
 		links {"putki-lib"}
 		links {"testapp-putki-lib"}

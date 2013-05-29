@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 
-namespace outki
+namespace putki
 {
 	namespace pkgmgr
 	{

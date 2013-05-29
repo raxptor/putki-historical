@@ -41,10 +41,6 @@ namespace putki
         return aux_beg + len + 1;
     }
 
-}
-
-namespace outki
-{
     typedef unsigned short strsize_t;
     
 	namespace
