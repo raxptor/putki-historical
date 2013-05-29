@@ -96,7 +96,7 @@ namespace outki
 				lp->slots[i].obj = (instance_t) ptr;
 				lp->slots[i].type_id = type_id;
 
-				// std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
+				std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
 				
 				char *next = post_load_by_type(type_id, &ptrs, ptr, end);
 				if (!next)
@@ -159,11 +159,12 @@ namespace outki
 		// -
 		instance_t resolve(loaded_package *p, const char *path)
 		{
-			for (int i=0;i<p->slots_size;i++)
+			for (unsigned int i=0;i<p->slots_size;i++)
 			{
 				if (p->slots[i].path && !strcmp(p->slots[i].path, path))
 					return p->slots[i].obj;
 			}
+			return 0;
 		}
 	}
 

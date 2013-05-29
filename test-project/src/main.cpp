@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	std::cout << "Curken is " << b->curken << std::endl;
 	std::cout << "Blob is " << b->dasblob << std::endl;
 	
-	for (int i=0;i<b->dasblob->bytes_size;i++)
+	for (unsigned int i=0;i<b->dasblob->bytes_size;i++)
 		std::cout << "Byte is " << (int) b->dasblob->bytes[i] << std::endl;
 
 	outki::pkgmgr::release(pkg);
