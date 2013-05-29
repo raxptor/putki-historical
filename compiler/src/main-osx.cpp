@@ -13,7 +13,8 @@ namespace
 	const char *s_inpath;
 	const char *s_rt_outpath;
 	const char *s_putki_outpath;
-	std::stringstream s_bind_decl, s_bind_calls;
+	const char *s_dll_outpath;
+	std::stringstream s_bind_decl, s_bind_decl_dll, s_bind_calls, s_bind_calls_dll;
 	std::stringstream s_blob_load_decl, s_blob_load_calls;
 	
 	int type_id = 0;
@@ -27,9 +28,11 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	
 	putki::sys::mk_dir_for_path((s_rt_outpath + out_base).c_str());
 	putki::sys::mk_dir_for_path((s_putki_outpath + out_base).c_str());
+	putki::sys::mk_dir_for_path((s_dll_outpath + out_base).c_str());
 	
 	std::cout << "File [" << name << "]" << std::endl;
-	
+
+	// runtime
 	
 	std::string rt_header = s_rt_outpath + out_base + ".h";
 	std::string rt_impl   = s_rt_outpath + out_base + "_rt.cpp";
@@ -44,6 +47,8 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	putki::write_runtime_blob_load_cases(&pf, s_blob_load_calls);
 	putki::write_runtime_blob_load_decl(("outki/" + out_base.substr(1) + ".h").c_str(), s_blob_load_decl);
 	
+	// putki
+
 	std::string putki_header = s_putki_outpath + out_base + ".h";
 	std::string putki_impl   = s_putki_outpath + out_base + "_putki.cpp";
 	
@@ -56,6 +61,15 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	
 	putki::write_bind_decl(&pf, s_bind_decl);
 	putki::write_bind_calls(&pf, s_bind_calls);
+
+	// editor
+	std::string dll_impl = s_dll_outpath + out_base + "_impl.cpp";
+	std::cout << " -> writing [" << dll_impl << "]" << std::endl;
+
+	std::ofstream f_dll_impl(dll_impl.c_str());
+	putki::write_dll_impl(&pf, f_dll_impl);
+	putki::write_bind_decl_dll(&pf, s_bind_decl_dll);
+	putki::write_bind_call_dll(&pf, s_bind_calls_dll);
 	
 }
 
@@ -83,6 +97,7 @@ int main (int argc, char *argv[])
 	s_inpath = "src";
 	s_rt_outpath = "_gen/outki";
 	s_putki_outpath = "_gen/putki";
+	s_dll_outpath = "_gen/data-dll";
 	
 	const char *module_name = "test_project";
 
@@ -100,6 +115,16 @@ int main (int argc, char *argv[])
 	f_bind << s_bind_calls.str() << std::endl;
 	f_bind << "}" << std::endl;
 	f_bind << "}" << std::endl;
+
+	// bind dll calls
+	std::ofstream f_bind_dll((std::string(s_putki_outpath) + "/bind-dll.cpp").c_str()); 
+	f_bind_dll << "#include <putki/data-dll/dllinterface.h>" << std::endl;
+	f_bind_dll << s_bind_decl_dll.str() << std::endl;
+	f_bind_dll << "namespace putki {" << std::endl;
+	f_bind_dll << "void bind_" << module_name << "_dll()" << std::endl << "{" << std::endl;
+	f_bind_dll<< s_bind_calls_dll.str() << std::endl;
+	f_bind_dll << "}" << std::endl;
+	f_bind_dll << "}" << std::endl;
 	
 	// runtime switch case blob load
 	std::ofstream f_switch((std::string(s_rt_outpath) + "/blobload.cpp").c_str());

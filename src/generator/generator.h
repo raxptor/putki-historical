@@ -19,6 +19,10 @@ namespace putki
  
 	void write_bind_decl(putki::parsed_file *file, std::ostream &out);
 	void write_bind_calls(putki::parsed_file *file, std::ostream &out);
+
+	void write_dll_impl(putki::parsed_file *file, std::ostream &out);
+	void write_bind_decl_dll(putki::parsed_file *file, std::ostream &out);
+	void write_bind_call_dll(putki::parsed_file *file, std::ostream &out);
 }
 
 #endif
