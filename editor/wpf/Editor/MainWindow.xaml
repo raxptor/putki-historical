@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:Editor" x:Class="Editor.MainWindow"
-        Title="PutkiEditor" Height="871" Width="859">
+        Title="SuperBerit" Height="871" Width="859">
     <Grid>
             <Grid.ColumnDefinitions>
             <ColumnDefinition Width="500">

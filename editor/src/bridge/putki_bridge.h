@@ -48,7 +48,7 @@ namespace Putki
 	};
 
 	public ref class MemInstance
-{	jri
+	{
 		public:
 			MemInstance(TypeDefinition^ type, putki::mem_instance *mem_instance);
 			~MemInstance();
