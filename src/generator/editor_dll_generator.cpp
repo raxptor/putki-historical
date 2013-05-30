@@ -10,7 +10,7 @@ namespace putki
 
 	void write_plain_set(std::ostream &out, putki::parsed_struct *s, size_t j)
 	{
-		out << "	((inki::" << s->name << " *)obj->inst)->" << s->fields[j].name << " = value;" << std::endl;
+		out << "	((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << " = value;" << std::endl;
 	}
 
 	void write_field_handlers(std::ostream &out, putki::parsed_struct *s)
@@ -42,7 +42,7 @@ namespace putki
 			// STRING GET
 			out << "	const char* get_string(putki::mem_instance *obj) { " << std::endl;
 			if (!s->fields[j].is_array && s->fields[j].type == FIELDTYPE_STRING)
-				out << "	return ((inki::" << s->name << " *)obj->inst)->" << s->fields[j].name << ".c_str();" << std::endl;
+				out << "	return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ".c_str();" << std::endl;
 			else
 				out << "	return \"####NOT-STRING[" << s->name << "]#####\";" << std::endl;
 			out << "	}" << std::endl;

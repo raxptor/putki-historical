@@ -1,9 +1,10 @@
-solution "Putki"
+solution "PutkEd"
 	configurations {"Debug"}
 	location "build"
 	targetdir "build"
 
 	include "wpf/Editor/premake4.lua"
+	include "../external/wpf-toolkit/Main/Source/ExtendedWPFToolkitSolution/Src/Xceed.Wpf.Toolkit"
 
 	project "EditorBridge"
 		kind "SharedLib"

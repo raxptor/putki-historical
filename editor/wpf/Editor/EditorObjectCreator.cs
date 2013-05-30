@@ -22,7 +22,7 @@ namespace Editor
 {
     class EditorObjectCreator
     {
-        public object Make()
+        public object Make(Putki.TypeDefinition typeDef)
         {
             CompilerParameters parms = new CompilerParameters();
             parms.GenerateExecutable = false;
@@ -36,10 +36,21 @@ namespace Editor
             compilerOptions.Add("CompilerVersion", "v4.0");
             CodeDomProvider compiler = CSharpCodeProvider.CreateProvider("CSharp", compilerOptions);
 
-            string source = "class Banan { public string lalle { get; set; } }";
+            string source = "class " + typeDef.GetName() + " {";
+
+            for (int i = 0; i < 100; i++)
+            {
+                Putki.FieldHandler fi = typeDef.GetField(i);
+                if (fi == null)
+                    break;
+
+                source += "public string " + fi.GetName() + " { get; set; }\n";
+            }
+
+            source += "}";
             
             CompilerResults res = compiler.CompileAssemblyFromSource(parms, source);
-            object newObject = res.CompiledAssembly.CreateInstance("Banan");
+            object newObject = res.CompiledAssembly.CreateInstance(typeDef.GetName());
 
             /*
             putki.Sys ps = new putki.Sys();

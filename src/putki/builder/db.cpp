@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <set>
 
 namespace putki
 {
@@ -19,11 +20,17 @@ namespace putki
 		{
 			std::map<std::string, entry> objs;
 			std::map<instance_t, std::string> paths;
+			std::set<const char *> unresolved;
 		};
 
 		db::data * create()
 		{
 			return new data();
+		}
+
+		void free(data *d)
+		{
+			delete d;
 		}
 
 		const char *pathof(data *d, instance_t obj)
@@ -70,6 +77,23 @@ namespace putki
 		{
 			return (unsigned int) d->objs.size();
 		}
+
+
+		void* create_unresolved_pointer(data *d, const char *path)
+		{
+			char *str = _strdup(path);
+			d->unresolved.insert(str);
+			return str;
+		}
+
+		const char *is_unresolved_pointer(data *d, void *p)
+		{
+			if (d->unresolved.count((const char*)p) != 0)
+				return (const char*) p;
+			else
+				return 0;
+		}
+
 		
 	}
 }

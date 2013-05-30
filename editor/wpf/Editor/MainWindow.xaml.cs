@@ -15,19 +15,27 @@ using System.Windows.Shapes;
 
 namespace Editor
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
+	{
+        EditorObjectCreator eoc = new EditorObjectCreator();
 
-            EditorObjectCreator eoc = new EditorObjectCreator();
+		public MainWindow()
+		{
+			InitializeComponent();
+			m_propertyGrid.ShowSearchBox = false;
 
-            m_propertyGrid.SelectedObject = eoc.Make();
-            m_propertyGrid.ShowSearchBox = false;
-        }
-    }
+			m_fileBrowser.FileSelected += OnFileSelected;            
+		}
+
+		public void OnFileSelected(object sender, EventArgs a)
+		{
+			FileSelectedArgs fsa = (FileSelectedArgs)a;
+
+            Putki.MemInstance mi = Putki.Sys.LoadFromDisk(fsa.Path);
+            m_propertyGrid.SelectedObject = eoc.Make(mi.GetType());
+		}
+	}
 }

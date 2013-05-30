@@ -8,40 +8,67 @@ using namespace System;
 using namespace System::Runtime::InteropServices;
 using namespace System::IO;
 
-namespace putki
+namespace putki 
+{
+	struct ext_type_handler_i;
+	struct mem_instance;
+}
+
+namespace Putki
 {
 
-	struct ext_type_handler_i;
+	public ref class FieldHandler
+	{
+		public:
+			FieldHandler(const char *name)
+			{
+				m_name = gcnew String(name);
+			}
+
+			String^ GetName() { return m_name; }
+
+		private:
+
+			String^ m_name;
+	};
 
 	public ref class TypeDefinition
 	{
 		public:
-			TypeDefinition(const ext_type_handler_i *handler);
+			TypeDefinition(putki::ext_type_handler_i *handler);
 			~TypeDefinition();
 
 			String^ GetName();
 
+			FieldHandler^ GetField(int i);
+
 		private:
 
-			const ext_type_handler_i * handler;
+			putki::ext_type_handler_i * handler;
+	};
+
+	public ref class MemInstance
+{	jri
+		public:
+			MemInstance(TypeDefinition^ type, putki::mem_instance *mem_instance);
+			~MemInstance();
+
+			TypeDefinition^ GetType() { return m_type; }
+
+		private:
+
+			TypeDefinition^ m_type;
+			putki::mem_instance *m_instance;
 	};
 
 	public ref class Sys
 	{
 		public:
-
-			Sys();
-			~Sys();
-
-			void load(String^ dll);
-
-			TypeDefinition^ get_type_definition(String^ str);
-			TypeDefinition^ get_type_by_index(int i);
-			
-		private:
+			static void Load(String^ dll, String^ datapath);
+			static MemInstance^ LoadFromDisk(String^ path);
+			static TypeDefinition^ GetTypeByIndex(int i);
 	};
 
-
-}
+};
 
 #endif

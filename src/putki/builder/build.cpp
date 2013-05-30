@@ -118,7 +118,7 @@ namespace putki
 			std::cout << "=> Starting full build" << std::endl;
 			
 			db::data *input = putki::db::create();
-			init_db_with_source("data", input);
+			load_tree_into_db("data", input);
 		
 			std::cout << "=> Loaded DB, building source files" << std::endl;
 			

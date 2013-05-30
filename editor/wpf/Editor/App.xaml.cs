@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using putki;
+using Putki;
 
 namespace Editor
 {
@@ -16,12 +16,11 @@ namespace Editor
     {
         App()
         {
-            putki.Sys apa = new putki.Sys();
-            apa.load("C:\\gitproj\\putki\\test-project\\build\\testapp-data-dll.dll");
+            Putki.Sys.Load("C:\\gitproj\\putki\\test-project\\build\\testapp-data-dll.dll", "c:\\gitproj\\putki\\test-project\\data");
 
             for (int i=0;;i++)
             {
-                putki.TypeDefinition th = apa.get_type_by_index(i);
+                Putki.TypeDefinition th = Putki.Sys.GetTypeByIndex(i);
                 if (th == null)
                     break;
 

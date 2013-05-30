@@ -17,7 +17,7 @@ namespace putki
 		EXT_FIELDTYPE_INVALID
 	};
 
-	struct mem_instance;
+	struct mem_instance { };
 
 	struct ext_field_handler_i
 	{
@@ -37,15 +37,20 @@ namespace putki
 
 	struct data_dll_i
 	{
-		virtual mem_instance* create_instance(const char *type) = 0;
+		virtual ~data_dll_i();
+
+		virtual mem_instance* create_instance(ext_type_handler_i *th) = 0;
+		virtual void free_instance(mem_instance *mi) = 0;
+
 		virtual mem_instance* disk_load(const char *path) = 0;
+
+		virtual ext_type_handler_i* type_of(mem_instance *mi) = 0;
 		virtual ext_type_handler_i* type_by_index(unsigned int i) = 0;
-		virtual ext_type_handler_i* type_by_name(const char *name) { return 0; }
 	};
 
 	extern "C"
 	{
-		__declspec(dllexport) data_dll_i* load_data_dll();
+		__declspec(dllexport) data_dll_i* load_data_dll(const char *datapath);
 	}
 }
 
