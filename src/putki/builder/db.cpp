@@ -5,6 +5,8 @@
 #include <iostream>
 #include <set>
 
+#include <putki/sys/compat.h>
+
 namespace putki
 {
 
@@ -81,7 +83,7 @@ namespace putki
 
 		void* create_unresolved_pointer(data *d, const char *path)
 		{
-			char *str = _strdup(path);
+			char *str = strdup(path);
 			d->unresolved.insert(str);
 			return str;
 		}

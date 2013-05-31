@@ -1,5 +1,6 @@
 #include <parser/parse.h>
 #include <generator/generator.h>
+#include <generator/indentedwriter.h>
 #include <putki/sys/files.h>
 #include <sstream>
 #include <iostream>
@@ -41,11 +42,11 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_rt_impl(rt_impl.c_str());
 	
 	std::cout << " -> writing [" << rt_header << "] and [" << rt_impl << "]" << std::endl;
-	putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, f_rt_header);
-	putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN64, f_rt_impl);
+	putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_header));
+	putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_impl));
 
-	putki::write_runtime_blob_load_cases(&pf, s_blob_load_calls);
-	putki::write_runtime_blob_load_decl(("outki/" + out_base.substr(1) + ".h").c_str(), s_blob_load_decl);
+	putki::write_runtime_blob_load_cases(&pf, putki::indentedwriter(s_blob_load_calls));
+	putki::write_runtime_blob_load_decl(("outki/" + out_base.substr(1) + ".h").c_str(), putki::indentedwriter(s_blob_load_decl));
 	
 	// putki
 
@@ -57,11 +58,11 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_putki_impl(putki_impl.c_str());
 	
 	std::cout << " -> writing [" << putki_header << "] and [" << putki_impl << "]" << std::endl;
-	putki::write_putki_header(&pf, f_putki_header);
-	putki::write_putki_impl(&pf, f_putki_impl);
+	putki::write_putki_header(&pf, putki::indentedwriter(f_putki_header));
+	putki::write_putki_impl(&pf, putki::indentedwriter(f_putki_impl));
 	
-	putki::write_bind_decl(&pf, s_bind_decl);
-	putki::write_bind_calls(&pf, s_bind_calls);
+	putki::write_bind_decl(&pf, putki::indentedwriter(s_bind_decl));
+	putki::write_bind_calls(&pf, putki::indentedwriter(s_bind_calls));
 
 	// editor
 	std::string dll_impl = s_dll_outpath + out_base + "_impl.cpp";
@@ -71,10 +72,10 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	f_dll_impl << "#pragma once" << std::endl;
 	f_dll_impl << "#include <inki" << out_base << ".h>" << std::endl;
 	
-	putki::write_dll_impl(&pf, f_dll_impl);
+	putki::write_dll_impl(&pf, putki::indentedwriter(f_dll_impl));
 
-	putki::write_bind_decl_dll(&pf, s_bind_decl_dll);
-	putki::write_bind_call_dll(&pf, s_bind_calls_dll);
+	putki::write_bind_decl_dll(&pf, putki::indentedwriter(s_bind_decl_dll));
+	putki::write_bind_call_dll(&pf, putki::indentedwriter(s_bind_calls_dll));
 	
 }
 

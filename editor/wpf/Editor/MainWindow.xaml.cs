@@ -21,6 +21,7 @@ namespace Editor
 	public partial class MainWindow : Window
 	{
         EditorObjectCreator eoc = new EditorObjectCreator();
+        Putki.MemInstance lastObject = null;
 
 		public MainWindow()
 		{
@@ -32,10 +33,19 @@ namespace Editor
 
 		public void OnFileSelected(object sender, EventArgs a)
 		{
+            if (lastObject != null)
+                Putki.Sys.SaveObject(lastObject);
+
 			FileSelectedArgs fsa = (FileSelectedArgs)a;
 
             Putki.MemInstance mi = Putki.Sys.LoadFromDisk(fsa.Path);
-            m_propertyGrid.SelectedObject = eoc.Make(mi.GetType());
+
+            dynamic objectProxy = eoc.Make(mi.GetType());
+            objectProxy.PutkiObj = mi;
+
+            m_propertyGrid.SelectedObject = objectProxy;
+
+            lastObject = mi;
 		}
 	}
 }

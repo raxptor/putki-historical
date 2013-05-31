@@ -31,20 +31,26 @@ namespace Editor
             parms.ReferencedAssemblies.Add("System.dll");
             parms.ReferencedAssemblies.Add("System.Core.dll");
             parms.ReferencedAssemblies.Add("System.Data.dll");
+            parms.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
             parms.ReferencedAssemblies.Add("mscorlib.dll");
             Dictionary<string, string> compilerOptions = new Dictionary<string, string>();
             compilerOptions.Add("CompilerVersion", "v4.0");
             CodeDomProvider compiler = CSharpCodeProvider.CreateProvider("CSharp", compilerOptions);
 
-            string source = "class " + typeDef.GetName() + " {";
+            string source = "public class " + typeDef.GetName() + " {";
+
+            source += "public dynamic PutkiObj;\n";
 
             for (int i = 0; i < 100; i++)
             {
                 Putki.FieldHandler fi = typeDef.GetField(i);
                 if (fi == null)
                     break;
-
-                source += "public string " + fi.GetName() + " { get; set; }\n";
+                
+                source += "public string " + fi.GetName() + " {\n";
+                source += " get { return PutkiObj.GetType().GetField(" + i + ").GetString(PutkiObj); } \n";
+                source += " set { PutkiObj.GetType().GetField(" + i + ").SetString(PutkiObj, value); } \n";
+                source += "}\n";
             }
 
             source += "}";
@@ -52,6 +58,7 @@ namespace Editor
             CompilerResults res = compiler.CompileAssemblyFromSource(parms, source);
             object newObject = res.CompiledAssembly.CreateInstance(typeDef.GetName());
 
+            
             /*
             putki.Sys ps = new putki.Sys();
             putki.TypeDefinition td = ps.get_type_definition("Kalle");

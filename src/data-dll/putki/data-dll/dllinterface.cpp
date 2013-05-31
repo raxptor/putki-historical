@@ -3,10 +3,15 @@
 
 #include <putki/builder/typereg.h>
 #include <putki/builder/source.h>
+#include <putki/builder/write.h>
 #include <putki/builder/db.h>
+#include <putki/sys/compat.h>
 
 #include <string>
 #include <iostream>
+#include <sstream>
+
+#include <windows.h>
 
 void app_bind_putki_types();
 void app_bind_putki_types_dll();
@@ -35,11 +40,12 @@ namespace putki
 			db::free(_db);
 		}
 
-		mem_instance* create_instance(ext_type_handler_i *eth)
+		mem_instance* create_instance(const char *path, ext_type_handler_i *eth)
 		{
 			type_handler_i *th = putki::typereg_get_handler(eth->name());
 
 			mem_instance_real *mi = new mem_instance_real();
+			mi->path = strdup(path);
 			mi->th = th;
 			mi->eth = eth;
 			mi->inst = th->alloc();
@@ -47,9 +53,11 @@ namespace putki
 			return mi;
 		}
 
-		void free_instance(mem_instance *mi)
+		void free_instance(mem_instance *_mi)
 		{
-			((mem_instance_real*)mi)->th->free(((mem_instance_real*)mi)->inst);
+			mem_instance_real *mi = (mem_instance_real*) _mi;
+			free(mi->path);
+			mi->th->free(mi->inst);
 			delete mi;
 		}
 
@@ -69,6 +77,7 @@ namespace putki
 				mi->th = th;
 				mi->eth = get_ext_type_handler_by_name(th->name());
 				mi->inst = obj;
+				mi->path = strdup(path);
 
 				std::cout << mi->th << " " << mi->eth << " " << mi->inst;
 				return mi;
@@ -76,6 +85,15 @@ namespace putki
 
 			std::cout << "!Not found in DB!" << std::endl;
 			return 0;
+		}
+
+		void disk_save(mem_instance *mi_)
+		{
+			mem_instance_real *mi = (mem_instance_real*)mi_;
+			std::stringstream tmp;
+			putki::write::write_object_into_stream(tmp, _db, mi->th, mi->inst);
+			MessageBox(0, tmp.str().c_str(), "JSON", MB_OK);
+			return;
 		}
 
 		ext_type_handler_i* type_by_index(unsigned int i)

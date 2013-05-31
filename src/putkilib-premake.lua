@@ -10,6 +10,7 @@
 		files { "../src/**.cpp", "../src/**.h" }
 		files { "../builder/src/*.cpp" }
 		excludes { "../src/data-dll/**" }
+		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
 
 		includedirs { "../src", "../external" }

@@ -45,9 +45,26 @@ FieldHandler^ TypeDefinition::GetField(int i)
 {
 	putki::ext_field_handler_i *field = handler->field(i);
 	if (field)
-		return gcnew FieldHandler(field->name());
+		return gcnew FieldHandler(field);
 	else
 		return nullptr;
+}
+
+String^ FieldHandler::GetName()
+{
+	return gcnew String(m_handler->name());
+}
+
+String^ FieldHandler::GetString(MemInstance^ instance)
+{
+	return gcnew String(m_handler->get_string(instance->GetPutkiMemInstance()));
+}
+
+void FieldHandler::SetString(MemInstance^ instance, String^ Value)
+{
+	msclr::interop::marshal_context context;
+	std::string _value = context.marshal_as<std::string>(Value);
+	m_handler->set_string(instance->GetPutkiMemInstance(), _value.c_str());
 }
 
 void Sys::Load(String^ dll, String^ datapath)
@@ -70,6 +87,11 @@ MemInstance^ Sys::LoadFromDisk(String^ path)
 	{
 		return gcnew MemInstance(gcnew TypeDefinition(s_dll->type_of(mi)), mi);
 	}
+}
+
+void Sys::SaveObject(MemInstance^ mi)
+{
+	s_dll->disk_save(mi->GetPutkiMemInstance());
 }
 
 TypeDefinition^ Sys::GetTypeByIndex(int i)

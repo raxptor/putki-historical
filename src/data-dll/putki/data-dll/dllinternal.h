@@ -14,6 +14,7 @@ namespace putki
 		type_handler_i *th;
 		ext_type_handler_i *eth;
 		instance_t inst;
+		char *path;
 	};
 
 	void add_ext_type_handler(const char *type, ext_type_handler_i *i);

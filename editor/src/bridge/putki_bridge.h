@@ -11,26 +11,14 @@ using namespace System::IO;
 namespace putki 
 {
 	struct ext_type_handler_i;
+	struct ext_field_handler_i;
 	struct mem_instance;
 }
 
 namespace Putki
 {
 
-	public ref class FieldHandler
-	{
-		public:
-			FieldHandler(const char *name)
-			{
-				m_name = gcnew String(name);
-			}
-
-			String^ GetName() { return m_name; }
-
-		private:
-
-			String^ m_name;
-	};
+	ref class FieldHandler;
 
 	public ref class TypeDefinition
 	{
@@ -55,17 +43,38 @@ namespace Putki
 
 			TypeDefinition^ GetType() { return m_type; }
 
+			putki::mem_instance* GetPutkiMemInstance() { return m_instance; }
+
 		private:
 
 			TypeDefinition^ m_type;
 			putki::mem_instance *m_instance;
 	};
 
+	public ref class FieldHandler
+	{
+		public:
+			FieldHandler(putki::ext_field_handler_i *handler)
+			{
+				m_handler = handler;
+			}
+
+			String^ GetName();
+			String^ GetString(MemInstance^ instance);
+			void SetString(MemInstance^ instance, String^ Value);
+
+		private:
+
+			putki::ext_field_handler_i *m_handler;
+	};
+
+
 	public ref class Sys
 	{
 		public:
 			static void Load(String^ dll, String^ datapath);
 			static MemInstance^ LoadFromDisk(String^ path);
+			static void SaveObject(MemInstance ^mi);
 			static TypeDefinition^ GetTypeByIndex(int i);
 	};
 
