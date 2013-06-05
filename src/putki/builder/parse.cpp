@@ -67,7 +67,7 @@ namespace parse
 	const char *get_value_string(node *node)
 	{
 		if (!node)
-			return "<missing>";
+			return "";
 
 		return node->value.c_str();
 	}

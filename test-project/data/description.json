@@ -1,7 +1,7 @@
 {
-	type:"appdescription",
+	type: "appdescription",
 	data: {
-		name: "Putki TestGame!",
-		version: "v0.01a"
+			"name": "Magnus Super",
+			"version": "SUPERSPELETE v10 едц"
 	}
 }

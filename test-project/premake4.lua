@@ -19,15 +19,24 @@ solution "Testproj"
 
 		includedirs { "../src", "../src/builder" }
 
-	project "testapp-databuilder"
-		kind "ConsoleApp"
+	project "testapp-databuilder-lib"
+		kind "StaticLib"
 		language "C++"
-		targetname "testapp-databuildel"
+		targetname "testapp-databuilder-lib"
 
 		files { "src/builder/**.cpp", "src/builder/**.h" }
 		includedirs { "../src", "_gen" }
 		excludes { "../src/cpp-runtime/**" }
 
+		links {"putki-databuilder-lib"}
+		links {"testapp-putki-lib"}
+
+	project "testapp-databuilder"
+		kind "ConsoleApp"
+		language "C++"
+		targetname "testapp-databuilder"
+		files { "src/builder/testapp-builder.cpp"}
+		links {"testapp-databuilder-lib"}
 		links {"putki-databuilder-lib"}
 		links {"testapp-putki-lib"}
 
@@ -49,6 +58,7 @@ solution "Testproj"
 
 		links {"putki-lib"}
 		links {"testapp-putki-lib"}
+		links {"testapp-databuilder-lib"}
 
 		configuration "Release"
 			defines {"DEBUG"}

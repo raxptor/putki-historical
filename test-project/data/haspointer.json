@@ -1,7 +1,23 @@
-{ 
+{
 	type: "testobj",
-	data: { 
-		curken: "Bananakalle", 
-		dasblob: "stuff/blob0" 
+	data: {
+			"curken": "Detta är en asset med pekare",
+			"stora_kalaset": {
+				"ballonger": {
+					"marke": "DELUXE",
+					"pris": "4000 kr"
+			},
+				"smak_pa_lasken": "COCA COLA",
+				"vilken_tarta": "PRINCESSTÅRTA"
+		},
+			"lilla_kalaset": {
+				"ballonger": {
+					"marke": "MAGNUS BALLONGFABRIK AB",
+					"pris": "5 000 000 kr"
+			},
+				"smak_pa_lasken": "loranga",
+				"vilken_tarta": "schwarzwald"
+		},
+			"dasblob": "Många fina"
 	}
 }

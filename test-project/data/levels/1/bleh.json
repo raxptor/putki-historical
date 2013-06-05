@@ -1,85 +1,239 @@
 {
-	type:"difficulties",
+	type: "difficulties",
 	data: {
-		kalle: "Curka",
-		difficulty: [
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer sju.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"FIRST", level:32}
-		]
+			"kalle": "Gurken",
+			"difficulty": [
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "Nummer sju.",
+				"level": 123
+, 
+				"name": "Nummer noll.",
+				"level": 123
+, 
+				"name": "FIRST",
+				"level": 32
+],
+			"outlist": []
 	}
 }

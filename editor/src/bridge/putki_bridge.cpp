@@ -55,6 +55,26 @@ String^ FieldHandler::GetName()
 	return gcnew String(m_handler->name());
 }
 
+FieldType FieldHandler::GetType()
+{
+	return (FieldType) m_handler->type(); 
+}
+
+TypeDefinition^ FieldHandler::GetRefType()
+{
+	const char *refType = m_handler->ref_type_name();
+	if (!refType)
+		return nullptr;
+
+	return gcnew TypeDefinition(s_dll->type_by_name(refType));
+}
+
+MemInstance^ FieldHandler::GetStructInstance(MemInstance^ Obj)
+{
+	// how to free this?!	
+	return gcnew MemInstance(GetRefType(), m_handler->make_struct_instance(Obj->GetPutkiMemInstance()));
+}
+
 String^ FieldHandler::GetString(MemInstance^ instance)
 {
 	return gcnew String(m_handler->get_string(instance->GetPutkiMemInstance()));
@@ -65,6 +85,25 @@ void FieldHandler::SetString(MemInstance^ instance, String^ Value)
 	msclr::interop::marshal_context context;
 	std::string _value = context.marshal_as<std::string>(Value);
 	m_handler->set_string(instance->GetPutkiMemInstance(), _value.c_str());
+}
+
+String^ FieldHandler::GetPointer(MemInstance^ instance)
+{
+	return gcnew String(m_handler->get_pointer(instance->GetPutkiMemInstance()));
+}
+
+void FieldHandler::SetPointer(MemInstance^ instance, String^ Value)
+{
+	msclr::interop::marshal_context context;
+	std::string _value = context.marshal_as<std::string>(Value);
+	m_handler->set_pointer(instance->GetPutkiMemInstance(), _value.c_str());
+}
+
+void Sys::MemBuildAsset(String^ path)
+{
+	msclr::interop::marshal_context context;
+	std::string _value = context.marshal_as<std::string>(path);
+	s_dll->mem_build_asset(_value.c_str(), nullptr);
 }
 
 void Sys::Load(String^ dll, String^ datapath)
@@ -111,6 +150,11 @@ MemInstance::MemInstance(TypeDefinition^ type, putki::mem_instance *mem_instance
 
 MemInstance::~MemInstance()
 {
+}
+
+String^ MemInstance::GetPath()
+{
+	return gcnew String(s_dll->path_of(m_instance));
 }
 
 

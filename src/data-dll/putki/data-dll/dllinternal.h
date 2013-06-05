@@ -2,6 +2,7 @@
 #define __PUTKI_DLL_INTERNAL_H__
 
 #include <putki/builder/typereg.h>
+#include <putki/builder/db.h>
 #include "dllinterface.h"
 
 namespace putki
@@ -11,9 +12,11 @@ namespace putki
 
 	struct mem_instance_real : public mem_instance
 	{
+		bool is_struct_instance;
 		type_handler_i *th;
 		ext_type_handler_i *eth;
 		instance_t inst;
+		db::data *refs_db; // where its references can be looked up.
 		char *path;
 	};
 

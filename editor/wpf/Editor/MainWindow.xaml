@@ -12,7 +12,9 @@
             </ColumnDefinition>
         </Grid.ColumnDefinitions>
             
-        <xctk:PropertyGrid x:Name="m_propertyGrid" Grid.Column="1"/>
+        <xctk:PropertyGrid x:Name="m_propertyGrid" Grid.Column="1" Margin="0,0,0,37" ShowSearchBox="False" ShowSortOptions="False"/>
         <local:FileBrowser x:Name="m_fileBrowser" Grid.Column="0" HorizontalAlignment="Stretch" />
+        <Button Content="Save" Grid.Column="1" HorizontalAlignment="Left" Height="22" Margin="260,812,0,0" VerticalAlignment="Top" Width="81" Click="Button_Click_1"/>
+        <Button Content="MemBuild" Grid.Column="1" HorizontalAlignment="Left" Height="22" Margin="174,812,0,0" VerticalAlignment="Top" Width="81" Click="Button_Click_2"/>
     </Grid>
 </Window>

@@ -5,16 +5,19 @@
 #include <putki/builder/source.h>
 #include <putki/builder/write.h>
 #include <putki/builder/db.h>
+#include <putki/builder/build.h>
 #include <putki/sys/compat.h>
 
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include <windows.h>
 
 void app_bind_putki_types();
 void app_bind_putki_types_dll();
+void app_register_handlers(putki::builder::data *builder);
 
 namespace putki
 {
@@ -45,11 +48,12 @@ namespace putki
 			type_handler_i *th = putki::typereg_get_handler(eth->name());
 
 			mem_instance_real *mi = new mem_instance_real();
+			mi->is_struct_instance = false;
 			mi->path = strdup(path);
 			mi->th = th;
 			mi->eth = eth;
 			mi->inst = th->alloc();
-
+			mi->refs_db = _db;
 			return mi;
 		}
 
@@ -74,10 +78,12 @@ namespace putki
 			{
 				std::cout << "Found in db!" << std::endl;
 				mem_instance_real *mi = new mem_instance_real();
+				mi->is_struct_instance = false;
 				mi->th = th;
 				mi->eth = get_ext_type_handler_by_name(th->name());
 				mi->inst = obj;
 				mi->path = strdup(path);
+				mi->refs_db = _db;
 
 				std::cout << mi->th << " " << mi->eth << " " << mi->inst;
 				return mi;
@@ -92,7 +98,23 @@ namespace putki
 			mem_instance_real *mi = (mem_instance_real*)mi_;
 			std::stringstream tmp;
 			putki::write::write_object_into_stream(tmp, _db, mi->th, mi->inst);
-			MessageBox(0, tmp.str().c_str(), "JSON", MB_OK);
+
+			std::string outpath = (_path + "/" + mi->path) + ".json";
+
+#ifdef _WIN32
+			for (unsigned int i=0;i<outpath.size();i++)
+				if (outpath[i] == '/')
+					outpath[i] = '\\';
+#else
+			for (unsigned int i=0;i<outpath.size();i++)
+				if (outpath[i] == '\\')
+					outpath[i] = '/';
+#endif
+
+			std::ofstream f(outpath.c_str());
+			f << tmp.str();
+			
+			putki::db::insert(_db, mi->path, mi->th, mi->inst);
 			return;
 		}
 
@@ -101,9 +123,29 @@ namespace putki
 			return get_ext_type_handler_by_index(i);
 		}
 
+		ext_type_handler_i* type_by_name(const char *name)
+		{
+			return get_ext_type_handler_by_name(name);
+		}
+
 		ext_type_handler_i* type_of(mem_instance *mi)
 		{
 			return ((mem_instance_real*)mi)->eth;
+		}
+
+		void mem_build_asset(const char *path, ext_build_result *res)
+		{
+			putki::builder::data* builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
+			app_register_handlers(builder);
+
+			putki::db::data *output = putki::db::create();
+			putki::builder::build_source_object(builder, _db, path, output);
+			putki::builder::free(builder);
+		}
+
+		const char *path_of(mem_instance *mi)
+		{
+			return ((mem_instance_real*)mi)->path;
 		}
 	};
 
@@ -111,7 +153,7 @@ namespace putki
 	{
 		// bind at startup.
 		app_bind_putki_types();
-		app_bind_putki_types_dll();
+		app_bind_putki_types_dll();	
 
 		return new data_dll(data_path);
 	}

@@ -28,24 +28,37 @@ namespace Editor
 			InitializeComponent();
 			m_propertyGrid.ShowSearchBox = false;
 
-			m_fileBrowser.FileSelected += OnFileSelected;            
+			m_fileBrowser.FileSelected += OnFileSelected;
 		}
 
 		public void OnFileSelected(object sender, EventArgs a)
 		{
-            if (lastObject != null)
-                Putki.Sys.SaveObject(lastObject);
-
 			FileSelectedArgs fsa = (FileSelectedArgs)a;
 
             Putki.MemInstance mi = Putki.Sys.LoadFromDisk(fsa.Path);
 
             dynamic objectProxy = eoc.Make(mi.GetType());
-            objectProxy.PutkiObj = mi;
+            objectProxy.Setup(mi);
 
             m_propertyGrid.SelectedObject = objectProxy;
 
             lastObject = mi;
 		}
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (lastObject != null)
+            {
+                Putki.Sys.SaveObject(lastObject);
+            }
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (lastObject != null)
+            {
+                Putki.Sys.MemBuildAsset(lastObject.GetPath());
+            }
+        }
 	}
 }

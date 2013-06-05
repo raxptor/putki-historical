@@ -96,7 +96,6 @@ namespace putki
 		
 		}
 		
-		
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
 			build_source_object(builder, SOURCE_OBJECT, input, path, output);

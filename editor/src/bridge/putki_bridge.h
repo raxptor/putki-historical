@@ -20,6 +20,17 @@ namespace Putki
 
 	ref class FieldHandler;
 
+	public enum FieldType
+	{
+		EXT_FIELDTYPE_INT32 = 0,
+		EXT_FIELDTYPE_BYTE = 1,
+		EXT_FIELDTYPE_STRING = 2,
+		EXT_FIELDTYPE_POINTER = 3,
+		EXT_FIELDTYPE_STRUCT_INSTANCE = 4,
+		EXT_FIELDTYPE_FILE = 5,
+		EXT_FIELDTYPE_INVALID = 6
+	};
+
 	public ref class TypeDefinition
 	{
 		public:
@@ -42,6 +53,7 @@ namespace Putki
 			~MemInstance();
 
 			TypeDefinition^ GetType() { return m_type; }
+			String^ GetPath();
 
 			putki::mem_instance* GetPutkiMemInstance() { return m_instance; }
 
@@ -59,9 +71,16 @@ namespace Putki
 				m_handler = handler;
 			}
 
+			FieldType GetType();
+			TypeDefinition^ GetRefType();
+			MemInstance^ GetStructInstance(MemInstance^ Obj);
+
 			String^ GetName();
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
+
+			String^ GetPointer(MemInstance^ instance);
+			void SetPointer(MemInstance^ instance, String^ Value);
 
 		private:
 
@@ -76,6 +95,7 @@ namespace Putki
 			static MemInstance^ LoadFromDisk(String^ path);
 			static void SaveObject(MemInstance ^mi);
 			static TypeDefinition^ GetTypeByIndex(int i);
+			static void MemBuildAsset(String^ path);
 	};
 
 };

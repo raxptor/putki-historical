@@ -42,8 +42,16 @@ namespace putki
 				return i->second.c_str();
 			return 0;
 		}
+
+		const char *pathof_including_unresolved(data *d, instance_t obj)
+		{
+			const char *unres = is_unresolved_pointer(d, obj);
+			if (unres)
+				return unres;
+			return pathof(d, obj);
+		}
 		
-		void insert(data *d, const char *path, type_handler_i *th, instance_t i)	
+		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			std::cout << " db insert on path [" << path << "]" << std::endl;
 			entry e;
@@ -65,6 +73,14 @@ namespace putki
 			return false;
 		}
 
+		instance_t ptr_to_allow_unresolved(data *d, const char *path)
+		{
+			std::map<std::string, entry>::iterator i = d->objs.find(path);
+			if (i != d->objs.end())
+				return i->second.obj;
+			return create_unresolved_pointer(d, path);
+		}
+
 		void read_all(data *d, enum_i *eobj)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.begin();
@@ -81,11 +97,11 @@ namespace putki
 		}
 
 
-		void* create_unresolved_pointer(data *d, const char *path)
+		instance_t create_unresolved_pointer(data *d, const char *path)
 		{
 			char *str = strdup(path);
 			d->unresolved.insert(str);
-			return str;
+			return (instance_t) str;
 		}
 
 		const char *is_unresolved_pointer(data *d, void *p)

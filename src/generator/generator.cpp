@@ -569,14 +569,17 @@ namespace putki
 			}
 			else if (fd.type == FIELDTYPE_POINTER)
 			{
-				out.line() << "out << " << delim <<  "\"POINTERREF\";";
+				out.line() << "out << " << delim <<  "putki::write::json_str(putki::db::pathof_including_unresolved(ref_source, " << ref << "));";
 			}
 			else if (fd.type == FIELDTYPE_STRUCT_INSTANCE)
 			{
-				out.line() << "out << " << delim << "\"\\n\";";
+				out.line() << "out << " << delim << "\"{\\n\";";
 				out.line() << "// write struct contents[" << fd.ref_type << "]";
-				out.line() << fd.ref_type << "_handler thandler;";
-				out.line() << "thandler.write_json(ref_source, &" << ref << ", out, indent + 1);";
+				out.line() << "{";
+				out.line(1) << fd.ref_type << "_handler thandler;";
+				out.line(1) << "thandler.write_json(ref_source, &" << ref << ", out, indent + 1);";
+				out.line() << "}";
+				out.line() << "out << putki::write::json_indent(indent) << \"}\";";
 			}
 			else
 			{

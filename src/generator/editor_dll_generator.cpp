@@ -14,6 +14,13 @@ namespace putki
 		out.line() << "((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << " = value;";
 	}
 
+	void write_pointer_set(putki::indentedwriter &out, putki::parsed_struct *s, size_t j)
+	{
+		out.line() << "putki::mem_instance_real *mir = (putki::mem_instance_real *) obj;";
+		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << s->fields[j].name << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
+	}
+
+
 	void write_field_handlers(putki::indentedwriter &out, putki::parsed_struct *s)
 	{
 		for (size_t j=0;j!=s->fields.size();j++)
@@ -25,12 +32,21 @@ namespace putki
 			out.indent(1);
 			out.line() << "// get info";
 			out.line() << "const char *name() { return \"" << s->fields[j].name << "\"; }";
+			out.line() << "const char* ref_type_name() { ";			
+			if (!s->fields[j].ref_type.empty())
+				out.cont() << "return \"" << s->fields[j].ref_type << "\";";
+			else
+				out.cont() << "return 0;";
+			out.cont() << " }";
+
 			out.line() << "putki::ext_field_type type() { return ";
 
 			switch (s->fields[j].type)
 			{
 				case FIELDTYPE_STRING: out.cont() << " putki::EXT_FIELDTYPE_STRING; "; break;
 				case FIELDTYPE_INT32: out.cont() << " putki::EXT_FIELDTYPE_INT32; "; break;
+				case FIELDTYPE_POINTER: out.cont() << " putki::EXT_FIELDTYPE_POINTER; "; break;
+				case FIELDTYPE_STRUCT_INSTANCE: out.cont() << " putki::EXT_FIELDTYPE_STRUCT_INSTANCE; "; break;
 				default: out.cont() << " putki::EXT_FIELDTYPE_INVALID; "; break;
 			}
 
@@ -44,7 +60,7 @@ namespace putki
 				if (!s->fields[j].is_array)
 					write_plain_set(out, s, j);
 			out.indent(-1);
-			out.cont() << "	}";
+			out.line() << "}";
 
 			// STRING GET
 			out.line();
@@ -54,6 +70,53 @@ namespace putki
 				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ".c_str();";
 			else
 				out.line() << "return \"####NOT-STRING[" << s->name << "]#####\";";
+			out.indent(-1);
+			out.line() << "}";
+
+
+			// POINTER SET
+			out.line() << "// Pointer type handlers";
+			out.line() << "void set_pointer(putki::mem_instance *obj, const char *value) {";
+			out.indent(1);
+			if (s->fields[j].type == FIELDTYPE_POINTER)
+				if (!s->fields[j].is_array)
+					write_pointer_set(out, s, j);
+			out.indent(-1);
+			out.cont() << "	}";
+
+			// POINTER GET
+			out.line();
+			out.line() << "const char* get_pointer(putki::mem_instance *obj) { ";
+			out.indent(1);
+			if (!s->fields[j].is_array && s->fields[j].type == FIELDTYPE_POINTER)
+				out.line() << "return putki::db::pathof_including_unresolved(((putki::mem_instance_real*)obj)->refs_db, ((inki::" << s->name << "*)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ");";
+			else
+				out.line() << "return \"NOT A POINTER\";";
+			out.indent(-1);
+			out.line() << "}";
+
+			//
+			out.line();
+			out.line() << "putki::mem_instance* make_struct_instance(putki::mem_instance *obj) {";
+			out.indent(1);
+			if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
+			{
+				out.line() << "putki::mem_instance_real *omr = (putki::mem_instance_real *)obj;";
+				out.line() << "putki::mem_instance_real *mr = new putki::mem_instance_real();";
+				out.line() << "static inki::ed_type_handler_" << s->fields[j].ref_type << " eth;";
+				out.line() << "mr->is_struct_instance = true;";
+				out.line() << "mr->th = putki::typereg_get_handler(\"" << s->fields[j].ref_type << "\");";
+				out.line() << "mr->eth = &eth;";
+				out.line() << "mr->inst = &((inki::" << s->name << " *)omr->inst)->" << s->fields[j].name << ";";
+				out.line() << "mr->refs_db = mr->refs_db;";
+				out.line() << "mr->path = \"<struct-instance>\";";
+				out.line() << "return mr;";
+			}
+			else
+			{
+				out.line() << "return 0;";
+			}
+				
 			out.indent(-1);
 			out.line() << "}";
 
@@ -70,6 +133,8 @@ namespace putki
 		out.line();
 		out.line() << "#include <putki/data-dll/dllinterface.h>";
 		out.line() << "#include <putki/data-dll/dllinternal.h>";
+		out.line() << "#include <putki/builder/db.h>";
+		out.line() << "#include <putki/builder/typereg.h>";
 		out.line();
 		out.line() << "namespace inki {";
 		out.line();
