@@ -11,8 +11,10 @@ namespace putki
 			virtual void on_missing_asset(const char *path) = 0;
 		};
 
-		data* start_server(const char *name);
+		data* start_server();
+		int accept(data *which);
 		void stop_server(data *which);
+		void service_client(const char *sourcepath, int socket);
 
 		void send_update(data *lu, db::data *data, const char *path);
 	}

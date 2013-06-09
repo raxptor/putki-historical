@@ -4,7 +4,7 @@ solution "Testproj"
 	targetdir "build"
 	flags { "Symbols" }
 
-	include "../src/putkilib-premake.lua"
+	dofile "../src/putkilib-premake.lua"
 
 	project "testapp-putki-lib"
 		kind "StaticLib"

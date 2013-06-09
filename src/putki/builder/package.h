@@ -16,7 +16,6 @@ namespace putki
 		// need storepath = true to be able to look it up from the package in runtime.
 		void add(package::data *data, const char *path, bool storepath);
 
-		long inbytes(data *d);
 		long write(data *data, putki::runtime rt, char *buffer, long available);
 	}
 }

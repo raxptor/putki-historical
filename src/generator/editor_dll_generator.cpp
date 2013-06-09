@@ -9,19 +9,19 @@
 namespace putki
 {
 
-	void write_plain_set(putki::indentedwriter &out, putki::parsed_struct *s, size_t j)
+	void write_plain_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j)
 	{
 		out.line() << "((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << " = value;";
 	}
 
-	void write_pointer_set(putki::indentedwriter &out, putki::parsed_struct *s, size_t j)
+	void write_pointer_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j)
 	{
 		out.line() << "putki::mem_instance_real *mir = (putki::mem_instance_real *) obj;";
 		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << s->fields[j].name << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
 	}
 
 
-	void write_field_handlers(putki::indentedwriter &out, putki::parsed_struct *s)
+	void write_field_handlers(putki::indentedwriter out, putki::parsed_struct *s)
 	{
 		for (size_t j=0;j!=s->fields.size();j++)
 		{
@@ -128,7 +128,7 @@ namespace putki
 		}
 	}
 
-	void write_dll_impl(putki::parsed_file *file, putki::indentedwriter &out)
+	void write_dll_impl(putki::parsed_file *file, putki::indentedwriter out)
 	{
 		out.line();
 		out.line() << "#include <putki/data-dll/dllinterface.h>";
@@ -210,7 +210,7 @@ namespace putki
 
 	}
 
-	void write_bind_decl_dll(putki::parsed_file *file, putki::indentedwriter &out)
+	void write_bind_decl_dll(putki::parsed_file *file, putki::indentedwriter out)
 	{
 		out.line();
 		out.line() << "namespace inki {";
@@ -224,7 +224,7 @@ namespace putki
 		out.line() << "}";
 	}
 
-	void write_bind_call_dll(putki::parsed_file *file, putki::indentedwriter &out)
+	void write_bind_call_dll(putki::parsed_file *file, putki::indentedwriter out)
 	{
 		for (unsigned int i=0;i<file->structs.size();i++)
 		{

@@ -28,10 +28,22 @@ namespace putki
 			
 			virtual void pointer(instance_t * on)
 			{
-				const char *path = db::pathof(db, *on);
-				if (!path)
-					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
+				if (!*on)
+					return;
 					
+				const char *path = db::pathof_including_unresolved(db, *on);
+				if (!path)
+				{
+					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
+					return;
+				}
+				
+				if (db::is_unresolved_pointer(db, *on))
+				{
+					std::cout << "Problem. There is an unresolved asset with path " << path << ". Ignoring";
+					return;
+				}
+				
 				deps.push_back(path);
 			}
 		};
@@ -99,11 +111,6 @@ namespace putki
 			add(data, path, storepath, true);
 		}
 		
-		long inbytes(data *d)
-		{
-			return 0;
-		}
-
 		// extracts all the pointer values and their values so packaging can
 		// temporarily rewrite them.
 		struct pointer_rewriter : putki::depwalker_i

@@ -42,6 +42,7 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_rt_impl(rt_impl.c_str());
 	
 	std::cout << " -> writing [" << rt_header << "] and [" << rt_impl << "]" << std::endl;
+	
 	putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_header));
 	putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_impl));
 

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 
 #include <putki/sys/files.h>
 
@@ -27,14 +28,22 @@ namespace putki
 		struct enum_db_entries_resolve : public db::enum_i
 		{
 			db::data *db;
+			
+			bool add_to_load = false;
+			std::vector<std::string> to_load;
 
 			struct process_ptr : public putki::depwalker_i
 			{
 				enum_db_entries_resolve *parent;
 				void pointer(instance_t *on)
 				{
+					if (!*on)
+						return;
+						
 					// see if it is an unresolved pointer.
 					const char *path = db::is_unresolved_pointer(parent->db, *on);
+					if (!path)
+						return;
 					
 					type_handler_i *th;
 					instance_t obj;
@@ -44,6 +53,12 @@ namespace putki
 					}
 					else
 					{
+						if (parent->add_to_load)
+						{
+							parent->to_load.push_back(path);
+							return;
+						}
+						
 						std::cout << "Unresolved reference to [" << path << "]!" << std::endl;
 						*on = 0;
 					}
@@ -63,7 +78,8 @@ namespace putki
 	// adds unresolved pointer to the db through resolve_pointer.
 	void load_into_db(db::data *db, const char *fullpath, const char *name)
 	{
-		// 
+		std::cout << "[load into db <" << fullpath << "> <" << name << ">" << std::endl;
+		//
 		std::string asset_name(name);
 		int p = asset_name.find_last_of('.');
 		if (p == std::string::npos)
@@ -117,7 +133,6 @@ namespace putki
 		std::cout << "Loaded " << db::size(_db) << " records." << std::endl;
 
 		// might have unresolved.
-
 		enum_db_entries_resolve resolver;
 		resolver.db = d;
 
@@ -128,10 +143,37 @@ namespace putki
 
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve)
 	{		
-		std::cout << "Loading [" << path << "] from [" << sourcepath << "] into db." << std::endl;
-
-		std::string fullpath = std::string(sourcepath) + "/" + path;
-		load_into_db(d, fullpath.c_str(), path);
+		std::string fpath = std::string(path) + ".json";
+		std::string fullpath = std::string(sourcepath) + "/" + fpath;
+		load_into_db(d, fullpath.c_str(), fpath.c_str());
+		
+		std::set<std::string> loaded;
+		
+		while (true)
+		{
+			// resolve
+			enum_db_entries_resolve resolver;
+			resolver.add_to_load = true;
+			resolver.db = d;
+			db::read_all(d, &resolver);
+			
+			unsigned int ld = 0;
+			for (unsigned int i=0;i<resolver.to_load.size();i++)
+			{
+				std::string file = resolver.to_load[i] + ".json";
+				if (loaded.count(file) == 0)
+				{
+					ld++;
+					std::cout << "Loading additional [" << file << "]" << std::endl;
+					load_into_db(d, (std::string(sourcepath) + "/" + file).c_str(), file.c_str());
+					loaded.insert(file);
+				}
+			}
+			
+			if (!ld)
+				break;
+		}
+	
 	}
 
 }

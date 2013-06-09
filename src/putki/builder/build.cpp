@@ -50,13 +50,13 @@ namespace
 			void pointer(putki::instance_t *on)
 			{
 				putki::type_handler_i *th;
-				putki::instance_t obj;
+				putki::instance_t obj = 0;
 				
-				const char *path = putki::db::pathof(parent->input, *on);
+				const char *path = putki::db::pathof_including_unresolved(parent->input, *on);
 				if (!path)
 				{
 					// this would mean the object exists neither in the input nor output domain.
-					if (!putki::db::pathof(parent->output, *on))
+					if (!putki::db::pathof_including_unresolved(parent->output, *on))
 						std::cout << "!!! A wild object appears!" << std::endl;
 					return;
 				}
@@ -112,6 +112,15 @@ namespace putki
 			std::string package_path;
 			putki::runtime rt;
 		};
+		
+		void post_build_ptr_update(db::data *input, db::data *output)
+		{
+			// Move all references from objects in the output
+			domain_switch dsw;
+			dsw.input = input;
+			dsw.output = output;
+			db::read_all(output, &dsw);
+		}
 			
 		void full_build(putki::builder::data *builder, const char *input_path, const char *output_path, const char *package_path)
 		{
@@ -130,14 +139,10 @@ namespace putki
 			// go!
 			db::read_all(input, &bsf);
 			
+			
 			std::cout << "=> Domain switching pointers" << std::endl;
-			
-			// Move all references from objects in the output
-			domain_switch dsw;
-			dsw.input = input;
-			dsw.output = bsf.output;
-			db::read_all(bsf.output, &dsw);
-			
+			post_build_ptr_update(input, bsf.output);			
+
 			std::cout << "=> Packaging data." << std::endl;
 			
 			packaging_config pconf;

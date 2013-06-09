@@ -7,12 +7,15 @@
 namespace putki
 {
 	namespace package { struct data; }
+	namespace db { struct data; }
 	
 	namespace build
 	{
 		struct packaging_config;
 	
 		void full_build(putki::builder::data *builder, const char *input_path, const char *output_path, const char *package_path);
+
+		void post_build_ptr_update(db::data *input, db::data *output);
 		
 		// can be called from user functions.
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path);
