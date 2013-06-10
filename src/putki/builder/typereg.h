@@ -29,8 +29,9 @@ namespace putki
 	
 	struct depwalker_i
 	{
-		virtual void pointer(instance_t *on) = 0;
-	};
+		virtual bool pointer_pre(instance_t *on) = 0;  // pre descending into pointer.
+		virtual void pointer_post(instance_t *on) = 0; // post descending into pointer.
+ 	};
 	
 	struct type_handler_i
 	{
@@ -40,6 +41,7 @@ namespace putki
 	
 		// instantiate / destruct.
 		virtual instance_t alloc() = 0;
+		virtual instance_t clone(instance_t source) = 0;
 		virtual void free(instance_t) = 0;
 		
 		// reading / writing

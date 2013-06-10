@@ -109,7 +109,7 @@ namespace putki
 				out.line() << "mr->eth = &eth;";
 				out.line() << "mr->inst = &((inki::" << s->name << " *)omr->inst)->" << s->fields[j].name << ";";
 				out.line() << "mr->refs_db = mr->refs_db;";
-				out.line() << "mr->path = \"<struct-instance>\";";
+				out.line() << "mr->path = strdup(omr->path);";
 				out.line() << "return mr;";
 			}
 			else

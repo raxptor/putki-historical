@@ -66,6 +66,8 @@ namespace putki
 		virtual ext_type_handler_i* type_by_name(const char *name) = 0;
 
 		virtual void mem_build_asset(const char *path, ext_build_result *res) = 0;
+		virtual void on_object_modified(const char *path) = 0;
+
 		virtual const char *path_of(mem_instance *mi) = 0;
 	};
 

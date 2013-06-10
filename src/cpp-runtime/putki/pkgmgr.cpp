@@ -2,11 +2,14 @@
 #include "pkgmgr.h"
 #include "types.h"
 #include "blob.h"
+#include "liveupdate/liveupdate.h"
 
 #include <cstdlib>
 #include <string>
 #include <iostream>
 #include <vector>
+
+
 
 namespace putki
 {
@@ -38,26 +41,76 @@ namespace putki
 			};
 
 			std::vector<entry> entries;
-
-			virtual void pointer(instance_t *ptr)
+			
+			bool pointer_pre(instance_t *ptr)
 			{
 				entry e;
 				e.ptr = ptr;
 				e.index = *((unsigned short *)ptr);
-
-				// null it so it's not traversed.
-				*(e.ptr) = 0;
+				
 				entries.push_back(e);
+
+				// don't traverse at all.
+				return false;
+			}
+
+			void pointer_post(instance_t *ptr)
+			{
+
 			}
 		};
+
+		struct resolve_status
+		{
+			pkg_ptrs ptrs;
+		};
+
+		resolve_status *alloc_resolve_status()
+		{
+			return new resolve_status();
+		}
+
+		void free_resolve_status(resolve_status *p)
+		{
+			delete p;
+		}
 
 		void free_on_release(loaded_package *p)
 		{
 			p->should_free = true;
 		}
 
+		// returns number of unresolved pointers remaining.
+		int resolve_pointers_with(loaded_package *target, resolve_status *s, loaded_package *aux)
+		{
+			int resolved = 0, unresolved = 0;
+			for (unsigned int i=0;i<s->ptrs.entries.size();i++)
+			{
+				pkg_ptrs::entry &e = s->ptrs.entries[i];
+
+				unsigned int path_index = (-e.index) - 1;
+				if (path_index < target->unresolved_size)
+				{
+					std::cout << "Trying to resolve " << target->unresolved[path_index] << "!" << std::endl;
+
+					instance_t nw = resolve(aux, target->unresolved[path_index]);
+					if (nw)
+					{
+						std::cout << "Resolved!" << std::endl;
+						resolved++;
+						(*e.ptr) = nw;
+					}
+				}
+
+				if (e.index < 0 && !*e.ptr)
+					unresolved++;
+			}
+
+			return unresolved;
+		}
+
 		// parse from buffer
-		loaded_package * parse(char *beg, char *end)
+		loaded_package * parse(char *beg, char *end, resolve_status *out)
 		{
 			loaded_package *lp = new loaded_package;
 			lp->beg = beg;
@@ -72,7 +125,9 @@ namespace putki
 
 			ptr += 4;
 
-			pkg_ptrs ptrs;
+			// store on the stack if nothing provided.
+			pkg_ptrs _out_internal;
+			pkg_ptrs &ptrs = out ? out->ptrs : _out_internal;
 
 			for (unsigned int i=0;i!=lp->slots_size;i++)
 			{
@@ -131,6 +186,7 @@ namespace putki
 					}
 					else
 					{
+						*(ptrs.entries[i].ptr) = 0;
 						unresolved++;
 					}
 				}
@@ -144,6 +200,17 @@ namespace putki
 			}
 
 			return lp;
+		}
+
+		void register_for_liveupdate(loaded_package *lp)
+		{
+			// maybe check here that there is nothing unresolved left. or we might start pointing into junk when stuff
+			// start pointing into this.
+			for (unsigned int i=0;i!=lp->slots_size;i++)
+			{
+				if (lp->slots[i].path)
+					putki::liveupdate::hookup_object(lp->slots[i].obj, lp->slots[i].path);
+			}
 		}
 
 		void release(loaded_package *lp)
@@ -164,6 +231,20 @@ namespace putki
 				if (p->slots[i].path && !strcmp(p->slots[i].path, path))
 					return p->slots[i].obj;
 			}
+			return 0;
+		}
+
+		const char *path_in_package_slot(loaded_package *pkg, unsigned int slot)
+		{
+			if (slot < pkg->slots_size)
+				return pkg->slots[slot].path;
+			return 0;
+		}
+
+		const char *unresolved_reference(loaded_package *pkg, unsigned int index)
+		{
+			if (index < pkg->unresolved_size)
+				return pkg->unresolved[index];
 			return 0;
 		}
 	}

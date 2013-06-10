@@ -71,6 +71,8 @@ namespace putki
 			instance_t obj;
 			if (!db::fetch(input, path, &th, &obj))
 				return;
+
+			obj = th->clone(obj);
 	
 			bool handled = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());

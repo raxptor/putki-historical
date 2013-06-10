@@ -25,4 +25,10 @@ testobj [in, out]
 	ptr datablob dasblob
 }
 
+magnus [in, out]
+{
+	string olle
+	string pella
+}
+
 

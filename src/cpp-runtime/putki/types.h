@@ -9,7 +9,8 @@ namespace putki
 
 	struct depwalker_i
 	{
-		virtual void pointer(instance_t *ptr) = 0;
+		virtual bool pointer_pre(instance_t *ptr) { return true; }
+		virtual void pointer_post(instance_t *ptr) = 0;
 	};
 
 	typedef unsigned int u32;

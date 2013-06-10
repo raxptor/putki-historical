@@ -503,8 +503,11 @@ namespace putki
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
-					out.line() << "walker->pointer((putki::instance_t *)&" << ref << ");";
-					out.line() << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker); }";
+					out.line() << "if (walker->pointer_pre((putki::instance_t *)&" << ref << "))";
+					out.line() << "{";
+					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker); }";
+					out.line() << "}";
+					out.line() << "walker->pointer_post((putki::instance_t *)&" << ref << ");";
 				}
 				else
 				{
@@ -625,6 +628,7 @@ namespace putki
 			out.line();
 			out.line() << "// alloc/free";
 			out.line() << "putki::instance_t alloc() { return new " << s->name << "; }";
+			out.line() << "putki::instance_t clone(putki::instance_t source) { " << s->name << " *tmp = new " << s->name << "; *tmp = *((" << s->name << " *)source); return tmp; }";
 			out.line() << "void free(putki::instance_t p) { delete (" << s->name << "*) p; }";
 			out.line();
 			out.line() << "// info";

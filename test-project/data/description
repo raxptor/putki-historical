@@ -1,0 +1,7 @@
+{
+	type: "appdescription",
+	data: {
+			"name": "SKIT HÖG",
+			"version": "v0.01a"
+	}
+}

@@ -6,6 +6,7 @@
 #include <putki/builder/write.h>
 #include <putki/builder/db.h>
 #include <putki/builder/build.h>
+#include <putki/liveupdate/liveupdate.h>
 #include <putki/sys/compat.h>
 
 #include <string>
@@ -21,25 +22,84 @@ void app_register_handlers(putki::builder::data *builder);
 
 namespace putki
 {
+	namespace
+	{
+		const char *_lu_path = 0;
+		liveupdate::data *s_live_update = 0;
+	}
 
 	data_dll_i::~data_dll_i()
 	{
 
 	}
 
+	void liveupdate_thread_real(int socket)
+	{
+		std::cout << "Hello from the thread, socket=" << socket << std::endl;
+		putki::liveupdate::service_client(s_live_update , _lu_path, socket);
+		std::cout << "Client exiting" << std::endl;
+	}
+
+#ifdef _WIN32
+
+	DWORD WINAPI liveupdate_thread(LPVOID arg)
+	{
+		liveupdate_thread_real((int)arg);
+		return 0;
+	}
+
+	DWORD WINAPI accept_thread(LPVOID arg)
+	{
+		liveupdate::data *d = (liveupdate::data*) arg;
+		while (true)
+		{
+			int s = putki::liveupdate::accept(d);
+			intptr_t skt = s;
+			CreateThread(0, 0, &liveupdate_thread, (void*)skt, 0, 0);
+		}
+	}
+
+#endif
+
 	struct data_dll : public data_dll_i
 	{
 		db::data *_db;
 		std::string _path;
+		liveupdate::data *_lu;
 
 		data_dll(const char *path)
 		{
 			_db = db::create();
 			_path = path;
+
+#ifdef _WIN32
+
+			#if defined(_WIN32)
+				WSADATA wsaData;
+				if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) 
+				{
+					std::cerr << "WSA init failure" << std::endl;
+					return;
+				}
+			#endif
+
+			_lu = putki::liveupdate::start_server(_db);
+
+			_lu_path = _strdup(path); // ugly!
+			s_live_update  = _lu;
+
+			if (_lu)
+				CreateThread(0, 0, &accept_thread, (void*)_lu, 0, 0);
+#else
+			_lu = 0;
+#endif
 		}
 
 		~data_dll()
 		{
+			if (_lu)
+				liveupdate::stop_server(_lu);
+
 			db::free(_db);
 		}
 
@@ -66,9 +126,8 @@ namespace putki
 		}
 
 		mem_instance* disk_load(const char *path) 
-		{
-			std::string _fn = std::string(path) + ".json";
-			load_file_into_db(_path.c_str(), _fn.c_str(), _db, false);
+		{			
+			load_file_into_db(_path.c_str(), path, _db, false);
 
 			std::cout << "Loaded " << path << std::endl;
 			type_handler_i *th;
@@ -141,6 +200,15 @@ namespace putki
 			putki::db::data *output = putki::db::create();
 			putki::builder::build_source_object(builder, _db, path, output);
 			putki::builder::free(builder);
+
+			if (s_live_update)
+				putki::liveupdate::send_update(s_live_update, path);
+		}
+
+		virtual void on_object_modified(const char *path)
+		{
+			if (s_live_update)
+				putki::liveupdate::send_update(s_live_update, path);
 		}
 
 		const char *path_of(mem_instance *mi)

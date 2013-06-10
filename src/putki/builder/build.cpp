@@ -47,7 +47,12 @@ namespace
 			domain_switch *parent;
 			putki::instance_t source;
 			
-			void pointer(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on)
+			{
+				return true;
+			}
+			
+			void pointer_post(putki::instance_t *on)
 			{
 				putki::type_handler_i *th;
 				putki::instance_t obj = 0;
@@ -63,12 +68,14 @@ namespace
 				
 				if (!putki::db::fetch(parent->output, path, &th, &obj))
 				{
-					std::cout << "!!! Referenced object missing in output! !!!" << std::endl;
+					obj = putki::db::create_unresolved_pointer(parent->output, path);
+					std::cout << "=> Adding unresolved pointer for output for path [" << path << "]" << std::endl;
 				}
 				
 				std::cout << "Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
 				// rewrite to output domain
 				*on = obj;
+				return;
 			}
 		};
 		
@@ -121,7 +128,7 @@ namespace putki
 			dsw.output = output;
 			db::read_all(output, &dsw);
 		}
-			
+	
 		void full_build(putki::builder::data *builder, const char *input_path, const char *output_path, const char *package_path)
 		{
 			std::cout << "=> Starting full build" << std::endl;
@@ -139,9 +146,8 @@ namespace putki
 			// go!
 			db::read_all(input, &bsf);
 			
-			
 			std::cout << "=> Domain switching pointers" << std::endl;
-			post_build_ptr_update(input, bsf.output);			
+			post_build_ptr_update(input, bsf.output);
 
 			std::cout << "=> Packaging data." << std::endl;
 			

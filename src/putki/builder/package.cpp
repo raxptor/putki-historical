@@ -26,25 +26,33 @@ namespace putki
 			db::data *db;
 			std::vector<std::string> deps;
 			
-			virtual void pointer(instance_t * on)
+			virtual bool pointer_pre(instance_t * on)
 			{
 				if (!*on)
-					return;
+					return true;
 					
 				const char *path = db::pathof_including_unresolved(db, *on);
 				if (!path)
 				{
 					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
-					return;
+					return true;
 				}
 				
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					std::cout << "Problem. There is an unresolved asset with path " << path << ". Ignoring";
-					return;
+					std::cout << "Ignoring unresolved asset with path [" << path << "]";
+
+					// don't traverse.
+					return false;
 				}
 				
 				deps.push_back(path);
+				return true;
+			}
+
+			void pointer_post(instance_t *on)
+			{
+
 			}
 		};
 		
@@ -124,23 +132,33 @@ namespace putki
 			db::data *db;
 			std::vector<entry> ptrs;
 			
-			void pointer(instance_t *p)
+			bool pointer_pre(instance_t *p)
 			{
-				const char *path = db::pathof(db, *p);
-				if (!path)
-				{
-					std::cout << "Found unpackable dangling object [" << *p << "]" << std::endl;
-					return;
-				}
-				else if (*p) // don't modify null pointer
+				if (*p) // don't modify null pointer
 				{
 					// save what we did so we can undo later
 					entry e;
 					e.ptr = p;
 					e.value = *p;
 					ptrs.push_back(e);
+
+					const char *path = db::pathof(db, *p);
+					if (!path)
+					{
+						std::cout << "Object [" << *p << "] will not be packed because it is missing in the db." << std::endl;	
+						// need to return false because this could be unresolved. we can't do anything about it anyway!.
+						return false;
+					}
 				}
+
+				return true;
 			}
+
+			void pointer_post(instance_t *p)
+			{
+
+			}
+
 		};
 		
 		long write(data *data, putki::runtime rt, char *buffer, long available)
@@ -177,10 +195,10 @@ namespace putki
 			
 			for (unsigned int i=0;i<pp.ptrs.size();i++)
 			{
-				const char *path = db::pathof(data->source, pp.ptrs[i].value);
+				const char *path = db::pathof_including_unresolved(data->source, pp.ptrs[i].value);
 				if (!path)
 				{
-					std::cout << "Un-packed asset [" << path << "]" << std::endl;
+					std::cout << "!!! POINTER NOT IN THE OUTPUT DOMAIN DETECTED !!!" << std::endl;
 				}
 				else
 				{

@@ -29,21 +29,27 @@ namespace putki
 		{
 			db::data *db;
 			
-			bool add_to_load = false;
+			bool add_to_load;
 			std::vector<std::string> to_load;
+
+			enum_db_entries_resolve()
+			{
+				add_to_load = false;
+			}
 
 			struct process_ptr : public putki::depwalker_i
 			{
 				enum_db_entries_resolve *parent;
-				void pointer(instance_t *on)
+
+				bool pointer_pre(instance_t *on)
 				{
 					if (!*on)
-						return;
+						return true;
 						
 					// see if it is an unresolved pointer.
 					const char *path = db::is_unresolved_pointer(parent->db, *on);
 					if (!path)
-						return;
+						return true;
 					
 					type_handler_i *th;
 					instance_t obj;
@@ -56,12 +62,19 @@ namespace putki
 						if (parent->add_to_load)
 						{
 							parent->to_load.push_back(path);
-							return;
+							return true;
 						}
 						
 						std::cout << "Unresolved reference to [" << path << "]!" << std::endl;
 						*on = 0;
 					}
+
+					return true;
+				}
+
+				void pointer_post(instance_t *on)
+				{
+
 				}
 			};
 

@@ -77,4 +77,4 @@ solution "Testproj"
 		includedirs { "../src/cpp-runtime/", "_gen" }
 
 		configuration "Release"
-			defines {"DEBUG"}
+			defines {"DEBUG", "_CRT_SECURE_NO_WARNINGS"}

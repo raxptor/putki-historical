@@ -23,6 +23,7 @@ namespace putki
 			std::map<std::string, entry> objs;
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
+			std::map<std::string, const char *> strpool;
 		};
 
 		db::data * create()
@@ -96,11 +97,18 @@ namespace putki
 			return (unsigned int) d->objs.size();
 		}
 
-
 		instance_t create_unresolved_pointer(data *d, const char *path)
 		{
+			std::map<std::string, const char *>::iterator i = d->strpool.find(path);
+			if (i != d->strpool.end())
+			{
+				return (instance_t) i->second;
+			}
+
 			char *str = strdup(path);
+			
 			d->unresolved.insert(str);
+			d->strpool[path] = str;
 			return (instance_t) str;
 		}
 

@@ -25,13 +25,15 @@ namespace putki
 			
 			std::cout << "Read " << size << " bytes from [" << file << "]" << std::endl;
 
-			pkgmgr::loaded_package *p = pkgmgr::parse(buffer, buffer + size);
+			pkgmgr::loaded_package *p = pkgmgr::parse(buffer, buffer + size, 0);
 			if (!p)
 			{
 				delete [] buffer;
 			}
 			else
 			{
+				// assume it's been wholly resolved.
+				pkgmgr::register_for_liveupdate(p);
 				pkgmgr::free_on_release(p);
 			}
 

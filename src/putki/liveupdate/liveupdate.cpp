@@ -7,12 +7,18 @@
 #include <putki/builder/build.h>
 #include <putki/builder/package.h>
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
-
 #include <iostream>
 #include <string>
 #include <queue>
+#include <vector>
+#include <set>
+
+#if defined(_WIN32)
+	#include <winsock2.h>
+#else
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+#endif
 
 namespace putki
 {
@@ -23,22 +29,67 @@ namespace putki
 
 		struct data
 		{
-
+			SOCKET socket;
+			CRITICAL_SECTION _cr0;
+			std::vector<std::string> _assets_updates;
+			db::data *source_db;
 		};
 		
-		data* start_server(const char *name)
+		data* start_server(db::data *use_this_db)
 		{
-			return new data();
+			data *d = new data();
+			
+			sockaddr_in addrLocal = {};
+			
+			addrLocal.sin_family = AF_INET;
+			addrLocal.sin_port = htons(5566);
+			addrLocal.sin_addr.s_addr = htonl(0x7f000001);
+			
+			d->socket = socket(AF_INET, SOCK_STREAM, 0);
+			if (bind(d->socket, (sockaddr*)&addrLocal, sizeof(addrLocal)) < 0)
+			{
+				std::cerr << "Could not open listening socket" << std::endl;
+				return 0;
+			}
+
+			d->source_db = use_this_db ? use_this_db : db::create();
+			InitializeCriticalSection(&d->_cr0);
+			listen(d->socket, 16);
+
+			return d;
+		}
+
+		void enter_lock(data *lu)
+		{
+			EnterCriticalSection(&lu->_cr0);
+		}
+
+		void leave_lock(data *lu)
+		{
+			LeaveCriticalSection(&lu->_cr0);
 		}
 
 		void stop_server(data *which)
 		{
+			closesocket(which->socket);
 			delete which;
 		}
 
-		void send_update(data *lu, db::data *data, const char *path)
+		int accept(data *d)
 		{
+			sockaddr_in client;
+			int sz = sizeof(client);
+			return accept(d->socket, (sockaddr*)&client, &sz);
+		}
 
+		int read(int socket, char *buf, unsigned long sz)
+		{
+			return recv(socket, buf, (int)sz, 0);
+		}
+
+		void close(int socket)
+		{
+			closesocket(socket);
 		}
 
 #else
@@ -95,7 +146,24 @@ namespace putki
 		void send_update(data *lu, db::data *data, const char *path) { }
 #endif
 
-		void service_client(const char *sourcepath, int skt)
+		struct db_merge : public db::enum_i 
+		{
+			db::data *_output;
+			void record(const char *path, type_handler_i *th, instance_t i)
+			{
+				db::insert(_output, path, th, i);
+			}
+		};
+		
+		void send_update(data *lu, const char *path)
+		{
+			enter_lock(lu);
+			lu->_assets_updates.push_back(path);
+			leave_lock(lu);
+		}
+
+		// These are all-platform stuff.
+		void service_client(data *lu, const char *sourcepath, int skt)
 		{
 			char parsebuf[4096];
 			char buf[256];
@@ -103,13 +171,15 @@ namespace putki
 			int parse = 0;
 			
 			std::queue<std::string> lines;
+			int accepted_updates = 0;
+
 			putki::builder::data *builder = 0;
 			putki::runtime rt;
 			
 			db::data *input = db::create();
 			
 			
-			while ((bytes = read(skt, buf, sizeof(buf))) > 0)
+			while ((bytes = recv(skt, buf, sizeof(buf), 0)) > 0)
 			{
 				if (bytes + parse > sizeof(parsebuf)-1)
 				{
@@ -164,41 +234,90 @@ namespace putki
 							}
 						}
 					}
-					
+
+					std::vector<std::string> buildforclient;
+
+					if (cmd == "poll" && builder)
+					{
+						std::set<std::string> already;
+						enter_lock(lu);
+						while (accepted_updates < (int)lu->_assets_updates.size())
+						{
+							const char *path = lu->_assets_updates[accepted_updates++].c_str();
+							if (!already.count(path))
+							{
+								// need to be found in any of the output dbs.
+								buildforclient.push_back(path);
+								already.insert(path);
+							}
+						}
+
+						leave_lock(lu);
+					}
+
 					if (cmd == "build")
 					{
-						if (builder)
+						buildforclient.push_back(arg0);
+					}
+
+					while (builder && !buildforclient.empty())
+					{
+						std::string & tobuild = buildforclient.front();
+
+						enter_lock(lu);
+
+						// load asset into source db if missing.
+						type_handler_i *th;
+						instance_t obj;
+						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
 						{
-							// build asset.
-							db::data *output = db::create();
-							
-							std::string file_path = sourcepath + arg0;
-							putki::load_file_into_db(sourcepath, arg0.c_str(), input, true);
-							
-							putki::builder::build_source_object(builder, input, arg0.c_str(), output);
-							
-							// we aren't going to be domain switching any pointers here since
-							// the client will have to request any updated assets.
-							// instead just package the built assets and let the client.
-							
-							putki::package::data *pkg = putki::package::create(output);
-							putki::package::add(pkg, arg0.c_str(), true);
-							
-							const unsigned int sz = 10*1024*1024;
-							char *buf = new char[sz];
-							long bytes = putki::package::write(pkg, rt, buf, sz);
-							
-							std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
-							
-							char pkttype = 1;
-							send(skt, &pkttype, 1, 0);
-							for (int i=0;i<4;i++)
-							{
-								char sz = (bytes >> (i*8)) & 0xff;
-								send(skt, &sz, 1, 0);
-							}
-							send(skt, buf, bytes, 0);
+							std::string file_path = sourcepath + tobuild;
+							std::cout << "Loading into source db because it is missing [" << file_path << "]" << std::endl;
+							putki::load_file_into_db(sourcepath, tobuild.c_str(), lu->source_db, true);
 						}
+
+						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
+						{
+							// 
+							std::cout << "Failed to resolve path." << std::endl;
+							leave_lock(lu);
+							buildforclient.erase(buildforclient.begin());
+							continue;
+						}
+
+						db::data *output = db::create();
+
+						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
+							
+						putki::builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
+							
+						putki::build::post_build_ptr_update(lu->source_db, output);
+
+						// should be done with this now.
+						leave_lock(lu);
+							
+						putki::package::data *pkg = putki::package::create(output);
+						putki::package::add(pkg, tobuild.c_str(), true);
+							
+						const unsigned int sz = 10*1024*1024;
+						char *buf = new char[sz];
+						long bytes = putki::package::write(pkg, rt, buf, sz);
+							
+						std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
+							
+						char pkttype = 1;
+						send(skt, &pkttype, 1, 0);
+						for (int i=0;i<4;i++)
+						{
+							char sz = (bytes >> (i*8)) & 0xff;
+							send(skt, &sz, 1, 0);
+						}
+						send(skt, buf, bytes, 0);
+
+						db::free(output);
+						delete [] buf;
+
+						buildforclient.erase(buildforclient.begin());
 					}
 					
 					lines.pop();
