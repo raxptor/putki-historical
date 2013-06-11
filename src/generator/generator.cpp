@@ -103,7 +103,7 @@ namespace putki
 							out.cont() << "int ";
 							break;
 						case FIELDTYPE_BYTE:
-							out.cont() << "char ";
+							out.cont() << "unsigned char ";
 							break;
 
 						case FIELDTYPE_POINTER:
@@ -137,6 +137,34 @@ namespace putki
 					if (s->fields[i].is_array)
 						out.line() << "unsigned int " <<f->name << "_size;";
 				}
+
+				if (!s->parent.empty())
+					out.line() << "inline int & rtti_type_ref() { return parent.rtti_type_ref(); }";
+				else if (s->is_type_root)
+					out.line() << "inline int & rtti_type_ref() { return _rtti_type; }";
+
+				out.line();
+				out.line() << "static inline int type_id() { return " << s->unique_id << "; }";
+				out.line() << "enum { TYPE_ID = " << s->unique_id << " };";
+				out.line();
+
+				if (s->is_type_root || !s->parent.empty())
+				{
+					out.line() << "template<typename Target>";
+					out.line() << "inline Target* exact_cast() { if (rtti_type_ref() == Target::type_id()) return (Target*) this; else return 0; }";
+				}
+
+				if (!s->parent.empty())
+				{
+					out.line() << "template<typename Target>";
+					out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return parent.up_cast<Target>(); }";
+				}
+				else if (s->is_type_root)
+				{
+					out.line() << "template<typename Target>";
+					out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return 0; }";
+				}
+
 
 				out.indent(-1);
 				out.line() << "};";
@@ -184,10 +212,18 @@ namespace putki
 		case FIELDTYPE_INT32:
 			return "int";
 		case FIELDTYPE_BYTE:
-			return "char";
+			return "unsigned char";
 		default:
 			return "???";
 		}
+	}
+
+	const char *rt_wrap_field_type(putki::field_type f, putki::runtime rt)
+	{
+		if (f == FIELDTYPE_POINTER)
+			return ptr_sub(rt);
+		else
+			return win32_field_type(f);
 	}
 
 	const char *putki_field_type_pod(putki::field_type f)
@@ -201,6 +237,8 @@ namespace putki
 			return "int";
 		case FIELDTYPE_BYTE:
 			return "char";
+		case FIELDTYPE_POINTER:
+			return "void*";
 		default:
 			return 0;
 		}
@@ -272,11 +310,12 @@ namespace putki
 						else if (s->fields[j].type == FIELDTYPE_POINTER)
 						{
 							out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);";
+							out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << " *) * d->" << s->fields[j].name << "_size;";
 						}
 						else
 						{
 							out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << win32_field_type(s->fields[j].type) << "*>(aux_cur);";
-							out.line() << "aux_cur += sizeof(" << win32_field_type( s->fields[j].type ) << ") * d->" << s->fields[j].name << "_size;";
+							out.line() << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_size;";
 						}
 
 						out.line() << "if (aux_cur > aux_end) return 0; ";
@@ -288,14 +327,6 @@ namespace putki
 
 					switch (s->fields[j].type)
 					{
-						/*
-						case FIELDTYPE_POINTER:
-						if (s->fields[j].is_array)
-						out.line() << "			resolve_" << s->fields[j].ref_type << "_ptr(&d->" << s->name << "[i]);";
-						else
-						out.line() << "		resolve_" << s->fields[j].ref_type << "_ptr(d->" << s->name << ");";
-						break;
-						*/
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.line() << "aux_cur = outki::post_blob_load_" << s->fields[j].ref_type << "(&" << fref << ", aux_cur, aux_end);";
 						break;
@@ -316,6 +347,8 @@ namespace putki
 					}
 				}
 
+				if (s->is_type_root || !s->parent.empty())
+					out.line() << "d->rtti_type_ref() = " << s->name << "::type_id(); // update type" << std::endl;
 				out.line();
 				out.line() << "return aux_cur;";
 				out.indent(-1);
@@ -372,7 +405,14 @@ namespace putki
 					out.line() << putki_field_type(&s->fields[j]) << " " << s->fields[j].name << ";";
 				}
 			}
+
+			if (!s->parent.empty())
+				out.line() << "inline " << putki_field_type_pod(FIELDTYPE_INT32) << " & rtti_type_ref() { return parent.rtti_type_ref(); }";
+			else if (s->is_type_root)
+				out.line() << "inline " << putki_field_type_pod(FIELDTYPE_INT32) << " & rtti_type_ref() { return _rtti_type; }";
 			
+			out.line();
+			out.line() << "static inline int type_id() { return " << s->unique_id << "; }";
 			out.indent(-1);
 			out.line() << "};";
 			 
@@ -492,13 +532,21 @@ namespace putki
 			for (unsigned int j=0;j<s->fields.size();j++)
 			{
 				out.line();
-				write_putki_field_parse(&s->fields[j], out);
+
+				if (s->fields[j].name != "_rtti_type")
+					write_putki_field_parse(&s->fields[j], out);
 			}
 
+			if (s->is_type_root || !s->parent.empty())
+				out.line() << "target->rtti_type_ref() = " << s->unique_id << ";";
+
 			out.indent(-1);
+			
 			out.line() << "}";
 			out.line();
 		}
+
+
 
 		out.indent(-1);
 		out.line() << "} // namespace inki";
@@ -693,8 +741,13 @@ namespace putki
 			out.indent(1);
 			out.line();
 			out.line() << "// alloc/free";
-			out.line() << "putki::instance_t alloc() { return new " << s->name << "; }";
-			out.line() << "putki::instance_t clone(putki::instance_t source) { " << s->name << " *tmp = new " << s->name << "; *tmp = *((" << s->name << " *)source); return tmp; }";
+
+			if (!s->parent.empty() || s->is_type_root)
+				out.line() << "putki::instance_t alloc() { " << s->name << " *tmp = new " << s->name << "; tmp->rtti_type_ref() = " << s->unique_id << "; return tmp; }";
+			else
+				out.line() << "putki::instance_t alloc() { return new " << s->name << "; }";
+
+			out.line() << "putki::instance_t clone(putki::instance_t source) { " << s->name << " *tmp = (" << s->name << "*) alloc(); *tmp = *((" << s->name << " *)source); return tmp; }";
 			out.line() << "void free(putki::instance_t p) { delete (" << s->name << "*) p; }";
 			out.line();
 			out.line() << "// info";
@@ -780,7 +833,7 @@ namespace putki
 
 				if (fd.is_array)
 				{
-					std::string ft = win32_field_type(fd.type);
+					std::string ft = rt_wrap_field_type(fd.type, rt);
 					if (fd.type == FIELDTYPE_STRUCT_INSTANCE)
 						ft = out_ns + fd.ref_type;
 

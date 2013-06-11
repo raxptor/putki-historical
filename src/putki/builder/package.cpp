@@ -105,7 +105,10 @@ namespace putki
 					std::cout << " * adding to package [" << path << "], pulling in " << dw.deps.size() << " dependencies" << std::endl;
 
 					for (unsigned int i=0;i<dw.deps.size();i++)
-						add(data, dw.deps[i].c_str(), false, false);
+					{
+						const bool store_path_for_dependencies = true;
+						add(data, dw.deps[i].c_str(), store_path_for_dependencies, false);
+					}
 				}
 			}
 			else
@@ -169,12 +172,19 @@ namespace putki
 			std::map<std::string, int> packorder;
 			std::vector<const entry*> packlist;
 			
-			blobmap_t::const_iterator i = data->blobs.begin();
-			while (i != data->blobs.end())
+			for (int pass=0;pass<2;pass++)
 			{
-				packorder[i->first] = packlist.size();
-				packlist.push_back(&(i->second));
-				++i;
+				blobmap_t::const_iterator i = data->blobs.begin();
+				while (i != data->blobs.end())
+				{
+					// store all with paths first
+					if ((pass == 0) == i->second.save_path)
+					{
+						packorder[i->first] = packlist.size();
+						packlist.push_back(&(i->second));
+					}
+					++i;
+				}
 			}
 			
 			// the packlist is now doomed if we manipulate with the blobmap

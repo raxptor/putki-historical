@@ -40,6 +40,33 @@ namespace Editor
 
                 switch ((int)fi.GetType())
                 {
+                    case 0: // int
+                        {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
+                            source += "public int " + fi.GetName() + " {\n";
+                            source += " get { return PutkiObj.GetType().GetField(" + i + ").GetInt32(PutkiObj); } \n";
+                            source += " set { PutkiObj.GetType().GetField(" + i + ").SetInt32(PutkiObj, value); } \n";
+                            source += "}\n";
+                            break;
+                        }
+                  case 6: // bool
+                        {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
+                            source += "public bool " + fi.GetName() + " {\n";
+                            source += " get { return PutkiObj.GetType().GetField(" + i + ").GetBool(PutkiObj); } \n";
+                            source += " set { PutkiObj.GetType().GetField(" + i + ").SetBool(PutkiObj, value); } \n";
+                            source += "}\n";
+                            break;
+                        }
+                  case 7: // float
+                        {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
+                            source += "public float " + fi.GetName() + " {\n";
+                            source += " get { return PutkiObj.GetType().GetField(" + i + ").GetFloat(PutkiObj); } \n";
+                            source += " set { PutkiObj.GetType().GetField(" + i + ").SetFloat(PutkiObj, value); } \n";
+                            source += "}\n";
+                            break;
+                        }
                     case 1: // byte
                         {
                             source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
@@ -49,7 +76,6 @@ namespace Editor
                             source += "}\n";
                             break;
                         }
-
                     case 2:
                         {
                             source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
@@ -77,6 +103,7 @@ namespace Editor
                                 prepend = MakeClassDef(refType, ignoreClasses) + prepend;
                             }
 
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
                             source += "[ExpandableObject]\n";
                             source += "public " + refType.GetName() + " " + fi.GetName() + " { get; set; } \n";
                             hookup += fi.GetName() + " = new " + refType.GetName() + "();\n";

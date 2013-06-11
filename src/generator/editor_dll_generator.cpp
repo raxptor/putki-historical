@@ -25,6 +25,29 @@ namespace putki
 		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << s->fields[j].name << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
 	}
 
+	void write_set_get(putki::indentedwriter out, const char *name, const char *type_name, putki::parsed_struct *s, int j, putki::field_type ft)
+	{
+		// BYTE SET
+		out.line() << "// " << name << " type handlers";
+		out.line() << "void set_" << name << "(putki::mem_instance *obj, " << type_name << " value) {";
+		out.indent(1);
+		if (s->fields[j].type == ft)
+			if (!s->fields[j].is_array)
+				write_plain_set(out, s, j);
+		out.indent(-1);
+		out.line() << "}";
+
+		// BYTE GET
+		out.line() << type_name << " get_" << name << "(putki::mem_instance *obj) {";
+		out.indent(1);
+		if (s->fields[j].type == ft && !s->fields[j].is_array)
+			write_plain_get(out, s, j);
+		else
+			out.line() << "return 0;";
+		out.indent(-1);
+		out.line() << "}";
+	}
+
 
 	void write_field_handlers(putki::indentedwriter out, putki::parsed_struct *s)
 	{
@@ -52,6 +75,8 @@ namespace putki
 				case FIELDTYPE_INT32: out.cont() << " putki::EXT_FIELDTYPE_INT32; "; break;
 				case FIELDTYPE_POINTER: out.cont() << " putki::EXT_FIELDTYPE_POINTER; "; break;
 				case FIELDTYPE_BYTE: out.cont() << " putki::EXT_FIELDTYPE_BYTE; "; break;
+				case FIELDTYPE_FLOAT: out.cont() << " putki::EXT_FIELDTYPE_FLOAT; "; break;
+				case FIELDTYPE_BOOL: out.cont() << " putki::EXT_FIELDTYPE_BOOL; "; break;
 				case FIELDTYPE_STRUCT_INSTANCE: out.cont() << " putki::EXT_FIELDTYPE_STRUCT_INSTANCE; "; break;
 				default: out.cont() << " putki::EXT_FIELDTYPE_INVALID; "; break;
 			}
@@ -101,27 +126,10 @@ namespace putki
 			out.indent(-1);
 			out.line() << "}";
 
-
-			// BYTE SET
-			out.line() << "// Integer type handlers";
-			out.line() << "void set_byte(putki::mem_instance *obj, unsigned char value) {";
-			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_BYTE)
-				if (!s->fields[j].is_array)
-					write_plain_set(out, s, j);
-			out.indent(-1);
-			out.line() << "}";
-
-			// BYTE GET
-			out.line() << "// Integer type handlers";
-			out.line() << "unsigned char get_byte(putki::mem_instance *obj) {";
-			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_BYTE && !s->fields[j].is_array)
-				write_plain_get(out, s, j);
-			else
-				out.line() << "return 0;";
-			out.indent(-1);
-			out.line() << "}";
+			write_set_get(out, "byte", "unsigned char", s, j, FIELDTYPE_BYTE);
+			write_set_get(out, "int32", "int", s, j, FIELDTYPE_INT32);
+			write_set_get(out, "bool", "bool", s, j, FIELDTYPE_BOOL);
+			write_set_get(out, "float", "float", s, j, FIELDTYPE_FLOAT);
 
 			//
 			out.line();
@@ -191,16 +199,21 @@ namespace putki
 			out.indent(1);
 			out.line() << "switch (idx) {";
 			out.indent(1);
+
+			int idx = 0;
 			for (size_t j=0;j!=s->fields.size();j++)
 			{
-				out.line();
-				out.line() << "case " << j << ": ";;
-				out.line() << "{";
-				out.indent(1);
-				out.line() << "static ed_field_handler_" << s->name << "_" << s->fields[j].name << " efh;";
-				out.line() << "return &efh;";
-				out.indent(-1);
-				out.line() << "}";
+				if (s->fields[j].name != "_rtti_type")
+				{
+					out.line();
+					out.line() << "case " << idx++ << ": ";;
+					out.line() << "{";
+					out.indent(1);
+					out.line() << "static ed_field_handler_" << s->name << "_" << s->fields[j].name << " efh;";
+					out.line() << "return &efh;";
+					out.indent(-1);
+					out.line() << "}";
+				}
 			}
 
 			out.line();

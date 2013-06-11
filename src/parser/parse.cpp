@@ -17,16 +17,28 @@ namespace putki
 		out->name = "";
 		out->domains = 0;
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+		out->is_type_root = false;
+
+		bool read_parent = false;
 
 		while (tok)
 		{
-			if (out->name.empty())
+			if (read_parent)
+			{
+				out->parent = tok;
+				read_parent = false;
+			}
+			else if (out->name.empty())
 			{
 				out->name = tok;
 			}
-			else
+			else if (!strcmp(tok, ":"))
 			{
-			//	std::cout << "flag is '" << tok << "'\n";
+				read_parent = true;
+			}
+			else if (!strcmp(tok, "rtti"))
+			{
+				out->is_type_root = true;
 			}
 			tok = strtok(0, " ");
 		}
@@ -68,8 +80,12 @@ namespace putki
 					out->domains = putki::DOMAIN_INPUT;
 				else if (!strcmp(type.c_str(), "string"))
 					out->type = putki::FIELDTYPE_STRING;
-				else if (!strcmp(type.c_str(), "u32"))
+				else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "u32"))
 					out->type = putki::FIELDTYPE_INT32;
+				else if (!strcmp(type.c_str(), "float"))
+					out->type = putki::FIELDTYPE_FLOAT;
+				else if (!strcmp(type.c_str(), "bool"))
+					out->type = putki::FIELDTYPE_BOOL;
 				else if (!strcmp(type.c_str(), "byte"))
 					out->type = putki::FIELDTYPE_BYTE;
 				else if (!strcmp(type.c_str(), "file"))
@@ -173,6 +189,29 @@ namespace putki
 						in_scope = false;
 						in_struct = false;
 						datastruct.unique_id = type_id_start++;
+
+						// postprocess
+						if (!datastruct.parent.empty())
+						{
+							// add in parent automatically.
+							parsed_field pf;
+							pf.name = "parent";
+							pf.type = FIELDTYPE_STRUCT_INSTANCE;
+							pf.ref_type = datastruct.parent;
+							pf.is_array = false;
+							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+							datastruct.fields.insert(datastruct.fields.begin(), pf);
+						}
+						else if (datastruct.is_type_root)
+						{
+							parsed_field pf;
+							pf.name = "_rtti_type";
+							pf.type = FIELDTYPE_INT32;
+							pf.is_array = false;
+							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+							datastruct.fields.insert(datastruct.fields.begin(), pf);
+						}
+
 						out->structs.push_back(datastruct);
 
 						putki::parsed_struct tmp;
@@ -188,5 +227,6 @@ namespace putki
 				}
 			}
 		}
+
 	}
 }

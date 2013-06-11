@@ -72,6 +72,9 @@ namespace putki
 
 		void hookup_object(instance_t ptr, const char *path)
 		{
+			if (!strcmp(path, "N/A"))
+				return;
+
 			// redirect the old if such exists.
 			PathMap::iterator i = s_path2ptr.find(path);
 			if (i != s_path2ptr.end())

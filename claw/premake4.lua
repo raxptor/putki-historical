@@ -4,6 +4,9 @@ solution "Claw"
 	targetdir "build"
 	flags { "Symbols" }
 
+	configuration {"Release"}
+		flags {"Optimize"}
+
 	dofile "../src/putkilib-premake.lua"
 
 	project "claw-putki-lib"

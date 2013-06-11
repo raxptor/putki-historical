@@ -145,7 +145,7 @@ namespace putki
 				}
 				else
 				{
-					lp->slots[i].path = "***";
+					lp->slots[i].path = "N/A";
 				}
 
 				lp->slots[i].obj = (instance_t) ptr;

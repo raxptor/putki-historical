@@ -14,7 +14,7 @@ namespace putki
 
 		putki::field_type type;
 		bool is_array;
-
+		
 		std::string name;
 		std::string ref_type;
 	};
@@ -25,6 +25,8 @@ namespace putki
 		int unique_id;
 		std::string name;
 		std::vector<parsed_field> fields;
+		std::string parent;
+		bool is_type_root;
 	};
 
 	struct parsed_file

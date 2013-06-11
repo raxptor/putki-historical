@@ -112,6 +112,39 @@ void FieldHandler::SetByte(MemInstance^ instance, int Value)
 	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
 }
 
+int FieldHandler::GetInt32(MemInstance^ instance)
+{
+	return m_handler->get_int32(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::SetInt32(MemInstance^ instance, int Value)
+{
+	m_handler->set_int32(instance->GetPutkiMemInstance(), Value);
+	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
+}
+
+bool FieldHandler::GetBool(MemInstance^ instance)
+{
+	return m_handler->get_bool(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::SetBool(MemInstance^ instance, bool Value)
+{
+	m_handler->set_bool(instance->GetPutkiMemInstance(), Value);
+	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
+}
+
+float FieldHandler::GetFloat(MemInstance^ instance)
+{
+	return m_handler->get_float(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::SetFloat(MemInstance^ instance, float Value)
+{
+	m_handler->set_float(instance->GetPutkiMemInstance(), Value);
+	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
+}
+
 
 void Sys::MemBuildAsset(String^ path)
 {

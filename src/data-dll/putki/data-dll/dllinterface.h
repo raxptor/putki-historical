@@ -15,7 +15,9 @@ namespace putki
 		EXT_FIELDTYPE_POINTER = 3,
 		EXT_FIELDTYPE_STRUCT_INSTANCE = 4,
 		EXT_FIELDTYPE_FILE = 5,
-		EXT_FIELDTYPE_INVALID = 6
+		EXT_FIELDTYPE_BOOL = 6,
+		EXT_FIELDTYPE_FLOAT = 7,
+		EXT_FIELDTYPE_INVALID = 8
 	};
 
 	struct mem_instance { };
@@ -29,6 +31,15 @@ namespace putki
 		// String
 		virtual void set_string(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_string(mem_instance *obj) = 0;
+
+		virtual void set_bool(mem_instance *obj, bool value) = 0;
+		virtual bool get_bool(mem_instance *obj) = 0;
+
+		virtual void set_int32(mem_instance *obj, int value) = 0;
+		virtual int get_int32(mem_instance *obj) = 0;
+
+		virtual void set_float(mem_instance *obj, float value) = 0;
+		virtual float get_float(mem_instance *obj) = 0;
 
 		// Pointer
 		virtual void set_pointer(mem_instance *obj, const char *value) = 0;

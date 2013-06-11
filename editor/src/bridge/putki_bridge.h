@@ -80,6 +80,15 @@ namespace Putki
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
 
+			int GetInt32(MemInstance^ instance);
+			void SetInt32(MemInstance^ instance, int Value);
+
+			bool GetBool(MemInstance^ instance);
+			void SetBool(MemInstance^ instance, bool Value);
+
+			float GetFloat(MemInstance^ instance);
+			void SetFloat(MemInstance^ instance, float Value);
+
 			String^ GetPointer(MemInstance^ instance);
 			void SetPointer(MemInstance^ instance, String^ Value);
 
