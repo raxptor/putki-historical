@@ -40,8 +40,19 @@ namespace Editor
 
                 switch ((int)fi.GetType())
                 {
+                    case 1: // byte
+                        {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
+                            source += "public int " + fi.GetName() + " {\n";
+                            source += " get { return PutkiObj.GetType().GetField(" + i + ").GetByte(PutkiObj); } \n";
+                            source += " set { PutkiObj.GetType().GetField(" + i + ").SetByte(PutkiObj, value); } \n";
+                            source += "}\n";
+                            break;
+                        }
+
                     case 2:
                         {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
                             source += "public string " + fi.GetName() + " {\n";
                             source += " get { return PutkiObj.GetType().GetField(" + i + ").GetString(PutkiObj); } \n";
                             source += " set { PutkiObj.GetType().GetField(" + i + ").SetString(PutkiObj, value); } \n";
@@ -50,6 +61,7 @@ namespace Editor
                         }
                     case 3:
                         {
+                            source += "[Xceed.Wpf.Toolkit.PropertyGrid.Attributes.PropertyOrder(" + i + ")]";
                             source += "public string " + fi.GetName() + " {\n";
                             source += " get { return PutkiObj.GetType().GetField(" + i + ").GetPointer(PutkiObj); } \n";
                             source += " set { PutkiObj.GetType().GetField(" + i + ").SetPointer(PutkiObj, value); } \n";

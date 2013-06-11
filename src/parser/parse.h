@@ -32,9 +32,10 @@ namespace putki
 		std::string filename;
 		std::string sourcepath;
 		std::vector<parsed_struct> structs;
+		std::vector<std::string> includes;
 	};
 
-	void parse(const char *in_path, int type_id_start, parsed_file *out);
+	void parse(const char *in_path, const char *name, int type_id_start, parsed_file *out);
 }
 
 #endif

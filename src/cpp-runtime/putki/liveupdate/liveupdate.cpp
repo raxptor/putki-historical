@@ -171,11 +171,18 @@ namespace putki
 		void process_pending(data *d)
 		{
 			if (d->pending.empty())
-				return;
+				return;	
 
 			// attempt cross-resolve.
 			for(unsigned int i=0;i<d->pending.size();i++)
 			{
+				// if there are no unresolved references, send directly.
+				if (!pkgmgr::unresolved_reference(d->pending[i].pkg, 0))
+				{
+					d->pending[i].resolved = true;
+					continue;
+				}
+
 				for(unsigned int j=0;j<d->pending.size();j++)
 					if (i != j)
 						d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]);

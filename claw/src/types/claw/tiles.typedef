@@ -1,0 +1,9 @@
+#include texture.typedef
+
+tilemap [in, out]
+{
+	texture tex
+	u32 tile_width
+	u32 tile_height
+}
+

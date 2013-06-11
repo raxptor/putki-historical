@@ -1,0 +1,12 @@
+texturedata [out]
+{
+	u32 width
+	u32 height
+	byte[] texdata
+}
+
+texture [in, out]
+{
+	[no-out] file source
+	ptr texturedata builtdata
+}

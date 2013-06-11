@@ -101,6 +101,18 @@ void FieldHandler::SetPointer(MemInstance^ instance, String^ Value)
 	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
 }
 
+int FieldHandler::GetByte(MemInstance^ instance)
+{
+	return m_handler->get_byte(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::SetByte(MemInstance^ instance, int Value)
+{
+	m_handler->set_byte(instance->GetPutkiMemInstance(), Value);
+	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
+}
+
+
 void Sys::MemBuildAsset(String^ path)
 {
 	msclr::interop::marshal_context context;

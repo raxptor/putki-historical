@@ -1,0 +1,12 @@
+#include ../claw/color.typedef
+
+globalsettings [in, out]
+{
+	string windowtitle
+	u32 window_width
+	u32 window_height
+	rgba bgcolor
+}
+
+
+

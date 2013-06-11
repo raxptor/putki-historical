@@ -31,4 +31,9 @@ magnus [in, out]
 	string pella
 }
 
+gurka [in, out]
+{
+	string tjocklek
+	string smaskighet
+}
 

@@ -33,6 +33,10 @@ namespace putki
 		// Pointer
 		virtual void set_pointer(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_pointer(mem_instance *obj) = 0;
+
+		// Byte
+		virtual void set_byte(mem_instance *obj, unsigned char value) = 0;
+		virtual unsigned char get_byte(mem_instance *obj) = 0;
 		
 		virtual mem_instance* make_struct_instance(mem_instance *obj) = 0;
 	};

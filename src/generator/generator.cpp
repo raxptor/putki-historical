@@ -4,8 +4,32 @@
 #include <iostream>
 
 namespace putki
-{   
+{
+
+	static const int s_runtimes_size = 2;
+	static const putki::runtime s_runtimes[s_runtimes_size] = 
+	{
+		putki::RUNTIME_CPP_WIN32,
+		putki::RUNTIME_CPP_WIN64
+	};
+
 	void write_ptr_walker(putki::parsed_file *file, putki::indentedwriter out, bool runtime);
+
+	void write_includes(putki::parsed_file *file, putki::indentedwriter out, bool inki)
+	{
+		for (unsigned int i=0;i<file->includes.size();i++)
+		{
+			std::string &inc = file->includes[i];
+			int np = inc.find_last_of('.');
+			if (np != std::string::npos)
+			{
+				if (inki)
+					out.line() << "#include <inki/" << inc.substr(0, np) << ".h>";
+				else
+					out.line() << "#include <outki/" << inc.substr(0, np) << ".h>";
+			}
+		}
+	}
 
 	void write_comment_block(const char *name, putki::indentedwriter out)
 	{
@@ -32,9 +56,13 @@ namespace putki
 		{
 			out.line() << "#ifndef " << deftok;
 			out.line() << "#define " << deftok;
+			out.line();
+			write_includes(file, out);
+			out.line();
 		}
 
-		out.line() << "#pragma pack(push, 1)";
+		out.line();
+		
 
 		if (!for_putki)
 			out.line() << "#include <putki/types.h>";
@@ -50,6 +78,8 @@ namespace putki
 				out.line();
 				out.line() << "namespace outki {";
 				out.indent(1);
+				out.line();
+				out.line() << "#pragma pack(push, 1)";
 				out.line() << "struct " << s->name << " {";
 				out.indent(1);
 
@@ -110,6 +140,7 @@ namespace putki
 
 				out.indent(-1);
 				out.line() << "};";
+				out.line() << "#pragma pack(pop)";
 				out.line();
 				
 
@@ -117,13 +148,23 @@ namespace putki
 				out.line() << "char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);";
 				
 				if (!for_putki)
+				{
 					out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker);";
-
+				}
+				
 				out.indent(-1);
-				out.line() << "}";
+				out.line();
+				out.line() << "} // namespace outki";
+				out.line();
+
+				if (for_putki)
+				{
+					out.line() << "char *write_" << s->name << "_aux(inki::" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);";
+				}
+
 			}
 		}
-		out.line() << "#pragma pack(pop)";
+		
 
 		if (!for_putki)
 			out.line() << "#endif";
@@ -189,7 +230,8 @@ namespace putki
 	{
 		out.line() << "// Generated code!";
 		out.line();
-		out.line() << "#include \"" << file->filename << ".h\"";
+
+		out.line() << "#include \"" << file->filename << ".h\"";		
 		out.line();
 		out.line() << "// These includes go to the runtime headers";
 		out.line() << "#include <putki/blob.h>";
@@ -289,13 +331,17 @@ namespace putki
 
 	void write_putki_header(putki::parsed_file *file, putki::indentedwriter out)
 	{
-		std::string deftok = std::string("__OUTKI_") + file->filename + "_H__";
+		std::string deftok = std::string("__outki_") + file->filename + "_h__";
 		out.line() << "#ifndef " << deftok;
 		out.line() << "#define " << deftok;
 
+		out.line();
 		out.line() << "#include <string>";
 		out.line() << "#include <vector>";
 		out.line() << "#include <putki/builder/write.h>";
+		out.line() << "#include <putki/builder/typereg.h>";
+		out.line();
+		write_includes(file, out, true);
 		out.line();
 		out.line() << "namespace putki { struct depwalker_i; }";
 		out.line();
@@ -335,14 +381,34 @@ namespace putki
 				out.line() << "// writing processing for " << s->name;
 				out.line() << "char *write_" << s->name << "_into_blob(inki::" << s->name << " *in, char *out_beg, char *out_end);";
 			}
-			
+
+			out.line() << "void fill_" << s->name << "_from_parsed(putki::parse::node *pn, void *target_, putki::load_resolver_i *resolver);";
+			out.line() << "putki::type_handler_i *get_" << s->name << "_type_handler();";
+			out.line() << "putki::ext_type_handler_i *get_" << s->name << "_ext_type_handler();";
+
 			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren = true);";
-		
 		}
 		
 		out.line();
 		out.indent(-1);
 		out.line() << "} // namespace inki";
+		out.line();
+
+		
+
+		for (int i=0;i<s_runtimes_size;i++)
+		{
+			std::string ns = runtime_out_ns(s_runtimes[i]);
+			out.line();
+			out.line() << "namespace " << ns << " {";
+			out.indent(1);
+			write_runtime_header(file, s_runtimes[i], out, true);
+			out.indent(-1);
+			out.line() << "} // namespace " << ns;
+		}
+
+
+
 		out.line() << "#endif";
 	}
 
@@ -579,8 +645,8 @@ namespace putki
 				out.line() << "out << " << delim << "\"{\\n\";";
 				out.line() << "// write struct contents[" << fd.ref_type << "]";
 				out.line() << "{";
-				out.line(1) << fd.ref_type << "_handler thandler;";
-				out.line(1) << "thandler.write_json(ref_source, &" << ref << ", out, indent + 1);";
+				out.line(1) << "putki::type_handler_i *thandler = inki::get_" << fd.ref_type << "_type_handler();";
+				out.line(1) << "thandler->write_json(ref_source, &" << ref << ", out, indent + 1);";
 				out.line() << "}";
 				out.line() << "out << putki::write::json_indent(indent) << \"}\";";
 			}
@@ -671,6 +737,7 @@ namespace putki
 			out.line() << "} s_" << s->name << "_handler;";
 			out.line();
 			out.line() << "void bind_type_" << s->name << "() { putki::typereg_register(\"" << s->name << "\", &s_" << file->structs[i].name << "_handler); } ";
+			out.line() << "putki::type_handler_i *get_" << s->name << "_type_handler() { return &s_" << s->name << "_handler; }";
 		}
 
 		out.indent(-1);
@@ -682,8 +749,6 @@ namespace putki
 		std::string ns = runtime_out_ns(rt);
 		out.line() << "namespace " << ns << " {";
 		out.indent(1);
-
-		write_runtime_header(file, rt, out, true);
 
 		std::string out_ns = ns + "::outki::";
 

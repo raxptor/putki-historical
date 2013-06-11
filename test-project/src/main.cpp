@@ -33,28 +33,31 @@ int main(int argc, char *argv[])
 	
 	std::cout << "Loaded package! " << pkg << std::endl;
 
-
 	outki::testobj *b = (outki::testobj *)putki::pkgmgr::resolve(pkg, "haspointer");	
 	outki::magnus *m = (outki::magnus*)putki::pkgmgr::resolve(pkg, "TEST1");	
+	outki::gurka *g = (outki::gurka*)putki::pkgmgr::resolve(pkg, "gurk1");
 
 	while (true)
 	{
 		
 		// 
-		if (LIVE_UPDATE(&b))
-		{
-			std::cout << "Dasblob: ";
-			for (unsigned int i=0;i<b->dasblob->bytes_size;i++)
-				std::cout << " " << (int) b->dasblob->bytes[i] << std::endl;
-			std::cout << std::endl;
-			std::cout << "stora kalasets tårta: " << b->stora_kalaset.vilken_tarta << std::endl;
-		}
+		LIVE_UPDATE(&b);
 
-		if (LIVE_UPDATE(&m))
-		{
-			std::cout << "OLLE: " << m->olle <<std::endl;
-			std::cout << "PELLE: " << m->pella <<std::endl;
-		}
+		std::cout << "Dasblob: ";
+		for (unsigned int i=0;i<b->dasblob->bytes_size;i++)
+			std::cout << " " << (int) b->dasblob->bytes[i] << std::endl;
+		std::cout << std::endl;
+		std::cout << "stora kalasets tårta: " << b->stora_kalaset.vilken_tarta << std::endl;
+
+		LIVE_UPDATE(&m);
+
+		std::cout << "OLLE: " << m->olle <<std::endl;
+		std::cout << "PELLE: " << m->pella <<std::endl;
+
+
+		LIVE_UPDATE(&g);
+		std::cout << "smaskighet: " << g->smaskighet <<std::endl;
+		std::cout << "tjocklek: " << g->tjocklek <<std::endl;
 
 		//////////////////////////////////////////////////////
 		if (!liveupdate)
@@ -74,7 +77,7 @@ int main(int argc, char *argv[])
 			}
 		}
 		
-		Sleep(10);
+		Sleep(50);
 	}
 
 	putki::pkgmgr::release(pkg);
@@ -84,3 +87,4 @@ int main(int argc, char *argv[])
 	
 	return 0;
 }
+

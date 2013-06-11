@@ -54,6 +54,10 @@ namespace putki
 		virtual void walk_dependencies(instance_t source, depwalker_i *walker, bool traverseChildren) = 0;
 	};
 
+	// used by dll interface, forward decl here for getters.
+	struct ext_field_handler_i;
+	struct ext_type_handler_i;
+
 	void typereg_init();
 	void typereg_register(type_t, type_handler_i *dt);
 	type_handler_i *typereg_get_handler(type_t);

@@ -76,11 +76,15 @@ namespace Putki
 			MemInstance^ GetStructInstance(MemInstance^ Obj);
 
 			String^ GetName();
+
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
 
 			String^ GetPointer(MemInstance^ instance);
 			void SetPointer(MemInstance^ instance, String^ Value);
+
+			int GetByte(MemInstance^ instance);
+			void SetByte(MemInstance^ instance, int Value);
 
 		private:
 

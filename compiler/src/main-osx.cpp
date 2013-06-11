@@ -59,6 +59,7 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_putki_impl(putki_impl.c_str());
 	
 	std::cout << " -> writing [" << putki_header << "] and [" << putki_impl << "]" << std::endl;
+	
 	putki::write_putki_header(&pf, putki::indentedwriter(f_putki_header));
 	putki::write_putki_impl(&pf, putki::indentedwriter(f_putki_impl));
 	
@@ -93,7 +94,7 @@ void file(const char *fullpath, const char *name)
 		type_id += 100;
 		
 		putki::parsed_file pf;
-		putki::parse(fullpath, type_id, &pf);
+		putki::parse(fullpath, name, type_id, &pf);
 		write_out(pf, fullpath, name, len);
 	}
 }
@@ -105,8 +106,10 @@ int main (int argc, char *argv[])
 	s_rt_outpath = "_gen/outki";
 	s_putki_outpath = "_gen/inki";
 	s_dll_outpath = "_gen/data-dll";
-	
+		
 	const char *module_name = "test_project";
+	if (argc > 1)
+		module_name = argv[1];
 
 	// add internal records for packages
 	

@@ -7,6 +7,8 @@
 
 namespace putki
 {
+	void write_includes(putki::parsed_file *file, putki::indentedwriter out, bool inki = false);
+
 	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out);
 	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out);
 	void write_runtime_blob_load_cases(putki::parsed_file *file, putki::indentedwriter out);

@@ -1,0 +1,14 @@
+{
+	type: "globalsettings",
+	data: {
+			"windowtitle": "Super Berit Sisters",
+			"window_width": 800,
+			"window_height": 600,
+			"bgcolor": {
+				"r": 0,
+				"g": 8,
+				"b": -56,
+				"a": 100
+		}
+	}
+}

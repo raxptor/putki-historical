@@ -101,12 +101,17 @@ namespace putki
 		free(dup);
 	}
 
-	void parse(const char *in_path, int type_id_start, parsed_file *out)
+	void parse(const char *in_path, const char *name, int type_id_start, parsed_file *out)
 	{
-		std::cout << "Compiling [" << in_path << "]" << std::endl;
+		std::cout << "Compiling [" << name << "]" << std::endl;
 		std::ifstream f(in_path);
         
         std::string fn(in_path);
+
+		std::string mypath = name;
+		int lpp = mypath.find_last_of('/');
+		if (lpp != std::string::npos)
+			mypath = mypath.substr(0, lpp);
     
         out->filename = "unknown";
 		out->sourcepath = "unknown";
@@ -134,7 +139,17 @@ namespace putki
 			if (line.empty())
 				continue;
 			if (line[0] == '#')
-				continue;			
+			{
+				int space = line.find_first_of(' ');
+				if (space != std::string::npos)
+				{
+					if (line.substr(0, space) == "#include")
+					{
+						out->includes.push_back(mypath + "/" + line.substr(space + 1, line.size() - space - 1));
+					}
+				}
+				continue;
+			}
 
 			if (!in_struct)
 			{				
