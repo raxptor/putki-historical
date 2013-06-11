@@ -15,6 +15,8 @@ namespace claw
 		void begin(data *d, bool clearcolor, bool cleardepth, unsigned int clear_color);
 		void end(data *d);
 		void present(data *d);
+
+		void solid_rect(data *d, float x0, float y0, float x1, float y1, unsigned int color);
 	}
 }
 

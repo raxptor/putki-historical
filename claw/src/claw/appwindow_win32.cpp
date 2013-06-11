@@ -73,6 +73,11 @@ namespace claw
 			return d;
 		}
 
+		void set_title(data *d, const char *title)
+		{
+			SetWindowTextA(d->window, title);
+		}
+
 		bool update(data *d)
 		{
 			bool stay = true;

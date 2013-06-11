@@ -1,0 +1,16 @@
+{
+	type: "ui_button",
+	data: {
+			"parent": {
+				"_rtti_type": 604,
+				"name": "",
+				"rect": {
+					"x": 100,
+					"y": 200,
+					"width": 100,
+					"height": 100
+			}
+		},
+			"upskott": 0
+	}
+}

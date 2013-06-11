@@ -1,13 +1,13 @@
 {
 	type: "globalsettings",
 	data: {
-			"windowtitle": "Super Berit Sisters",
+			"windowtitle": "Magnus",
 			"window_width": 800,
 			"window_height": 600,
 			"bgcolor": {
 				"r": 0,
-				"g": 8,
-				"b": -56,
+				"g": -128,
+				"b": -1,
 				"a": 100
 		}
 	}

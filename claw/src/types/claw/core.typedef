@@ -1,0 +1,10 @@
+
+#include color.typedef
+
+rect [in, out]
+{
+	int x
+	int y
+	int z
+	int w
+}

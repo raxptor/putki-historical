@@ -1,0 +1,36 @@
+#include color.typedef
+#icnlude core.typedef
+
+ui_rect [in, out]
+{
+	int x
+	int y
+	int width
+	int height
+}
+
+ui_element rtti [in, out] 
+{
+	string name
+	ui_rect rect
+}
+
+ui_solidfill : ui_element [in, out]
+{
+	rgba fillcolor
+}
+
+ui_gradienty : ui_solidfill [in, out]
+{
+}
+
+ui_button : ui_element [in, out]
+{
+	int upskott
+}
+
+ui_screen [in, out]
+{
+	ptr[] ui_element elements
+}
+
