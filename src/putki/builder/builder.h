@@ -29,6 +29,8 @@ namespace putki
 		{
 			virtual bool handle(data *builder, db::data *input, const char *path, db::data *output, int obj_phase) = 0;
 		};
+
+		typedef void (*builder_setup_fn)(builder::data *builder);
 	
 		data* create(putki::runtime rt);
 		void free(data *builder);
@@ -39,6 +41,8 @@ namespace putki
 		void build_references(data *builder, db::data *input, db::data *output, type_handler_i *type, int obj_phase, instance_t obj);
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
+
+		void set_builder_configurator(builder_setup_fn fn);
 	}
 	
 }

@@ -7,7 +7,7 @@
 #include <inki/types/test.h>
 
 // generated.
-namespace putki
+namespace inki
 {
 	void bind_test_project();
 }
@@ -53,7 +53,11 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 	putki::build::commit_package(pkg, pconf, "everything.pkg");
 }
 
-int databuilder_main(int argc, char **argv)
+int main(int argc, char **argv)
 {
+	inki::bind_test_project();
+
+	putki::builder::set_builder_configurator(&app_register_handlers);
+
 	return run_putki_builder(argc, argv);
 }

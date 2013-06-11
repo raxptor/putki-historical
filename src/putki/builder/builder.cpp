@@ -30,11 +30,26 @@ namespace putki
 			BuildersMap handlers;
 			putki::runtime runtime;
 		};
+
+		namespace
+		{
+			builder_setup_fn s_init_fn = 0;
+		}
+
+		void set_builder_configurator(builder_setup_fn conf)
+		{
+			s_init_fn = conf;
+		}
 		
 		data* create(putki::runtime rt)
 		{
 			data *d = new data();
 			d->runtime = rt;
+
+			// app specific configurators
+			if (s_init_fn)
+				s_init_fn(d);
+
 			return d;
 		}
 		

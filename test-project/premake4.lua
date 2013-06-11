@@ -16,29 +16,23 @@ solution "Testproj"
 
 		files { "_gen/inki/**.cpp", "_gen/inki/**.h" }
 		excludes { "_gen/inki/bind-dll.cpp" }
+		excludes { "_gen/data-dll/**.*" }
 
 		includedirs { "../src", "../src/builder" }
-
-	project "testapp-databuilder-lib"
-		kind "StaticLib"
-		language "C++"
-		targetname "testapp-databuilder-lib"
-
-		files { "src/builder/**.cpp", "src/builder/**.h" }
-		includedirs { "../src", "_gen" }
-		excludes { "../src/cpp-runtime/**" }
-
-		links {"putki-databuilder-lib"}
-		links {"testapp-putki-lib"}
+		links {"putki-lib", "jsmn"}
 
 	project "testapp-databuilder"
 		kind "ConsoleApp"
 		language "C++"
 		targetname "testapp-databuilder"
-		files { "src/builder/testapp-builder.cpp"}
-		links {"testapp-databuilder-lib"}
-		links {"putki-databuilder-lib"}
-		links {"testapp-putki-lib"}
+
+		includedirs { "_gen" }
+		includedirs { "../src", "../src/builder" }
+		files { "src/builder/**.*" }
+		links { "testapp-putki-lib"}
+		links { "putki-databuilder-lib"}
+		links { "putki-lib" }
+		links { "jsmn" }
 
 	project "testapp-data-dll"
 		kind "SharedLib"

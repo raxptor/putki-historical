@@ -1,5 +1,6 @@
 	project "jsmn"
 		kind "StaticLib"
+		targetname "jsmn"
 		language "C"
 		files { "../external/jsmn/*.c", "../external/jsmn/*.h"}
 	
@@ -8,15 +9,11 @@
 		language "C++"
 		targetname "putki-lib"
 		files { "../src/**.cpp", "../src/**.h" }
-		files { "../builder/src/*.cpp" }
 		excludes { "../src/data-dll/**" }
 		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
-
 		includedirs { "../src", "../external" }
 		links {"jsmn"}
-		configuration "Release"
-			defines {"DEBUG"}
 
 	project "putki-databuilder-lib"
 		kind "StaticLib"
@@ -25,6 +22,3 @@
 		files { "../builder/src/*.cpp" }
 		includedirs { "../src", "../external" }
 		links {"jsmn", "putki-lib"}
-		configuration "Release"
-			defines {"DEBUG"}
-

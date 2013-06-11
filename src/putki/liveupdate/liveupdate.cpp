@@ -16,6 +16,7 @@
 #if defined(_WIN32)
 	#include <winsock2.h>
 #else
+	#include <pthread.h>
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
 #endif
@@ -96,9 +97,12 @@ namespace putki
 		// null implementation
 		struct data {
 			int socket;
+			pthread_mutex_t mtx;
+			std::vector<std::string> _assets_updates;
+			db::data *source_db;
 		};
 		
-		data* start_server()
+		data* start_server(db::data *use_this_db)
 		{
 			int s = socket(AF_INET, SOCK_STREAM, 0);
 			if (s < 0)
@@ -125,15 +129,27 @@ namespace putki
 			
 			data* d = new data();
 			d->socket = s;
+			d->source_db = use_this_db ? use_this_db : db::create();
+
+			pthread_mutex_init(&d->mtx, 0);
 			std::cout << "Started listening for live updates on socket " << s << std::endl;
 			return d;
+		}
+
+		void enter_lock(data *d)
+		{
+			pthread_mutex_lock(&d->mtx);
+		}
+
+		void leave_lock(data *d)
+		{
+			pthread_mutex_unlock(&d->mtx);
 		}
 		
 		int accept(data *d)
 		{
 			sockaddr_in client;
-			socklen_t sz = sizeof(client);
-			
+			socklen_t sz = sizeof(client);			
 			return accept(d->socket, (sockaddr*)&client, &sz);
 		}
 		
