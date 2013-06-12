@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <cstdlib>
 
 namespace putki
 {

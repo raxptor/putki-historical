@@ -170,6 +170,7 @@ namespace putki
 		out.line() << "#include <putki/data-dll/dllinternal.h>";
 		out.line() << "#include <putki/builder/db.h>";
 		out.line() << "#include <putki/builder/typereg.h>";
+		out.line() << "#include <putki/sys/compat.h>";
 		out.line();
 		write_includes(file, out, true);
 		out.line();

@@ -154,7 +154,7 @@ namespace putki
 			packaging_config pconf;
 			pconf.package_path = package_path;
 			pconf.rt = builder::runtime(builder);
-			app_build_packages(bsf.output, &pconf);			
+			putki::builder::invoke_packager(bsf.output, &pconf);
 		}
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
 	putki::liveupdate::data *liveupdate = 0;
 
-	putki::pkgmgr::loaded_package *pkg = putki::pkgloader::from_file("out/win32/packages/everything.pkg");
+	putki::pkgmgr::loaded_package *pkg = putki::pkgloader::from_file("everything.pkg");
 	if (!pkg)
 	{
 		std::cout << "Failed loading everything pkg!" << std::endl;

@@ -86,10 +86,7 @@ namespace putki
 		virtual const char *path_of(mem_instance *mi) = 0;
 	};
 
-	extern "C"
-	{
-		__declspec(dllexport) data_dll_i* load_data_dll(const char *datapath);
-	}
+	data_dll_i * create_dll_interface(const char *datapath);
 }
 
 #endif

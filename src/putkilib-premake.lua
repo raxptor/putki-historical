@@ -22,3 +22,18 @@
 		files { "../builder/src/*.cpp" }
 		includedirs { "../src", "../external" }
 		links {"jsmn", "putki-lib"}
+
+	project "putki-data-dll-lib"
+		kind "StaticLib"
+		language "C++"
+		targetname "putki-data-dll"
+
+		files { "../src/data-dll/**.cpp", "../src/data-dll/**.h" }
+
+		includedirs { "../src/builder/**.*" }
+		includedirs { "../src/data-dll" }
+		includedirs { "../src", "../src/builder/" }
+
+		links { "putki-databuilder-lib"}
+		links { "putki-lib" }
+		links { "jsmn" }

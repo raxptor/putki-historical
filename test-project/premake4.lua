@@ -1,8 +1,12 @@
 solution "Testproj"
-	configurations {"Release"}
+	configurations {"Release", "Debug"}
 	location "build"
 	targetdir "build"
 	flags { "Symbols" }
+	defines {"_CRT_SECURE_NO_WARNINGS"}
+
+	configuration "Debug"
+		defines {"DEBUG"}
 
 	dofile "../src/putkilib-premake.lua"
 
@@ -11,15 +15,30 @@ solution "Testproj"
 		language "C++"
 		targetname "testapp-putki-lib"
 		
-		files { "src/putki/bind.cpp" }
 		files { "src/types/**.typedef" }
-
 		files { "_gen/inki/**.cpp", "_gen/inki/**.h" }
-		excludes { "_gen/inki/bind-dll.cpp" }
-		excludes { "_gen/data-dll/**.*" }
+		files { "_gen/data-dll/**.cpp", "_gen/data-dll/**.h" }
 
-		includedirs { "../src", "../src/builder" }
+		includedirs { "../src", "../src/builder", "../src/data-dll" }
+		includedirs { "_gen" }
+
 		links {"putki-lib", "jsmn"}
+
+	project "testapp-builder-lib"
+
+		kind "StaticLib"
+		language "C++"
+		targetname "testapp-builder-lib"
+
+		includedirs { "_gen" }
+		includedirs { "../src", "../src/builder" }
+
+		files { "src/builder/**.*" }
+
+		links { "testapp-putki-lib"}
+		links { "putki-databuilder-lib"}
+		links { "putki-lib" }
+		links { "jsmn" }
 
 	project "testapp-databuilder"
 		kind "ConsoleApp"
@@ -28,34 +47,31 @@ solution "Testproj"
 
 		includedirs { "_gen" }
 		includedirs { "../src", "../src/builder" }
-		files { "src/builder/**.*" }
-		links { "testapp-putki-lib"}
+
+		files { "src/putki/builder-main.cpp" }
+
 		links { "putki-databuilder-lib"}
 		links { "putki-lib" }
-		links { "jsmn" }
+		links { "testapp-putki-lib"}
+		links { "testapp-builder-lib" }
 
 	project "testapp-data-dll"
+
 		kind "SharedLib"
 		language "C++"
 		targetname "testapp-data-dll"
 
-		files { "_gen/data-dll/**.cpp", "_gen/data-dll/**.h" }
-		files { "_gen/inki/bind-dll.cpp" }
-		files { "src/putki/bind-dll.cpp" }
+		files { "src/putki/dll-main.cpp" }
 
-		files { "../src/data-dll/**.cpp", "../src/data-dll/**.h" }
-
+		includedirs { "../src/builder/**.*" }
 		includedirs { "../src/data-dll" }
 		includedirs { "../src", "../src/builder/" }
 		includedirs { "_gen" }
-		excludes { "../src/cpp-runtime/**" }
 
-		links {"putki-lib"}
-		links {"testapp-putki-lib"}
-		links {"testapp-databuilder-lib"}
-
-		configuration "Release"
-			defines {"DEBUG"}
+		links { "putki-lib" }
+		links { "testapp-putki-lib"}
+		links { "testapp-builder-lib" }
+		links { "putki-data-dll-lib" }
 
 	project "testapp-runtime"
 		kind "ConsoleApp"
@@ -69,6 +85,3 @@ solution "Testproj"
 		excludes { "src/putki/**.*" }
 
 		includedirs { "../src/cpp-runtime/", "_gen" }
-
-		configuration "Release"
-			defines {"DEBUG", "_CRT_SECURE_NO_WARNINGS"}

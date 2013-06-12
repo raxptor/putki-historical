@@ -2,6 +2,7 @@
 #define __PUTKI_BUILDER_H__
 
 #include <putki/builder/typereg.h>
+#include <putki/builder/build.h>
 #include <putki/runtime.h>
 
 namespace putki
@@ -29,8 +30,6 @@ namespace putki
 		{
 			virtual bool handle(data *builder, db::data *input, const char *path, db::data *output, int obj_phase) = 0;
 		};
-
-		typedef void (*builder_setup_fn)(builder::data *builder);
 	
 		data* create(putki::runtime rt);
 		void free(data *builder);
@@ -42,7 +41,13 @@ namespace putki
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
 
+		// App specific callbacks for setting up & packaging.
+		typedef void (*builder_setup_fn)(builder::data *builder);
+		typedef void (*packaging_fn)(putki::db::data *out, putki::build::packaging_config *pconf);
+
 		void set_builder_configurator(builder_setup_fn fn);
+		void set_packager(packaging_fn fn);
+		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf);
 	}
 	
 }

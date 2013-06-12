@@ -6,6 +6,11 @@
 
 #include <parser/parse.h>
 #include <putki/domains.h>
+#include <putki/sys/compat.h>
+
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
 
 namespace putki
 {

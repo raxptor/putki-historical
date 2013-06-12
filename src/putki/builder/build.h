@@ -2,18 +2,18 @@
 #define __putki_databuilder_lib__build__
 
 #include <putki/runtime.h>
-#include <putki/builder/builder.h>
 
 namespace putki
 {
 	namespace package { struct data; }
 	namespace db { struct data; }
+	namespace builder { struct data; }
 	
 	namespace build
 	{
 		struct packaging_config;
 	
-		void full_build(putki::builder::data *builder, const char *input_path, const char *output_path, const char *package_path);
+		void full_build(builder::data *builder, const char *input_path, const char *output_path, const char *package_path);
 
 		void post_build_ptr_update(db::data *input, db::data *output);
 		

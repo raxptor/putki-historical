@@ -6,6 +6,7 @@
 #include <putki/builder/write.h>
 #include <putki/builder/db.h>
 #include <putki/builder/build.h>
+#include <putki/builder/builder.h>
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/sys/compat.h>
 
@@ -15,10 +16,6 @@
 #include <fstream>
 
 #include <windows.h>
-
-void app_bind_putki_types();
-void app_bind_putki_types_dll();
-void app_register_handlers(putki::builder::data *builder);
 
 namespace putki
 {
@@ -195,7 +192,6 @@ namespace putki
 		void mem_build_asset(const char *path, ext_build_result *res)
 		{
 			putki::builder::data* builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
-			app_register_handlers(builder);
 
 			putki::db::data *output = putki::db::create();
 			putki::builder::build_source_object(builder, _db, path, output);
@@ -217,13 +213,9 @@ namespace putki
 		}
 	};
 
-	data_dll_i* __cdecl load_data_dll(const char *data_path)
+	data_dll_i * create_dll_interface(const char *datapath)
 	{
-		// bind at startup.
-		app_bind_putki_types();
-		app_bind_putki_types_dll();	
-
-		return new data_dll(data_path);
+		return new data_dll(datapath);
 	}
 
 }

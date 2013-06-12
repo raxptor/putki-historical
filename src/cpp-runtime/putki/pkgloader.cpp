@@ -6,9 +6,17 @@ namespace putki
 {
 	namespace pkgloader
 	{
+		const char *platform_path()
+		{
+			return "win32";
+		}
+
 		pkgmgr::loaded_package * from_file(const char *file)
 		{
-			std::ifstream in(file, std::ios::binary);
+			char buf[1024];
+			sprintf(buf, "out/%s/packages/%s", platform_path(), file);
+
+			std::ifstream in(buf, std::ios::binary);
 			if (!in.good())
 			{
 				std::cout << "Failed to open file [" << file << "]!" << std::endl;

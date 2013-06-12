@@ -34,11 +34,23 @@ namespace putki
 		namespace
 		{
 			builder_setup_fn s_init_fn = 0;
+			packaging_fn s_packaging_fn = 0;
 		}
 
 		void set_builder_configurator(builder_setup_fn conf)
 		{
 			s_init_fn = conf;
+		}
+
+		void set_packager(packaging_fn fn)
+		{
+			s_packaging_fn = 0;
+		}
+
+		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf)
+		{
+			if (s_packaging_fn)
+				s_packaging_fn(out, pconf);
 		}
 		
 		data* create(putki::runtime rt)

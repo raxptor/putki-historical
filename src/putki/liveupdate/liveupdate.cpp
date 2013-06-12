@@ -15,6 +15,8 @@
 
 #if defined(_WIN32)
 	#include <winsock2.h>
+	#pragma comment (lib, "wsock32.lib")
+	#pragma comment (lib, "ws2_32.lib")
 #else
 	#include <pthread.h>
 	#include <sys/socket.h>
@@ -245,7 +247,6 @@ namespace putki
 							builder = putki::builder::create(rt);
 							if (builder)
 							{
-								app_register_handlers(builder);
 								std::cout << "Created builder for client." << std::endl;
 							}
 						}

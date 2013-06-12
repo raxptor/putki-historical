@@ -1,11 +1,9 @@
 
 #include "parse.h"
 
-#define _CRT_SECURE_NO_WARNINGS 0
-
 extern "C"
 {
-#include <jsmn/jsmn.h>
+	#include <jsmn/jsmn.h>
 }
 
 #include <fstream>
@@ -15,6 +13,7 @@ extern "C"
 #include <map>
 #include <vector>
 #include <stack>
+#include <cstdlib>
 
 // #define PARSE_DEBUG(x) std::cout << x;
 #define PARSE_DEBUG(x) {}

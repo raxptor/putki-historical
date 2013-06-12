@@ -6,11 +6,8 @@
 #include <inki/types/core.h>
 #include <inki/types/test.h>
 
-// generated.
-namespace inki
+namespace testproj
 {
-	void bind_test_project();
-}
 
 struct blob_handler : public putki::builder::handler_i
 {
@@ -24,7 +21,7 @@ struct blob_handler : public putki::builder::handler_i
 		inki::gurka *b = (inki::gurka*) obj;
 
 		std::string out;
-		for (int i=0;i<b->smaskighet.size();i++)
+		for (unsigned int i=0;i<b->smaskighet.size();i++)
 			out.push_back(toupper(b->smaskighet[i]));
 
 		b->smaskighet = out;
@@ -53,11 +50,5 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 	putki::build::commit_package(pkg, pconf, "everything.pkg");
 }
 
-int main(int argc, char **argv)
-{
-	inki::bind_test_project();
 
-	putki::builder::set_builder_configurator(&app_register_handlers);
-
-	return run_putki_builder(argc, argv);
 }

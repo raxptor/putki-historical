@@ -128,7 +128,6 @@ int main (int argc, char *argv[])
 
 	// bind dll calls
 	std::ofstream f_bind_dll((std::string(s_putki_outpath) + "/bind-dll.cpp").c_str()); 
-	f_bind_dll << "#include <putki/data-dll/dllinterface.h>" << std::endl;
 	f_bind_dll << s_bind_decl_dll.str() << std::endl;
 	f_bind_dll << "namespace inki {" << std::endl;
 	f_bind_dll << "void bind_" << module_name << "_dll()" << std::endl << "{" << std::endl;
