@@ -44,7 +44,7 @@ namespace putki
 
 		void set_packager(packaging_fn fn)
 		{
-			s_packaging_fn = 0;
+			s_packaging_fn = fn;
 		}
 
 		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf)

@@ -13,7 +13,7 @@
 #include <vector>
 #include <set>
 
-#if defined(_WIN32)
+#if defined(USE_WINSOCK)
 	#include <winsock2.h>
 	#pragma comment (lib, "wsock32.lib")
 	#pragma comment (lib, "ws2_32.lib")
@@ -28,7 +28,7 @@ namespace putki
 
 	namespace liveupdate
 	{
-#if defined(_WIN32)
+#if defined(USE_WINSOCK)
 
 		struct data
 		{

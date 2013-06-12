@@ -1,10 +1,7 @@
 
 #include "parse.h"
 
-extern "C"
-{
-	#include <jsmn/jsmn.h>
-}
+#include <jsmn/jsmn.h>
 
 #include <fstream>
 #include <cstdio>
@@ -13,6 +10,7 @@ extern "C"
 #include <map>
 #include <vector>
 #include <stack>
+#include <cstdio>
 #include <cstdlib>
 
 // #define PARSE_DEBUG(x) std::cout << x;

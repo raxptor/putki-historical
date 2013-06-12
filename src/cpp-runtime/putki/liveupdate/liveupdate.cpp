@@ -2,21 +2,24 @@
 
 #if defined(LIVEUPDATE_ENABLE)
 
+#include <putki/runtime.h>
+#include <putki/pkgmgr.h>
+
 #include <map>
 #include <iostream>
 #include <cstdlib>
-#include <putki/runtime.h>
-#include <putki/pkgmgr.h>
 #include <vector>
 #include <set>
 #include <string>
+#include <cstdlib>
+#include <cstdio>
 
-#if defined(_WIN32)
+#if defined(USE_WINSOCK)
 	#include <winsock2.h>
 	#pragma comment(lib, "ws2_32.lib")
 	#pragma comment(lib, "wsock32.lib")
 #else
-	#include <sys/socket.h>
+	#include <socket.h>
 	#include <arpa/inet.h>
 #endif
 

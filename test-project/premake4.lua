@@ -3,6 +3,7 @@ solution "Testproj"
 	location "build"
 	targetdir "build"
 	flags { "Symbols" }
+
 	defines {"_CRT_SECURE_NO_WARNINGS"}
 
 	configuration "Debug"
@@ -22,23 +23,8 @@ solution "Testproj"
 		includedirs { "../src", "../src/builder", "../src/data-dll" }
 		includedirs { "_gen" }
 
-		links {"putki-lib", "jsmn"}
-
-	project "testapp-builder-lib"
-
-		kind "StaticLib"
-		language "C++"
-		targetname "testapp-builder-lib"
-
-		includedirs { "_gen" }
-		includedirs { "../src", "../src/builder" }
-
-		files { "src/builder/**.*" }
-
-		links { "testapp-putki-lib"}
-		links { "putki-databuilder-lib"}
-		links { "putki-lib" }
-		links { "jsmn" }
+		links {"putki-lib" }
+		links {"jsmn"}
 
 	project "testapp-databuilder"
 		kind "ConsoleApp"
@@ -50,10 +36,9 @@ solution "Testproj"
 
 		files { "src/putki/builder-main.cpp" }
 
-		links { "putki-databuilder-lib"}
-		links { "putki-lib" }
 		links { "testapp-putki-lib"}
-		links { "testapp-builder-lib" }
+		links { "putki-lib" }
+		links { "jsmn" }
 
 	project "testapp-data-dll"
 
@@ -68,10 +53,10 @@ solution "Testproj"
 		includedirs { "../src", "../src/builder/" }
 		includedirs { "_gen" }
 
-		links { "putki-lib" }
 		links { "testapp-putki-lib"}
-		links { "testapp-builder-lib" }
 		links { "putki-data-dll-lib" }
+		links { "putki-lib" }
+		links { "jsmn" }
 
 	project "testapp-runtime"
 		kind "ConsoleApp"

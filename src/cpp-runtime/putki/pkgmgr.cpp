@@ -4,12 +4,11 @@
 #include "blob.h"
 #include "liveupdate/liveupdate.h"
 
-#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <vector>
-
-
+#include <cstdlib>
+#include <cstring>
 
 namespace putki
 {

@@ -4,12 +4,12 @@
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/runtime.h>
 
-#ifndef _WIN32
-#include <pthread.h>
+#if defined(USE_WINSOCK)
+	#pragma comment(lib, "ws2_32.lib")
+	#pragma comment(lib, "wsock32.lib")
+	#include <windows.h>
 #else
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "wsock32.lib")
-#include <windows.h>
+	#include <pthread.h>
 #endif
 
 #include <iostream>
@@ -25,7 +25,7 @@ void liveupdate_thread_real(int socket)
 }
 
 
-#ifdef _WIN32
+#if defined(USE_WINSOCK)
 
 DWORD WINAPI liveupdate_thread(LPVOID arg)
 {
@@ -45,7 +45,7 @@ void* liveupdate_thread(void *arg)
 
 int run_putki_builder(int argc, char **argv)
 {
-#if defined(_WIN32)
+#if defined(USE_WINSOCK)
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) 
 	{
@@ -68,7 +68,7 @@ int run_putki_builder(int argc, char **argv)
 			
 			intptr_t skt = s;
 
-#ifdef _WIN32
+#if defined(USE_WINSOCK)
 			CreateThread(0, 0, &liveupdate_thread, (void*)skt, 0, 0);
 #else
 			pthread_t thr;
