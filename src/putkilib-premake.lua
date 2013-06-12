@@ -10,7 +10,7 @@
 		kind "StaticLib"
 		targetname "jsmn"
 		language "C++"
-		files { "../external/jsmn/*.c", "../external/jsmn/*.h"}
+		files { "../external/jsmn/*.cpp", "../external/jsmn/*.h"}
 	
 	project "putki-lib"
 		kind "StaticLib"

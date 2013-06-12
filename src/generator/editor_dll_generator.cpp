@@ -9,39 +9,38 @@
 namespace putki
 {
 
-	void write_plain_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j)
+	void write_plain_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j, std::string const &field_ref)
 	{
-		out.line() << "((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << " = value;";
+		out.line() << "((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << " = value;";
 	}
 
-	void write_plain_get(putki::indentedwriter out, putki::parsed_struct *s, size_t j)
+	void write_plain_get(putki::indentedwriter out, putki::parsed_struct *s, size_t j, std::string const &field_ref)
 	{
-		out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ";";
+		out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ";";
 	}
 
-	void write_pointer_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j)
+	void write_pointer_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j, std::string const &field_ref)
 	{
 		out.line() << "putki::mem_instance_real *mir = (putki::mem_instance_real *) obj;";
-		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << s->fields[j].name << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
+		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << field_ref << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
 	}
 
-	void write_set_get(putki::indentedwriter out, const char *name, const char *type_name, putki::parsed_struct *s, int j, putki::field_type ft)
+	void write_set_get(putki::indentedwriter out, const char *name, const char *type_name, putki::parsed_struct *s, size_t j, std::string const &field_ref, putki::field_type ft)
 	{
 		// BYTE SET
 		out.line() << "// " << name << " type handlers";
 		out.line() << "void set_" << name << "(putki::mem_instance *obj, " << type_name << " value) {";
 		out.indent(1);
 		if (s->fields[j].type == ft)
-			if (!s->fields[j].is_array)
-				write_plain_set(out, s, j);
+				write_plain_set(out, s, j, field_ref);
 		out.indent(-1);
 		out.line() << "}";
 
 		// BYTE GET
 		out.line() << type_name << " get_" << name << "(putki::mem_instance *obj) {";
 		out.indent(1);
-		if (s->fields[j].type == ft && !s->fields[j].is_array)
-			write_plain_get(out, s, j);
+		if (s->fields[j].type == ft)
+			write_plain_get(out, s, j, field_ref);
 		else
 			out.line() << "return 0;";
 		out.indent(-1);
@@ -60,7 +59,21 @@ namespace putki
 			out.indent(1);
 			out.line() << "// get info";
 			out.line() << "const char *name() { return \"" << s->fields[j].name << "\"; }";
-			out.line() << "const char* ref_type_name() { ";			
+			out.line() << "bool is_array() { return " << s->fields[j].is_array << "; }";
+
+			if (s->fields[j].is_array)
+			{
+				out.line() << "int _idx;";
+				out.line() << "void set_array_index(int i) { _idx = i; }";
+				out.line() << "int get_array_size(putki::mem_instance *obj) { return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ".size(); }";
+			}
+			else
+			{
+				out.line() << "void set_array_index(int i) { }";
+				out.line() << "int get_array_size(putki::mem_instance *obj) { return -1; }";
+			}
+		
+			out.line() << "const char* ref_type_name() { ";
 			if (!s->fields[j].ref_type.empty())
 				out.cont() << "return \"" << s->fields[j].ref_type << "\";";
 			else
@@ -82,14 +95,17 @@ namespace putki
 			}
 
 			out.cont() << "}";
+
+			std::string field_ref = s->fields[j].name;
+			if (s->fields[j].is_array)
+				field_ref += "[_idx]";
 						
 			// STRING SET
 			out.line() << "// String type handlers";
 			out.line() << "void set_string(putki::mem_instance *obj, const char *value) {";
 			out.indent(1);
 			if (s->fields[j].type == FIELDTYPE_STRING)
-				if (!s->fields[j].is_array)
-					write_plain_set(out, s, j);
+					write_plain_set(out, s, j, field_ref);
 			out.indent(-1);
 			out.line() << "}";
 
@@ -110,8 +126,7 @@ namespace putki
 			out.line() << "void set_pointer(putki::mem_instance *obj, const char *value) {";
 			out.indent(1);
 			if (s->fields[j].type == FIELDTYPE_POINTER)
-				if (!s->fields[j].is_array)
-					write_pointer_set(out, s, j);
+				write_pointer_set(out, s, j, field_ref);
 			out.indent(-1);
 			out.cont() << "	}";
 
@@ -126,10 +141,10 @@ namespace putki
 			out.indent(-1);
 			out.line() << "}";
 
-			write_set_get(out, "byte", "unsigned char", s, j, FIELDTYPE_BYTE);
-			write_set_get(out, "int32", "int", s, j, FIELDTYPE_INT32);
-			write_set_get(out, "bool", "bool", s, j, FIELDTYPE_BOOL);
-			write_set_get(out, "float", "float", s, j, FIELDTYPE_FLOAT);
+			write_set_get(out, "byte", "unsigned char", s, j, field_ref, FIELDTYPE_BYTE);
+			write_set_get(out, "int32", "int", s, j, field_ref, FIELDTYPE_INT32);
+			write_set_get(out, "bool", "bool", s, j, field_ref, FIELDTYPE_BOOL);
+			write_set_get(out, "float", "float", s, j, field_ref, FIELDTYPE_FLOAT);
 
 			//
 			out.line();
@@ -142,7 +157,7 @@ namespace putki
 				out.line() << "mr->is_struct_instance = true;";
 				out.line() << "mr->th = inki::get_" << s->fields[j].ref_type << "_type_handler();";
 				out.line() << "mr->eth = inki::get_" << s->fields[j].ref_type << "_ext_type_handler();";
-				out.line() << "mr->inst = &((inki::" << s->name << " *)omr->inst)->" << s->fields[j].name << ";";
+				out.line() << "mr->inst = &((inki::" << s->name << " *)omr->inst)->" << field_ref << ";";
 				out.line() << "mr->refs_db = mr->refs_db;";
 				out.line() << "mr->path = strdup(omr->path);";
 				out.line() << "return mr;";

@@ -20,13 +20,11 @@ namespace Editor
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-        EditorObjectCreator eoc = new EditorObjectCreator();
         Putki.MemInstance lastObject = null;
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			m_propertyGrid.ShowSearchBox = false;
 
 			m_fileBrowser.FileSelected += OnFileSelected;
 		}
@@ -37,10 +35,7 @@ namespace Editor
 
             Putki.MemInstance mi = Putki.Sys.LoadFromDisk(fsa.Path);
 
-            dynamic objectProxy = eoc.Make(mi.GetType());
-            objectProxy.Setup(mi);
-
-            m_propertyGrid.SelectedObject = objectProxy;
+            m_objectEditor.SetObject(mi);
 
             lastObject = mi;
 		}

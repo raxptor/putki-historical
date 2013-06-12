@@ -28,6 +28,11 @@ namespace putki
 		virtual ext_field_type type() = 0;
 		virtual const char * ref_type_name() = 0;
 
+		virtual bool is_array() = 0;
+		virtual void set_array_index(int i) = 0;
+
+		virtual int get_array_size(putki::mem_instance *obj) = 0;
+
 		// String
 		virtual void set_string(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_string(mem_instance *obj) = 0;

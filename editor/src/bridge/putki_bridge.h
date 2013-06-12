@@ -76,6 +76,9 @@ namespace Putki
 			MemInstance^ GetStructInstance(MemInstance^ Obj);
 
 			String^ GetName();
+			bool IsArray();
+			int GetArraySize(MemInstance^ instance);
+			void SetArrayIndex(int index);
 
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
@@ -99,7 +102,6 @@ namespace Putki
 
 			putki::ext_field_handler_i *m_handler;
 	};
-
 
 	public ref class Sys
 	{

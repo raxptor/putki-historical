@@ -60,6 +60,21 @@ FieldType FieldHandler::GetType()
 	return (FieldType) m_handler->type(); 
 }
 
+bool FieldHandler::IsArray()
+{
+	return m_handler->is_array();
+}
+
+int FieldHandler::GetArraySize(MemInstance^ instance)
+{
+	return m_handler->get_array_size(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::SetArrayIndex(int index)
+{
+	m_handler->set_array_index(index);
+}
+
 TypeDefinition^ FieldHandler::GetRefType()
 {
 	const char *refType = m_handler->ref_type_name();
