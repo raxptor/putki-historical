@@ -1,7 +1,5 @@
 #include <putki/data-dll/dllinterface.h>
 
-#include <windows.h>
-
 namespace inki
 {
 	void bind_test_project();
@@ -10,7 +8,7 @@ namespace inki
 
 extern "C"
 {
-	__declspec(dllexport) putki::data_dll_i*  __cdecl load_data_dll(const char *data_path)
+	putki::data_dll_i*  __cdecl load_data_dll(const char *data_path)
 	{
 		inki::bind_test_project();
 		inki::bind_test_project_dll();

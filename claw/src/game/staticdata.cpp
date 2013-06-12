@@ -12,7 +12,7 @@ namespace game
 
 	void load_static_package()
 	{
-		s_pkg = putki::pkgloader::from_file("out/win32/packages/static.pkg");
+		s_pkg = putki::pkgloader::from_file("static.pkg");
 	}
 
 	outki::globalsettings *get_global_settings()

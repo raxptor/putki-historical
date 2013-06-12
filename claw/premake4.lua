@@ -36,7 +36,6 @@ solution "Claw"
 		files { "src/builder/**.*" }
 
 		links { "claw-putki-lib"}
-		links { "putki-databuilder-lib"}
 		links { "putki-lib" }
 		links { "jsmn" }
 
@@ -50,10 +49,10 @@ solution "Claw"
 
 		files { "src/putki/builder-main.cpp" }
 
-		links { "putki-databuilder-lib"}
 		links { "putki-lib" }
 		links { "claw-putki-lib"}
 		links { "claw-builder-lib" }
+		links { "jsmn" }
 
 	project "claw-data-dll"
 
@@ -72,6 +71,7 @@ solution "Claw"
 		links { "claw-putki-lib"}
 		links { "claw-builder-lib" }
 		links { "putki-data-dll-lib" }
+		links { "jsmn" }
 
 	project "claw-runtime"
 		kind "ConsoleApp"
@@ -81,8 +81,19 @@ solution "Claw"
 		files { "../src/cpp-runtime/**.cpp", "../src/cpp-runtime/**.h" }
 		files { "_gen/outki/**.cpp", "_gen/outki/**.h" }
 		files { "src/**.cpp" }
+		files { "src/**.h" }
 
 		excludes { "src/builder/**.*" }
 		excludes { "src/putki/**.*" }
 
 		includedirs { "../src/cpp-runtime/", "_gen", "src" }
+		
+		configuration {"windows"}
+			excludes {"src/**_osx*"}
+		
+		configuration {"macosx"}
+			excludes {"src/**_win32*"}
+			files {"src/**.mm"}
+			links {"AppKit.framework", "QuartzCore.framework"}
+
+

@@ -19,7 +19,11 @@ void app_register_handlers(putki::builder::data *builder)
 
 void app_build_packages(putki::db::data *out, putki::build::packaging_config *pconf)
 {
+	putki::package::data *pkg = putki::package::create(out);
 
+	putki::package::add(pkg, "globalsettings", true);
+
+	putki::build::commit_package(pkg, pconf, "static.pkg");
 }
 
 int run_putki_builder(int argc, char **argv);

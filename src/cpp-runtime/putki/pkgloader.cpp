@@ -8,7 +8,13 @@ namespace putki
 	{
 		const char *platform_path()
 		{
-			return "win32";
+			#if defined(_WIN32)
+				return "win32";
+			#elif defined(__APPLE__) && defined(__amd64__)
+				return "mac64";
+			#else
+				return "unknown_platform";
+			#endif
 		}
 
 		pkgmgr::loaded_package * from_file(const char *file)
@@ -19,7 +25,7 @@ namespace putki
 			std::ifstream in(buf, std::ios::binary);
 			if (!in.good())
 			{
-				std::cout << "Failed to open file [" << file << "]!" << std::endl;
+				std::cout << "Failed to open file [" << buf << "]!" << std::endl;
 				return 0;
 			}
 

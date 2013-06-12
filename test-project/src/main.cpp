@@ -76,8 +76,12 @@ int main(int argc, char *argv[])
 				putki::liveupdate::update(liveupdate);
 			}
 		}
-		
+
+#ifdef _WIN32		
 		Sleep(50);
+#else
+		sleep(5000);
+#endif
 	}
 
 	putki::pkgmgr::release(pkg);

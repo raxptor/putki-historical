@@ -19,7 +19,11 @@
 	#pragma comment(lib, "ws2_32.lib")
 	#pragma comment(lib, "wsock32.lib")
 #else
-	#include <socket.h>
+	#define closesocket close
+#endif
+
+#if !defined(_WIN32)
+	#include <sys/socket.h>
 	#include <arpa/inet.h>
 #endif
 

@@ -19,34 +19,58 @@
 // binding up the blob loads.
 namespace outki { void bind_claw_loaders(); }
 
+namespace
+{
+	putki::liveupdate::data *liveupdate;
+	outki::globalsettings *settings;
+	
+}
+
+void frame()
+{
+
+		if (liveupdate)
+		{
+			if (!putki::liveupdate::connected(liveupdate))
+			{
+				putki::liveupdate::disconnect(liveupdate);
+				liveupdate = 0;
+			}
+			else
+			{
+				putki::liveupdate::update(liveupdate);
+			}
+		}
+}
+
 int main(int argc, char *argv[])
 {
 	outki::bind_claw_loaders();
 
-
-	putki::pkgmgr::loaded_package *menu_pkg = putki::pkgloader::from_file("out/win32/packages/mainmenu.pkg");
+/*
+	putki::pkgmgr::loaded_package *menu_pkg = putki::pkgloader::from_file("mainmenu.pkg");
 	outki::ui_screen *scrn = (outki::ui_screen *) putki::pkgmgr::resolve(menu_pkg, "ui/mainmenu");
-
+*/
 
 	putki::liveupdate::init();
-	putki::liveupdate::data *liveupdate = putki::liveupdate::connect();
+	liveupdate = putki::liveupdate::connect();
 
 	game::load_static_package();
 
-	outki::globalsettings *settings = game::get_global_settings();
+	settings = game::get_global_settings();
 	assert(settings);
 
 	claw::appwindow::data *window = claw::appwindow::create(settings->windowtitle, settings->window_width, settings->window_height);
-	claw::render::data *renderer = claw::render::create(window);
+	claw::appwindow::run_loop(window, &frame);
 
-
-	while (claw::appwindow::update(window))
+/*	while (claw::appwindow::update(window))
 	{
 		if (LIVE_UPDATE(&settings))
 		{
 			claw::appwindow::set_title(window, settings->windowtitle);
 		}
-
+		*/
+/*
 		claw::render::begin(renderer, true, true, claw::rgba2uint(settings->bgcolor));
 
 		LIVE_UPDATE(&scrn);
@@ -71,22 +95,10 @@ int main(int argc, char *argv[])
 
 		//////////////////////////////////////////////////////
 
-		if (liveupdate)
-		{
-			if (!putki::liveupdate::connected(liveupdate))
-			{
-				putki::liveupdate::disconnect(liveupdate);
-				liveupdate = 0;
-			}
-			else
-			{
-				putki::liveupdate::update(liveupdate);
-			}
-		}
-	}
-
+*/		
+/*
 	claw::render::destroy(renderer);
-	
+*/	
 	return 0;
 }
 
