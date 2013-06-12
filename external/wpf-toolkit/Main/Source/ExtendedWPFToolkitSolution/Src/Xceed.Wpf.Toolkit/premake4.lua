@@ -1,5 +1,0 @@
-	project "Xceed.Wpf.Toolkit"
-		language "C#"
-		kind "SharedLib"
-		external "Xceed.Wpf.Toolkit"
-		uuid "72E591D6-8F83-4D8C-8F67-9C325E623234"
