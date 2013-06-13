@@ -78,21 +78,23 @@ namespace claw
 			SetWindowTextA(d->window, title);
 		}
 
-		bool update(data *d)
-		{
-			bool stay = true;
-
-			MSG m;
-			while (PeekMessage(&m, 0, 0, 0, PM_REMOVE))
+		void run_loop(data *d, updatefunc f)
+		{			
+			do
 			{
-				TranslateMessage(&m);
-				DispatchMessage(&m);
+				MSG m;
+				while (PeekMessage(&m, 0, 0, 0, PM_REMOVE))
+				{
+					TranslateMessage(&m);
+					DispatchMessage(&m);
 
-				if (m.message == WM_QUIT)
-					stay = false;
-			}
-			
-			return stay;
+					if (m.message == WM_QUIT)
+						return;
+				}
+
+				f();
+
+			} while (true);
 		}
 
 		void destroy(data *d)

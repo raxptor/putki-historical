@@ -9,6 +9,7 @@ solution "Claw"
 		defines {"DEBUG"}
 
 	dofile "../src/putkilib-premake.lua"
+	dofile "../external/libpng/premake.lua"
 
 	project "claw-putki-lib"
 		kind "StaticLib"

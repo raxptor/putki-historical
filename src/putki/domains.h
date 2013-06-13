@@ -5,8 +5,8 @@ namespace putki
 {
 	enum 
 	{
-		DOMAIN_INPUT     = 0,
-		DOMAIN_RUNTIME   = 1
+		DOMAIN_INPUT     = 1,
+		DOMAIN_RUNTIME   = 2
 	};
 }
 

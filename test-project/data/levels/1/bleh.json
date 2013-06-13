@@ -2,40 +2,51 @@
 	type: "difficulties",
 	data: {
 			"kalle": "Gurken",
-			"difficulty": ["levels/1/bleh#sjbd", "levels/1/bleh#cagi", "levels/1/bleh#ckpq"],
+			"difficulty": ["levels/1/bleh#qhcp", "levels/1/bleh#ncel", "levels/1/bleh#qbcm"],
 			"outlist": []
 	},
 	aux: [
 		{
-			ref: "#sjbd",
-			type: "difficulty_setting",
+			ref: "#qhcp",
+			type: "difficulty_setting_ext2",
 			data: {
-					"_rtti_type": 101,
-					"name": "Easy",
-					"level": 1,
-					"sublevels": []
+					"parent": {
+						"_rtti_type": 103,
+						"name": "",
+						"level": 0,
+						"sublevels": []
+				},
+					"extra_info1": "",
+					"extra_info2": ""
 			}
 		}
 		,
 		{
-			ref: "#cagi",
-			type: "difficulty_setting",
+			ref: "#ncel",
+			type: "difficulty_setting_ext2",
 			data: {
-					"_rtti_type": 101,
-					"name": "Medium",
-					"level": 2,
-					"sublevels": []
+					"parent": {
+						"_rtti_type": 103,
+						"name": "",
+						"level": 0,
+						"sublevels": []
+				},
+					"extra_info1": "",
+					"extra_info2": "hntht"
 			}
 		}
 		,
 		{
-			ref: "#ckpq",
-			type: "difficulty_setting",
+			ref: "#qbcm",
+			type: "difficulty_setting_ext1",
 			data: {
-					"_rtti_type": 101,
-					"name": "Difficult",
-					"level": 3,
-					"sublevels": []
+					"parent": {
+						"_rtti_type": 102,
+						"name": "nthsnhsnhnsthntsh",
+						"level": 0,
+						"sublevels": []
+				},
+					"first_ext": ""
 			}
 		}
 	      ]

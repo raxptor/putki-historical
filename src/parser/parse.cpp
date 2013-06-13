@@ -20,7 +20,6 @@ namespace putki
 		char *tok = strtok(dup, " ");
 
 		out->name = "";
-		out->domains = 0;
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 		out->is_type_root = false;
 
@@ -62,6 +61,7 @@ namespace putki
 		out->is_array =	false;
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 		out->is_aux_ptr = false;
+		out->show_in_editor = true;
 
 		bool read_type = true;
 		bool read_ptr_type = false;
@@ -84,6 +84,10 @@ namespace putki
 				std::cout << " Type is '" << type << "'" << std::endl;
 				if (!strcmp(type.c_str(), "[no-out]"))
 					out->domains = putki::DOMAIN_INPUT;
+				else if (!strcmp(type.c_str(), "[no-in]"))
+					out->domains = putki::DOMAIN_RUNTIME;
+				else if (!strcmp(type.c_str(), "[hidden]"))
+					out->show_in_editor = false;
 				else if (!strcmp(type.c_str(), "string"))
 					out->type = putki::FIELDTYPE_STRING;
 				else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "u32"))
@@ -95,7 +99,10 @@ namespace putki
 				else if (!strcmp(type.c_str(), "byte"))
 					out->type = putki::FIELDTYPE_BYTE;
 				else if (!strcmp(type.c_str(), "file"))
+				{
 					out->type = putki::FIELDTYPE_FILE;
+					out->domains = putki::DOMAIN_INPUT;
+				}
 				else if (!strcmp(type.c_str(), "ptr"))
 				{
 					out->type = putki::FIELDTYPE_POINTER;
@@ -214,6 +221,7 @@ namespace putki
 							pf.is_array = false;
 							pf.is_aux_ptr = false;
 							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+							pf.show_in_editor = true;
 							datastruct.fields.insert(datastruct.fields.begin(), pf);
 						}
 						else if (datastruct.is_type_root)
@@ -224,6 +232,7 @@ namespace putki
 							pf.is_array = false;
 							pf.is_aux_ptr = false;
 							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+							pf.show_in_editor = false;
 							datastruct.fields.insert(datastruct.fields.begin(), pf);
 						}
 

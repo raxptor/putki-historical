@@ -39,6 +39,8 @@ namespace Putki
 
 			String^ GetName();
 
+			TypeDefinition^ GetParentType();
+
 			FieldHandler^ GetField(int i);
 			putki::ext_type_handler_i * GetPutkiTypeDefinition() { return handler; }
 
@@ -75,6 +77,8 @@ namespace Putki
 			FieldType GetType();
 			TypeDefinition^ GetRefType();
 			MemInstance^ GetStructInstance(MemInstance^ Obj);
+
+			bool ShowInEditor();
 
 			String^ GetName();
 			bool IsArray();

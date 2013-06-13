@@ -25,8 +25,11 @@ namespace putki
 	struct ext_field_handler_i
 	{
 		virtual const char * name() = 0;
+		virtual bool show_in_editor() = 0;
+
 		virtual ext_field_type type() = 0;
 		virtual const char * ref_type_name() = 0;
+		
 
 		virtual bool is_array() = 0;
 		virtual void set_array_index(int i) = 0;
@@ -64,6 +67,7 @@ namespace putki
 	struct ext_type_handler_i
 	{
 		virtual const char * name() = 0;
+		virtual const char * parent_name() = 0;
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
 	};
 

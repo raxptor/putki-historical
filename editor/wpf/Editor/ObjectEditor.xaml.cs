@@ -60,8 +60,9 @@ namespace Editor
 		{
 			// Must be struct.
 			Height = 20;
-			m_grid.Visibility = Visibility.Collapsed; // when in sub-mode, don't add the grid.
-			m_label.Content = "Struct instance (" + mi.GetType().GetName() + ")";
+			m_grid.Visibility = Visibility.Collapsed; // when in sub-mode, don't add the grid.            
+            m_scroll.Visibility = Visibility.Collapsed;
+			// m_label.Content = "Struct instance (" + mi.GetType().GetName() + ")";
 
             if (fi != null)
             {
@@ -77,7 +78,7 @@ namespace Editor
 
 		public void SetObject(Putki.MemInstance mi)
 		{
-			m_label.Visibility = Visibility.Collapsed; // nly for structs.
+			// m_label.Visibility = Visibility.Collapsed; // nly for structs.
 		    m_obj = mi;
             OnStructureChanged();
 		}
@@ -99,15 +100,18 @@ namespace Editor
 				Putki.FieldHandler fh = m_obj.GetType().GetField(f);
 				if (fh != null)
 				{
-					RowNode e = new RowNode();
-					e.mi = m_obj;
-					e.fh = fh;
-					e.row = new RowDefinition();
-					e.row.Height = GridLength.Auto;
-					e.editor = EditorCreator.MakeEditor(fh, fh.IsArray());
-					e.editor.SetObject(m_obj, fh, 0);
-					e.children = e.editor.GetChildRows();
-					l.Add(e);
+                    if (fh.ShowInEditor())
+                    {
+                        RowNode e = new RowNode();
+                        e.mi = m_obj;
+                        e.fh = fh;
+                        e.row = new RowDefinition();
+                        e.row.Height = GridLength.Auto;
+                        e.editor = EditorCreator.MakeEditor(fh, fh.IsArray());
+                        e.editor.SetObject(m_obj, fh, 0);
+                        e.children = e.editor.GetChildRows();
+                        l.Add(e);
+                    }
 					f++;
 				}
 				else
@@ -137,6 +141,12 @@ namespace Editor
 			int idx = 0;
 			foreach (RowNode rn in list)
 			{
+                if (rn.fh != null && rn.fh.GetName() == "parent")
+                {
+                    rowIndex = Layout(rn.children, rowIndex, indent);
+                    continue;
+                }
+
 				Label name = new Label();
 
                 if (rn.fh != null)

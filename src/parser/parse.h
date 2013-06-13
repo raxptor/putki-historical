@@ -15,6 +15,7 @@ namespace putki
 		putki::field_type type;
 		bool is_array;
 		bool is_aux_ptr;
+		bool show_in_editor;
 		
 		std::string name;
 		std::string ref_type;

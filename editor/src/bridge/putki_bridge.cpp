@@ -94,6 +94,16 @@ TypeDefinition^ FieldHandler::GetRefType()
 	return gcnew TypeDefinition(s_dll->type_by_name(refType));
 }
 
+TypeDefinition^ TypeDefinition::GetParentType()
+{
+	const char *pt = handler->parent_name();
+	if (pt)
+	{
+		return gcnew TypeDefinition(s_dll->type_by_name(pt));
+	}
+	return nullptr;
+}
+
 MemInstance^ FieldHandler::GetStructInstance(MemInstance^ Obj)
 {
 	// how to free this?!	
@@ -103,6 +113,11 @@ MemInstance^ FieldHandler::GetStructInstance(MemInstance^ Obj)
 String^ FieldHandler::GetString(MemInstance^ instance)
 {
 	return gcnew String(m_handler->get_string(instance->GetPutkiMemInstance()));
+}
+
+bool FieldHandler::ShowInEditor()
+{
+	return m_handler->show_in_editor();
 }
 
 void FieldHandler::SetString(MemInstance^ instance, String^ Value)

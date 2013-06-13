@@ -21,9 +21,11 @@ namespace Editor
 	public partial class MainWindow : Window
 	{
         Putki.MemInstance lastObject = null;
+        public static MainWindow inst = null;
 
 		public MainWindow()
 		{
+            inst = this;
 			InitializeComponent();
 
 			m_fileBrowser.FileSelected += OnFileSelected;

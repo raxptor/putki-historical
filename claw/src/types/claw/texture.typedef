@@ -7,6 +7,6 @@ texturedata [out]
 
 texture [in, out]
 {
-	[no-out] file source
-	ptr texturedata builtdata
+	file source
+	[no-in] ptr texturedata builtdata
 }

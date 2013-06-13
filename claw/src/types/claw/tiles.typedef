@@ -3,7 +3,16 @@
 tilemap [in, out]
 {
 	texture tex
-	u32 tile_width
-	u32 tile_height
+	int tile_width
+	int tile_height
+}
+
+tilelayer [in, out]
+{
+	string name
+	int width
+	int height
+	ptr tilemap tiles
+	[hidden] byte[] data
 }
 

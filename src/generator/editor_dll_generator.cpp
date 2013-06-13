@@ -84,6 +84,14 @@ namespace putki
 			}
 
 			out.line() << "bool is_aux_ptr() { return " << (s->fields[j].is_aux_ptr ? "true" : "false") << "; }";
+
+			bool showineditor = true;
+			if (!(s->fields[j].domains & putki::DOMAIN_INPUT))
+				showineditor = false;
+			if (!s->fields[j].show_in_editor)
+				showineditor = false;
+
+			out.line() << "bool show_in_editor() { return " << (showineditor ? "true" : "false") << "; }";
 		
 			out.line() << "const char* ref_type_name() { ";
 			if (!s->fields[j].ref_type.empty())
@@ -99,6 +107,7 @@ namespace putki
 				case FIELDTYPE_STRING: out.cont() << " putki::EXT_FIELDTYPE_STRING; "; break;
 				case FIELDTYPE_INT32: out.cont() << " putki::EXT_FIELDTYPE_INT32; "; break;
 				case FIELDTYPE_POINTER: out.cont() << " putki::EXT_FIELDTYPE_POINTER; "; break;
+				case FIELDTYPE_FILE: out.cont() << " putki::EXT_FIELDTYPE_FILE; "; break;
 				case FIELDTYPE_BYTE: out.cont() << " putki::EXT_FIELDTYPE_BYTE; "; break;
 				case FIELDTYPE_FLOAT: out.cont() << " putki::EXT_FIELDTYPE_FLOAT; "; break;
 				case FIELDTYPE_BOOL: out.cont() << " putki::EXT_FIELDTYPE_BOOL; "; break;
@@ -222,7 +231,15 @@ namespace putki
 			out.line();
 			out.line() << "// basic info";
 			out.line() << "const char *name() { return \"" << s->name << "\"; }";
-			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";			
+			out.line();
+
+			if (s->parent.empty())
+				out.line() << "const char *parent_name() { return 0; }";
+			else
+				out.line() << "const char *parent_name() { return \"" << s->parent << "\"; }";
+
+			out.line();
+			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";
 			out.line() << "{";
 			out.indent(1);
 			out.line() << "switch (idx) {";
