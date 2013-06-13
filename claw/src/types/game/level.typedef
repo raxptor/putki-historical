@@ -1,0 +1,7 @@
+#include ../claw/tiles.typedef
+
+level [in, out]
+{
+	auxptr[] tilelayer layers
+}
+
