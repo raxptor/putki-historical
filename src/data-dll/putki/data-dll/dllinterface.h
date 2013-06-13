@@ -32,6 +32,8 @@ namespace putki
 		virtual void set_array_index(int i) = 0;
 
 		virtual int get_array_size(putki::mem_instance *obj) = 0;
+		virtual void array_insert(putki::mem_instance *obj) = 0;
+		virtual void array_erase(putki::mem_instance *obj) = 0;
 
 		// String
 		virtual void set_string(mem_instance *obj, const char *value) = 0;

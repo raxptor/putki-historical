@@ -1,4 +1,7 @@
 #include "pkgloader.h"
+
+#include <putki/runtime.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -6,27 +9,10 @@ namespace putki
 {
 	namespace pkgloader
 	{
-		const char *platform_path()
-		{
-			#if defined(_WIN32)
-				if (sizeof(void*) == 4)
-					return "win32";
-				else
-					return "win64";
-			#elif defined(__APPLE__) && defined(__amd64__)
-				if (sizeof(void*) == 4)
-					return "macosx32";
-				else
-					return "macosx64";
-			#else
-				return "unknown_platform";
-			#endif
-		}
-
 		pkgmgr::loaded_package * from_file(const char *file)
 		{
 			char buf[1024];
-			sprintf(buf, "out/%s/packages/%s", platform_path(), file);
+			sprintf(buf, "out/%s/packages/%s", runtime::desc_str(), file);
 
 			std::ifstream in(buf, std::ios::binary);
 			if (!in.good())

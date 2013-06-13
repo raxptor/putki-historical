@@ -53,6 +53,7 @@ namespace Editor
                 e.editor = EditorCreator.MakeEditor(m_fh, false);
                 e.editor.SetObject(m_mi, m_fh, i);
                 e.children = e.editor.GetChildRows();
+                e.arrayIndex = i;
                 list.Add(e);
             }
             return list;

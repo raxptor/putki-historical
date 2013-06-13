@@ -59,6 +59,9 @@
       <DependentUpon>ArrayEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="EditorCreator.cs" />
+    <Compile Include="IntEditor.xaml.cs">
+      <DependentUpon>IntEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TextEditor.xaml.cs">
       <DependentUpon>TextEditor.xaml</DependentUpon>
     </Compile>
@@ -68,6 +71,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="FileBrowser.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="IntEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

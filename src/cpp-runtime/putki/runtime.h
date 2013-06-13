@@ -1,11 +1,23 @@
 
 namespace putki
 {
-
-#if defined(_WIN32)
-	#define PUTKI_RUNTIME 0
-#else
-	#define PUTKI_RUNTIME 1
-#endif
-
+	namespace runtime
+	{
+		inline const char *desc_str()
+		{
+			#if defined(_WIN32)
+				if (sizeof(void*) == 4)
+					return "win32";
+				else
+					return "win64";
+			#elif defined(__APPLE__) && defined(__amd64__)
+				if (sizeof(void*) == 4)
+					return "macosx32";
+				else
+					return "macosx64";
+			#else
+				return "unknown";
+			#endif
+		}
+	}
 }

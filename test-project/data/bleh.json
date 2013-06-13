@@ -1,14 +1,11 @@
 {
-	type:"difficulties",
+	type: "difficulties",
 	data: {
-		kalle: "Curka",
-		outlist: [9,8,6,0],
-		difficulty: [
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"Nummer noll.", level:123},
-			{name:"FIRST", level:32}
-		]
+			"kalle": "nthnshnthnshtn",
+			"difficulty": [{
+				"name": "Detta ar forsta svarighetsgraden",
+				"level": 1
+		}],
+			"outlist": [9, 8, 6, 0]
 	}
 }

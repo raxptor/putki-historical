@@ -75,6 +75,16 @@ void FieldHandler::SetArrayIndex(int index)
 	m_handler->set_array_index(index);
 }
 
+void FieldHandler::ArrayInsert(MemInstance^ instance)
+{
+	m_handler->array_insert(instance->GetPutkiMemInstance());
+}
+
+void FieldHandler::ArrayErase(MemInstance^ instance)
+{
+	m_handler->array_erase(instance->GetPutkiMemInstance());
+}
+
 TypeDefinition^ FieldHandler::GetRefType()
 {
 	const char *refType = m_handler->ref_type_name();

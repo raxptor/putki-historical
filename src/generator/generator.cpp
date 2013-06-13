@@ -369,6 +369,31 @@ namespace putki
 			out.line() << "struct " << s->name << " {";
 			out.indent(1);
 
+
+			// default constructor
+			out.indent(1);
+			out.line() << s->name << "()";
+			out.line() << "{";
+			for (size_t j=0;j<s->fields.size();j++)
+			{
+				if (s->fields[j].is_array)
+					continue;
+				switch (s->fields[j].type)
+				{
+					case FIELDTYPE_INT32:
+					case FIELDTYPE_BYTE:
+					case FIELDTYPE_FLOAT:
+						out.line() << s->fields[j].name << " = 0;";
+						break;
+					case FIELDTYPE_BOOL:
+						out.line() << s->fields[j].name << " = false;";
+						break;
+				}
+			}
+			out.line() << "}";
+			out.indent(-1);
+
+
 			for (size_t j=0;j<s->fields.size();j++)
 			{
 				if (j > 0)

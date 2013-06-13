@@ -36,6 +36,7 @@ namespace Editor
         {            
             fi.SetArrayIndex(arrayIndex);
             m_tbox.Text = fi.GetString(mi);
+            m_tbox.TextChanged += delegate { fi.SetString(mi, m_tbox.Text); };
 
             m_idx = arrayIndex;
         }

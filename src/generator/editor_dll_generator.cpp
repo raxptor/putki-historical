@@ -63,14 +63,25 @@ namespace putki
 
 			if (s->fields[j].is_array)
 			{
+				std::string vec_ref = "((inki::" + s->name + " *)((putki::mem_instance_real*)obj)->inst)->" + s->fields[j].name + ".";
 				out.line() << "int _idx;";
 				out.line() << "void set_array_index(int i) { _idx = i; }";
-				out.line() << "int get_array_size(putki::mem_instance *obj) { return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ".size(); }";
+				out.line() << "int get_array_size(putki::mem_instance *obj) { return " << vec_ref << "size(); }";
+
+				std::string new_obj = "0";
+				if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
+					new_obj = s->fields[j].ref_type + "()";
+
+				out.line() << "void array_insert(putki::mem_instance *obj) { " << vec_ref << "push_back(" + new_obj + "); }";
+				out.line() << "void array_erase(putki::mem_instance *obj) { " << vec_ref <<"erase(" << vec_ref <<"begin() + _idx); }";
 			}
 			else
 			{
 				out.line() << "void set_array_index(int i) { }";
 				out.line() << "int get_array_size(putki::mem_instance *obj) { return -1; }";
+				out.line() << "void array_insert(putki::mem_instance *obj) { }";
+				out.line() << "void array_erase(putki::mem_instance *obj) { }";
+
 			}
 		
 			out.line() << "const char* ref_type_name() { ";

@@ -8,7 +8,7 @@ namespace inki
 
 extern "C"
 {
-	putki::data_dll_i*  __cdecl load_data_dll(const char *data_path)
+	__declspec(dllexport) putki::data_dll_i* __cdecl load_data_dll(const char *data_path)
 	{
 		inki::bind_test_project();
 		inki::bind_test_project_dll();

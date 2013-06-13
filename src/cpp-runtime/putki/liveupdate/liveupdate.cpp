@@ -130,7 +130,7 @@ namespace putki
 			std::cout << "Connected to live update on socket " << d->socket << "!" << std::endl;
 
 			char tmp[256];
-			sprintf(tmp, "init %d", PUTKI_RUNTIME);
+			sprintf(tmp, "init %s", runtime::desc_str());
 			command(d, tmp);
 
 			command(d, "build haspointer");

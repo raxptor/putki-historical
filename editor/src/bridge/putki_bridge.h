@@ -79,6 +79,8 @@ namespace Putki
 			bool IsArray();
 			int GetArraySize(MemInstance^ instance);
 			void SetArrayIndex(int index);
+			void ArrayInsert(MemInstance^ instance);
+			void ArrayErase(MemInstance^ instance);
 
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
