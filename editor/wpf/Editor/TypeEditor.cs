@@ -14,5 +14,7 @@ namespace Editor
         void SetObject(Putki.MemInstance mi, Putki.FieldHandler fi, int araryIndex);
 
         List<ObjectEditor.RowNode> GetChildRows();
+
+        void OnConnect(ObjectEditor root);
     }
 }

@@ -2,11 +2,41 @@
 	type: "difficulties",
 	data: {
 			"kalle": "Gurken",
-			"difficulty": [
-				{"name": "Nummer noll.", "level": 123},
-				{"name": "Nummer ett", "level": 123},
-				{"name": "Nummer tre", "level": 123}
-			]
+			"difficulty": ["levels/1/bleh#sjbd", "levels/1/bleh#cagi", "levels/1/bleh#ckpq"],
 			"outlist": []
-	}
+	},
+	aux: [
+		{
+			ref: "#sjbd",
+			type: "difficulty_setting",
+			data: {
+					"_rtti_type": 101,
+					"name": "Easy",
+					"level": 1,
+					"sublevels": []
+			}
+		}
+		,
+		{
+			ref: "#cagi",
+			type: "difficulty_setting",
+			data: {
+					"_rtti_type": 101,
+					"name": "Medium",
+					"level": 2,
+					"sublevels": []
+			}
+		}
+		,
+		{
+			ref: "#ckpq",
+			type: "difficulty_setting",
+			data: {
+					"_rtti_type": 101,
+					"name": "Difficult",
+					"level": 3,
+					"sublevels": []
+			}
+		}
+	      ]
 }

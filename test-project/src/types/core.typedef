@@ -3,16 +3,28 @@ tiledata
 	string flerp
 }
 
-difficulty_setting [in, out]
+difficulty_setting [in, out] rtti
 {
 	string name
 	u32 level
+	auxptr[] difficulty_setting sublevels
+}
+
+difficulty_setting_ext1 : difficulty_setting [in, out]
+{
+	string first_ext
+}
+
+difficulty_setting_ext2 : difficulty_setting [in, out]
+{
+	string extra_info1
+	string extra_info2
 }
 
 difficulties [in, out]
 {
 	string kalle
-	difficulty_setting[] difficulty
+	auxptr[] difficulty_setting difficulty
 	u32[] outlist
 }
 

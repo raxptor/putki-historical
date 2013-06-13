@@ -34,6 +34,7 @@ namespace putki
 		virtual int get_array_size(putki::mem_instance *obj) = 0;
 		virtual void array_insert(putki::mem_instance *obj) = 0;
 		virtual void array_erase(putki::mem_instance *obj) = 0;
+		virtual bool is_aux_ptr() = 0;
 
 		// String
 		virtual void set_string(mem_instance *obj, const char *value) = 0;
@@ -77,6 +78,7 @@ namespace putki
 		virtual ~data_dll_i();
 
 		virtual mem_instance* create_instance(const char *path, ext_type_handler_i *th) = 0;
+		virtual mem_instance* create_aux_instance(mem_instance *onto, ext_type_handler_i *th) = 0;
 
 		virtual void free_instance(mem_instance *mi) = 0;
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <set>
+#include <vector>
 
 #include <putki/sys/compat.h>
 
@@ -16,6 +17,7 @@ namespace putki
 		{
 			type_handler_i *th;
 			instance_t obj;
+			std::vector<std::string> auxrefs;
 		};
 
 		struct data
@@ -24,6 +26,8 @@ namespace putki
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
+
+			char auxpathbuf[256];
 		};
 
 		db::data * create()
@@ -34,6 +38,26 @@ namespace putki
 		void free(data *d)
 		{
 			delete d;
+		}
+
+		void split_aux_path(std::string path, std::string * base, std::string * ref)
+		{
+			int p = path.find_last_of('#');
+			if (p != std::string::npos)
+			{
+				*base = path.substr(0, p);
+				*ref = path.substr(p, path.size() - p);
+			}
+			else
+			{
+				*base = path;
+				ref->clear();
+			}
+		}
+
+		bool is_aux_path(const char *path)
+		{
+			return strchr(path, '#') != 0;
 		}
 
 		const char *pathof(data *d, instance_t obj)
@@ -60,6 +84,41 @@ namespace putki
 			e.obj = i;
 			d->objs[path] = e;
 			d->paths[i] = path;
+
+			if (is_aux_path(path))
+			{
+				// add to auxrefs to quickly find them.
+				std::string base, ref;
+				split_aux_path(path, &base, &ref);
+				std::map<std::string, entry>::iterator i = d->objs.find(base);
+				if (i != d->objs.end())
+				{
+					i->second.auxrefs.push_back(ref);
+				}
+			}
+		}
+
+		bool is_aux_path_of(data *d, instance_t baseobj, const char *path)
+		{
+			std::string base, ref;
+			split_aux_path(path, &base, &ref);
+			return !strcmp(base.c_str(), pathof(d, baseobj));
+		}
+
+		const char *make_aux_path(data *d, instance_t onto)
+		{
+			std::map<instance_t, std::string>::iterator i = d->paths.find(onto);
+			if (i != d->paths.end())
+			{
+				do
+				{
+					// nice!
+					sprintf(d->auxpathbuf, "%s#%c%c%c%c", i->second.c_str(), 'a' + (rand()%20), 'a' + (rand()%20), 'a' + (rand()%20), 'a' + (rand()%20));
+				}
+				while (d->objs.find(d->auxpathbuf) != d->objs.end());
+				return d->auxpathbuf;
+			}
+			return "<INVALID-AUX-PATH>";
 		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)

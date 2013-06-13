@@ -61,6 +61,7 @@ namespace putki
 		out->name = "<invalid>";
 		out->is_array =	false;
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
+		out->is_aux_ptr = false;
 
 		bool read_type = true;
 		bool read_ptr_type = false;
@@ -98,6 +99,13 @@ namespace putki
 				else if (!strcmp(type.c_str(), "ptr"))
 				{
 					out->type = putki::FIELDTYPE_POINTER;
+					out->is_aux_ptr = false;
+					read_ptr_type = true;
+				}
+				else if (!strcmp(type.c_str(), "auxptr"))
+				{
+					out->type = putki::FIELDTYPE_POINTER;
+					out->is_aux_ptr = true;
 					read_ptr_type = true;
 				}
 				else
@@ -204,6 +212,7 @@ namespace putki
 							pf.type = FIELDTYPE_STRUCT_INSTANCE;
 							pf.ref_type = datastruct.parent;
 							pf.is_array = false;
+							pf.is_aux_ptr = false;
 							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 							datastruct.fields.insert(datastruct.fields.begin(), pf);
 						}
@@ -213,6 +222,7 @@ namespace putki
 							pf.name = "_rtti_type";
 							pf.type = FIELDTYPE_INT32;
 							pf.is_array = false;
+							pf.is_aux_ptr = false;
 							pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 							datastruct.fields.insert(datastruct.fields.begin(), pf);
 						}

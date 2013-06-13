@@ -24,6 +24,9 @@ namespace putki
 		void read_all(data *d, enum_i *);
 		void read_all_by_type(type_handler_i *th, enum_i*);
 
+		const char *make_aux_path(data *d, instance_t onto);
+		bool is_aux_path_of(data *d, instance_t base, const char *path);
+
 		// always returns a pointer which may or may not be unresolved
 		instance_t ptr_to_allow_unresolved(data *d, const char *path);
 

@@ -32,6 +32,11 @@ namespace Editor
             return this;
         }
 
+        public void OnConnect(ObjectEditor root)
+        {
+
+        }
+
         public void SetObject(Putki.MemInstance mi, Putki.FieldHandler fi, int arrayIndex)
         {            
             fi.SetArrayIndex(arrayIndex);

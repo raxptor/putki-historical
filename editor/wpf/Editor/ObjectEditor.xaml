@@ -10,7 +10,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" />
                 <ColumnDefinition />
-                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="40" />
             </Grid.ColumnDefinitions>
         </Grid>
         <Label x:Name="m_label" HorizontalAlignment="Center" Content="Struct Instance" VerticalAlignment="Center" VerticalContentAlignment="Center" Height="20"/>

@@ -48,6 +48,7 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 	putki::package::add(pkg, "haspointer", true);
 	putki::package::add(pkg, "TEST1", true);
 	putki::package::add(pkg, "gurk1", true);
+	putki::package::add(pkg, "levels/1/bleh", true);
 
 	putki::build::commit_package(pkg, pconf, "everything.pkg");
 }

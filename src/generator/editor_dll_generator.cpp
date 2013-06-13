@@ -81,8 +81,9 @@ namespace putki
 				out.line() << "int get_array_size(putki::mem_instance *obj) { return -1; }";
 				out.line() << "void array_insert(putki::mem_instance *obj) { }";
 				out.line() << "void array_erase(putki::mem_instance *obj) { }";
-
 			}
+
+			out.line() << "bool is_aux_ptr() { return " << (s->fields[j].is_aux_ptr ? "true" : "false") << "; }";
 		
 			out.line() << "const char* ref_type_name() { ";
 			if (!s->fields[j].ref_type.empty())
@@ -124,8 +125,8 @@ namespace putki
 			out.line();
 			out.line() << "const char* get_string(putki::mem_instance *obj) { ";
 			out.indent(1);
-			if (!s->fields[j].is_array && s->fields[j].type == FIELDTYPE_STRING)
-				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ".c_str();";
+			if (s->fields[j].type == FIELDTYPE_STRING)
+				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			else
 				out.line() << "return \"####NOT-STRING[" << s->name << "]#####\";";
 			out.indent(-1);
@@ -145,8 +146,8 @@ namespace putki
 			out.line();
 			out.line() << "const char* get_pointer(putki::mem_instance *obj) { ";
 			out.indent(1);
-			if (!s->fields[j].is_array && s->fields[j].type == FIELDTYPE_POINTER)
-				out.line() << "return putki::db::pathof_including_unresolved(((putki::mem_instance_real*)obj)->refs_db, ((inki::" << s->name << "*)((putki::mem_instance_real*)obj)->inst)->" << s->fields[j].name << ");";
+			if (s->fields[j].type == FIELDTYPE_POINTER)
+				out.line() << "return putki::db::pathof_including_unresolved(((putki::mem_instance_real*)obj)->refs_db, ((inki::" << s->name << "*)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ");";
 			else
 				out.line() << "return \"NOT A POINTER\";";
 			out.indent(-1);

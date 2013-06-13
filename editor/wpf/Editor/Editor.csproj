@@ -62,6 +62,9 @@
     <Compile Include="IntEditor.xaml.cs">
       <DependentUpon>IntEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PointerEditor.xaml.cs">
+      <DependentUpon>PointerEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TextEditor.xaml.cs">
       <DependentUpon>TextEditor.xaml</DependentUpon>
     </Compile>
@@ -98,6 +101,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ObjectEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PointerEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

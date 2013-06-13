@@ -28,6 +28,11 @@ namespace Editor
 			public int arrayIndex = -1;
 		}
 
+        public void OnConnect(ObjectEditor root)
+        {
+
+        }
+
         public class InsertEvt : RoutedEventArgs
         {
             public InsertEvt(RowNode n)
@@ -58,8 +63,15 @@ namespace Editor
 			m_grid.Visibility = Visibility.Collapsed; // when in sub-mode, don't add the grid.
 			m_label.Content = "Struct instance (" + mi.GetType().GetName() + ")";
 
-			fi.SetArrayIndex(arrayIndex);
-			m_obj = fi.GetStructInstance(mi);
+            if (fi != null)
+            {
+                // member somewhere.
+                fi.SetArrayIndex(arrayIndex);
+                m_obj = fi.GetStructInstance(mi);
+            }
+            else
+                m_obj = mi;
+
 			m_arrayIndex = arrayIndex;
 		}
 
@@ -127,10 +139,17 @@ namespace Editor
 			{
 				Label name = new Label();
 
-				if (rn.fh.IsArray() && !(rn.editor is ArrayEditor))
-					name.Content = rn.fh.GetName() + "[" + (idx++) + "]";
-				else
-					name.Content = rn.fh.GetName();
+                if (rn.fh != null)
+                {
+                    if (rn.fh.IsArray() && !(rn.editor is ArrayEditor))
+                        name.Content = rn.fh.GetName() + "[" + (idx++) + "]";
+                    else
+                        name.Content = rn.fh.GetName();
+                }
+                else
+                {
+                    name.Content = rn.mi.GetPath();
+                }
 
 				name.HorizontalAlignment = HorizontalAlignment.Left;
 				name.VerticalAlignment = VerticalAlignment.Center;
@@ -146,7 +165,7 @@ namespace Editor
 				ec.HorizontalAlignment = HorizontalAlignment.Stretch;
 
 				// If is is array entry
-				if (rn.fh.IsArray())
+				if (rn.fh != null && rn.fh.IsArray())
 				{
 					Button b = new Button();
 
@@ -157,7 +176,7 @@ namespace Editor
 					}
 					else
 					{
-						b.Content = "Delete";
+						b.Content = "Del";
                         b.Click += delegate { EraseClick(rn); };
 					}
 
@@ -165,7 +184,9 @@ namespace Editor
 					Grid.SetColumn(b, 2);
 					m_grid.Children.Add(b);
 				}
-				
+
+                rn.editor.OnConnect(this);
+
 				m_grid.Children.Add(name);
 				m_grid.Children.Add(ec);
 

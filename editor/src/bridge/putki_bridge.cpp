@@ -170,6 +170,15 @@ void FieldHandler::SetFloat(MemInstance^ instance, float Value)
 	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
 }
 
+bool FieldHandler::IsAuxPtr()
+{
+	return m_handler->is_aux_ptr();
+}
+
+MemInstance^ Sys::CreateAuxInstance(MemInstance ^onto, TypeDefinition^ type)
+{
+	return gcnew MemInstance(type, s_dll->create_aux_instance(onto->GetPutkiMemInstance(), type->GetPutkiTypeDefinition()));
+}
 
 void Sys::MemBuildAsset(String^ path)
 {
@@ -193,7 +202,7 @@ MemInstance^ Sys::LoadFromDisk(String^ path)
 	
 	putki::mem_instance *mi = s_dll->disk_load(myStr.c_str());
 	if (mi == nullptr)
-		return gcnew MemInstance(nullptr, nullptr);
+		return nullptr;
 	else
 	{
 		return gcnew MemInstance(gcnew TypeDefinition(s_dll->type_of(mi)), mi);

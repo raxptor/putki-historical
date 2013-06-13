@@ -39,6 +39,11 @@ namespace Editor
             m_fh = fi;
         }
 
+        public void OnConnect(ObjectEditor root)
+        {
+
+        }
+
         public List<ObjectEditor.RowNode> GetChildRows()
         {
             List<ObjectEditor.RowNode> list = new List<ObjectEditor.RowNode>();

@@ -40,6 +40,7 @@ namespace Putki
 			String^ GetName();
 
 			FieldHandler^ GetField(int i);
+			putki::ext_type_handler_i * GetPutkiTypeDefinition() { return handler; }
 
 		private:
 
@@ -96,6 +97,7 @@ namespace Putki
 
 			String^ GetPointer(MemInstance^ instance);
 			void SetPointer(MemInstance^ instance, String^ Value);
+			bool IsAuxPtr();
 
 			int GetByte(MemInstance^ instance);
 			void SetByte(MemInstance^ instance, int Value);
@@ -113,6 +115,7 @@ namespace Putki
 			static void SaveObject(MemInstance ^mi);
 			static TypeDefinition^ GetTypeByIndex(int i);
 			static void MemBuildAsset(String^ path);
+			static MemInstance^ CreateAuxInstance(MemInstance ^onto, TypeDefinition^ type);
 	};
 
 };

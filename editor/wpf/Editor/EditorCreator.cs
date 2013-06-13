@@ -21,6 +21,8 @@ namespace Editor
                     // struct instance
                     case 4:
                         return new ObjectEditor();
+                    case 3:
+                        return new PointerEditor();
                     case 0:
                         return new IntEditor();
                     // 

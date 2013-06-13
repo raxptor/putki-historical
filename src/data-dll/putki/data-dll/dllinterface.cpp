@@ -208,6 +208,23 @@ namespace putki
 			*/
 		}
 
+		mem_instance* create_aux_instance(mem_instance *onto, ext_type_handler_i *eth)
+		{
+			mem_instance_real *org = (mem_instance_real*) onto;
+			type_handler_i *th = putki::typereg_get_handler(eth->name());
+
+			mem_instance_real *mi = new mem_instance_real;
+			mi->is_struct_instance = false;
+			mi->path = strdup(db::make_aux_path(_db, org->inst));
+			mi->th = th;
+			mi->eth = eth;
+			mi->inst = th->alloc();
+			mi->refs_db = _db;
+			db::insert(_db, mi->path, mi->th, mi->inst);
+
+			return mi;
+		}
+
 		virtual void on_object_modified(const char *path)
 		{
 			if (s_live_update)

@@ -107,6 +107,7 @@ namespace putki
 		parse::data *pd = parse::parse(fullpath);
 		if (pd)
 		{
+
 			parse::node *root = parse::get_root(pd);
 			std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
 				
@@ -125,6 +126,35 @@ namespace putki
 			{
 				std::cout << " => Unrecognized type [" << objtype << "]" << std::endl;
 			}
+
+			// go grab all the auxs
+			parse::node *aux = parse::get_object_item(root, "aux");
+			if (aux)
+			{
+				for (int i=0;;i++)
+				{
+					parse::node *aux_obj = parse::get_array_item(aux, i);
+					if (!aux_obj)
+						break;
+
+					std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
+					std::string refpath = asset_name + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
+
+					type_handler_i *h = typereg_get_handler(objtype.c_str());
+					if (h)
+					{
+						instance_t obj = h->alloc();
+
+						load_resolver_store_db_ref d;
+						d.db = db;
+						h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
+
+						db::insert(db, refpath.c_str(), h, obj);
+					}
+				}
+			}
+
+
 
 			putki::parse::free(pd);
 		}
