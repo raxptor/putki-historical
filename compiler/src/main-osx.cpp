@@ -42,9 +42,9 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_rt_impl(rt_impl.c_str());
 	
 	std::cout << " -> writing [" << rt_header << "] and [" << rt_impl << "]" << std::endl;
-	
-	putki::write_runtime_header(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_header));
-	putki::write_runtime_impl(&pf, putki::RUNTIME_CPP_WIN64, putki::indentedwriter(f_rt_impl));
+		
+	putki::write_runtime_header(&pf, nullptr, putki::indentedwriter(f_rt_header));
+	putki::write_runtime_impl(&pf, nullptr, putki::indentedwriter(f_rt_impl));
 
 	putki::write_runtime_blob_load_cases(&pf, putki::indentedwriter(s_blob_load_calls));
 	putki::write_runtime_blob_load_decl(("outki/" + out_base.substr(1) + ".h").c_str(), putki::indentedwriter(s_blob_load_decl));

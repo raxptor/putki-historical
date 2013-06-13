@@ -9,9 +9,15 @@ namespace putki
 		const char *platform_path()
 		{
 			#if defined(_WIN32)
-				return "win32";
+				if (sizeof(void*) == 4)
+					return "win32";
+				else
+					return "win64";
 			#elif defined(__APPLE__) && defined(__amd64__)
-				return "mac64";
+				if (sizeof(void*) == 4)
+					return "macosx32";
+				else
+					return "macosx64";
 			#else
 				return "unknown_platform";
 			#endif

@@ -28,7 +28,7 @@ namespace putki
 		struct data
 		{
 			BuildersMap handlers;
-			putki::runtime runtime;
+			runtime::descptr runtime;
 		};
 
 		namespace
@@ -47,13 +47,13 @@ namespace putki
 			s_packaging_fn = fn;
 		}
 
-		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf)
+		void invoke_packager(db::data *out, build::packaging_config *pconf)
 		{
 			if (s_packaging_fn)
 				s_packaging_fn(out, pconf);
 		}
 		
-		data* create(putki::runtime rt)
+		data* create(runtime::descptr rt)
 		{
 			data *d = new data();
 			d->runtime = rt;
@@ -65,7 +65,7 @@ namespace putki
 			return d;
 		}
 		
-		putki::runtime runtime(builder::data *data)
+		runtime::descptr runtime(builder::data *data)
 		{
 			return data->runtime;
 		}

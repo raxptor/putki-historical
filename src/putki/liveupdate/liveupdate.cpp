@@ -191,8 +191,8 @@ namespace putki
 			std::queue<std::string> lines;
 			int accepted_updates = 0;
 
-			putki::builder::data *builder = 0;
-			putki::runtime rt;
+			builder::data *builder = 0;
+			runtime::descptr rt;
 			
 			db::data *input = db::create();
 			
@@ -241,10 +241,19 @@ namespace putki
 					std::cout << "client [" << cmd << "] arg0 [" << arg0 << "]" << std::endl;
 					if (cmd == "init")
 					{
-						rt = (putki::runtime) atoi(arg0.c_str());
+						// see what runtime it is.
+						for (int i=0;;i++)
+						{
+							runtime::descptr p = runtime::get(i);
+							if (!p)
+								break;
+							if (!strcmp(arg0.c_str(), runtime::desc_str(p)))
+								rt = p;
+						}
+
 						if (!builder)
 						{
-							builder = putki::builder::create(rt);
+							builder = builder::create(rt);
 							if (builder)
 							{
 								std::cout << "Created builder for client." << std::endl;
@@ -290,7 +299,7 @@ namespace putki
 						{
 							std::string file_path = sourcepath + tobuild;
 							std::cout << "Loading into source db because it is missing [" << file_path << "]" << std::endl;
-							putki::load_file_into_db(sourcepath, tobuild.c_str(), lu->source_db, true);
+							load_file_into_db(sourcepath, tobuild.c_str(), lu->source_db, true);
 						}
 
 						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
@@ -306,19 +315,19 @@ namespace putki
 
 						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
 							
-						putki::builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
+						builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
 							
-						putki::build::post_build_ptr_update(lu->source_db, output);
+						build::post_build_ptr_update(lu->source_db, output);
 
 						// should be done with this now.
 						leave_lock(lu);
 							
-						putki::package::data *pkg = putki::package::create(output);
-						putki::package::add(pkg, tobuild.c_str(), true);
+						package::data *pkg = package::create(output);
+						package::add(pkg, tobuild.c_str(), true);
 							
 						const unsigned int sz = 10*1024*1024;
 						char *buf = new char[sz];
-						long bytes = putki::package::write(pkg, rt, buf, sz);
+						long bytes = package::write(pkg, rt, buf, sz);
 							
 						std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
 							
@@ -342,7 +351,7 @@ namespace putki
 			}
 			
 			if (builder)
-				putki::builder::free(builder);
+				builder::free(builder);
 				
 			db::free(input);
 		}

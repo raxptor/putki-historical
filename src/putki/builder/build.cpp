@@ -92,7 +92,7 @@ namespace
 	struct read_output : public putki::db::enum_i
 	{
 		std::string output_path;
-		putki::runtime output_runtime;
+		putki::runtime::descptr output_runtime;
 		
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
@@ -117,7 +117,7 @@ namespace putki
 		struct packaging_config
 		{
 			std::string package_path;
-			putki::runtime rt;
+			runtime::descptr rt;
 		};
 		
 		void post_build_ptr_update(db::data *input, db::data *output)

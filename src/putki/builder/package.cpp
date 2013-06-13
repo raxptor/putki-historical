@@ -164,7 +164,7 @@ namespace putki
 
 		};
 		
-		long write(data *data, putki::runtime rt, char *buffer, long available)
+		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
 			std::cout << "Writing package with " << data->blobs.size() << " blobs." << std::endl;
 			

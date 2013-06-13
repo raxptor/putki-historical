@@ -196,6 +196,7 @@ namespace putki
 
 		void mem_build_asset(const char *path, ext_build_result *res)
 		{
+			/*
 			putki::builder::data* builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
 
 			putki::db::data *output = putki::db::create();
@@ -204,6 +205,7 @@ namespace putki
 
 			if (s_live_update)
 				putki::liveupdate::send_update(s_live_update, path);
+			*/
 		}
 
 		virtual void on_object_modified(const char *path)

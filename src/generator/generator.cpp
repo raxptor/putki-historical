@@ -5,14 +5,6 @@
 
 namespace putki
 {
-
-	static const int s_runtimes_size = 2;
-	static const putki::runtime s_runtimes[s_runtimes_size] = 
-	{
-		putki::RUNTIME_CPP_WIN32,
-		putki::RUNTIME_CPP_WIN64
-	};
-
 	void write_ptr_walker(putki::parsed_file *file, putki::indentedwriter out, bool runtime);
 
 	void write_includes(putki::parsed_file *file, putki::indentedwriter out, bool inki)
@@ -40,19 +32,22 @@ namespace putki
 		out.line();
 	}
 
-	const char *ptr_sub(putki::runtime rt)
+	const char *ptr_sub(runtime::descptr rt)
 	{
-		if (rt == putki::RUNTIME_CPP_WIN32)
+		// returns 
+		if (runtime::ptr_size(rt) == 4)
 			return "int ";
-		else
+		else if (runtime::ptr_size(rt) == 8)
 			return "long long ";
+		else
+			return "<unknown ptr sub>";
 	}
 
-	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out, bool for_putki)
+	void write_runtime_header(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out)
 	{
 		std::string deftok("__outki_header" + file->filename + "__h__");
 
-		if (!for_putki)
+		if (!rt)
 		{
 			out.line() << "#ifndef " << deftok;
 			out.line() << "#define " << deftok;
@@ -64,7 +59,7 @@ namespace putki
 		out.line();
 		
 
-		if (!for_putki)
+		if (!rt)
 			out.line() << "#include <putki/types.h>";
 
 		for (size_t i=0;i!=file->structs.size();i++)
@@ -73,134 +68,122 @@ namespace putki
 			if (!(s->domains & putki::DOMAIN_RUNTIME))
 				continue;
 
-			if (rt == putki::RUNTIME_CPP_WIN32 || rt == putki::RUNTIME_CPP_WIN64)
+			out.line();
+			out.line() << "namespace outki {";
+			out.indent(1);
+			out.line();
+			out.line() << "#pragma pack(push, 1)";
+			out.line() << "struct " << s->name << " {";
+			out.indent(1);
+
+			for (size_t i=0;i<s->fields.size();i++)
 			{
-				out.line();
-				out.line() << "namespace outki {";
-				out.indent(1);
-				out.line();
-				out.line() << "#pragma pack(push, 1)";
-				out.line() << "struct " << s->name << " {";
-				out.indent(1);
+				putki::parsed_field *f = &s->fields[i];
+				if (!(f->domains & putki::DOMAIN_RUNTIME))
+					continue;
 
-				for (size_t i=0;i<s->fields.size();i++)
+				out.line();
+
+				if (rt &&f->is_array)
 				{
-					putki::parsed_field *f = &s->fields[i];
-					if (!(f->domains & putki::DOMAIN_RUNTIME))
-						continue;
-
-					out.line();
-
-					if (for_putki &&f->is_array)
+					out.cont() << ptr_sub(rt) << " ";
+				}
+				else
+				{
+					switch (s->fields[i].type)
 					{
-						out.cont() << ptr_sub(rt) << " ";
-					}
-					else
-					{
-						switch (s->fields[i].type)
+					case FIELDTYPE_INT32:
+						out.cont() << "int ";
+						break;
+					case FIELDTYPE_BYTE:
+						out.cont() << "unsigned char ";
+						break;
+
+					case FIELDTYPE_POINTER:
 						{
-						case FIELDTYPE_INT32:
-							out.cont() << "int ";
-							break;
-						case FIELDTYPE_BYTE:
-							out.cont() << "unsigned char ";
-							break;
-
-						case FIELDTYPE_POINTER:
-							{
-								if (for_putki)
-									out.cont() << ptr_sub(rt) << " ";
-								else
-									out.cont() << f->ref_type << " *";
-							}
-							break;
-						case FIELDTYPE_STRUCT_INSTANCE:
-							out.cont() << f->ref_type << " ";
-							break;
-						case FIELDTYPE_FILE:
-						case FIELDTYPE_STRING:
-							{
-								if (for_putki)
-									out.cont() << ptr_sub(rt) << " ";
-								else
-									out.cont() << "const char *";      
-							}
-							break;
+							if (rt)
+								out.cont() << ptr_sub(rt) << " ";
+							else
+								out.cont() << f->ref_type << " *";
 						}
+						break;
+					case FIELDTYPE_STRUCT_INSTANCE:
+						out.cont() << f->ref_type << " ";
+						break;
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_STRING:
+						{
+							if (rt)
+								out.cont() << ptr_sub(rt) << " ";
+							else
+								out.cont() << "const char *";      
+						}
+						break;
 					}
-
-					if (!for_putki &&f->is_array)
-						out.cont() << " *";
-
-					out.cont() << f->name << ";";
-
-					if (s->fields[i].is_array)
-						out.line() << "unsigned int " <<f->name << "_size;";
 				}
 
-				if (!s->parent.empty())
-					out.line() << "inline int & rtti_type_ref() { return parent.rtti_type_ref(); }";
-				else if (s->is_type_root)
-					out.line() << "inline int & rtti_type_ref() { return _rtti_type; }";
+				if (!rt &&f->is_array)
+					out.cont() << " *";
 
-				out.line();
-				out.line() << "static inline int type_id() { return " << s->unique_id << "; }";
-				out.line() << "enum { TYPE_ID = " << s->unique_id << " };";
-				out.line();
+				out.cont() << f->name << ";";
 
-				if (s->is_type_root || !s->parent.empty())
-				{
-					out.line() << "template<typename Target>";
-					out.line() << "inline Target* exact_cast() { if (rtti_type_ref() == Target::type_id()) return (Target*) this; else return 0; }";
-				}
-
-				if (!s->parent.empty())
-				{
-					out.line() << "template<typename Target>";
-					out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return parent.up_cast<Target>(); }";
-				}
-				else if (s->is_type_root)
-				{
-					out.line() << "template<typename Target>";
-					out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return 0; }";
-				}
-
-
-				out.indent(-1);
-				out.line() << "};";
-				out.line() << "#pragma pack(pop)";
-				out.line();
-				
-
-				out.line() << "// loading processing for " << s->name;	
-				out.line() << "char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);";
-				
-				if (!for_putki)
-				{
-					out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker);";
-				}
-				
-				out.indent(-1);
-				out.line();
-				out.line() << "} // namespace outki";
-				out.line();
-
-				if (for_putki)
-				{
-					out.line() << "char *write_" << s->name << "_aux(inki::" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);";
-				}
-
+				if (s->fields[i].is_array)
+					out.line() << "unsigned int " <<f->name << "_size;";
 			}
-		}
-		
 
-		if (!for_putki)
+			if (!s->parent.empty())
+				out.line() << "inline int & rtti_type_ref() { return parent.rtti_type_ref(); }";
+			else if (s->is_type_root)
+				out.line() << "inline int & rtti_type_ref() { return _rtti_type; }";
+
+			out.line();
+			out.line() << "static inline int type_id() { return " << s->unique_id << "; }";
+			out.line() << "enum { TYPE_ID = " << s->unique_id << " };";
+			out.line();
+
+			if (s->is_type_root || !s->parent.empty())
+			{
+				out.line() << "template<typename Target>";
+				out.line() << "inline Target* exact_cast() { if (rtti_type_ref() == Target::type_id()) return (Target*) this; else return 0; }";
+			}
+
+			if (!s->parent.empty())
+			{
+				out.line() << "template<typename Target>";
+				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return parent.up_cast<Target>(); }";
+			}
+			else if (s->is_type_root)
+			{
+				out.line() << "template<typename Target>";
+				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return 0; }";
+			}
+
+			out.indent(-1);
+			out.line() << "};";
+			out.line() << "#pragma pack(pop)";
+			out.line();
+
+			out.line() << "// loading processing for " << s->name;	
+			out.line() << "char* post_blob_load_" << s->name << "(" << s->name << " *d, char *beg, char *end);";
+				
+			if (!rt)
+			{
+				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker);";
+			}
+				
+			out.indent(-1);
+			out.line();
+			out.line() << "} // namespace outki";
+			out.line();
+
+			if (rt)
+			{
+				out.line() << "char *write_" << s->name << "_aux(inki::" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);";
+			}
+		}		
+
+		if (!rt)
 			out.line() << "#endif";
-	}
-
-	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out)
-	{
-		write_runtime_header(file, rt, out, false);
 	}
 
 	const char *win32_field_type(putki::field_type f)
@@ -218,7 +201,7 @@ namespace putki
 		}
 	}
 
-	const char *rt_wrap_field_type(putki::field_type f, putki::runtime rt)
+	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
 	{
 		if (f == FIELDTYPE_POINTER)
 			return ptr_sub(rt);
@@ -256,17 +239,16 @@ namespace putki
 
 	// cross-platform definitions namespace encapsulation
 	//  
-	const char *runtime_out_ns(putki::runtime rt)
+	const char *runtime_out_ns(runtime::descptr rt)
 	{
-		if (rt == putki::RUNTIME_CPP_WIN64)
-			return "out_ns_win64compat";
-		else
-			return "out_ns_win32compat";
+		static char tmp[1024];
+		sprintf(tmp, "out_ns_%s", runtime::desc_str(rt));
+		return tmp;
 	}
 
-	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out)
+	void write_runtime_impl(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out)
 	{
-		out.line() << "// Generated code!";
+		out.line() << "// Code generated by Putki Compiler.";
 		out.line();
 
 		out.line() << "#include \"" << file->filename << ".h\"";		
@@ -274,6 +256,7 @@ namespace putki
 		out.line() << "// These includes go to the runtime headers";
 		out.line() << "#include <putki/blob.h>";
 		out.line() << "#include <putki/types.h>";
+		out.line() << "#include <putki/runtime.h>";
 		out.line();
 		out.line() << "namespace outki {";
 		out.indent(1);
@@ -284,76 +267,74 @@ namespace putki
 			if (!(s->domains & putki::DOMAIN_RUNTIME))
 				continue;
 
-			if (rt == putki::RUNTIME_CPP_WIN32 || rt == putki::RUNTIME_CPP_WIN64)
+			out.line() << "char* post_blob_load_" << s->name << "(" << s->name << " *d, char *aux_cur, char *aux_end)";
+			out.line() << "{";
+			out.indent(1);
+
+			for (size_t j=0;j<s->fields.size();j++)
 			{
-				out.line() << "char* post_blob_load_" << s->name << "(" << s->name << " *d, char *aux_cur, char *aux_end)";
-				out.line() << "{";
-				out.indent(1);
+				putki::parsed_field *f = &s->fields[j];
+				if (!(f->domains & putki::DOMAIN_RUNTIME))
+					continue;
 
-				for (size_t j=0;j<s->fields.size();j++)
+				out.line() << "// field " << s->fields[j].name;
+
+				std::string fref = std::string("d->") + s->fields[j].name;
+
+				if (s->fields[j].is_array)
 				{
-					putki::parsed_field *f = &s->fields[j];
-					if (!(f->domains & putki::DOMAIN_RUNTIME))
-						continue;
-
-					out.line() << "// field " << s->fields[j].name;
-
-					std::string fref = std::string("d->") + s->fields[j].name;
-
-					if (s->fields[j].is_array)
+					if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
 					{
-						if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
-						{
-							out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<outki::" << s->fields[j].ref_type << "*>(aux_cur);";
-							out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << ") * d->" << s->fields[j].name << "_size;";
-						}
-						else if (s->fields[j].type == FIELDTYPE_POINTER)
-						{
-							out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);";
-							out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << " *) * d->" << s->fields[j].name << "_size;";
-						}
-						else
-						{
-							out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << win32_field_type(s->fields[j].type) << "*>(aux_cur);";
-							out.line() << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_size;";
-						}
-
-						out.line() << "if (aux_cur > aux_end) return 0; ";
-						out.line() << "for (unsigned int i=0;i<d->" << s->fields[j].name + "_size;i++)";
-						out.line() << "{";
-						out.indent(1);
-						fref = fref + "[i]";
+						out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<outki::" << s->fields[j].ref_type << "*>(aux_cur);";
+						out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << ") * d->" << s->fields[j].name << "_size;";
+					}
+					else if (s->fields[j].type == FIELDTYPE_POINTER)
+					{
+						out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);";
+						out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << " *) * d->" << s->fields[j].name << "_size;";
+					}
+					else
+					{
+						out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << win32_field_type(s->fields[j].type) << "*>(aux_cur);";
+						out.line() << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_size;";
 					}
 
-					switch (s->fields[j].type)
-					{
-					case FIELDTYPE_STRUCT_INSTANCE:
-						out.line() << "aux_cur = outki::post_blob_load_" << s->fields[j].ref_type << "(&" << fref << ", aux_cur, aux_end);";
-						break;
-					case FIELDTYPE_INT32:
-						out.line() << "putki::prep_int32_field((char*)&" << fref <<  ");";
-						break;
-					case FIELDTYPE_STRING:
-						out.line() << "aux_cur = putki::post_blob_load_string(&" << fref << ", aux_cur, aux_end);";
-						break;
-					default:
-						break;
-					}
-
-					if (s->fields[j].is_array)
-					{
-						out.indent(-1);
-						out.line() << "}";
-					}
+					out.line() << "if (aux_cur > aux_end) return 0; ";
+					out.line() << "for (unsigned int i=0;i<d->" << s->fields[j].name + "_size;i++)";
+					out.line() << "{";
+					out.indent(1);
+					fref = fref + "[i]";
 				}
 
-				if (s->is_type_root || !s->parent.empty())
-					out.line() << "d->rtti_type_ref() = " << s->name << "::type_id(); // update type" << std::endl;
-				out.line();
-				out.line() << "return aux_cur;";
-				out.indent(-1);
-				out.line() << "}";
+				switch (s->fields[j].type)
+				{
+				case FIELDTYPE_STRUCT_INSTANCE:
+					out.line() << "aux_cur = outki::post_blob_load_" << s->fields[j].ref_type << "(&" << fref << ", aux_cur, aux_end);";
+					break;
+				case FIELDTYPE_INT32:
+					out.line() << "putki::prep_int32_field((char*)&" << fref <<  ");";
+					break;
+				case FIELDTYPE_STRING:
+					out.line() << "aux_cur = putki::post_blob_load_string(&" << fref << ", aux_cur, aux_end);";
+					break;
+				default:
+					break;
+				}
+
+				if (s->fields[j].is_array)
+				{
+					out.indent(-1);
+					out.line() << "}";
+				}
 			}
+
+			if (s->is_type_root || !s->parent.empty())
+				out.line() << "d->rtti_type_ref() = " << s->name << "::type_id(); // update type" << std::endl;
+
+			out.line();
+			out.line() << "return aux_cur;";
+			out.indent(-1);
+			out.line() << "}";
 		}
 
 		out.indent(-1);
@@ -434,19 +415,19 @@ namespace putki
 		out.line() << "} // namespace inki";
 		out.line();
 
-		
-
-		for (int i=0;i<s_runtimes_size;i++)
+		for (int i=0;;i++)
 		{
-			std::string ns = runtime_out_ns(s_runtimes[i]);
+			runtime::descptr rt = runtime::get(i);
+			if (!rt) break;
+
+			std::string ns = runtime_out_ns(rt);
 			out.line();
 			out.line() << "namespace " << ns << " {";
 			out.indent(1);
-			write_runtime_header(file, s_runtimes[i], out, true);
+			write_runtime_header(file, rt, out);
 			out.indent(-1);
 			out.line() << "} // namespace " << ns;
 		}
-
 
 
 		out.line() << "#endif";
@@ -553,15 +534,16 @@ namespace putki
 		out.line();
 	}
 
-	void write_blob_writer_call(putki::runtime rt, const char *name, putki::indentedwriter out)
+	const char *runtime_equals(runtime::descptr rt)
 	{
-		if (rt == putki::RUNTIME_CPP_WIN32)
-			out.line() << "if (rt == putki::RUNTIME_CPP_WIN32)";
-		else if (rt == putki::RUNTIME_CPP_WIN64)
-			out.line() << "if (rt == putki::RUNTIME_CPP_WIN64)";
-		else
-			return;
+		static char tmp[4096];
+		sprintf(tmp, "(int(rt->platform) == %d && rt->ptrsize == %d && rt->low_byte_first == %s)", rt->platform, rt->ptrsize, rt->low_byte_first ? "true" : "false");
+		return tmp;
+	}
 
+	void write_blob_writer_call(runtime::descptr rt, const char *name, putki::indentedwriter out)
+	{
+		out.line() << "if (" << runtime_equals(rt) << ")";
 		out.line(1) << "return " << runtime_out_ns(rt) << "::write_" << name << "_into_blob((" << name << "*) source, beg, end);";
 	}
 
@@ -768,13 +750,18 @@ namespace putki
 			out.line() << "}";
 			out.line();
 			out.line() << "// writer";
-			out.line() << "char* write_into_buffer(putki::runtime rt, putki::instance_t source, char *beg, char *end)";
+			out.line() << "char* write_into_buffer(putki::runtime::descptr rt, putki::instance_t source, char *beg, char *end)";
 			out.line() << "{";
 
 			out.indent(1);
 
-			write_blob_writer_call(putki::RUNTIME_CPP_WIN32, s->name.c_str(), out);
-			write_blob_writer_call(putki::RUNTIME_CPP_WIN64, s->name.c_str(), out);			
+			for (int p=0;;p++)
+			{
+				// blob writers for all runtimes.
+				runtime::descptr t = runtime::get(p);
+				if (!t) break;
+				write_blob_writer_call(t, s->name.c_str(), out);
+			}
 
 			out.line() << "return 0;";
 			out.indent(-1);
@@ -797,7 +784,7 @@ namespace putki
 		out.line() << "}";
 	}
 
-	void write_blob_writers(putki::parsed_file *file, putki::indentedwriter out, putki::runtime rt)
+	void write_blob_writers(putki::parsed_file *file, putki::indentedwriter out, runtime::descptr rt)
 	{
 		std::string ns = runtime_out_ns(rt);
 		out.line() << "namespace " << ns << " {";
@@ -902,17 +889,23 @@ namespace putki
 
 	void write_putki_impl(putki::parsed_file *file, putki::indentedwriter out)
 	{
-		out.line() << "// Generated code!";
+		out.line() << "// Code generated by Putki Compiler!";
 		out.line() << "#include \"" << file->filename << ".h\"";
 		out.line() << "#include <putki/blob.h>";
 		out.line() << "#include <putki/builder/typereg.h>";
+		out.line() << "#include <putki/runtime.h>";
 		out.line() << "#include <iostream>";
 
 		out.line();
 
 		// for cross-writing
-		write_blob_writers(file, out, putki::RUNTIME_CPP_WIN64);
-		write_blob_writers(file, out, putki::RUNTIME_CPP_WIN32);
+		for (int p=0;;p++)
+		{
+			// blob writers for all runtimes.
+			runtime::descptr t = runtime::get(p);
+			if (!t) break;
+			write_blob_writers(file, out, t);
+		}
 
 		write_putki_parse(file, out);
 

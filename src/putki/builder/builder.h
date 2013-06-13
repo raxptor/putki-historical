@@ -31,10 +31,10 @@ namespace putki
 			virtual bool handle(data *builder, db::data *input, const char *path, db::data *output, int obj_phase) = 0;
 		};
 	
-		data* create(putki::runtime rt);
+		data* create(runtime::descptr rt);
 		void free(data *builder);
 		
-		putki::runtime runtime(builder::data *data);
+		runtime::descptr runtime(builder::data *data);
 		void add_data_builder(builder::data *builder, type_t type, int obj_phase, handler_i *handler);
 
 		void build_references(data *builder, db::data *input, db::data *output, type_handler_i *type, int obj_phase, instance_t obj);

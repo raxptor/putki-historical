@@ -9,8 +9,10 @@ namespace putki
 {
 	void write_includes(putki::parsed_file *file, putki::indentedwriter out, bool inki = false);
 
-	void write_runtime_header(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out);
-	void write_runtime_impl(putki::parsed_file *file, putki::runtime rt, putki::indentedwriter out);
+	// if runtime descptr is null it means it's the real runtime, otherwise internal code for putki.
+	void write_runtime_header(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out);
+	void write_runtime_impl(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out);
+
 	void write_runtime_blob_load_cases(putki::parsed_file *file, putki::indentedwriter out);
 	
 	void write_runtime_blob_load_cases(putki::parsed_file *file, putki::indentedwriter out);
@@ -25,6 +27,7 @@ namespace putki
 	void write_dll_impl(putki::parsed_file *file, putki::indentedwriter out);
 	void write_bind_decl_dll(putki::parsed_file *file, putki::indentedwriter out);
 	void write_bind_call_dll(putki::parsed_file *file, putki::indentedwriter out);
+
 }
 
 #endif

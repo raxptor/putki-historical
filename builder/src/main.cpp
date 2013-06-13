@@ -56,13 +56,13 @@ int run_putki_builder(int argc, char **argv)
 
 	// configure builder with app handlers.
 	
-#if defined(_WIN32)
-	putki::builder::data *builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
-	putki::build::full_build(builder, "data/", "out/win32/temp/", "out/win32/packages/");
-#elif defined(__APPLE__) && defined(__amd64__)
-	putki::builder::data *builder = putki::builder::create(putki::RUNTIME_CPP_WIN64);
-	putki::build::full_build(builder, "data/", "out/mac64/temp/", "out/mac64/packages/");
-#endif
+	putki::builder::data *builder = putki::builder::create(putki::runtime::running());
+
+	char pkg_path[1024];
+	sprintf(pkg_path, "out/%s/packages/", putki::runtime::desc_str(putki::runtime::running()));
+
+	putki::build::full_build(builder, "data/", "out/junk/temp/", pkg_path);
+
 	putki::builder::free(builder);
 	
 	if (argc > 1 && !strcmp(argv[1], "--liveupdate"))

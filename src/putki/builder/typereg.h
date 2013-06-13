@@ -48,7 +48,7 @@ namespace putki
 		virtual void fill_from_parsed(parse::node *pn, instance_t target, load_resolver_i *resolver) = 0;
 		virtual void write_json(putki::db::data *ref_source, instance_t source, std::ostream & out, int indent) = 0;
 
-		virtual char* write_into_buffer(putki::runtime rt, instance_t source, char *beg, char *end) = 0;
+		virtual char* write_into_buffer(runtime::descptr rt, instance_t source, char *beg, char *end) = 0;
 
 		// recurse down and report all pointers
 		virtual void walk_dependencies(instance_t source, depwalker_i *walker, bool traverseChildren) = 0;
