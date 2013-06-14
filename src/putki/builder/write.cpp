@@ -43,7 +43,7 @@ namespace putki
 					}
 					else
 					{
-						*on = nullptr;
+						*on = 0;
 					}
 				}
 

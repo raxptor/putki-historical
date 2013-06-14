@@ -49,8 +49,7 @@ namespace putki
 		const desc * running()
 		{
 			static desc rt;
-
-
+			rt.platform = platform();
 			rt.ptrsize = sizeof(void*);
 			rt.low_byte_first = true; // todo: fix
 			return &rt;
