@@ -85,6 +85,7 @@ void frame()
 
 int main(int argc, char *argv[])
 {
+	chdir("~/git/putki/claw");
 	outki::bind_claw_loaders();
 
 /*

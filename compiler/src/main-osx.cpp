@@ -21,6 +21,7 @@ namespace
 	std::stringstream s_blob_load_decl, s_blob_load_calls;
 
 	std::stringstream s_csharp_switch_case;
+	std::stringstream s_csharp_switch_case_resolve;
 	
 	int type_id = 0;
 }
@@ -90,8 +91,9 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	
 	std::cout << " -> writing [" << csharp_code << "]" << std::endl;
 	putki::indentedwriter casewriter(s_csharp_switch_case);
+	putki::indentedwriter casewriter_resolve(s_csharp_switch_case_resolve);
 	casewriter.indent(4);
-	putki::write_csharp_runtime_class(&pf, putki::indentedwriter(f_csharp_code), casewriter);
+	putki::write_csharp_runtime_class(&pf, putki::indentedwriter(f_csharp_code), casewriter, casewriter_resolve);
 	casewriter.indent(-5);
 	
 }
@@ -177,6 +179,15 @@ int main (int argc, char *argv[])
 		f_switch << "{" << std::endl;
 		f_switch << "	public class Loader" << std::endl;
 		f_switch << "	{" << std::endl;
+		f_switch << "		public static void ResolveFromPackage(int type, object obj, Putki.Package pkg)" << std::endl;
+		f_switch << "		{" << std::endl;
+		f_switch << "			switch (type)" << std::endl;
+		f_switch << "			{" << std::endl;
+		f_switch << s_csharp_switch_case_resolve.str() << std::endl;
+		f_switch << "				default: return;" << std::endl;
+		f_switch << "			}" << std::endl;
+		f_switch << "		}" << std::endl;
+
 		f_switch << "		public static object LoadFromPackage(int type, Putki.PackageReader reader)" << std::endl;
 		f_switch << "		{" << std::endl;
 		f_switch << "			switch (type)" << std::endl;

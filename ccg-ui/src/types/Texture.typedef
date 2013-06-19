@@ -19,8 +19,9 @@ AtlasEntry [in, out]
 
 Atlas [in, out]
 {
-	string name
+	file[] inputs
 	AtlasEntry[] entries
+	TextureOutput output
 }
 
 Texture [in, out]

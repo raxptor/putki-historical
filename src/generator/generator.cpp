@@ -98,6 +98,9 @@ namespace putki
 					case FIELDTYPE_BYTE:
 						out.cont() << "unsigned char ";
 						break;
+					case FIELDTYPE_FLOAT:
+						out.cont() << "float ";
+						break;
 
 					case FIELDTYPE_POINTER:
 						{
@@ -203,7 +206,7 @@ namespace putki
 
 	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
 	{
-		if (f == FIELDTYPE_POINTER)
+		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_STRING) // note string too! (because char*)
 			return ptr_sub(rt);
 		else
 			return win32_field_type(f);
@@ -222,6 +225,8 @@ namespace putki
 			return "char";
 		case FIELDTYPE_POINTER:
 			return "void*";
+		case FIELDTYPE_FLOAT:
+			return "float";
 		default:
 			return 0;
 		}
@@ -291,7 +296,7 @@ namespace putki
 					else if (s->fields[j].type == FIELDTYPE_POINTER)
 					{
 						out.line() << "d->" << s->fields[j].name << " = reinterpret_cast<" << s->fields[j].ref_type << "**>(aux_cur);";
-						out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << " *) * d->" << s->fields[j].name << "_size;";
+						out.line() << "aux_cur += sizeof(" << s->fields[j].ref_type << "*) * d->" << s->fields[j].name << "_size;";
 					}
 					else
 					{
@@ -854,6 +859,7 @@ namespace putki
 					out.line() << "{";
 					out.indent(1);
 					out.line() << "// array construct for field '" << fd.name << "'";
+					out.line() << "// gen::ft = " << ft << " for rt " << runtime::desc_str(rt);
 					out.line() << ft << " *inp = reinterpret_cast<" << ft << " *>(out_beg);";
 					out.line() << "out_beg += sizeof(" << ft << ") * " << outd << "_size;";
 					out.line() << "for (unsigned int i=0;i<" << outd << "_size;i++)";

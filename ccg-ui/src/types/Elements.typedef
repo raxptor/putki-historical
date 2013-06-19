@@ -1,0 +1,33 @@
+#include Texture.typedef
+
+UIElement [in, out] rtti
+{
+	string id
+
+	float x
+	float y
+	float width
+	float height
+
+	float exp_x
+	float exp_y
+	float exp_width
+	float exp_height
+
+	float r
+	float g
+	float b
+	float a
+}
+
+UIWidget [in, out] rtti
+{
+	float width
+	float height
+	ptr[] UIElement elements
+}
+
+UIBitmap : UIElement [in, out]
+{
+	ptr Texture texture
+}

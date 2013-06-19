@@ -54,6 +54,10 @@ namespace
 			
 			void pointer_post(putki::instance_t *on)
 			{
+				// ignore nulls.
+				if (!*on)
+					return;
+					
 				putki::type_handler_i *th;
 				putki::instance_t obj = 0;
 				
@@ -62,7 +66,9 @@ namespace
 				{
 					// this would mean the object exists neither in the input nor output domain.
 					if (!putki::db::pathof_including_unresolved(parent->output, *on))
+					{
 						std::cout << "!!! A wild object appears!" << std::endl;
+					}
 					return;
 				}
 				

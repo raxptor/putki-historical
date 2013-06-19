@@ -95,6 +95,6 @@ solution "Claw"
 		configuration {"macosx"}
 			excludes {"src/**_win32*"}
 			files {"src/**.mm"}
-			links {"AppKit.framework", "QuartzCore.framework"}
-
+			links {"AppKit.framework", "QuartzCore.framework", "OpenGL.framework"}
+	
 

@@ -167,7 +167,7 @@ namespace putki
 		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
 			std::cout << "Writing package with " << data->blobs.size() << " blobs." << std::endl;
-			
+			std::cout << "   (for [" << runtime::desc_str(rt) << "]" << std::endl;
 			// create a pack list and save where each entry goes.
 			std::map<std::string, int> packorder;
 			std::vector<const entry*> packlist;

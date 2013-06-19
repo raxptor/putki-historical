@@ -71,7 +71,7 @@ int run_putki_builder(int argc, char **argv)
 		}
 	}
 	
-	putki::builder::data *builder = putki::builder::create(putki::runtime::running());
+	putki::builder::data *builder = putki::builder::create(rt);
 
 	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
 

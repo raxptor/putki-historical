@@ -37,6 +37,7 @@ int run_putki_builder(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
+	chdir("/Users/dannilsson/git/putki/claw");
 	inki::bind_claw();
 
 	putki::builder::set_builder_configurator(&app_register_handlers);
