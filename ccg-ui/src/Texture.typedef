@@ -1,0 +1,31 @@
+TextureOutput [in, out] rtti
+{
+
+}
+
+TextureOutputUnity : TextureOutput
+{
+	string outPath
+}
+
+AtlasEntry [in, out]
+{
+	string source_path
+	int u0
+	int v0
+	int u1
+	int v1
+}
+
+Atlas [in, out]
+{
+	string name
+	AtlasEntry[] entries
+}
+
+Texture [in, out]
+{
+	file sourcefile
+	ptr TextureOutput output
+	ptr Atlas add_into_atlas
+}

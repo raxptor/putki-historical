@@ -25,6 +25,8 @@ namespace Editor
                         return new PointerEditor();
                     case 0:
                         return new IntEditor();
+                    case 5:
+                        return new FileEditor();
                     // 
                     default:
                         return new TextEditor();

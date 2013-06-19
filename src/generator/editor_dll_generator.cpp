@@ -125,7 +125,7 @@ namespace putki
 			out.line() << "// String type handlers";
 			out.line() << "void set_string(putki::mem_instance *obj, const char *value) {";
 			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_STRING)
+			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE)
 					write_plain_set(out, s, j, field_ref);
 			out.indent(-1);
 			out.line() << "}";
@@ -134,7 +134,7 @@ namespace putki
 			out.line();
 			out.line() << "const char* get_string(putki::mem_instance *obj) { ";
 			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_STRING)
+			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE)
 				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			else
 				out.line() << "return \"####NOT-STRING[" << s->name << "]#####\";";

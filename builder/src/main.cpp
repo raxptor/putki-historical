@@ -55,11 +55,28 @@ int run_putki_builder(int argc, char **argv)
 #endif
 
 	// configure builder with app handlers.
+
+	putki::runtime::descptr rt = putki::runtime::running();
+
+	for (int i=1;i<argc;i++)
+	{
+		if (!strcmp(argv[i], "--csharp"))
+		{
+			static putki::runtime::desc r;
+			r.platform = putki::runtime::PLATFORM_CSHARP;
+			r.language = putki::runtime::LANGUAGE_CSHARP;
+			r.ptrsize = 4;
+			r.low_byte_first = true;
+			rt = &r;
+		}
+	}
 	
 	putki::builder::data *builder = putki::builder::create(putki::runtime::running());
 
+	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
+
 	char pkg_path[1024];
-	sprintf(pkg_path, "out/%s/packages/", putki::runtime::desc_str(putki::runtime::running()));
+	sprintf(pkg_path, "out/%s/packages/", putki::runtime::desc_str(rt));
 
 	putki::build::full_build(builder, "data/", "out/junk/temp/", pkg_path);
 

@@ -10,12 +10,20 @@ namespace putki
 		{
 			PLATFORM_WINDOWS = 0,
 			PLATFORM_MACOSX = 1,
+			PLATFORM_CSHARP = 2,
 			PLATFORM_UNKNOWN,
+		};
+
+		enum language_t
+		{
+			LANGUAGE_CPP = 0,
+			LANGUAGE_CSHARP = 1
 		};
 
 		struct desc
 		{
 			platform_t platform;
+			language_t language;
 			int ptrsize;
 			bool low_byte_first;
 		};

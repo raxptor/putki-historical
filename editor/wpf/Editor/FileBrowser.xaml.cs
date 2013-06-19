@@ -34,7 +34,7 @@ namespace Editor
 			InitializeComponent();
 
 			var itemProvider = new FileTree.ItemProvider();
-			var items = itemProvider.GetItems("c:/gitproj/putki/claw/data", "");
+			var items = itemProvider.GetItems("c:/gitproj/putki/claw/data/obj", "");
             //var items = itemProvider.GetItems("c:/gitproj/putki/test-project/data", "");
 			DataContext = items;
 

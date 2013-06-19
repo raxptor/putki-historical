@@ -492,7 +492,7 @@ namespace putki
 			node = "n";
 		}
 
-		if (f->type == FIELDTYPE_STRING)
+		if (f->type == FIELDTYPE_STRING || f->type == FIELDTYPE_FILE)
 		{
 			out.line() << ref << " = " << " putki::parse::get_value_string(" << node << "); ";
 		}
@@ -683,7 +683,7 @@ namespace putki
 				ref.append("[i]");
 			}
 
-			if (fd.type == FIELDTYPE_STRING)
+			if (fd.type == FIELDTYPE_STRING || fd.type == FIELDTYPE_FILE)
 			{
 				out.line() << "out << " << delim << "putki::write::json_str(" << ref << ".c_str());";
 			}

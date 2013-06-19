@@ -228,7 +228,7 @@ namespace putki
 					}
 					else
 					{
-						write = packorder[path];
+						write = 1 + packorder[path];
 					}
 					
 					// clear whole field.

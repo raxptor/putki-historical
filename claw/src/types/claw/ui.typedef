@@ -1,5 +1,5 @@
 #include color.typedef
-#icnlude core.typedef
+#include core.typedef
 
 ui_rect [in, out]
 {

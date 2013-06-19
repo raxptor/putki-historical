@@ -19,6 +19,9 @@ namespace putki
 				case PLATFORM_WINDOWS:
 					strcpy(buf, "win");
 					break;
+				case PLATFORM_CSHARP:
+					strcpy(buf, "csharp");
+					break;
 				default:
 					strcpy(buf, "unknown");
 					break;
@@ -34,11 +37,12 @@ namespace putki
 
 		const desc * get(unsigned int index)
 		{
-			static const int count = 3;
+			static const int count = 4;
 			static const desc rtd[count] = {
-				{PLATFORM_MACOSX, 8, true},
-				{PLATFORM_WINDOWS, 4, true},
-				{PLATFORM_WINDOWS, 8, true}
+				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, true},
+				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, true}
 			};
 
 			if (index < count)

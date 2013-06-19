@@ -178,9 +178,9 @@ namespace putki
 				int resolved = 0, unresolved = 0;
 				for (unsigned int i=0;i<ptrs.entries.size();i++)
 				{
-					if (ptrs.entries[i].index >= 0 && ptrs.entries[i].index < (int)lp->slots_size)
+					if (ptrs.entries[i].index > 0 && ptrs.entries[i].index <= (int)lp->slots_size)
 					{
-						*(ptrs.entries[i].ptr) = lp->slots[ptrs.entries[i].index].obj;
+						*(ptrs.entries[i].ptr) = lp->slots[ptrs.entries[i].index-1].obj;
 						resolved++;
 					}
 					else

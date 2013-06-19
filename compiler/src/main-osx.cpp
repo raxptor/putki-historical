@@ -15,8 +15,12 @@ namespace
 	const char *s_rt_outpath;
 	const char *s_putki_outpath;
 	const char *s_dll_outpath;
+	const char *s_csharp_outpath;
+
 	std::stringstream s_bind_decl, s_bind_decl_dll, s_bind_calls, s_bind_calls_dll;
 	std::stringstream s_blob_load_decl, s_blob_load_calls;
+
+	std::stringstream s_csharp_switch_case;
 	
 	int type_id = 0;
 }
@@ -29,7 +33,8 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	
 	putki::sys::mk_dir_for_path((s_rt_outpath + out_base).c_str());
 	putki::sys::mk_dir_for_path((s_putki_outpath + out_base).c_str());
-	putki::sys::mk_dir_for_path((s_dll_outpath + out_base).c_str());
+	putki::sys::mk_dir_for_path((s_csharp_outpath + out_base).c_str());
+	putki::sys::mk_dir_for_path((s_dll_outpath + out_base).c_str());	
 	
 	std::cout << "File [" << name << "]" << std::endl;
 
@@ -52,8 +57,7 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	// putki
 
 	std::string putki_header = s_putki_outpath + out_base + ".h";
-	std::string putki_impl   = s_putki_outpath + out_base + "_inki.cpp";
-	
+	std::string putki_impl   = s_putki_outpath + out_base + "_inki.cpp";	
 	
 	std::ofstream f_putki_header(putki_header.c_str());
 	std::ofstream f_putki_impl(putki_impl.c_str());
@@ -78,6 +82,17 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 
 	putki::write_bind_decl_dll(&pf, putki::indentedwriter(s_bind_decl_dll));
 	putki::write_bind_call_dll(&pf, putki::indentedwriter(s_bind_calls_dll));
+
+	// csharp.
+
+	std::string csharp_code = s_csharp_outpath + out_base + ".cs";
+	std::ofstream f_csharp_code(csharp_code.c_str());
+	
+	std::cout << " -> writing [" << csharp_code << "]" << std::endl;
+	putki::indentedwriter casewriter(s_csharp_switch_case);
+	casewriter.indent(4);
+	putki::write_csharp_runtime_class(&pf, putki::indentedwriter(f_csharp_code), casewriter);
+	casewriter.indent(-5);
 	
 }
 
@@ -106,6 +121,7 @@ int main (int argc, char *argv[])
 	s_rt_outpath = "_gen/outki";
 	s_putki_outpath = "_gen/inki";
 	s_dll_outpath = "_gen/data-dll";
+	s_csharp_outpath = "_gen/outki_csharp";
 		
 	const char *module_name = "test_project";
 	if (argc > 1)
@@ -152,6 +168,26 @@ int main (int argc, char *argv[])
 	f_switch << "   add_blob_loader(post_blob_load_" << module_name << ");" << std::endl;
 	f_switch << "}" << std::endl;
 	f_switch << "}" << std::endl;
+
+
+	// runtime c# switch case blob load
+	{
+		std::ofstream f_switch((std::string(s_csharp_outpath) + "/OutkiLoaders.cs").c_str());
+		f_switch << "namespace outki" << std::endl;
+		f_switch << "{" << std::endl;
+		f_switch << "	public class Loader" << std::endl;
+		f_switch << "	{" << std::endl;
+		f_switch << "		public static object LoadFromPackage(int type, Putki.PackageReader reader)" << std::endl;
+		f_switch << "		{" << std::endl;
+		f_switch << "			switch (type)" << std::endl;
+		f_switch << "			{" << std::endl;
+		f_switch << s_csharp_switch_case.str() << std::endl;
+		f_switch << "				default: return null;" << std::endl;
+		f_switch << "			}" << std::endl;
+		f_switch << "		}" << std::endl;
+		f_switch << "	}" << std::endl;
+		f_switch << "}" << std::endl;
+	}
 	
  	return 0;
 }

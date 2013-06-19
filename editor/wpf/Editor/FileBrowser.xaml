@@ -19,6 +19,11 @@
 
     </UserControl.Resources>
 
-    <Grid Margin="8">
-        <TreeView x:Name="m_treeView"  ItemsSource="{Binding}" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="Data browser" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource WindowBackgroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+        <TreeView Grid.Row="1" x:Name="m_treeView"  ItemsSource="{Binding}" Background="{DynamicResource DarkBrush}" />
     </Grid></UserControl>
