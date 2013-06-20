@@ -9,12 +9,13 @@ namespace inki
 	void bind_ccg_ui();
 }
 
+//
+void register_font_builder(putki::builder::data *builder);
+
+
 void app_register_handlers(putki::builder::data *builder)
 {
-	/*
-	static blob_handler bh;
-	add_data_builder(builder, "gurka", 0xff, &bh);
-	*/
+	register_font_builder(builder);
 }
 
 void app_build_packages(putki::db::data *out, putki::build::packaging_config *pconf)
@@ -22,6 +23,7 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 	{
 		putki::package::data *pkg = putki::package::create(out);
 		putki::package::add(pkg, "description", true);
+		putki::package::add(pkg, "widget", true);
 		putki::build::commit_package(pkg, pconf, "static.pkg");
 	}
 }

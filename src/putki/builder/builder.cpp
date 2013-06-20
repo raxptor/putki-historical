@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-
-
 namespace putki
 {
 	namespace builder
@@ -29,6 +27,7 @@ namespace putki
 		{
 			BuildersMap handlers;
 			runtime::descptr runtime;
+			std::string obj_path, res_path, out_path, tmp_path;
 		};
 
 		namespace
@@ -53,10 +52,23 @@ namespace putki
 				s_packaging_fn(out, pconf);
 		}
 		
-		data* create(runtime::descptr rt)
+		data* create(runtime::descptr rt, const char *path)
 		{
 			data *d = new data();
 			d->runtime = rt;
+
+			d->obj_path = d->res_path = d->out_path = d->tmp_path = path;
+
+			d->obj_path.append("/data/obj");
+			d->res_path.append("/data/res");
+
+			d->out_path.append("/out/");
+			d->out_path.append(runtime::desc_str(rt));
+			d->out_path.append("");
+
+			d->tmp_path.append("/out/");
+			d->tmp_path.append(runtime::desc_str(rt));
+			d->tmp_path.append("/.tmp");
 
 			// app specific configurators
 			if (s_init_fn)
@@ -64,7 +76,27 @@ namespace putki
 
 			return d;
 		}
+
+		const char *obj_path(data *d)
+		{
+			return d->obj_path.c_str();
+		}
+
+		const char *res_path(data *d)
+		{
+			return d->res_path.c_str();
+		}
+
+		const char *out_path(data *d)
+		{
+			return d->out_path.c_str();
+		}
 		
+		const char *tmp_path(data *d)
+		{
+			return d->tmp_path.c_str();
+		}
+
 		runtime::descptr runtime(builder::data *data)
 		{
 			return data->runtime;

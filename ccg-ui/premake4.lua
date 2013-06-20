@@ -10,7 +10,7 @@ solution "CCG-UI"
 
 	dofile "../src/putkilib-premake.lua"
 	dofile "../external/libpng/premake.lua"
-	dofile "../external/freetype-2.4.0/premake.lua"
+	dofile "../external/freetype-2.5.0.1/premake.lua"
 
 	project "ccg-ui-putki-lib"
 		kind "StaticLib"
@@ -23,8 +23,9 @@ solution "CCG-UI"
 
 		includedirs { "../src", "../src/builder", "../src/data-dll" }
 		includedirs { "_gen" }
+		includedirs { "../external/libpng" }
 
-		links {"putki-lib", "jsmn"}
+		links {"putki-lib"}
 
 	project "ccg-ui-databuilder"
 		kind "ConsoleApp"
@@ -33,8 +34,11 @@ solution "CCG-UI"
 
 		includedirs { "_gen" }
 		includedirs { "../src", "../src/builder" }
+		includedirs { "../external/libpng"}
+		includedirs { "../external/freetype-2.5.0.1/include"}
 
 		files { "src/putki/builder-main.cpp" }
+		files { "src/builder/**.*" }
 
 		links { "putki-lib" }
 		links { "ccg-ui-putki-lib"}

@@ -4,12 +4,8 @@
 	project "libpng"
 		kind "StaticLib"
 		language "c"
-		targetname "png"
+		targetname "libpng"
 		files { "*.c", "*.h" }
 		excludes { "example.c" }
-		defines {"PNGLCONF_H"}
 		includedirs {"../libz" }
 		links {"libz"}
-
-
-		

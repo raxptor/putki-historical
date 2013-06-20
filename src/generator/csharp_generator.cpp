@@ -92,6 +92,7 @@ namespace putki
 				switch (s->fields[i].type)
 				{
 				case FIELDTYPE_INT32:
+				case FIELDTYPE_FLOAT:
 					size += 4;
 					break;
 				case FIELDTYPE_BYTE:
@@ -200,6 +201,10 @@ namespace putki
 					case FIELDTYPE_BYTE:
 						out.line() << field_ref << " = " << content_reader << ".ReadByte();";
 						break;
+					case FIELDTYPE_FLOAT:
+						out.line() << field_ref << " = " << content_reader << ".ReadFloat();";
+						break;
+
 					case FIELDTYPE_POINTER:
 						out.line() << ptr_slot_ref << " = " << content_reader << ".ReadInt32();";
 						//out.cont() << f->ref_type;

@@ -33,6 +33,13 @@ namespace Putki
 		{
 			return data[pos++];	
 		}
+
+		public float ReadFloat()
+		{
+			float f = System.BitConverter.ToSingle(data, pos);
+			pos += 4;
+			return f;
+		}
 		
 		public string ReadString()
 		{

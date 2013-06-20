@@ -16,6 +16,11 @@ namespace TestLoad
 
 			outki.ProjectDescription dr = (outki.ProjectDescription)p.Resolve("description");
 			Console.WriteLine("Welcome to " + dr.Name);
+
+			outki.UIWidget w = (outki.UIWidget)p.Resolve("widget");
+			Console.WriteLine("Widget id is " + w.width);
+
+
         }
     }
 }

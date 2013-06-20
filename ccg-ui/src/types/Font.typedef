@@ -1,4 +1,6 @@
+
 Font [in, out]
 {
-	string name
+	file string Source
+	string CharacterSet
 }

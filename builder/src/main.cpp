@@ -71,14 +71,11 @@ int run_putki_builder(int argc, char **argv)
 		}
 	}
 	
-	putki::builder::data *builder = putki::builder::create(rt);
+	putki::builder::data *builder = putki::builder::create(rt, ".");
 
 	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
 
-	char pkg_path[1024];
-	sprintf(pkg_path, "out/%s/packages/", putki::runtime::desc_str(rt));
-
-	putki::build::full_build(builder, "data/", "out/junk/temp/", pkg_path);
+	putki::build::full_build(builder);
 
 	putki::builder::free(builder);
 	

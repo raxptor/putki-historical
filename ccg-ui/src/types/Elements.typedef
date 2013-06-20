@@ -24,10 +24,11 @@ UIWidget [in, out] rtti
 {
 	float width
 	float height
-	ptr[] UIElement elements
+	auxptr[] UIElement elements
 }
 
 UIBitmap : UIElement [in, out]
 {
 	ptr Texture texture
 }
+

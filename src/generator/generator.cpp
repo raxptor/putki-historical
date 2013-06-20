@@ -388,6 +388,7 @@ namespace putki
 					case FIELDTYPE_INT32:
 					case FIELDTYPE_BYTE:
 					case FIELDTYPE_FLOAT:
+					case FIELDTYPE_POINTER:
 						out.line() << s->fields[j].name << " = 0;";
 						break;
 					case FIELDTYPE_BOOL:
@@ -505,13 +506,23 @@ namespace putki
 		{
 			out.line() << ref << " = " << "(" << putki_field_type(f) << ") putki::parse::get_value_int(" << node << "); ";
 		}
+		else if (f->type == FIELDTYPE_FLOAT)
+		{
+			out.line() << ref << " = " << "(" << putki_field_type(f) << ") atof(putki::parse::get_value_string(" << node << ")); ";
+		}
 		else if (f->type == FIELDTYPE_STRUCT_INSTANCE)
 		{
 			out.line() << "fill_" << f->ref_type << "_from_parsed(" << node << ", &" << ref << ", resolver);";
 		}
 		else if (f->type == FIELDTYPE_POINTER) 
 		{
-			out.line() << "resolver->resolve_pointer((putki::instance_t *)&" << ref << ", putki::parse::get_value_string(" << node << "));";
+			out.line() << "{";
+			out.line(1) << "const char *str = putki::parse::get_value_string(" << node << ");";
+			out.line(1) << "if (!str || !str[0])";
+			out.line(2) << ref << " = 0;";
+			out.line(1) << "else";
+			out.line(2) << "resolver->resolve_pointer((putki::instance_t *)&" << ref << ", putki::parse::get_value_string(" << node << "));";
+			out.line() << "}";
 		}
 
 		if (f->is_array)
@@ -881,9 +892,13 @@ namespace putki
 				{
 					out.line() << "out_beg = write_" << fd.ref_type << "_aux(&" << srcd << ", &" << outd << ", out_beg, out_end);";
 				}
-				else if (fd.type == FIELDTYPE_POINTER || fd.type == FIELDTYPE_BYTE)
+				else if (fd.type == FIELDTYPE_POINTER)
 				{
 					out.line() << outd << " = (" << ptr_sub(rt) << ")((char*)" << srcd << " - (char*)0);";
+				}
+				else if (fd.type == FIELDTYPE_BOOL || fd.type == FIELDTYPE_BYTE || fd.type == FIELDTYPE_FLOAT)
+				{
+					out.line() << outd << " = " << srcd << ";";
 				}
 
 				if (fd.is_array)

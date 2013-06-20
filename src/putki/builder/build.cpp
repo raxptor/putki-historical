@@ -14,6 +14,7 @@
 #include <putki/builder/source.h>
 #include <putki/builder/package.h>
 #include <putki/builder/app.h>
+#include <putki/builder/resource.h>
 
 #include <putki/sys/files.h>
 
@@ -135,12 +136,12 @@ namespace putki
 			db::read_all(output, &dsw);
 		}
 	
-		void full_build(putki::builder::data *builder, const char *input_path, const char *output_path, const char *package_path)
+		void full_build(putki::builder::data *builder)
 		{
 			std::cout << "=> Starting full build" << std::endl;
 			
 			db::data *input = putki::db::create();
-			load_tree_into_db("data/obj", input);
+			load_tree_into_db(builder::obj_path(builder), input);
 		
 			std::cout << "=> Loaded DB, building source files" << std::endl;
 			
@@ -156,9 +157,13 @@ namespace putki
 			post_build_ptr_update(input, bsf.output);
 
 			std::cout << "=> Packaging data." << std::endl;
+
+			char pkg_path[1024];
+			sprintf(pkg_path, "%s/packages/", builder::out_path(builder));
+
 			
 			packaging_config pconf;
-			pconf.package_path = package_path;
+			pconf.package_path = pkg_path;
 			pconf.rt = builder::runtime(builder);
 			putki::builder::invoke_packager(bsf.output, &pconf);
 		}

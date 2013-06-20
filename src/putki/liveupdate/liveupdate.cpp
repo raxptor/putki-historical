@@ -253,7 +253,7 @@ namespace putki
 
 						if (!builder)
 						{
-							builder = builder::create(rt);
+							builder = builder::create(rt, sourcepath);
 							if (builder)
 							{
 								std::cout << "Created builder for client." << std::endl;

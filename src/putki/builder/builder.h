@@ -8,6 +8,7 @@
 namespace putki
 {
 	namespace db { struct data; }
+	namespace resource { struct data; }
 	
 	namespace builder
 	{
@@ -31,7 +32,7 @@ namespace putki
 			virtual bool handle(data *builder, db::data *input, const char *path, db::data *output, int obj_phase) = 0;
 		};
 	
-		data* create(runtime::descptr rt);
+		data* create(runtime::descptr rt, const char *basepath);
 		void free(data *builder);
 		
 		runtime::descptr runtime(builder::data *data);
@@ -48,6 +49,11 @@ namespace putki
 		void set_builder_configurator(builder_setup_fn fn);
 		void set_packager(packaging_fn fn);
 		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf);
+
+		const char *obj_path(data *d);
+		const char *res_path(data *d);
+		const char *tmp_path(data *d);
+		const char *out_path(data *d);
 	}
 	
 }

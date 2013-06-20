@@ -3,26 +3,5 @@
 	data: {
 		Name: "Lalles banan",
 		Version: "AOENUHNATOEHUNTAOHEUNSTAOHEUNTHAOEUNTHAOENSTUHANSTOEUHNTSAOEHUNSTAOEHUNSAOTEUH",
-		Cont: ["description#hej1", "description#hejaoeuaoeu", "description#hej3"]
-		Korvarna: ["Chorizo", "Mandolino", "Kuvert"],
-		DataBuildDate: "Never"
 	}
-,
- 	aux:[
-		{
-		 ref: "#hej1",
-		 type: "ComplexStruct",
-		 data: { Vilja: 1111, Bananos:["Banan1", "Bumpaberra"] }
-		},
-		{
-		 ref: "#hej2",
-		 type: "ComplexStruct",
-		 data: { Vilja: 98760, Bananos:["Banan1", "Bumpaberra"] }
-		},
-		{
-		 ref: "#hej3",
-		 type: "ComplexStruct",
-		 data: { Vilja:3333, Bananos:["Banan123123", "Bumpaberra"] }
-		}
-	]
 }

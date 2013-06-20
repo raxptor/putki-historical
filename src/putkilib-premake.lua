@@ -22,8 +22,8 @@
 		excludes { "../src/data-dll/**" }
 		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
-		includedirs { "../src", "../external" }
-		links {"jsmn"}
+		includedirs { "../src", "../external", "../external/libpng"}
+		links {"jsmn", "libpng"}
 
 	project "putki-data-dll-lib"
 		kind "StaticLib"
@@ -36,6 +36,6 @@
 		includedirs { "../src/data-dll" }
 		includedirs { "../src", "../src/builder/" }
 
-		links { "jsmn" }
+		links {"jsmn", "libpng"}
 		links { "putki-databuilder-lib"}
 		links { "putki-lib" }
