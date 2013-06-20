@@ -3,6 +3,11 @@
 *.user
 *.vcxproj
 *.filters
+*.make
+*.csproj
+bin
+out
+App.config
 obj
 Debug
 build
