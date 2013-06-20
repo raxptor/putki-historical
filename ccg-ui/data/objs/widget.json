@@ -1,0 +1,20 @@
+{
+	type: "UIWidget",
+	data: {
+		id:"Widget1",
+		width: "320",
+		height: "200.5",
+		elements: ["widget#el1", "widget#el2"]
+	},
+	aux: [
+	{ref:"#el1",
+	 type:"UIElement",
+	data:{}
+	},
+	{ref:"#el2",
+	 type:"UIBitmap",
+	data:{
+		texture: ""}
+	}
+	]
+}

@@ -1,9 +1,0 @@
-{
-	type: "texture",
-	data: {
-			"source": "C:\u005cgitproj\u005cputki\u005cclaw\u005cdata\u005ctextures\u005ctiles1.png",
-			"builtdata": 0
-	},
-	aux: [
-	      ]
-}

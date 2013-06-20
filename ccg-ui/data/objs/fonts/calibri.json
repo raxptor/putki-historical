@@ -1,0 +1,7 @@
+{
+	type: "Font",
+	data: {
+		Source: "fonts/calibri.ttf",
+		CharacterSet: "abcde123"
+	}
+}

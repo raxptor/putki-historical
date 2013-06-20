@@ -59,7 +59,7 @@ namespace putki
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = path;
 
-			d->obj_path.append("/data/obj");
+			d->obj_path.append("/data/objs");
 			d->res_path.append("/data/res");
 
 			d->out_path.append("/out/");
