@@ -119,7 +119,7 @@ namespace putki
 							if (rt)
 								out.cont() << ptr_sub(rt) << " ";
 							else
-								out.cont() << "const char *";      
+								out.cont() << "const char *";
 						}
 						break;
 					}

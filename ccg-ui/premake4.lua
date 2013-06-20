@@ -10,6 +10,7 @@ solution "CCG-UI"
 
 	dofile "../src/putkilib-premake.lua"
 	dofile "../external/libpng/premake.lua"
+	dofile "../external/freetype-2.4.0/premake.lua"
 
 	project "ccg-ui-putki-lib"
 		kind "StaticLib"

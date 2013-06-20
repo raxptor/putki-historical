@@ -54,27 +54,40 @@ namespace putki
 		out.line() << "namespace outki";
 		out.line() << "{";
 		out.indent(1);
-		
+				
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			if (!(s->domains & putki::DOMAIN_RUNTIME))
 				continue;
+
+			std::string expr_size_add = "";
 			
 			out.line() << "public class " << s->name;
+			
+			// c# gets real parenting since we can't fool around with pointer casts.
+			if (!s->parent.empty())
+			{
+				out.cont() << " : " << s->parent;
+				expr_size_add.append(" + " + s->parent + ".SIZE");
+			}
+
 			out.line() << "{";
+
+			
 			out.indent(1);
 
 			int size = 0;
-			std::string expr_size_add = "";
+
+			out.line() << "// Fields";
 
 			for (size_t i=0;i<s->fields.size();i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
-				
-				out.line();
+				if (!strcmp(f->name.c_str(), "parent"))
+					continue;
 
 				switch (s->fields[i].type)
 				{
@@ -111,21 +124,38 @@ namespace putki
 				if (s->fields[i].type == FIELDTYPE_POINTER)
 				{
 					if (f->is_array)
-						out.line() << "int[] _ptr_slot_" << s->fields[i].name << ";";
+						out.line() << "int[] _ptr_slot_" << s->fields[i].name << "; // temp for load/resolve step";
 					else
-						out.line() << "int _ptr_slot_" << s->fields[i].name << ";";
+						out.line() << "int _ptr_slot_" << s->fields[i].name << "; // temp for load/resolve step";
 				}
 
+				out.line();
 				
 			}
 
+			out.line() << "// Generated constants";
 			out.line() << "public const int SIZE = " << size << expr_size_add <<";";
+
+			out.line();
+			out.line() << "// Generated functions";
 
 			// Load from package
 			out.line() << "public static " << s->name << " LoadFromPackage(Putki.PackageReader reader, Putki.PackageReader aux)";
 			out.line() << "{";
+			out.line(1) << s->name << " tmp = new " << s->name << "();";
+			out.line(1) << "tmp.ParseFromPackage_" << s->name << "(reader, aux);";
+			out.line(1) << "return tmp;";
+			out.line() << "}";
+			
+			out.line();
+			out.line() << "public void ParseFromPackage_" << s->name << "(Putki.PackageReader reader, Putki.PackageReader aux)";
+			out.line() << "{";
 			out.indent(1);
-			out.line() << s->name << " tmp = new " << s->name << "();";
+			
+			if (!s->parent.empty())
+			{
+				out.line() << "ParseFromPackage_" << s->parent << "(reader, aux);";
+			}
 
 			out.line() << "// Load from byte buffer";
 			for (size_t i=0;i<s->fields.size();i++)
@@ -133,9 +163,11 @@ namespace putki
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
+				if (!strcmp(f->name.c_str(), "parent"))
+					continue;
 				
-				std::string field_ref = std::string("tmp.") + f->name;
-				std::string ptr_slot_ref = std::string("tmp._ptr_slot_") + f->name;
+				std::string field_ref = f->name;
+				std::string ptr_slot_ref = std::string("_ptr_slot_") + f->name;
 				std::string content_reader = "reader";
 
 				if (s->fields[i].is_array)
@@ -192,12 +224,11 @@ namespace putki
 				}
 			}
 
-			out.line() << "return tmp;";
 			out.indent(-1);
 			out.line() << "}";
 
-
-			// Resolev pointers
+			// Resolve pointers
+			out.line();
 			out.line() << "public void ResolveFromPackage(Putki.Package pkg)";
 			out.line() << "{";
 			out.indent(1);
@@ -208,8 +239,9 @@ namespace putki
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
-				
 				if (s->fields[i].type != FIELDTYPE_POINTER &&  s->fields[i].type != FIELDTYPE_STRUCT_INSTANCE)
+					continue;
+				if (!strcmp(f->name.c_str(), "parent"))
 					continue;
 
 				std::string field_ref = f->name;
@@ -244,11 +276,9 @@ namespace putki
 					out.line() << "} // loop";
 				}
 			}
-
-			out.line();
+			
 			out.indent(-1);
 			out.line() << "}";
-			out.line();
 
 			// class
 			out.indent(-1);
@@ -263,6 +293,8 @@ namespace putki
 			switch_case_out.line() << "}";
 
 			switch_case_resolve.line() << "case " << s->unique_id << ": ((" << s->name << ")obj).ResolveFromPackage(pkg); break;";
+
+			out.line();
 		}
 
 		out.indent(-1);
