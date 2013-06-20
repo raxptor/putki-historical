@@ -1,6 +1,8 @@
+#include Texture.typedef
 
 Font [in, out]
 {
 	file string Source
-	string CharacterSet
+	[no-out] string CharacterSet 
+	ptr Texture [hidden] OutputTexture 
 }

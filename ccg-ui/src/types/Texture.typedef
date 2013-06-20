@@ -26,7 +26,7 @@ Atlas [in, out]
 
 Texture [in, out]
 {
-	file sourcefile
+	file [no-out] sourcefile
 	ptr TextureOutput output
-	ptr Atlas add_into_atlas
+	ptr Atlas [no-out] add_into_atlas
 }

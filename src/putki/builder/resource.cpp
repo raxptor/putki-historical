@@ -29,7 +29,23 @@ namespace putki
 			full_path.append("/");
 			full_path.append(path);
 			std::cout << "I want to load [" << full_path << "]!" << std::endl;
-			return false;
+
+			std::ifstream f(full_path.c_str(), std::ios::binary);	
+			f.seekg(0, std::ios::end);
+			std::streampos size = f.tellg();
+			f.seekg(0, std::ios::beg);
+
+			char *b = new char[(size_t)size];
+			f.read(b, size);
+
+			*outBytes = b;
+			*outSize = (long long) size;
+			return true;
+		}
+
+		void free(const char *data)
+		{
+			delete [] data;
 		}
 
 		std::string save_temp(builder::data *builder, const char *path, const char *bytes, long long length)

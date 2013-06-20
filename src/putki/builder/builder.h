@@ -29,7 +29,7 @@ namespace putki
 
 		struct handler_i
 		{
-			virtual bool handle(data *builder, db::data *input, const char *path, db::data *output, int obj_phase) = 0;
+			virtual bool handle(data *builder, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 	
 		data* create(runtime::descptr rt, const char *basepath);
@@ -49,6 +49,8 @@ namespace putki
 		void set_builder_configurator(builder_setup_fn fn);
 		void set_packager(packaging_fn fn);
 		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf);
+
+		void build_error(data *builder, const char *str);
 
 		const char *obj_path(data *d);
 		const char *res_path(data *d);

@@ -20,6 +20,9 @@ namespace TestLoad
 			outki.UIWidget w = (outki.UIWidget)p.Resolve("widget");
 			Console.WriteLine("Widget id is " + w.width);
 
+			outki.Font f = (outki.Font)p.Resolve("fonts/calibri");
+			Console.WriteLine("Font is " + f);
+
 
         }
     }

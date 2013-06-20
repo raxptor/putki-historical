@@ -91,7 +91,7 @@ namespace putki
 	// adds unresolved pointer to the db through resolve_pointer.
 	void load_into_db(db::data *db, const char *fullpath, const char *name)
 	{
-		std::cout << "[load into db <" << fullpath << "> <" << name << ">" << std::endl;
+		// std::cout << "[load into db <" << fullpath << "> <" << name << ">" << std::endl;
 		//
 		std::string asset_name(name);
 		int p = asset_name.find_last_of('.');

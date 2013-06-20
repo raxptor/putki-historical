@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace putki
 {
@@ -142,7 +143,7 @@ namespace putki
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
 					{
-						handled |= e->handler->handle(builder, input, path, output, phase);
+						handled |= e->handler->handle(builder, input, path, obj, output, phase);
 					}
 				}
 			}
@@ -160,6 +161,11 @@ namespace putki
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
 			build_source_object(builder, SOURCE_OBJECT, input, path, output);
+		}
+
+		void build_error(data *builder, const char *str)
+		{
+			std::cout << "!!! BUILD ERROR: " << str << std::endl;
 		}
 		
 	}

@@ -24,6 +24,7 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 		putki::package::data *pkg = putki::package::create(out);
 		putki::package::add(pkg, "description", true);
 		putki::package::add(pkg, "widget", true);
+		putki::package::add(pkg, "fonts/calibri", true);
 		putki::build::commit_package(pkg, pconf, "static.pkg");
 	}
 }

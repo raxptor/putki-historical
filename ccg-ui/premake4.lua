@@ -43,6 +43,7 @@ solution "CCG-UI"
 		links { "putki-lib" }
 		links { "ccg-ui-putki-lib"}
 		links { "jsmn" }
+		links { "freetype2" }
 
 	project "ccg-ui-data-dll"
 
