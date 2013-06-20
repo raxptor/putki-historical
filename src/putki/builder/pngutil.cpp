@@ -1,10 +1,15 @@
 #include "pngutil.h"
 
+#include <putki/builder/resource.h>
+#include <putki/builder/builder.h>
+
 #include <png.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <string>
 
 namespace putki
 {
@@ -41,7 +46,7 @@ namespace putki
 			}
 		}
 
-		bool write_to_temp(const char *path, unsigned int *pixbuf, unsigned int width, unsigned int height)
+		write_buffer write_to_mem(unsigned int *pixbuf, unsigned int width, unsigned int height)
 		{
 			FILE * fp;
 			png_structp png_ptr = NULL;
@@ -66,7 +71,7 @@ namespace putki
 							info_ptr,
 							width,
 							height,
-							32,
+							8,
 							PNG_COLOR_TYPE_RGBA,
 							PNG_INTERLACE_NONE,
 							PNG_COMPRESSION_TYPE_DEFAULT,
@@ -80,9 +85,9 @@ namespace putki
 				row_pointers[y] = row;
 				for (x = 0; x < width; ++x) 
 				{
-					*row++ = (pixbuf[y * width + x] >> 0) & 0xff;
-					*row++ = (pixbuf[y * width + x] >> 8) & 0xff;
 					*row++ = (pixbuf[y * width + x] >> 16) & 0xff;
+					*row++ = (pixbuf[y * width + x] >> 8) & 0xff;
+					*row++ = (pixbuf[y * width + x] >> 0) & 0xff;
 					*row++ = (pixbuf[y * width + x] >> 24) & 0xff;
 				}
 			}
@@ -117,8 +122,22 @@ namespace putki
 			png_create_write_struct_failed:
 			fclose(fp);
 
-			return status == 0;
+			return wb;
 		}
+
+		std::string write_to_temp(builder::data *builder, const char *path, unsigned int *pixbuf, unsigned int width, unsigned int height)
+		{
+			std::string outpath;
+			write_buffer wb = write_to_mem(pixbuf, width, height);
+			if (wb.output)
+			{
+				outpath = putki::resource::save_temp(builder, path, wb.output, (long long) wb.size);
+				free(wb.output);
+			}
+
+			return outpath;
+		}
+
 	}
 
 }
