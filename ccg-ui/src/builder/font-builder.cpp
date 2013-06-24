@@ -14,6 +14,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
 
 struct fontbuilder : putki::builder::handler_i
 {
@@ -43,20 +44,28 @@ struct fontbuilder : putki::builder::handler_i
 				return false;
 			}
 
-			if (FT_Set_Pixel_Sizes(face, 0, 20))
+			if (FT_Set_Pixel_Sizes(face, 0, 30))
 			{
 				putki::builder::build_error(builder, "Could not set char or pixel size.");
 				return false;
 			}
 
-			const char *str = "ABC";
+			const char *str = "AbcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-			unsigned int *blah = new unsigned int[64*128];
-			for (int y=0;y<128;y++)
-				for (int i=0;i<64;i++)
-					blah[y*64+i] = 0x00;
 
-			for (int i=0;i<(int)strlen(str);i++)
+			int numGlyphs = strlen(str);
+
+			std::vector< rbp::InputRect > packs;
+
+			struct GlyphInfo
+			{
+				int w, h;
+				char *data;
+			};
+
+			std::vector< GlyphInfo > glyphs;
+
+			for (int i=0;i<numGlyphs;i++)
 			{
 				int idx = FT_Get_Char_Index(face, (int)str[i]);
 				if (FT_Load_Glyph(face, idx, FT_LOAD_NO_BITMAP))
@@ -72,23 +81,87 @@ struct fontbuilder : putki::builder::handler_i
 				}
 
 				FT_Bitmap *bmp = &face->glyph->bitmap;
+
+				GlyphInfo g;
+				g.data = new char[bmp->width * bmp->rows];
+				g.w = bmp->width;
+				g.h = bmp->rows;
+				glyphs.push_back(g);
+
 				for (int y=0;y<bmp->rows;y++)
 				{
 					for (int x=0;x<bmp->width;x++)
 					{
-						blah[(32 * i + y) * 64 + x] = bmp->buffer[y * bmp->width + x] * 0x01000000 | 0xffffff;
+						g.data[y * bmp->width + x] = bmp->buffer[y * bmp->width + x];
 					}
 				}
 
-				std::cout << "Glyph is at index " << idx << std::endl;
+				rbp::InputRect next;
+				next.id = i;
+				next.width = bmp->width;
+				next.height = bmp->rows;
+				packs.push_back(next);
 			}
-				
+
+			std::vector<rbp::Rect> packedRects;
+
+
+			int out_width = 16;
+			int out_height = 16;
+
+			while (true)
+			{
+				packedRects.clear();
+
+				rbp::MaxRectsBinPack pack(out_width, out_height);
+				std::vector< rbp::InputRect > tmpCopy = packs;
+				pack.Insert(tmpCopy, packedRects, rbp::MaxRectsBinPack::RectBottomLeftRule);
+
+				if (packedRects.size() == packs.size())
+				{
+					break;
+				}
+				else
+				{
+					if (out_height > out_width)
+						out_width *= 2;
+					else
+						out_height *= 2;
+				}
+			}
+
+			unsigned int * outBmp = new unsigned int[out_width * out_height];
+			for (int y=0;y<out_height;y++)
+			{
+				for (int x=0;x	<out_width;x++)
+				{
+					outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xff303030;
+				}
+			}
+
+
+			for (unsigned int k=0;k<packedRects.size();k++)
+			{
+				GlyphInfo const &g = glyphs[packedRects[k].id];
+				rbp::Rect const &out = packedRects[k];
+				std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
+
+				for (int y=0;y<g.h;y++)
+				{
+					for (int x=0;x<g.w;x++)
+					{
+						outBmp[out_width * (out.y + y) + (out.x + x)] = g.data[g.w * y + x] * 0x010101 | 0xff000000;
+					}
+				}
+			}
+
 			std::string output_atlas_path = std::string(path) + "_atlas.png";
-			output_atlas_path = putki::pngutil::write_to_temp(builder, output_atlas_path.c_str(), blah, 64, 128);
+			output_atlas_path = putki::pngutil::write_to_temp(builder, output_atlas_path.c_str(), outBmp, out_width, out_height);
 
 			std::cout << "Font has " << face->num_glyphs << " glyphs." << std::endl;
-			std::cout << "Wrote atlas to [" << output_atlas_path << "]" << std::endl;
+			//std::cout << "Wrote atlas to [" << output_atlas_path << "]" << std::endl;
 
+			/*
 			// create & insert texture.
 			{
 				putki::type_handler_i *tex = inki::get_Texture_type_handler();
@@ -99,6 +172,7 @@ struct fontbuilder : putki::builder::handler_i
 				// give font the texture.
 				font->OutputTexture = texture;
 			}
+			*/
 		}
 		else
 		{

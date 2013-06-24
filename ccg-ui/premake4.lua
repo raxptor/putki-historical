@@ -40,6 +40,9 @@ solution "CCG-UI"
 		files { "src/putki/builder-main.cpp" }
 		files { "src/builder/**.*" }
 
+		files { "../claw/src/builder/binpacker/*.*"}
+		includedirs { "../claw/src/"}
+
 		links { "putki-lib" }
 		links { "ccg-ui-putki-lib"}
 		links { "jsmn" }
