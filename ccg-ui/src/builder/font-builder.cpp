@@ -144,7 +144,7 @@ struct fontbuilder : putki::builder::handler_i
 			{
 				GlyphInfo const &g = glyphs[packedRects[k].id];
 				rbp::Rect const &out = packedRects[k];
-				std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
+				//std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
 
 				for (int y=0;y<g.h;y++)
 				{
@@ -161,18 +161,18 @@ struct fontbuilder : putki::builder::handler_i
 			std::cout << "Font has " << face->num_glyphs << " glyphs." << std::endl;
 			//std::cout << "Wrote atlas to [" << output_atlas_path << "]" << std::endl;
 
-			/*
 			// create & insert texture.
+			
 			{
-				putki::type_handler_i *tex = inki::get_Texture_type_handler();
-				inki::Texture *texture = (inki::Texture *) tex->alloc();
-				texture->sourcefile = output_atlas_path;
-				putki::db::insert(output, (std::string(path) + "_atlas").c_str(), tex, texture);
+				inki::Texture *texture = inki::Texture::alloc();
+				texture->Source = output_atlas_path;
+				putki::db::insert(output, (std::string(path) + "_atlas").c_str(), inki::Texture::th(), texture);
 
 				// give font the texture.
 				font->OutputTexture = texture;
 			}
-			*/
+			
+			return false;
 		}
 		else
 		{
@@ -186,6 +186,6 @@ struct fontbuilder : putki::builder::handler_i
 void register_font_builder(putki::builder::data *builder)
 {
 	static fontbuilder fb;
-	putki::builder::add_data_builder(builder, "Font", putki::builder::PHASE_1, &fb);
+	putki::builder::add_data_builder(builder, "Font", putki::builder::PHASE_INDIVIDUAL, &fb);
 }
 

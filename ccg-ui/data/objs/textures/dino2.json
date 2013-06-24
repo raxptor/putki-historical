@@ -1,0 +1,9 @@
+{
+	type: "TextureForAtlas",
+	data: {
+		parent : {
+			Source: "textures/dino2.png"
+		},
+		AddToAtlas : "atlas1"
+	}
+}

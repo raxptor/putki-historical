@@ -1,32 +1,18 @@
 TextureOutput [in, out] rtti
 {
-
+	float u0
+	float v0
+	float u1
+	float v1
 }
 
-TextureOutputUnity : TextureOutput
+TextureOutputPng : TextureOutput
 {
-	string outPath
+	string PngPath
 }
 
-AtlasEntry [in, out]
+Texture [in, out] rtti
 {
-	string source_path
-	int u0
-	int v0
-	int u1
-	int v1
-}
-
-Atlas [in, out]
-{
-	file[] inputs
-	AtlasEntry[] entries
-	TextureOutput output
-}
-
-Texture [in, out]
-{
-	file [no-out] sourcefile
-	ptr TextureOutput output
-	ptr Atlas [no-out] add_into_atlas
+	file [no-out] Source
+	ptr TextureOutput Output
 }

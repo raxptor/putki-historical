@@ -14,7 +14,7 @@
 	{ref:"#el2",
 	 type:"UIBitmap",
 	data:{
-		texture: ""}
+		texture: "textures/dino1"}
 	}
 	]
 }

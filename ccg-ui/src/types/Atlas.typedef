@@ -1,0 +1,32 @@
+#include Texture.typedef
+
+AtlasEntry [in, out]
+{
+	string id
+	float u0
+	float v0
+	float u1
+	float v1
+}
+
+AtlasOutput [in, out]
+{
+	int Width
+	int Height
+	float Scale
+	AtlasEntry[] entries
+	ptr Texture texture
+}
+
+Atlas [in, out]
+{
+	file[] inputs
+	int ScaleDowns
+	AtlasOutput[] outputs
+}
+
+TextureForAtlas [in, out] : Texture
+{
+	ptr Atlas AddToAtlas
+	string id
+}
