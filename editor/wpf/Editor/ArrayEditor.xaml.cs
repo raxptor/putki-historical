@@ -37,6 +37,7 @@ namespace Editor
         {
             m_mi = mi;
             m_fh = fi;
+			m_label.Content = "Array (" + fi.GetArraySize(mi) + " items)";
         }
 
         public void OnConnect(ObjectEditor root)

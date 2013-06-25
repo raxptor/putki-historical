@@ -70,65 +70,77 @@ namespace putki
 
 		while (tok)
 		{
-			if (read_type)
-			{
-				read_type = false;
+			bool special = true;
 
-				std::string type = tok;
-				if (strlen(tok) > 2 && type.substr(type.size() - 2, 2) == "[]")
-				{
-					type.erase(type.size() - 2, 2);
-					out->is_array = true;
-				}
-					
-				std::cout << " Type is '" << type << "'" << std::endl;
-				if (!strcmp(type.c_str(), "[no-out]"))
-					out->domains = putki::DOMAIN_INPUT;
-				else if (!strcmp(type.c_str(), "[no-in]"))
-					out->domains = putki::DOMAIN_RUNTIME;
-				else if (!strcmp(type.c_str(), "[hidden]"))
-					out->show_in_editor = false;
-				else if (!strcmp(type.c_str(), "string"))
-					out->type = putki::FIELDTYPE_STRING;
-				else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "u32"))
-					out->type = putki::FIELDTYPE_INT32;
-				else if (!strcmp(type.c_str(), "float"))
-					out->type = putki::FIELDTYPE_FLOAT;
-				else if (!strcmp(type.c_str(), "bool"))
-					out->type = putki::FIELDTYPE_BOOL;
-				else if (!strcmp(type.c_str(), "byte"))
-					out->type = putki::FIELDTYPE_BYTE;
-				else if (!strcmp(type.c_str(), "file"))
-				{
-					out->type = putki::FIELDTYPE_FILE;
-					out->domains = putki::DOMAIN_INPUT;
-				}
-				else if (!strcmp(type.c_str(), "ptr"))
-				{
-					out->type = putki::FIELDTYPE_POINTER;
-					out->is_aux_ptr = false;
-					read_ptr_type = true;
-				}
-				else if (!strcmp(type.c_str(), "auxptr"))
-				{
-					out->type = putki::FIELDTYPE_POINTER;
-					out->is_aux_ptr = true;
-					read_ptr_type = true;
-				}
-				else
-				{
-					out->type = putki::FIELDTYPE_STRUCT_INSTANCE;
-					out->ref_type = type;
-				}
-			}
-			else if (read_ptr_type)
+			if (!strcmp(tok, "[no-out]"))
 			{
-				out->ref_type = tok;
-				read_ptr_type = false;
+				out->domains = putki::DOMAIN_INPUT;
+			}
+			else if (!strcmp(tok, "[no-in]"))
+			{
+				out->domains = putki::DOMAIN_RUNTIME;
+			}
+			else if (!strcmp(tok, "[hidden]"))
+			{
+				out->show_in_editor = false;
 			}
 			else
 			{
-				out->name = tok;
+				if (read_type)
+				{
+					read_type = false;
+
+					std::string type = tok;
+					if (strlen(tok) > 2 && type.substr(type.size() - 2, 2) == "[]")
+					{
+						type.erase(type.size() - 2, 2);
+						out->is_array = true;
+					}
+					
+					std::cout << " Type is '" << type << "'" << std::endl;
+
+					if (!strcmp(type.c_str(), "string"))
+						out->type = putki::FIELDTYPE_STRING;
+					else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "u32"))
+						out->type = putki::FIELDTYPE_INT32;
+					else if (!strcmp(type.c_str(), "float"))
+						out->type = putki::FIELDTYPE_FLOAT;
+					else if (!strcmp(type.c_str(), "bool"))
+						out->type = putki::FIELDTYPE_BOOL;
+					else if (!strcmp(type.c_str(), "byte"))
+						out->type = putki::FIELDTYPE_BYTE;
+					else if (!strcmp(type.c_str(), "file"))
+					{
+						out->type = putki::FIELDTYPE_FILE;
+						out->domains = putki::DOMAIN_INPUT;
+					}
+					else if (!strcmp(type.c_str(), "ptr"))
+					{
+						out->type = putki::FIELDTYPE_POINTER;
+						out->is_aux_ptr = false;
+						read_ptr_type = true;
+					}
+					else if (!strcmp(type.c_str(), "auxptr"))
+					{
+						out->type = putki::FIELDTYPE_POINTER;
+						out->is_aux_ptr = true;
+						read_ptr_type = true;
+					}
+					else
+					{
+						out->type = putki::FIELDTYPE_STRUCT_INSTANCE;
+						out->ref_type = type;
+					}
+				}
+				else if (read_ptr_type)
+				{
+					out->ref_type = tok;
+					read_ptr_type = false;
+				}
+				else
+				{
+					out->name = tok;
+				}
 			}
 
 			tok = strtok(0, delim);

@@ -13,6 +13,6 @@ TextureOutputPng : TextureOutput
 
 Texture [in, out] rtti
 {
-	file [no-out] Source
-	ptr TextureOutput Output
+	[no-out] file Source
+	[hidden] ptr TextureOutput Output
 }

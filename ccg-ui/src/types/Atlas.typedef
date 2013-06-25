@@ -21,8 +21,8 @@ AtlasOutput [in, out]
 Atlas [in, out]
 {
 	file[] inputs
-	int ScaleDowns
-	AtlasOutput[] outputs
+	[no-out] int ScaleDowns
+	[hidden] AtlasOutput[] outputs
 }
 
 TextureForAtlas [in, out] : Texture

@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}">
+             d:DesignHeight="50" d:DesignWidth="170">
 
     <ScrollViewer x:Name="m_scroll" VerticalAlignment="Stretch">
-        <Grid x:Name="m_grid" Background="{DynamicResource DarkBackgroundBrush}" ShowGridLines="True" HorizontalAlignment="Stretch">
+        <Grid x:Name="m_grid" Background="{DynamicResource DarkBackgroundBrush}" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" />
                 <ColumnDefinition />

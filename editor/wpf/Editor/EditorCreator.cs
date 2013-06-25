@@ -27,6 +27,8 @@ namespace Editor
                         return new IntEditor();
                     case 5:
                         return new FileEditor();
+					case 7:
+						return new FloatEditor();
                     // 
                     default:
                         return new TextEditor();

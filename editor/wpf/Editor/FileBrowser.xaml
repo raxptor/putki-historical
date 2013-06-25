@@ -18,7 +18,6 @@
         </DataTemplate>
 
     </UserControl.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"></RowDefinition>

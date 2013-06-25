@@ -58,6 +58,9 @@
     <Compile Include="ArrayEditor.xaml.cs">
       <DependentUpon>ArrayEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FloatEditor.xaml.cs">
+      <DependentUpon>FloatEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FileEditor.xaml.cs">
       <DependentUpon>FileEditor.xaml</DependentUpon>
     </Compile>
@@ -78,6 +81,10 @@
     <Page Include="ArrayEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FloatEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="FileEditor.xaml">
       <Generator>MSBuild:Compile</Generator>

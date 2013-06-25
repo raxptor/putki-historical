@@ -59,7 +59,7 @@ namespace putki
 		{
 			return strchr(path, '#') != 0;
 		}
-
+		
 		const char *pathof(data *d, instance_t obj)
 		{
 			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);

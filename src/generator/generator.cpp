@@ -371,14 +371,23 @@ namespace putki
 		{
 			putki::parsed_struct *s = &file->structs[i];
 
+			out.line() << "void fill_" << s->name << "_from_parsed(putki::parse::node *pn, void *target_, putki::load_resolver_i *resolver);";
+			out.line() << "putki::type_handler_i *get_" << s->name << "_type_handler();";
+			out.line() << "putki::ext_type_handler_i *get_" << s->name << "_ext_type_handler();";
+
+
 			out.line() << "struct " << s->name << " {";
 			out.indent(1);
 
+			out.line() << "static inline " << s->name << " * alloc() { return (" << s->name << " *) get_" << s->name << "_type_handler()->alloc(); }";
+			out.line() << "static inline putki::type_handler_i * th() { return get_" << s->name << "_type_handler(); }";
 
 			// default constructor
-			out.indent(1);
+			
+			out.line();
 			out.line() << s->name << "()";
 			out.line() << "{";
+			out.indent(1);
 			for (size_t j=0;j<s->fields.size();j++)
 			{
 				if (s->fields[j].is_array)
@@ -396,8 +405,9 @@ namespace putki
 						break;
 				}
 			}
-			out.line() << "}";
 			out.indent(-1);
+			out.line() << "}";
+			
 
 
 			for (size_t j=0;j<s->fields.size();j++)
@@ -433,10 +443,6 @@ namespace putki
 				out.line() << "// writing processing for " << s->name;
 				out.line() << "char *write_" << s->name << "_into_blob(inki::" << s->name << " *in, char *out_beg, char *out_end);";
 			}
-
-			out.line() << "void fill_" << s->name << "_from_parsed(putki::parse::node *pn, void *target_, putki::load_resolver_i *resolver);";
-			out.line() << "putki::type_handler_i *get_" << s->name << "_type_handler();";
-			out.line() << "putki::ext_type_handler_i *get_" << s->name << "_ext_type_handler();";
 
 			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren = true);";
 		}
@@ -706,6 +712,10 @@ namespace putki
 			else if (fd.type == FIELDTYPE_INT32 || fd.type == FIELDTYPE_BYTE)
 			{
 				out.line() << "out << " << delim << "(int)" << ref << ";";
+			}
+			else if (fd.type == FIELDTYPE_FLOAT || fd.type == FIELDTYPE_BOOL)
+			{
+				out.line() << "out << " << delim << "" << ref << ";";
 			}
 			else if (fd.type == FIELDTYPE_POINTER)
 			{

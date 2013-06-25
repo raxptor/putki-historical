@@ -27,7 +27,7 @@ namespace putki
 			}
 			
 			full_path.append("/");
-			full_path.append(path);
+			full_path.append(ps);
 			std::cout << "I want to load [" << full_path << "]!" << std::endl;
 
 			std::ifstream f(full_path.c_str(), std::ios::binary);	
@@ -56,6 +56,16 @@ namespace putki
 			std::ofstream f(out_path.c_str(), std::ios::binary);
 			f.write(bytes, length);
 			return std::string("%") + path;
+		}
+
+		std::string save_output(builder::data *builder, const char *path, const char *bytes, long long length)
+		{
+			std::string out_path = std::string(builder::out_path(builder)) + "/" + path;
+			sys::mk_dir_for_path(out_path.c_str());
+
+			std::ofstream f(out_path.c_str(), std::ios::binary);
+			f.write(bytes, length);
+			return path;
 		}
 	}
 }

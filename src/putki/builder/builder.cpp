@@ -28,7 +28,7 @@ namespace putki
 		{
 			BuildersMap handlers;
 			runtime::descptr runtime;
-			std::string obj_path, res_path, out_path, tmp_path;
+			std::string obj_path, res_path, out_path, tmp_path, dbg_path;
 		};
 
 		namespace
@@ -58,7 +58,7 @@ namespace putki
 			data *d = new data();
 			d->runtime = rt;
 
-			d->obj_path = d->res_path = d->out_path = d->tmp_path = path;
+			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->dbg_path = path;
 
 			d->obj_path.append("/data/objs");
 			d->res_path.append("/data/res");
@@ -70,6 +70,10 @@ namespace putki
 			d->tmp_path.append("/out/");
 			d->tmp_path.append(runtime::desc_str(rt));
 			d->tmp_path.append("/.tmp");
+
+			d->dbg_path.append("/out/");
+			d->dbg_path.append(runtime::desc_str(rt));
+			d->dbg_path.append("/.dbg");
 
 			// app specific configurators
 			if (s_init_fn)
@@ -96,6 +100,11 @@ namespace putki
 		const char *tmp_path(data *d)
 		{
 			return d->tmp_path.c_str();
+		}
+
+		const char *dbg_path(data *d)
+		{
+			return d->dbg_path.c_str();
 		}
 
 		runtime::descptr runtime(builder::data *data)
@@ -151,18 +160,48 @@ namespace putki
 			if (!handled)
 				db::insert(output, path, th, obj);
 		}
-				
-		void build_references(data *builder, db::data *input, db::data *output, type_handler_i *type, int obj_phase, instance_t obj)
-		{
-		
-		
-		}
-		
+
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
-			build_source_object(builder, SOURCE_OBJECT, input, path, output);
+			build_source_object(builder, PHASE_INDIVIDUAL, input, path, output); 
 		}
 
+		struct global_pass_builder : public db::enum_i
+		{
+			data *builder;
+			db::data *input, *output;
+			int phase;
+
+			virtual void record(const char *path, type_handler_i *th, instance_t i) 
+			{
+				build_source_object(builder, phase, input, path, output);
+			}
+		};
+
+		void build_global_pass(data *builder, db::data *input, db::data *output)
+		{
+			global_pass_builder gb;
+			gb.builder = builder;
+			gb.input = input;
+			gb.output = output;
+			gb.phase = PHASE_GLOBAL;
+			std::cout << "==> Doing global build pass." << std::endl;
+			db::read_all(input, &gb);
+			std::cout << "==> Global build pass done." << std::endl;
+		}
+
+		void build_final_pass(data *builder, db::data *input, db::data *output)
+		{
+			global_pass_builder gb;
+			gb.builder = builder;
+			gb.input = input;
+			gb.output = output;
+			gb.phase = PHASE_FINAL;
+			std::cout << "==> Doing final build pass." << std::endl;
+			db::read_all(input, &gb);
+			std::cout << "==> Final pass done." << std::endl;
+		}
+		
 		void build_error(data *builder, const char *str)
 		{
 			std::cout << "!!! BUILD ERROR: " << str << std::endl;

@@ -4,5 +4,5 @@ Font [in, out]
 {
 	file string Source
 	[no-out] string CharacterSet 
-	ptr Texture [hidden] OutputTexture 
+	[hidden] ptr Texture OutputTexture 
 }

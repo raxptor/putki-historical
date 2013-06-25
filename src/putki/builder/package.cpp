@@ -107,7 +107,7 @@ namespace putki
 					for (unsigned int i=0;i<dw.deps.size();i++)
 					{
 						const bool store_path_for_dependencies = true;
-						add(data, dw.deps[i].c_str(), store_path_for_dependencies, false);
+						add(data, dw.deps[i].c_str(), store_path_for_dependencies, true);
 					}
 				}
 			}
@@ -213,7 +213,7 @@ namespace putki
 				else
 				{
 					short write = 0;
-								
+					
 					if (!packorder.count(path))
 					{
 						for (unsigned int i=0;i<unpacked.size();i++)
@@ -225,6 +225,8 @@ namespace putki
 							unpacked.push_back(path);
 							write = - ((int)unpacked.size());
 						}
+
+						std::cout << " " << path << " => slot " << write << std::endl;
 					}
 					else
 					{
@@ -235,7 +237,6 @@ namespace putki
 					*(pp.ptrs[i].ptr) = 0;
 					*((short*)pp.ptrs[i].ptr) = write;
 				
-					std::cout << " " << path << " => slot " << write << std::endl;
 					++written;
 				}
 			}

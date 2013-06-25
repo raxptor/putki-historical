@@ -28,19 +28,19 @@ namespace Editor
 			public int arrayIndex = -1;
 		}
 
-        public void OnConnect(ObjectEditor root)
-        {
+		public void OnConnect(ObjectEditor root)
+		{
 
-        }
+		}
 
-        public class InsertEvt : RoutedEventArgs
-        {
-            public InsertEvt(RowNode n)
-            {
-                node = n;
-            }
-            public RowNode node;
-        }
+		public class InsertEvt : RoutedEventArgs
+		{
+			public InsertEvt(RowNode n)
+			{
+				node = n;
+			}
+			public RowNode node;
+		}
 		
 		List<RowNode> m_tree = new List<RowNode>();
 		public Putki.MemInstance m_obj = null;
@@ -61,17 +61,16 @@ namespace Editor
 			// Must be struct.
 			Height = 20;
 			m_grid.Visibility = Visibility.Collapsed; // when in sub-mode, don't add the grid.            
-            m_scroll.Visibility = Visibility.Collapsed;
-			// m_label.Content = "Struct instance (" + mi.GetType().GetName() + ")";
+			m_scroll.Visibility = Visibility.Collapsed;
 
-            if (fi != null)
-            {
-                // member somewhere.
-                fi.SetArrayIndex(arrayIndex);
-                m_obj = fi.GetStructInstance(mi);
-            }
-            else
-                m_obj = mi;
+			if (fi != null)
+			{
+				// member somewhere.
+				fi.SetArrayIndex(arrayIndex);
+				m_obj = fi.GetStructInstance(mi);
+			}
+			else
+				m_obj = mi;
 
 			m_arrayIndex = arrayIndex;
 		}
@@ -79,17 +78,22 @@ namespace Editor
 		public void SetObject(Putki.MemInstance mi)
 		{
 			// m_label.Visibility = Visibility.Collapsed; // nly for structs.
-		    m_obj = mi;
-            OnStructureChanged();
+			m_obj = mi;
+			OnStructureChanged();
 		}
 
-        public void OnStructureChanged()
+        protected override void OnRender(DrawingContext dc)
         {
-            m_grid.Children.Clear();
-            m_grid.RowDefinitions.Clear();
-            m_tree = GetChildRows();
-            Layout(m_tree, 0, 0);
-        }
+			//Base.OnRender(dc);   
+		}
+
+		public void OnStructureChanged()
+		{
+			m_grid.Children.Clear();
+			m_grid.RowDefinitions.Clear();
+			m_tree = GetChildRows();
+			Layout(m_tree, 0, 0);
+		}
 
 		public List<ObjectEditor.RowNode> GetChildRows()
 		{
@@ -100,18 +104,18 @@ namespace Editor
 				Putki.FieldHandler fh = m_obj.GetType().GetField(f);
 				if (fh != null)
 				{
-                    if (fh.ShowInEditor())
-                    {
-                        RowNode e = new RowNode();
-                        e.mi = m_obj;
-                        e.fh = fh;
-                        e.row = new RowDefinition();
-                        e.row.Height = GridLength.Auto;
-                        e.editor = EditorCreator.MakeEditor(fh, fh.IsArray());
-                        e.editor.SetObject(m_obj, fh, 0);
-                        e.children = e.editor.GetChildRows();
-                        l.Add(e);
-                    }
+					if (fh.ShowInEditor())
+					{
+						RowNode e = new RowNode();
+						e.mi = m_obj;
+						e.fh = fh;
+						e.row = new RowDefinition();
+						e.row.Height = GridLength.Auto;
+						e.editor = EditorCreator.MakeEditor(fh, fh.IsArray());
+						e.editor.SetObject(m_obj, fh, 0);
+						e.children = e.editor.GetChildRows();
+						l.Add(e);
+					}
 					f++;
 				}
 				else
@@ -122,44 +126,44 @@ namespace Editor
 			return l;
 		}
 
-        public void InsertClick(RowNode node)
-        {
-            node.fh.SetArrayIndex(0);
-            node.fh.ArrayInsert(node.mi);
-            OnStructureChanged();
-        }
+		public void InsertClick(RowNode node)
+		{
+			node.fh.SetArrayIndex(0);
+			node.fh.ArrayInsert(node.mi);
+			OnStructureChanged();
+		}
 
-        public void EraseClick(RowNode node)
-        {
-            node.fh.SetArrayIndex(node.arrayIndex);
-            node.fh.ArrayErase(node.mi);
-            OnStructureChanged();
-        }
+		public void EraseClick(RowNode node)
+		{
+			node.fh.SetArrayIndex(node.arrayIndex);
+			node.fh.ArrayErase(node.mi);
+			OnStructureChanged();
+		}
 
 		public int Layout(List<RowNode> list, int rowIndex, int indent)
 		{
 			int idx = 0;
 			foreach (RowNode rn in list)
 			{
-                if (rn.fh != null && rn.fh.GetName() == "parent")
-                {
-                    rowIndex = Layout(rn.children, rowIndex, indent);
-                    continue;
-                }
+				if (rn.fh != null && rn.fh.GetName() == "parent")
+				{
+					rowIndex = Layout(rn.children, rowIndex, indent);
+					continue;
+				}
 
 				Label name = new Label();
 
-                if (rn.fh != null)
-                {
-                    if (rn.fh.IsArray() && !(rn.editor is ArrayEditor))
-                        name.Content = rn.fh.GetName() + "[" + (idx++) + "]";
-                    else
-                        name.Content = rn.fh.GetName();
-                }
-                else
-                {
-                    name.Content = rn.mi.GetPath();
-                }
+				if (rn.fh != null)
+				{
+					if (rn.fh.IsArray() && !(rn.editor is ArrayEditor))
+						name.Content = rn.fh.GetName() + "[" + (idx++) + "]";
+					else
+						name.Content = rn.fh.GetName();
+				}
+				else
+				{
+					name.Content = rn.mi.GetPath();
+				}
 
 				name.HorizontalAlignment = HorizontalAlignment.Left;
 				name.VerticalAlignment = VerticalAlignment.Center;
@@ -182,12 +186,12 @@ namespace Editor
 					if (rn.arrayIndex == -1)
 					{
 						b.Content = "Add";
-                        b.Click += delegate { InsertClick(rn); };
+						b.Click += delegate { InsertClick(rn); };
 					}
 					else
 					{
 						b.Content = "Del";
-                        b.Click += delegate { EraseClick(rn); };
+						b.Click += delegate { EraseClick(rn); };
 					}
 
 					Grid.SetRow(b, rowIndex);
@@ -195,7 +199,7 @@ namespace Editor
 					m_grid.Children.Add(b);
 				}
 
-                rn.editor.OnConnect(this);
+				rn.editor.OnConnect(this);
 
 				m_grid.Children.Add(name);
 				m_grid.Children.Add(ec);

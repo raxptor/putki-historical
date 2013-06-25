@@ -14,17 +14,11 @@ namespace putki
 	{
 		enum
 		{
-			PHASE_1 = 1,
-			PHASE_2 = 2,
-			PHASE_3 = 4
+			PHASE_INDIVIDUAL = 1,
+			PHASE_GLOBAL     = 2,   // build for things that need global scans.
+			PHASE_FINAL      = 4    // build steps fro things that could be created from global scan.
 		};
 		
-		enum
-		{
-			SOURCE_OBJECT = 1,
-			OUTPUT_OBJECT = 2
-		};
-	
 		struct data;
 
 		struct handler_i
@@ -41,6 +35,8 @@ namespace putki
 		void build_references(data *builder, db::data *input, db::data *output, type_handler_i *type, int obj_phase, instance_t obj);
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
+		void build_global_pass(data *builder, db::data *input, db::data *output);
+		void build_final_pass(data *builder, db::data *input, db::data *output);
 
 		// App specific callbacks for setting up & packaging.
 		typedef void (*builder_setup_fn)(builder::data *builder);
@@ -56,6 +52,7 @@ namespace putki
 		const char *res_path(data *d);
 		const char *tmp_path(data *d);
 		const char *out_path(data *d);
+		const char *dbg_path(data *d);
 	}
 	
 }

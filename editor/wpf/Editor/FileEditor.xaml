@@ -14,7 +14,7 @@
             <ColumnDefinition Width="25">
             </ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TextBox Grid.Column="0" x:Name="m_tbox" HorizontalAlignment="Stretch" Height="20" TextWrapping="Wrap" Background="Red" Text="TextBox" />
+        <TextBox Grid.Column="0" x:Name="m_tbox" HorizontalAlignment="Stretch" Height="15" TextWrapping="Wrap" Text="TextBox" />
         <Button Grid.Column="1" Content="X" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch" Click="OnNull"></Button>
         <Button Grid.Column="2" Content="..." HorizontalContentAlignment="Center" HorizontalAlignment="Stretch" Click="OnBrowse" ></Button>
     </Grid>
