@@ -49,6 +49,7 @@ namespace putki
 		{
 		case FIELDTYPE_STRING:
 			return "const char*";
+		case FIELDTYPE_ENUM:
 		case FIELDTYPE_INT32:
 			return "int";
 		case FIELDTYPE_BYTE:
@@ -61,7 +62,13 @@ namespace putki
 	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
 	{
 		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_STRING) // note string too! (because char*)
+		{
 			return ptr_sub(rt);
+		}
+		else if (f == FIELDTYPE_ENUM)
+		{
+			return "int";
+		}
 		else if (f == FIELDTYPE_BOOL)
 		{
 			if (rt->boolsize == 1)
@@ -99,7 +106,7 @@ namespace putki
 
 	std::string putki_field_type(putki::parsed_field *pf)
 	{
-		if (pf->type == FIELDTYPE_STRUCT_INSTANCE)
+		if (pf->type == FIELDTYPE_STRUCT_INSTANCE || pf->type == FIELDTYPE_ENUM)
 			return pf->ref_type.c_str();
 		else if (pf->type == FIELDTYPE_POINTER)
 			return pf->ref_type + "*";
@@ -135,6 +142,30 @@ namespace putki
 		if (!rt)
 			out.line() << "#include <putki/types.h>";
 
+		out.line();
+		out.line() << "namespace outki {";
+		out.indent(1);
+		out.line() << "// Enums";
+
+		for (size_t i=0;i<file->enums.size();i++)
+		{
+			putki::parsed_enum *e = &file->enums[i];
+			out.line() << "enum " << e->name;
+			out.line() << "{";
+			for (size_t j=0;j<e->values.size();j++)
+			{				
+				if (j > 0)
+					out.cont() << ",";
+				out.line(1) << e->values[j].name << " = " << e->values[j].value;
+			}
+			out.line() << "};";
+		}
+
+		out.line();
+		out.indent(-1);
+		out.line() << "}";
+		out.line();
+
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -145,6 +176,7 @@ namespace putki
 			out.line() << "namespace outki {";
 			out.indent(1);
 			out.line();
+
 			out.line() << "#pragma pack(push, 1)";
 			out.line() << "struct " << s->name << " {";
 			out.indent(1);
@@ -187,6 +219,12 @@ namespace putki
 							else
 								out.cont() << f->ref_type << " *";
 						}
+						break;
+					case FIELDTYPE_ENUM:
+						if (rt)
+							out.cont() << rt_wrap_field_type(FIELDTYPE_ENUM, rt) << " ";
+						else
+							out.cont() << f->ref_type << " ";
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.cont() << f->ref_type << " ";
@@ -383,6 +421,44 @@ namespace putki
 		out.line() << "namespace inki {";
 		out.indent(1);
 
+
+		for (size_t i=0;i<file->enums.size();i++)
+		{
+			putki::parsed_enum *e = &file->enums[i];
+			out.line() << "enum " << e->name;
+			out.line() << "{";
+			for (size_t j=0;j<e->values.size();j++)
+			{
+				if (j > 0)
+					out.cont() << ",";
+				out.line(1) << e->values[j].name << " = " << e->values[j].value;
+			}
+			out.line() << "};";
+			out.line();
+			out.line() << "inline " << e->name << " " << e->name << "_from_string(const char *val)";
+			out.line() << "{";
+			out.indent(1);
+			for (size_t j=0;j<e->values.size();j++)
+				out.line() << "if (!strcmp(val, \"" << e->values[j].name << "\")) return " << e->values[j].name << ";";
+			out.line() << "return (" << e->name << ") 0;";
+			out.indent(-1);
+			out.line() << "}";
+						
+			out.line() << "inline const char * " << e->name << "_to_string(" << e->name << " val)";
+			out.line() << "{";
+			out.indent(1);
+			out.line() << "switch (val)";
+			out.line() << "{";
+			out.indent(1);			
+			for (size_t j=0;j<e->values.size();j++)
+				out.line() << "case " << e->values[j].value << ": return \"" << e->values[j].name << "\";";
+			out.line() << "default: return \"unknown-enum-val-" << e->name << "\";";
+			out.indent(-1);
+			out.line() << "}";
+			out.indent(-1);
+			out.line() << "}";
+		}
+
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
@@ -415,6 +491,9 @@ namespace putki
 					case FIELDTYPE_FLOAT:
 					case FIELDTYPE_POINTER:
 						out.line() << s->fields[j].name << " = 0;";
+						break;
+					case FIELDTYPE_ENUM:
+						out.line() << s->fields[j].name << " = (" << s->fields[j].ref_type << ")0;";
 						break;
 					case FIELDTYPE_BOOL:
 						out.line() << s->fields[j].name << " = false;";
@@ -535,6 +614,10 @@ namespace putki
 		else if (f->type == FIELDTYPE_BOOL)
 		{
 			out.line() << ref << " = putki::parse::get_value_int(" << node << ") != 0;";
+		}
+		else if (f->type == FIELDTYPE_ENUM)
+		{
+			out.line() << ref << " = inki::" << f->ref_type << "_from_string(putki::parse::get_value_string(" << node << "));";
 		}
 		else if (f->type == FIELDTYPE_STRUCT_INSTANCE)
 		{
@@ -737,6 +820,10 @@ namespace putki
 			{
 				out.line() << "out << " << delim << "" << ref << ";";
 			}
+			else if (fd.type == FIELDTYPE_ENUM)
+			{
+				out.line() << "out << " << delim << " \"\\\"\" << inki::" << fd.ref_type << "_to_string(" << ref << ") << \"\\\"\" ;";
+			}
 			else if (fd.type == FIELDTYPE_POINTER)
 			{
 				out.line() << "out << " << delim <<  "putki::write::json_str(putki::db::pathof_including_unresolved(ref_source, " << ref << "));";
@@ -925,6 +1012,10 @@ namespace putki
 				else if (fd.type == FIELDTYPE_POINTER)
 				{
 					out.line() << outd << " = (" << ptr_sub(rt) << ")((char*)" << srcd << " - (char*)0);";
+				}
+				else if (fd.type == FIELDTYPE_ENUM)
+				{
+					out.line() << outd << " = (" << rt_wrap_field_type(fd.type, rt) << ") " << srcd << ";";
 				}
 				else if (fd.type == FIELDTYPE_BOOL)
 				{

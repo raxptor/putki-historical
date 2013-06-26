@@ -21,6 +21,18 @@ namespace putki
 		std::string ref_type;
 	};
 
+	struct enum_value
+	{
+		std::string name;
+		int value;
+	};
+
+	struct parsed_enum
+	{
+		std::string name;
+		std::vector<enum_value> values;
+	};
+
 	struct parsed_struct
 	{
 		int domains;
@@ -36,6 +48,7 @@ namespace putki
 		std::string filename;
 		std::string sourcepath;
 		std::vector<parsed_struct> structs;
+		std::vector<parsed_enum> enums;
 		std::vector<std::string> includes;
 	};
 

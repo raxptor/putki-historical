@@ -20,6 +20,7 @@ namespace putki
 				return "bool";
 			case FIELDTYPE_POINTER:
 			case FIELDTYPE_STRUCT_INSTANCE:
+			case FIELDTYPE_ENUM:
 				return f->ref_type;
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
@@ -58,6 +59,22 @@ namespace putki
 		out.line() << "namespace outki";
 		out.line() << "{";
 		out.indent(1);
+
+		out.line() << "// Enums";
+
+		for (size_t i=0;i<file->enums.size();i++)
+		{
+			putki::parsed_enum *e = &file->enums[i];
+			out.line() << "public enum " << e->name;
+			out.line() << "{";
+			for (size_t j=0;j<e->values.size();j++)
+			{				
+				if (j > 0)
+					out.cont() << ",";
+				out.line(1) << e->values[j].name << " = " << e->values[j].value;
+			}
+			out.line() << "};";
+		}
 				
 		for (size_t i=0;i!=file->structs.size();i++)
 		{
@@ -93,39 +110,43 @@ namespace putki
 				if (!strcmp(f->name.c_str(), "parent"))
 					continue;
 
-				switch (s->fields[i].type)
-				{
-				case FIELDTYPE_INT32:
-				case FIELDTYPE_FLOAT:
-					size += 4;
-					break;
-				case FIELDTYPE_BYTE:
-					size++;
-					break;
-				case FIELDTYPE_POINTER:
-					size += 4;
-					break;
-				case FIELDTYPE_BOOL:
-					size += 1;
-					break;
-				case FIELDTYPE_STRUCT_INSTANCE:
-					size += 0;
-					expr_size_add = " + " + s->fields[i].ref_type + ".SIZE";
-					break;
-				case FIELDTYPE_FILE:
-				case FIELDTYPE_STRING:
-					size += 4;
-					break;
-				}
-
 				if (s->fields[i].is_array)
-					size += 4;
+				{
+					size += 8; // ptr & count
+				}
+				else
+				{
+					switch (s->fields[i].type)
+					{
+					case FIELDTYPE_INT32:
+					case FIELDTYPE_FLOAT:
+					case FIELDTYPE_ENUM:
+						size += 4;
+						break;
+					case FIELDTYPE_BYTE:
+						size++;
+						break;
+					case FIELDTYPE_POINTER:
+						size += 4;
+						break;					
+					case FIELDTYPE_BOOL:
+						size += 1;
+						break;
+					case FIELDTYPE_STRUCT_INSTANCE:
+						size += 0;
+						expr_size_add = " + " + s->fields[i].ref_type + ".SIZE";
+						break;
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_STRING:
+						size += 4;
+						break;
+					}
+				}
 
 				out.line() << "public " << cs_type_name(&s->fields[i]);
 
 				if (f->is_array)
 					out.cont() << "[]";
-
 
 				out.cont() << " " << f->name << ";";
 
@@ -219,7 +240,9 @@ namespace putki
 					case FIELDTYPE_FLOAT:
 						out.line() << field_ref << " = " << content_reader << ".ReadFloat();";
 						break;
-
+					case FIELDTYPE_ENUM:
+						out.line() << field_ref << " = (" << s->fields[i].ref_type << ")" << content_reader << ".ReadInt32();";
+						break;
 					case FIELDTYPE_POINTER:
 						out.line() << ptr_slot_ref << " = " << content_reader << ".ReadInt32();";
 						//out.cont() << f->ref_type;

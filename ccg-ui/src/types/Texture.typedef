@@ -1,3 +1,4 @@
+
 TextureOutput [in, out] rtti
 {
 	float u0
@@ -9,6 +10,13 @@ TextureOutput [in, out] rtti
 TextureOutputPng : TextureOutput
 {
 	string PngPath
+}
+
+TextureOutputDirectX : TextureOutput
+{
+	byte[] Bytes
+	int Width
+	int Height
 }
 
 Texture [in, out] rtti

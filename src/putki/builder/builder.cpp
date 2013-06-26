@@ -205,11 +205,14 @@ namespace putki
 					// note these are in the output
 					type_handler_i *th;
 					instance_t obj;
-					if (db::fetch(tmp_output, br.created[outpos].c_str(), &th, &obj))
+
+					std::string cr_path = br.created[outpos];
+
+					if (db::fetch(tmp_output, cr_path.c_str(), &th, &obj))
 					{
 						buildrecord::data suboutput;
 						suboutput.dependencies = br.dependencies; // inherit dependencies.
-						build_source_object(builder, &br, PHASE_INDIVIDUAL, input, br.created[outpos].c_str(), obj, th, tmp_output);
+						build_source_object(builder, &br, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
 
 						for (unsigned int j=0;j<suboutput.created.size();j++)
 							br.created.push_back(suboutput.created[j]);

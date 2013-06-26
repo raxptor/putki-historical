@@ -1,0 +1,8 @@
+{
+	type: "Translation",
+	data: {
+		Lang: "Finnish",
+		SID: "ID_BANAN",
+		Translation: "Terve!"
+	}
+}

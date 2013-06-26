@@ -1,0 +1,24 @@
+
+enum Language
+{
+	Swedish
+	English
+	French
+	Finnish
+	Japanese
+	Invalid = 100
+	Banani
+	Kaluau = 33333
+}
+
+Translation [in, out]
+{
+	enum Language Lang
+	string SID
+	string Value
+}
+
+StringDatabase [in, out]
+{
+	string[] SIDs
+}

@@ -29,7 +29,7 @@ namespace Putki
 			return val;
 		}
 		
-		public int ReadByte()
+		public byte ReadByte()
 		{
 			return data[pos++];	
 		}

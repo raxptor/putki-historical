@@ -22,6 +22,9 @@ namespace TestLoad
 
 			outki.Font f = (outki.Font)p.Resolve("fonts/calibri");
 			Console.WriteLine("Font is " + f);
+
+			outki.Atlas a = (outki.Atlas)p.Resolve("atlas1");
+			Console.WriteLine("Atlas 1 is " + a);
 		}
 	}
 }

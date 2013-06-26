@@ -13,7 +13,6 @@ AtlasOutput [in, out]
 {
 	int Width
 	int Height
-	float Scale
 	AtlasEntry[] Entries
 	ptr Texture Texture
 }

@@ -15,6 +15,8 @@
 
 #include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
 
+#include "textureconfig.h"
+
 struct atlasbuilder : putki::builder::handler_i
 {
 	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
@@ -91,45 +93,60 @@ struct atlasbuilder : putki::builder::handler_i
 		unsigned int * outBmp = new unsigned int[out_width * out_height];
 		for (int y=0;y<out_height;y++)
 		{
-			for (int x=0;x	<out_width;x++)
+			for (int x=0;x<out_width;x++)
 			{
 				outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xff303030;
 			}
 		}
 
-		for (unsigned int k=0;k<packedRects.size();k++)
+		for (int i=0;i<g_outputTexConfigs;i++)
 		{
-			putki::pngutil::loaded_png const &g = loaded[packedRects[k].id];
-			rbp::Rect const &out = packedRects[k];
-			std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
-
-			for (unsigned int y=0;y<g.height;y++)
-			{
-				for (unsigned int x=0;x<g.width;x++)
-				{
-					outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * y + x];
-				}
-			}
-		}
-
-		std::string output_atlas_path = std::string(path) + "_atlas.png";
-		output_atlas_path = putki::pngutil::write_to_temp(builder, output_atlas_path.c_str(), outBmp, out_width, out_height);
-
-		{
-			std::string outpath = (std::string(path) + "_atlas");
-
-			// create new texture.
-			inki::Texture *texture = inki::Texture::alloc();
-			texture->Source = output_atlas_path;
-			putki::db::insert(output, outpath.c_str(), inki::Texture::th(), texture);
-			putki::buildrecord::add_output(record, outpath.c_str());
-
 			inki::AtlasOutput ao;
-			ao.Texture = texture;
+			
 			ao.Width = out_width;
 			ao.Height = out_height;
-			ao.Scale = 1.0f;
-			atlas->Outputs.push_back(ao);
+
+			for (unsigned int k=0;k<packedRects.size();k++)
+			{
+				putki::pngutil::loaded_png const &g = loaded[packedRects[k].id];
+				rbp::Rect const &out = packedRects[k];
+				std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
+
+				for (unsigned int y=0;y<g.height;y++)
+				{
+					for (unsigned int x=0;x<g.width;x++)
+					{
+						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * y + x];
+					}
+				}
+
+				inki::AtlasEntry e;
+				e.id = atlas->Inputs[packedRects[k].id];
+				e.u0 = float(out.x) / float(out_width);
+				e.v0 = float(out.y) / float(out_height);
+				e.u1 = float(out.x + g.width) / float(out_width);
+				e.v1 = float(out.y + g.height) / float(out_height);
+
+				ao.Entries.push_back(e);
+			}
+
+			std::string output_atlas_path = std::string(path) + "_atlas.png";
+			output_atlas_path = putki::pngutil::write_to_temp(builder, output_atlas_path.c_str(), outBmp, out_width, out_height);
+
+			{
+				std::stringstream str;
+				str << path << "_atlas_" << i;
+				std::string outpath = str.str();
+
+				// create new texture.
+				inki::Texture *texture = inki::Texture::alloc();
+				texture->Source = output_atlas_path;
+				putki::db::insert(output, outpath.c_str(), inki::Texture::th(), texture);
+				putki::buildrecord::add_output(record, outpath.c_str());
+
+				ao.Texture = texture;
+				atlas->Outputs.push_back(ao);
+			}
 		}
 
 		return false;

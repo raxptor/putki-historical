@@ -10,6 +10,8 @@
 
 #include <inki/types/Texture.h>
 
+#include "textureconfig.h"
+
 struct texbuilder : putki::builder::handler_i
 {
 	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
