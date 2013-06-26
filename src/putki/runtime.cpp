@@ -39,10 +39,10 @@ namespace putki
 		{
 			static const int count = 4;
 			static const desc rtd[count] = {
-				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, true},
-				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, true},
-				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, true},
-				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, true}
+				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, 1, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, 1, true}
 			};
 
 			if (index < count)
@@ -55,6 +55,7 @@ namespace putki
 			static desc rt;
 			rt.platform = platform();
 			rt.ptrsize = sizeof(void*);
+			rt.boolsize = sizeof(bool);
 			rt.low_byte_first = true; // todo: fix
 			return &rt;
 		}

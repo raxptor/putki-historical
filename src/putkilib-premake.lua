@@ -1,11 +1,3 @@
-
-	configuration {"windows"}
-		defines {"USE_WINSOCK"}
-		links {"ws2_32"}
-
-	configuration {"gmake"}
-		links {"pthread"}
-
 	project "jsmn"
 		kind "StaticLib"
 		targetname "jsmn"
@@ -13,9 +5,11 @@
 		files { "../external/jsmn/*.cpp", "../external/jsmn/*.h"}
 	
 	project "putki-lib"
+
 		kind "StaticLib"
 		language "C++"
 		targetname "putki-lib"
+
 		files { "../src/**.cpp", "../src/**.h" }
 		files { "../builder/src/*.cpp" }
 
@@ -25,7 +19,15 @@
 		includedirs { "../src", "../external", "../external/libpng"}
 		links {"jsmn", "libpng"}
 
+		configuration {"windows"}
+			defines {"USE_WINSOCK"}
+			links {"ws2_32"}
+
+		configuration {"gmake"}
+			links {"pthread"}
+
 	project "putki-data-dll-lib"
+
 		kind "StaticLib"
 		language "C++"
 		targetname "putki-data-dll"

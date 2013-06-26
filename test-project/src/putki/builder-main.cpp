@@ -14,13 +14,8 @@ namespace inki
 
 struct blob_handler : public putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::db::data *input, const char *path, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
-		putki::type_handler_i *th;
-		putki::instance_t obj;
-		if (!putki::db::fetch(input, path, &th, &obj))
-			return false;
-
 		inki::gurka *b = (inki::gurka*) obj;
 
 		std::string out;
@@ -29,7 +24,7 @@ struct blob_handler : public putki::builder::handler_i
 
 		b->smaskighet = out;
 
-		putki::db::insert(output, path, th, b);
+		putki::db::insert(output, path, inki::gurka::th(), b);
 		return true;
 		
 	}

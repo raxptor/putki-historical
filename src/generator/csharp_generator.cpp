@@ -16,6 +16,8 @@ namespace putki
 				return "byte";
 			case FIELDTYPE_FLOAT:
 				return "float";
+			case FIELDTYPE_BOOL:
+				return "bool";
 			case FIELDTYPE_POINTER:
 			case FIELDTYPE_STRUCT_INSTANCE:
 				return f->ref_type;
@@ -37,6 +39,8 @@ namespace putki
 				return "1";
 			case FIELDTYPE_POINTER:
 				return "4";
+			case FIELDTYPE_BOOL:
+				return "1";
 			case FIELDTYPE_STRUCT_INSTANCE:
 				return f->ref_type + ".SIZE";
 			case FIELDTYPE_FILE:
@@ -101,6 +105,9 @@ namespace putki
 				case FIELDTYPE_POINTER:
 					size += 4;
 					break;
+				case FIELDTYPE_BOOL:
+					size += 1;
+					break;
 				case FIELDTYPE_STRUCT_INSTANCE:
 					size += 0;
 					expr_size_add = " + " + s->fields[i].ref_type + ".SIZE";
@@ -135,13 +142,18 @@ namespace putki
 			}
 
 			out.line() << "// Generated constants";
-			out.line() << "public const int SIZE = " << size << expr_size_add <<";";
+
+			std::string new_hide_str = "";
+			if (!s->parent.empty())
+				new_hide_str = "new ";
+
+			out.line() << new_hide_str << "public const int SIZE = " << size << expr_size_add <<";";
 
 			out.line();
 			out.line() << "// Generated functions";
 
 			// Load from package
-			out.line() << "public static " << s->name << " LoadFromPackage(Putki.PackageReader reader, Putki.PackageReader aux)";
+			out.line() << new_hide_str << "public static " << s->name << " LoadFromPackage(Putki.PackageReader reader, Putki.PackageReader aux)";
 			out.line() << "{";
 			out.line(1) << s->name << " tmp = new " << s->name << "();";
 			out.line(1) << "tmp.ParseFromPackage_" << s->name << "(reader, aux);";
@@ -201,6 +213,9 @@ namespace putki
 					case FIELDTYPE_BYTE:
 						out.line() << field_ref << " = " << content_reader << ".ReadByte();";
 						break;
+					case FIELDTYPE_BOOL:
+						out.line() << field_ref << " = " << content_reader << ".ReadByte() != 0;";
+						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << field_ref << " = " << content_reader << ".ReadFloat();";
 						break;
@@ -234,7 +249,7 @@ namespace putki
 
 			// Resolve pointers
 			out.line();
-			out.line() << "public void ResolveFromPackage(Putki.Package pkg)";
+			out.line() << new_hide_str << "public void ResolveFromPackage(Putki.Package pkg)";
 			out.line() << "{";
 			out.indent(1);
 			

@@ -11,23 +11,27 @@ namespace putki
 {
 	namespace resource
 	{
-		bool load(builder::data *bld, const char *path, const char **outBytes, long long *outSize)
+		std::string real_path(builder::data *builder, const char *path)
 		{
 			std::string full_path;
 			const char *ps = path;
 
 			if (path[0] == '%')
 			{
-				full_path = builder::tmp_path(bld);
+				full_path = builder::tmp_path(builder);
 				ps++;
 			}
 			else
 			{
-				full_path = builder::res_path(bld);
+				full_path = builder::res_path(builder);
 			}
 			
-			full_path.append("/");
-			full_path.append(ps);
+			return full_path + "/" + ps;
+		}
+
+		bool load(builder::data *bld, const char *path, const char **outBytes, long long *outSize)
+		{
+			std::string full_path = real_path(bld, path);
 			std::cout << "I want to load [" << full_path << "]!" << std::endl;
 
 			std::ifstream f(full_path.c_str(), std::ios::binary);	

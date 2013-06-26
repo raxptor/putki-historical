@@ -1,4 +1,5 @@
 solution "CCG-UI"
+
 	configurations {"Release", "Debug"}
 	location "build"
 	targetdir "build"
@@ -66,3 +67,13 @@ solution "CCG-UI"
 		links { "putki-data-dll-lib" }
 		links { "jsmn" }
 
+	project "ccg-ui-viewer"
+		kind "WindowedApp"
+		language "C#"
+		targetname "ccg-ui-viewer"
+
+		files { "src/viewer/**.*"}		
+		files { "_gen/outki_csharp/**.cs"}
+		files { "../src/csharp-runtime/**.cs"}
+
+		

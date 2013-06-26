@@ -1,7 +1,0 @@
-{ 
-	type: "testobj",
-	data: { 
-		curken: "Bananakalle", 
-		dasblob: "stuff/blob2" 
-	}
-}

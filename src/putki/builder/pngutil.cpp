@@ -48,7 +48,6 @@ namespace putki
 
 		write_buffer write_to_mem(unsigned int *pixbuf, unsigned int width, unsigned int height)
 		{
-			FILE * fp;
 			png_structp png_ptr = NULL;
 			png_infop info_ptr = NULL;
 			size_t x, y;
@@ -82,7 +81,7 @@ namespace putki
 			for (y = 0; y < height; ++y)
 			{
 				png_byte *row = (png_byte*) png_malloc(png_ptr, width * 4);
-				row_pointers[y] = row;
+				row_pointers[height - y - 1] = row;
 				for (x = 0; x < width; ++x) 
 				{
 					*row++ = (pixbuf[y * width + x] >> 16) & 0xff;
@@ -108,9 +107,6 @@ namespace putki
 
 			status = 0;
 
-			fp = fopen("c:\\utput.png", "wb");
-			fwrite(wb.output, 1, wb.size, fp);
-    
 			for (y=0;y<height;y++)
 			{
 				png_free(png_ptr, row_pointers[y]);
@@ -120,7 +116,6 @@ namespace putki
 			png_create_info_struct_failed:
 			png_destroy_write_struct (&png_ptr, &info_ptr);
 			png_create_write_struct_failed:
-			fclose(fp);
 
 			return wb;
 		}
@@ -132,12 +127,102 @@ namespace putki
 			if (wb.output)
 			{
 				outpath = putki::resource::save_temp(builder, path, wb.output, (long long) wb.size);
-				free(wb.output);
+				::free(wb.output);
 			}
 
 			return outpath;
 		}
 
+		std::string write_to_output(builder::data *builder, const char *path, unsigned int *pixbuf, unsigned int width, unsigned int height)
+		{
+			std::string outpath;
+			write_buffer wb = write_to_mem(pixbuf, width, height);
+			if (wb.output)
+			{
+				outpath = putki::resource::save_output(builder, path, wb.output, (long long) wb.size);
+				::free(wb.output);
+			}
+			return outpath;
+		}
+
+		bool load(const char *path, loaded_png *out)
+		{
+			png_structp png_ptr;
+			png_infop info_ptr;
+			unsigned int sig_read = 0;
+			int color_type, interlace_type;
+			FILE *fp;
+ 
+			if (!(fp = fopen(path, "rb")))
+				return false;
+
+			png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+ 
+			if (png_ptr == NULL) 
+			{
+				fclose(fp);
+				return false;
+			}
+ 
+			info_ptr = png_create_info_struct(png_ptr);
+			if (!info_ptr) 
+			{
+				fclose(fp);
+				png_destroy_read_struct(&png_ptr, NULL, NULL);
+				return false;
+			}
+ 
+			png_init_io(png_ptr, fp);
+			png_set_sig_bytes(png_ptr, sig_read);
+
+			png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND, NULL);
+ 
+			png_uint_32 width, height;
+			int bit_depth;
+			png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
+
+			out->width = width;
+			out->height = height;
+ 
+			unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
+			out->pixels = (unsigned int *) ::malloc(4 * width * height);
+			out->bpp = 32;
+ 
+			png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+ 			
+			for (unsigned int i = 0; i < height; i++)
+			{
+				unsigned int *outptr = &out->pixels[width * (height - i - 1)];
+				unsigned char *inptr = row_pointers[i];
+
+				for (unsigned int x=0;x<width;x++)
+				{
+					if (row_bytes >= width * 4)
+					{
+						*outptr++ = (inptr[3] << 24) | (inptr[0] << 16) | (inptr[1] << 8) | inptr[2];
+						inptr += 4;
+					}
+					else if (row_bytes >= width * 3)
+					{
+						*outptr++ = (0xff << 24) | (inptr[0] << 16) | (inptr[1] << 8) | inptr[2];
+						inptr += 3;
+					}
+				}
+			}
+ 
+			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+
+
+ 
+			/* Close the file */
+			fclose(fp);
+			return true;
+		}
+
+		void free(loaded_png *png)
+		{
+
+		}
 	}
 
 }

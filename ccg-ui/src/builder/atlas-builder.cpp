@@ -15,31 +15,12 @@
 
 struct atlasbuilder : putki::builder::handler_i
 {
-
-	struct find_refs : public putki::db::enum_i
-	{
-		std::vector<inki::TextureForAtlas *> sources;
-		inki::Atlas *atlas;
-
-		virtual void record(const char *path, putki::type_handler_i *th, putki::instance_t i)
-		{
-			if (!strcmp(th->name(), "TextureForAtlas"))
-			{
-				inki::TextureForAtlas *tfa = (inki::TextureForAtlas *)i;
-				if (atlas == tfa->AddToAtlas)
-				{
-					sources.push_back(tfa);
-					std::cout << "Adding source [" << path << "]" << std::endl;
-				}
-			}
-		}
-	};
-
-	virtual bool handle(putki::builder::data *builder, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::Atlas *atlas = (inki::Atlas *) obj;
 		std::cout << "Processing atlas [" << path << "]" << std::endl;
 
+		/*
 		putki::instance_t oa;
 		putki::type_handler_i *th;
 		if (putki::db::fetch(input, path, &th, &oa))
@@ -69,6 +50,7 @@ struct atlasbuilder : putki::builder::handler_i
 				atlas->outputs.push_back(res);
 			}
 		}
+		*/
 
 		return false;
 	}

@@ -2,6 +2,7 @@
 #define __putki_databuilder_lib__build__
 
 #include <putki/runtime.h>
+#include <putki/builder/typereg.h>
 
 namespace putki
 {
@@ -16,6 +17,7 @@ namespace putki
 		void full_build(builder::data *builder);
 
 		void post_build_ptr_update(db::data *input, db::data *output);
+		void post_build_merge_database(db::data *source, db::data *target);
 		
 		// can be called from user functions.
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path);

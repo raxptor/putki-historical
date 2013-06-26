@@ -43,6 +43,79 @@ namespace putki
 			return "<unknown ptr sub>";
 	}
 
+	const char *win32_field_type(putki::field_type f)
+	{
+		switch (f)
+		{
+		case FIELDTYPE_STRING:
+			return "const char*";
+		case FIELDTYPE_INT32:
+			return "int";
+		case FIELDTYPE_BYTE:
+			return "unsigned char";
+		default:
+			return "???";
+		}
+	}
+
+	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
+	{
+		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_STRING) // note string too! (because char*)
+			return ptr_sub(rt);
+		else if (f == FIELDTYPE_BOOL)
+		{
+			if (rt->boolsize == 1)
+				return "char";
+			else if (rt->boolsize == 4)
+				return "int";
+			else
+				return "<bool?>";
+		}
+		else
+			return win32_field_type(f);
+	}
+
+	const char *putki_field_type_pod(putki::field_type f)
+	{
+		switch (f)
+		{
+		case FIELDTYPE_STRING:
+		case FIELDTYPE_FILE:
+			return "std::string";
+		case FIELDTYPE_INT32:
+			return "int";
+		case FIELDTYPE_BYTE:
+			return "char";
+		case FIELDTYPE_POINTER:
+			return "void*";
+		case FIELDTYPE_FLOAT:
+			return "float";
+		case FIELDTYPE_BOOL:
+			return "bool";
+		default:
+			return 0;
+		}
+	}
+
+	std::string putki_field_type(putki::parsed_field *pf)
+	{
+		if (pf->type == FIELDTYPE_STRUCT_INSTANCE)
+			return pf->ref_type.c_str();
+		else if (pf->type == FIELDTYPE_POINTER)
+			return pf->ref_type + "*";
+
+		return putki_field_type_pod(pf->type);
+	}
+
+	// cross-platform definitions namespace encapsulation
+	//  
+	const char *runtime_out_ns(runtime::descptr rt)
+	{
+		static char tmp[1024];
+		sprintf(tmp, "out_ns_%s", runtime::desc_str(rt));
+		return tmp;
+	}
+
 	void write_runtime_header(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out)
 	{
 		std::string deftok("__outki_header" + file->filename + "__h__");
@@ -101,7 +174,12 @@ namespace putki
 					case FIELDTYPE_FLOAT:
 						out.cont() << "float ";
 						break;
-
+					case FIELDTYPE_BOOL:
+						if (rt)
+							out.cont() << rt_wrap_field_type(FIELDTYPE_BOOL, rt) << " ";
+						else
+							out.cont() << "bool ";
+						break;
 					case FIELDTYPE_POINTER:
 						{
 							if (rt)
@@ -187,68 +265,6 @@ namespace putki
 
 		if (!rt)
 			out.line() << "#endif";
-	}
-
-	const char *win32_field_type(putki::field_type f)
-	{
-		switch (f)
-		{
-		case FIELDTYPE_STRING:
-			return "const char*";
-		case FIELDTYPE_INT32:
-			return "int";
-		case FIELDTYPE_BYTE:
-			return "unsigned char";
-		default:
-			return "???";
-		}
-	}
-
-	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
-	{
-		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_STRING) // note string too! (because char*)
-			return ptr_sub(rt);
-		else
-			return win32_field_type(f);
-	}
-
-	const char *putki_field_type_pod(putki::field_type f)
-	{
-		switch (f)
-		{
-		case FIELDTYPE_STRING:
-		case FIELDTYPE_FILE:
-			return "std::string";
-		case FIELDTYPE_INT32:
-			return "int";
-		case FIELDTYPE_BYTE:
-			return "char";
-		case FIELDTYPE_POINTER:
-			return "void*";
-		case FIELDTYPE_FLOAT:
-			return "float";
-		default:
-			return 0;
-		}
-	}
-
-	std::string putki_field_type(putki::parsed_field *pf)
-	{
-		if (pf->type == FIELDTYPE_STRUCT_INSTANCE)
-			return pf->ref_type.c_str();
-		else if (pf->type == FIELDTYPE_POINTER)
-			return pf->ref_type + "*";
-
-		return putki_field_type_pod(pf->type);
-	}
-
-	// cross-platform definitions namespace encapsulation
-	//  
-	const char *runtime_out_ns(runtime::descptr rt)
-	{
-		static char tmp[1024];
-		sprintf(tmp, "out_ns_%s", runtime::desc_str(rt));
-		return tmp;
 	}
 
 	void write_runtime_impl(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out)
@@ -515,6 +531,10 @@ namespace putki
 		else if (f->type == FIELDTYPE_FLOAT)
 		{
 			out.line() << ref << " = " << "(" << putki_field_type(f) << ") atof(putki::parse::get_value_string(" << node << ")); ";
+		}
+		else if (f->type == FIELDTYPE_BOOL)
+		{
+			out.line() << ref << " = putki::parse::get_value_int(" << node << ") != 0;";
 		}
 		else if (f->type == FIELDTYPE_STRUCT_INSTANCE)
 		{
@@ -906,7 +926,11 @@ namespace putki
 				{
 					out.line() << outd << " = (" << ptr_sub(rt) << ")((char*)" << srcd << " - (char*)0);";
 				}
-				else if (fd.type == FIELDTYPE_BOOL || fd.type == FIELDTYPE_BYTE || fd.type == FIELDTYPE_FLOAT)
+				else if (fd.type == FIELDTYPE_BOOL)
+				{
+					out.line() << outd << " = (" << rt_wrap_field_type(fd.type, rt) << ") " << srcd << ";";
+				}
+				else if (fd.type == FIELDTYPE_BYTE || fd.type == FIELDTYPE_FLOAT)
 				{
 					out.line() << outd << " = " << srcd << ";";
 				}

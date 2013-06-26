@@ -69,7 +69,7 @@ namespace
 					std::cout << "=> Adding unresolved pointer for output for path [" << path << "]" << std::endl;
 				}
 				
-				//std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
+				std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
 				// rewrite to output domain
 				*on = obj;
 				return;
@@ -95,7 +95,6 @@ namespace
 		{
 			// forward all objects directly to the output db. we can't clone them here or all 
 			// pointers to them will become wild.
-			std::cout << "         Produced item [" << path << "]" << std::endl;
 			putki::db::insert(output, path, th, obj);
 		}
 	};
@@ -107,20 +106,16 @@ namespace
 		
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			std::cout << "Building source file [" << path << "]..." << std::endl;
+			std::cout << "=> Building source file [" << path << "]..." << std::endl;
 
 			putki::db::data *tmp_db = putki::db::create();
 			putki::builder::build_source_object(builder, input, path, tmp_db);
 
-			build_record_handle brp;
-			brp.input = tmp_db;
-			brp.output = output;
-			putki::db::read_all(tmp_db, &brp);
+			putki::build::post_build_merge_database(tmp_db, output);
 
 			putki::db::free(tmp_db);
 		}
 	};
-	
 
 	struct read_output : public putki::db::enum_i
 	{
@@ -188,7 +183,16 @@ namespace putki
 			dsw.output = output;
 			db::read_all(output, &dsw);
 		}
-	
+
+		// merges objects from source into target.
+		void post_build_merge_database(putki::db::data *source, db::data *target)
+		{
+			build_record_handle brp;
+			brp.input = source;
+			brp.output = target;
+			putki::db::read_all(source, &brp);
+		}
+
 		void full_build(putki::builder::data *builder)
 		{
 			std::cout << "=> Starting full build" << std::endl;
@@ -207,37 +211,26 @@ namespace putki
 			
 			// go!
 			db::read_all(input, &bsf);
-			
-			// std::cout << "=> Domain switching pointers for global pass." << std::endl;
-			post_build_ptr_update(input, bsf.output);
 
-			// GLOBAL PHASE
+			post_build_ptr_update(input, bsf.output);
+						
+			// GLOBAL PASS
 
 			db::data *global_out = db::create();
 			builder::build_global_pass(builder, bsf.output, global_out);
 		
 			// std::cout << "=> Domain switching pointers from global pass." << std::endl;
 			post_build_ptr_update(bsf.output, global_out);
+
 			db::free(bsf.output);
-
-			// FINALIZE PASS
-
-			db::data *fin = db::create();
-			builder::build_final_pass(builder, global_out, fin);
-		
-			// std::cout << "=> Domain switching pointers from final pass." << std::endl;
-			post_build_ptr_update(global_out, fin);
-
-			// write debug
 
 			std::cout << "=> Writing final .json objects for debug" << std::endl;
 			write_debug_json js;
 			js.path_base = builder::dbg_path(builder);
-			js.db = fin;
+			js.db = global_out;
 			js.builder = builder;
-			db::read_all(fin, &js);
+			db::read_all(global_out, &js);
 
-			db::free(global_out);
 
 			std::cout << "=> Packaging data." << std::endl;
 
@@ -247,7 +240,9 @@ namespace putki
 			packaging_config pconf;
 			pconf.package_path = pkg_path;
 			pconf.rt = builder::runtime(builder);
-			putki::builder::invoke_packager(fin, &pconf);
+			putki::builder::invoke_packager(global_out, &pconf);
+
+			db::free(global_out);
 		}
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)

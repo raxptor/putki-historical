@@ -9,21 +9,23 @@ namespace putki
 {
 	namespace db { struct data; }
 	namespace resource { struct data; }
+
+	namespace buildrecord { struct data; }
 	
 	namespace builder
 	{
 		enum
 		{
 			PHASE_INDIVIDUAL = 1,
-			PHASE_GLOBAL     = 2,   // build for things that need global scans.
-			PHASE_FINAL      = 4    // build steps fro things that could be created from global scan.
+			PHASE_GLOBAL     = 2,   // build for things that need global scans, cannot produce new outputs.
 		};
 		
 		struct data;
+		struct record_data;
 
 		struct handler_i
 		{
-			virtual bool handle(data *builder, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
+			virtual bool handle(data *builder, buildrecord::data *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 	
 		data* create(runtime::descptr rt, const char *basepath);
@@ -46,7 +48,7 @@ namespace putki
 		void set_packager(packaging_fn fn);
 		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf);
 
-		void build_error(data *builder, const char *str);
+		void build_error(builder::data *data, const char *error);
 
 		const char *obj_path(data *d);
 		const char *res_path(data *d);
@@ -55,6 +57,11 @@ namespace putki
 		const char *dbg_path(data *d);
 	}
 	
+	namespace buildrecord
+	{
+		void add_input_dependency(buildrecord::data *br, const char *path);
+		void add_output(buildrecord::data *br, const char *path);
+	}
 }
 
 #endif

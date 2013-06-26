@@ -15,4 +15,5 @@ Texture [in, out] rtti
 {
 	[no-out] file Source
 	[hidden] ptr TextureOutput Output
+	[no-out] bool NoOutput
 }

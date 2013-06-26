@@ -18,7 +18,7 @@
 
 struct fontbuilder : putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::Font *font = (inki::Font *) obj;
 
@@ -164,12 +164,18 @@ struct fontbuilder : putki::builder::handler_i
 			// create & insert texture.
 			
 			{
+				std::string outpath = (std::string(path) + "_atlas");
+
+				// create new texture.
 				inki::Texture *texture = inki::Texture::alloc();
 				texture->Source = output_atlas_path;
-				putki::db::insert(output, (std::string(path) + "_atlas").c_str(), inki::Texture::th(), texture);
+				putki::db::insert(output, outpath.c_str(), inki::Texture::th(), texture);
 
 				// give font the texture.
 				font->OutputTexture = texture;
+
+				// add it so it will be built.
+				putki::buildrecord::add_output(record, outpath.c_str());
 			}
 			
 			return false;

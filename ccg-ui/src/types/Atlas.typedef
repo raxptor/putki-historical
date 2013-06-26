@@ -24,9 +24,3 @@ Atlas [in, out]
 	[no-out] int ScaleDowns
 	[hidden] AtlasOutput[] outputs
 }
-
-TextureForAtlas [in, out] : Texture
-{
-	ptr Atlas AddToAtlas
-	string id
-}
