@@ -14,13 +14,13 @@ AtlasOutput [in, out]
 	int Width
 	int Height
 	float Scale
-	AtlasEntry[] entries
-	ptr Texture texture
+	AtlasEntry[] Entries
+	ptr Texture Texture
 }
 
 Atlas [in, out]
 {
-	file[] inputs
+	file[] Inputs
 	[no-out] int ScaleDowns
-	[hidden] AtlasOutput[] outputs
+	[hidden] AtlasOutput[] Outputs
 }

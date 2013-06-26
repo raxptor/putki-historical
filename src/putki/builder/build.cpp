@@ -215,22 +215,21 @@ namespace putki
 			post_build_ptr_update(input, bsf.output);
 						
 			// GLOBAL PASS
+			{
+				db::data *global_out = db::create();
+				builder::build_global_pass(builder, bsf.output, global_out);
+				build::post_build_merge_database(global_out, bsf.output);
+				db::free(global_out);
+			}
 
-			db::data *global_out = db::create();
-			builder::build_global_pass(builder, bsf.output, global_out);
-		
-			// std::cout << "=> Domain switching pointers from global pass." << std::endl;
-			post_build_ptr_update(bsf.output, global_out);
-
-			db::free(bsf.output);
+			post_build_ptr_update(input, bsf.output);	
 
 			std::cout << "=> Writing final .json objects for debug" << std::endl;
 			write_debug_json js;
 			js.path_base = builder::dbg_path(builder);
-			js.db = global_out;
+			js.db = bsf.output;
 			js.builder = builder;
-			db::read_all(global_out, &js);
-
+			db::read_all(bsf.output, &js);
 
 			std::cout << "=> Packaging data." << std::endl;
 
@@ -240,9 +239,9 @@ namespace putki
 			packaging_config pconf;
 			pconf.package_path = pkg_path;
 			pconf.rt = builder::runtime(builder);
-			putki::builder::invoke_packager(global_out, &pconf);
+			putki::builder::invoke_packager(bsf.output, &pconf);
 
-			db::free(global_out);
+			db::free(bsf.output);
 		}
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)

@@ -1,0 +1,53 @@
+{
+	type: "difficulties",
+	data: {
+			"kalle": "Gurken",
+			"difficulty": ["levels/1/bleh#qhcp", "levels/1/bleh#ncel", "levels/1/bleh#qbcm"],
+			"outlist": []
+	},
+	aux: [
+		{
+			ref: "#qhcp",
+			type: "difficulty_setting_ext2",
+			data: {
+					"parent": {
+						"_rtti_type": 103,
+						"name": "",
+						"level": 0,
+						"sublevels": []
+				},
+					"extra_info1": "",
+					"extra_info2": ""
+			}
+		}
+		,
+		{
+			ref: "#ncel",
+			type: "difficulty_setting_ext2",
+			data: {
+					"parent": {
+						"_rtti_type": 103,
+						"name": "",
+						"level": 0,
+						"sublevels": []
+				},
+					"extra_info1": "",
+					"extra_info2": "hntht"
+			}
+		}
+		,
+		{
+			ref: "#qbcm",
+			type: "difficulty_setting_ext1",
+			data: {
+					"parent": {
+						"_rtti_type": 102,
+						"name": "nthsnhsnhnsthntsh",
+						"level": 0,
+						"sublevels": []
+				},
+					"first_ext": ""
+			}
+		}
+	      ]
+}

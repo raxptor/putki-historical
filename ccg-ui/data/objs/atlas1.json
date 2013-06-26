@@ -1,5 +1,7 @@
 {
 	type: "Atlas",
 	data: {
+		Inputs: ["textures/dino1.png", "textures/dino2.png"]
 	}
 }
+
