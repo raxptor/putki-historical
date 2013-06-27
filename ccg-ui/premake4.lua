@@ -67,6 +67,8 @@ solution "CCG-UI"
 		links { "putki-data-dll-lib" }
 		links { "jsmn" }
 
+ if os.get() == "windows" then
+
 	project "ccg-ui-viewer"
 		kind "WindowedApp"
 		language "C#"
@@ -77,3 +79,4 @@ solution "CCG-UI"
 		files { "../src/csharp-runtime/**.cs"}
 
 		
+end

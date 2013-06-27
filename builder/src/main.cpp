@@ -4,6 +4,8 @@
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/runtime.h>
 
+#include <stdint.h>
+
 #if defined(USE_WINSOCK)
 	#pragma comment(lib, "ws2_32.lib")
 	#pragma comment(lib, "wsock32.lib")

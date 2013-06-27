@@ -12,6 +12,8 @@
 #include <queue>
 #include <vector>
 #include <set>
+#include <cstdio>
+
 
 #if defined(USE_WINSOCK)
 	#include <winsock2.h>
@@ -21,6 +23,7 @@
 	#include <pthread.h>
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
+	#include <unistd.h>
 #endif
 
 namespace putki

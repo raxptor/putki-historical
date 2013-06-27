@@ -15,6 +15,7 @@
 #include <sstream>
 #include <fstream>
 
+#include <malloc.h>
 
 #ifdef _WIN32
 

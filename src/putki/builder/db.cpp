@@ -6,6 +6,9 @@
 #include <set>
 #include <vector>
 
+#include <cstdlib>
+#include <cstdio>
+
 #include <putki/sys/compat.h>
 
 namespace putki
@@ -78,8 +81,6 @@ namespace putki
 		
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
-			if (strlen(path) > 30)
-				__asm int 3
 			std::cout << " db insert on path [" << path << "]" << std::endl;
 			entry e;
 			e.th = th;

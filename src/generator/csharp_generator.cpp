@@ -2,6 +2,7 @@
 
 #include <putki/domains.h>
 #include <iostream>
+#include <cstring>
 
 namespace putki
 {

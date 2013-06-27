@@ -304,9 +304,9 @@ namespace putki
 							putki::enum_value ev;
 							ev.value = -666;
 
-							while (line.size() && (line.back() == ' ' || line.back() == ','))
-								line.pop_back();
-							while (line.size() && (line.front() == ' ' || line.front() == '\t'))
+							while (line.size() && (line[line.size()-1] == ' ' || line[line.size()-1] == ','))
+								line.erase(line.size()-1,1);
+							while (line.size() && (line[0] == ' ' || line[0] == '\t'))
 								line.erase(0,1);
 
 							int value = -666;
@@ -321,8 +321,8 @@ namespace putki
 
 							ev.name = line.substr(0, end);
 
-							while (ev.name.size() && (ev.name.back() == ' ' || ev.name.back() == ','))
-								ev.name.pop_back();
+							while (ev.name.size() && (ev.name[ev.name.size()-1] == ' ' || ev.name[ev.name.size()-1] == ','))
+								ev.name.erase(ev.name.size()-1,1);
 
 							enum_.values.push_back(ev);
 						}

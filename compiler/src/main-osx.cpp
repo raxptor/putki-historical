@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cstring>
+
 //#include <unistd.h>
 
 namespace
