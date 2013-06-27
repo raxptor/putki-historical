@@ -41,6 +41,12 @@ String^ TypeDefinition::GetName()
 	return gcnew String(const_cast<putki::ext_type_handler_i *>(handler)->name());
 }
 
+String^ TypeDefinition::GetInlineEditor()
+{
+	return gcnew String(const_cast<putki::ext_type_handler_i *>(handler)->inline_editor());
+}
+
+
 FieldHandler^ TypeDefinition::GetField(int i)
 {
 	putki::ext_field_handler_i *field = handler->field(i);
@@ -58,6 +64,14 @@ String^ FieldHandler::GetName()
 FieldType FieldHandler::GetType()
 {
 	return (FieldType) m_handler->type(); 
+}
+
+String^ FieldHandler::GetEnumValueByIndex(int index)
+{
+	const char *name = m_handler->get_enum_possible_value(index);
+	if (!name)
+		return nullptr;
+	return gcnew String(name);
 }
 
 bool FieldHandler::IsArray()
@@ -110,14 +124,14 @@ MemInstance^ FieldHandler::GetStructInstance(MemInstance^ Obj)
 	return gcnew MemInstance(GetRefType(), m_handler->make_struct_instance(Obj->GetPutkiMemInstance()));
 }
 
-String^ FieldHandler::GetString(MemInstance^ instance)
-{
-	return gcnew String(m_handler->get_string(instance->GetPutkiMemInstance()));
-}
-
 bool FieldHandler::ShowInEditor()
 {
 	return m_handler->show_in_editor();
+}
+
+String^ FieldHandler::GetString(MemInstance^ instance)
+{
+	return gcnew String(m_handler->get_string(instance->GetPutkiMemInstance()));
 }
 
 void FieldHandler::SetString(MemInstance^ instance, String^ Value)
@@ -125,6 +139,19 @@ void FieldHandler::SetString(MemInstance^ instance, String^ Value)
 	msclr::interop::marshal_context context;
 	std::string _value = context.marshal_as<std::string>(Value);
 	m_handler->set_string(instance->GetPutkiMemInstance(), _value.c_str());
+	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
+}
+
+String^ FieldHandler::GetEnum(MemInstance^ instance)
+{
+	return gcnew String(m_handler->get_enum(instance->GetPutkiMemInstance()));
+}
+
+void FieldHandler::SetEnum(MemInstance^ instance, String^ Value)
+{
+	msclr::interop::marshal_context context;
+	std::string _value = context.marshal_as<std::string>(Value);
+	m_handler->set_enum(instance->GetPutkiMemInstance(), _value.c_str());
 	s_dll->on_object_modified(s_dll->path_of(instance->GetPutkiMemInstance()));
 }
 
@@ -193,6 +220,13 @@ bool FieldHandler::IsAuxPtr()
 MemInstance^ Sys::CreateAuxInstance(MemInstance ^onto, TypeDefinition^ type)
 {
 	return gcnew MemInstance(type, s_dll->create_aux_instance(onto->GetPutkiMemInstance(), type->GetPutkiTypeDefinition()));
+}
+
+MemInstance^ Sys::CreateInstance(String^ path, TypeDefinition^ type)
+{
+	msclr::interop::marshal_context context;
+	std::string p = context.marshal_as<std::string>(path);
+	return gcnew MemInstance(type, s_dll->create_instance(p.c_str(), type->GetPutkiTypeDefinition()));
 }
 
 void Sys::MemBuildAsset(String^ path)

@@ -9,6 +9,7 @@
 #include <putki/builder/builder.h>
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/sys/compat.h>
+#include <putki/sys/files.h>
 
 #include <string>
 #include <iostream>
@@ -165,13 +166,15 @@ namespace putki
 
 #ifdef _WIN32
 			for (unsigned int i=0;i<outpath.size();i++)
-				if (outpath[i] == '/')
-					outpath[i] = '\\';
+				if (outpath[i] == '\\')
+					outpath[i] = '/';
 #else
 			for (unsigned int i=0;i<outpath.size();i++)
 				if (outpath[i] == '\\')
 					outpath[i] = '/';
 #endif
+
+			sys::mk_dir_for_path(outpath.c_str());
 
 			std::ofstream f(outpath.c_str());
 			f << tmp.str();

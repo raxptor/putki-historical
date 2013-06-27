@@ -74,9 +74,12 @@ solution "CCG-UI"
 		language "C#"
 		targetname "ccg-ui-viewer"
 
-		files { "src/viewer/**.*"}		
+		files { "src/viewer/**.*"}
+		files { "src/uisystem/**.*"}
 		files { "_gen/outki_csharp/**.cs"}
 		files { "../src/csharp-runtime/**.cs"}
+
+		links { "PresentationFramework", "WindowsBase", "PresentationCore", "System.Xaml", "System" }
 
 		
 end

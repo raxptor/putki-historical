@@ -31,15 +31,18 @@ namespace Editor
 
 		public FileBrowser()
 		{
-			InitializeComponent();
+			InitializeComponent();			
+			m_treeView.SelectedItemChanged += SelectionChanged;
 
+			LoadFromDisk();
+		}
+
+		public void LoadFromDisk()
+		{
 			var itemProvider = new FileTree.ItemProvider();
 			var items = itemProvider.GetItems("c:/gitproj/putki/ccg-ui/data/objs", "");
             //var items = itemProvider.GetItems("c:/gitproj/putki/test-project/data", "");
 			DataContext = items;
-
-
-			m_treeView.SelectedItemChanged += SelectionChanged;
 		}
 
 		private void SelectionChanged(object sender, RoutedPropertyChangedEventArgs<Object> e)

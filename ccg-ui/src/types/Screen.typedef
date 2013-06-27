@@ -1,0 +1,16 @@
+#include Elements.typedef
+#include Atlas.typedef
+
+enum UIScaleMode
+{
+	ScaleMode_None,
+	ScaleMode_Proportional,
+}
+
+UIScreen [in, out]
+{
+	enum UIScaleMode ScaleMode
+	ptr UIWidget Root
+	ptr[] Atlas Atlases
+}
+

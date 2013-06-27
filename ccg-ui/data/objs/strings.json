@@ -1,8 +1,10 @@
 {
 	type: "Translation",
 	data: {
-		Lang: "Finnish",
-		SID: "ID_BANAN",
-		Translation: "Terve!"
-	}
+			"Lang": "French",
+			"SID": "ID_BANAN",
+			"Value": "Lé Banan"
+	},
+	aux: [
+	      ]
 }

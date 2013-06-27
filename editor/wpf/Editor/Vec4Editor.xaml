@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="Editor.Vec4Editor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>            
+        </Grid.ColumnDefinitions>
+        <Label Grid.Column="0" HorizontalContentAlignment="Center" Width="Auto" x:Name="m_label_x"></Label>
+        <TextBox Grid.Column="1" x:Name="m_tbox_x" Height="20" TextWrapping="Wrap" Text="TextBox" BorderThickness="0" />
+        <Label Grid.Column="2" HorizontalContentAlignment="Center" x:Name="m_label_y"></Label>        
+        <TextBox Grid.Column="3" x:Name="m_tbox_y" Height="20" TextWrapping="Wrap" Text="TextBox" BorderThickness="0" />
+        <Label Grid.Column="4" HorizontalContentAlignment="Center" x:Name="m_label_z"></Label>
+        <TextBox Grid.Column="5" x:Name="m_tbox_z" Height="20" TextWrapping="Wrap" Text="TextBox" BorderThickness="0" />
+        <Label Grid.Column="6" HorizontalContentAlignment="Center" x:Name="m_label_w"></Label>
+        <TextBox Grid.Column="7" x:Name="m_tbox_w" Height="20" TextWrapping="Wrap" Text="TextBox" BorderThickness="0" />
+    </Grid>
+    
+</UserControl>

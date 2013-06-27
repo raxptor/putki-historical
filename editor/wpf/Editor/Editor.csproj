@@ -58,6 +58,15 @@
     <Compile Include="ArrayEditor.xaml.cs">
       <DependentUpon>ArrayEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EnumEditor.xaml.cs">
+      <DependentUpon>EnumEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Vec4Editor.xaml.cs">
+      <DependentUpon>Vec4Editor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NewObject.xaml.cs">
+      <DependentUpon>NewObject.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FloatEditor.xaml.cs">
       <DependentUpon>FloatEditor.xaml</DependentUpon>
     </Compile>
@@ -81,6 +90,18 @@
     <Page Include="ArrayEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EnumEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Vec4Editor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="NewObject.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="FloatEditor.xaml">
       <Generator>MSBuild:Compile</Generator>

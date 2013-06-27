@@ -5,15 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace TestLoad
+namespace ViewerApp
 {
     class Viewer
     {
+		[STAThread]
         static void Main(string[] args)
         {
-			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("c:\\gitproj\\putki\\ccg-ui\\out\\csharp32\\packages\\static.pkg"));
+			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"));
 
 
+			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");
+
+			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(screen));
+			w.ShowDialog();
+
+
+			/*
 			outki.ProjectDescription dr = (outki.ProjectDescription)p.Resolve("description");
 			Console.WriteLine("Welcome to " + dr.Name);
 
@@ -22,10 +30,12 @@ namespace TestLoad
 
 			outki.Font f = (outki.Font)p.Resolve("fonts/calibri");
 			Console.WriteLine("Font is " + f);
-
+				
 			outki.Atlas a = (outki.Atlas)p.Resolve("atlas1");
 			Console.WriteLine("Atlas 1 is " + a);
+			 */
 		}
 	}
 }
 
+	

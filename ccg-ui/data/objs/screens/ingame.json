@@ -1,0 +1,7 @@
+{
+	type: "UIScreen"
+	data: {
+		Root: "widgets/hudroot",
+		Atlases: ["atlases/hudatlas"]
+	}
+}

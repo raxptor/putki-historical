@@ -15,6 +15,15 @@
 
 namespace putki
 {
+	std::string trim(std::string str)
+	{
+		while (str.size() && (str.back() == ' ' || str.back() == '\t'))
+			str.pop_back();
+		while (str.size() && (str.front() == ' ' || str.front() == '\t'))
+			str.erase(0,1);
+		return str;
+	}
+
 	void parse_header(const char *input, putki::parsed_struct *out)
 	{
 		char *dup = strdup(input);
@@ -58,14 +67,16 @@ namespace putki
 		char *tok = strtok(dup, delim);
 
 		out->type = putki::FIELDTYPE_INT32;
-		out->name = "<invalid>";
+		out->name.clear();
 		out->is_array =	false;
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 		out->is_aux_ptr = false;
 		out->show_in_editor = true;
+		out->def_value = "";
 
 		bool read_type = true;
 		bool read_ref_type = false;
+		bool read_def_value = false;
 
 		std::string type_unresolved;
 
@@ -143,9 +154,18 @@ namespace putki
 					out->ref_type = tok;
 					read_ref_type = false;
 				}
-				else
+				else if (out->name.empty())
 				{
 					out->name = tok;
+				}
+				else if (!strcmp(tok, "="))
+				{
+					read_def_value = true;
+				}
+				else
+				{
+					if (read_def_value)
+						out->def_value = tok;
 				}
 			}
 
@@ -159,27 +179,27 @@ namespace putki
 	{
 		std::cout << "Compiling [" << name << "]" << std::endl;
 		std::ifstream f(in_path);
-        
-        std::string fn(in_path);
+
+		std::string fn(in_path);
 
 		std::string mypath = name;
 		int lpp = mypath.find_last_of('/');
 		if (lpp != std::string::npos)
 			mypath = mypath.substr(0, lpp);
-    
-        out->filename = "unknown";
+
+		out->filename = "unknown";
 		out->sourcepath = "unknown";
-        
-        std::string::size_type lp = fn.find_last_of("/");
-        if (lp != std::string::npos)
-        {
-            std::string::size_type np = fn.find_last_of(".");
-            if (np != std::string::npos)
+
+		std::string::size_type lp = fn.find_last_of("/");
+		if (lp != std::string::npos)
+		{
+			std::string::size_type np = fn.find_last_of(".");
+			if (np != std::string::npos)
 			{
-                out->filename = fn.substr(lp + 1, np - lp - 1);
-				out->sourcepath = fn.substr(0, np);
+				out->filename = fn.substr(lp + 1, np - lp - 1);
+					out->sourcepath = fn.substr(0, np);
 			}
-        }
+		}
         
 		bool in_struct = false;
 		bool in_enum = false;
@@ -294,20 +314,37 @@ namespace putki
 					{
 						if (in_struct)
 						{
-							std::cout << "field:" << line << std::endl;
-							parsed_field pf;
-							parse_field(line.c_str(), &pf);
-							datastruct.fields.push_back(pf);
+							std::string spc = trim(line);
+							
+							if (!spc.empty() && spc[0] == '@')
+							{
+								// special.
+								int np = spc.find_first_of(' ');
+								if (np != std::string::npos)
+								{
+									std::string prop = spc.substr(0, np);
+									std::string val = spc.substr(np+1, spc.size()-np-1);
+									if (prop == "@inline-editor")
+										datastruct.inline_editor = val;
+								}
+
+							}
+							else
+							{
+								std::cout << "field:" << line << std::endl;
+								parsed_field pf;
+								parse_field(line.c_str(), &pf);
+								datastruct.fields.push_back(pf);
+							}
 						}
 						if (in_enum)
 						{
 							putki::enum_value ev;
 							ev.value = -666;
 
-							while (line.size() && (line[line.size()-1] == ' ' || line[line.size()-1] == ','))
-								line.erase(line.size()-1,1);
-							while (line.size() && (line[0] == ' ' || line[0] == '\t'))
-								line.erase(0,1);
+							line = trim(line);
+							if (line.back() == ',')
+								line.pop_back();
 
 							int value = -666;
 							int eq = line.find_first_of('=');
@@ -319,10 +356,7 @@ namespace putki
 								end = eq;
 							}
 
-							ev.name = line.substr(0, end);
-
-							while (ev.name.size() && (ev.name[ev.name.size()-1] == ' ' || ev.name[ev.name.size()-1] == ','))
-								ev.name.erase(ev.name.size()-1,1);
+							ev.name = trim(line.substr(0, end));
 
 							enum_.values.push_back(ev);
 						}

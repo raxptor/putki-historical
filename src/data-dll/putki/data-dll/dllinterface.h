@@ -17,7 +17,8 @@ namespace putki
 		EXT_FIELDTYPE_FILE = 5,
 		EXT_FIELDTYPE_BOOL = 6,
 		EXT_FIELDTYPE_FLOAT = 7,
-		EXT_FIELDTYPE_INVALID = 8
+		EXT_FIELDTYPE_ENUM = 8,
+		EXT_FIELDTYPE_INVALID = 9
 	};
 
 	struct mem_instance { };
@@ -30,6 +31,9 @@ namespace putki
 		virtual ext_field_type type() = 0;
 		virtual const char * ref_type_name() = 0;
 		
+		virtual const char * get_enum_possible_value(int idx) = 0;
+		virtual void set_enum(mem_instance *obj, const char *value) = 0;
+		virtual const char* get_enum(mem_instance *obj) = 0;
 
 		virtual bool is_array() = 0;
 		virtual void set_array_index(int i) = 0;
@@ -68,6 +72,7 @@ namespace putki
 	{
 		virtual const char * name() = 0;
 		virtual const char * parent_name() = 0;
+		virtual const char * inline_editor() = 0;
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
 	};
 

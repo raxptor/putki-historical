@@ -38,6 +38,7 @@ namespace Putki
 			~TypeDefinition();
 
 			String^ GetName();
+			String^ GetInlineEditor();
 
 			TypeDefinition^ GetParentType();
 
@@ -90,6 +91,9 @@ namespace Putki
 			String^ GetString(MemInstance^ instance);
 			void SetString(MemInstance^ instance, String^ Value);
 
+			String^ GetEnum(MemInstance^ instance);
+			void SetEnum(MemInstance^ instance, String^ Value);
+
 			int GetInt32(MemInstance^ instance);
 			void SetInt32(MemInstance^ instance, int Value);
 
@@ -106,6 +110,8 @@ namespace Putki
 			int GetByte(MemInstance^ instance);
 			void SetByte(MemInstance^ instance, int Value);
 
+			String^ GetEnumValueByIndex(int index);
+
 		private:
 
 			putki::ext_field_handler_i *m_handler;
@@ -120,6 +126,7 @@ namespace Putki
 			static TypeDefinition^ GetTypeByIndex(int i);
 			static void MemBuildAsset(String^ path);
 			static MemInstance^ CreateAuxInstance(MemInstance ^onto, TypeDefinition^ type);
+			static MemInstance^ CreateInstance(String^ path, TypeDefinition^ type);
 	};
 
 };

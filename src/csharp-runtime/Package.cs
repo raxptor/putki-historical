@@ -127,6 +127,11 @@ namespace Putki
 			
 			return true;
 		}
+
+		public void Release()
+		{
+			m_slots = null;
+		}
 	}
 	
 	public class PackageLoader

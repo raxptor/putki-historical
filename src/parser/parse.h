@@ -19,6 +19,7 @@ namespace putki
 		
 		std::string name;
 		std::string ref_type;
+		std::string def_value;
 	};
 
 	struct enum_value
@@ -40,6 +41,7 @@ namespace putki
 		std::string name;
 		std::vector<parsed_field> fields;
 		std::string parent;
+		std::string inline_editor;
 		bool is_type_root;
 	};
 

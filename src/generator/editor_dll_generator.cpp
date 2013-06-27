@@ -114,6 +114,7 @@ namespace putki
 				case FIELDTYPE_FLOAT: out.cont() << " putki::EXT_FIELDTYPE_FLOAT; "; break;
 				case FIELDTYPE_BOOL: out.cont() << " putki::EXT_FIELDTYPE_BOOL; "; break;
 				case FIELDTYPE_STRUCT_INSTANCE: out.cont() << " putki::EXT_FIELDTYPE_STRUCT_INSTANCE; "; break;
+				case FIELDTYPE_ENUM: out.cont() << " putki::EXT_FIELDTYPE_ENUM; "; break;
 				default: out.cont() << " putki::EXT_FIELDTYPE_INVALID; "; break;
 			}
 
@@ -140,6 +141,37 @@ namespace putki
 				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			else
 				out.line() << "return \"####NOT-STRING[" << s->name << "]#####\";";
+			out.indent(-1);
+			out.line() << "}";
+
+			// ENUM SET
+			out.line() << "// Enum type handlers";
+			out.line() << "void set_enum(putki::mem_instance *obj, const char *value) {";
+			out.indent(1);
+
+			if (s->fields[j].type == FIELDTYPE_ENUM)
+				out.line() << "((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << " = " << s->fields[j].ref_type << "_from_string(value);";
+
+			out.indent(-1);
+			out.line() << "}";
+				
+			out.line();
+			out.line() << "const char* get_enum(putki::mem_instance *obj) { ";
+			out.indent(1);
+			if (s->fields[j].type == FIELDTYPE_ENUM)
+				out.line() << "return " << s->fields[j].ref_type << "_to_string(((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ");";
+			else
+				out.line() << "return 0;";
+			out.indent(-1);
+			out.line() << "}";
+
+			out.line();
+			out.line() << "const char* get_enum_possible_value(int i) { ";
+			out.indent(1);
+			if (s->fields[j].type == FIELDTYPE_ENUM)
+				out.line() << "return " << s->fields[j].ref_type << "_string_by_index(i);";
+			else
+				out.line() << "return 0;";
 			out.indent(-1);
 			out.line() << "}";
 
@@ -243,6 +275,8 @@ namespace putki
 				out.line() << "const char *parent_name() { return 0; }";
 			else
 				out.line() << "const char *parent_name() { return \"" << s->parent << "\"; }";
+
+			out.line() << "const char *inline_editor() { return \"" << s->inline_editor << "\"; }";
 
 			out.line();
 			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";

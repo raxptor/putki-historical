@@ -135,7 +135,7 @@ namespace putki
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
 						size += 0;
-						expr_size_add = " + " + s->fields[i].ref_type + ".SIZE";
+						expr_size_add.append(" + " + s->fields[i].ref_type + ".SIZE");
 						break;
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_STRING:
@@ -170,6 +170,7 @@ namespace putki
 				new_hide_str = "new ";
 
 			out.line() << new_hide_str << "public const int SIZE = " << size << expr_size_add <<";";
+			out.line() << new_hide_str << "public const int TYPE = " << s->unique_id << ";";
 
 			out.line();
 			out.line() << "// Generated functions";

@@ -1,7 +1,14 @@
 {
 	type: "ProjectDescription",
 	data: {
-		Name: "Lalles banan",
-		Version: "AOENUHNATOEHUNTAOHEUNSTAOHEUNTHAOEUNTHAOENSTUHANSTOEUHNTSAOEHUNSTAOEHUNSAOTEUH",
-	}
+			"Name": "Lalles banan",
+			"Version": "AOENUHNATOEHUNTAOHEUNSTAOHEUNTHAOEUNTHAOENSTUHANSTOEUHNTSAOEHUNSTAOEHUNSAOTEUH",
+			"Cont": [],
+			"Korvarna": [],
+			"DataBuildDate": "",
+			"TestIt": "Kuken",
+			"SecretCode": 99
+	},
+	aux: [
+	      ]
 }

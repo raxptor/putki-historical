@@ -1,8 +1,9 @@
+#include Font.typedef
 
 enum Language
 {
-	Swedish
 	English
+	Swedish
 	French
 	Finnish
 	Japanese
@@ -13,7 +14,7 @@ enum Language
 
 Translation [in, out]
 {
-	enum Language Lang
+	enum Language Lang = English
 	string SID
 	string Value
 }
@@ -21,4 +22,13 @@ Translation [in, out]
 StringDatabase [in, out]
 {
 	string[] SIDs
+	Translation[] Translations
+}
+
+LocalizationFont [in, out]
+{
+	file Source
+	ptr StringDatabase StringsDB
+	enum Language Lang
+	[hidden] Font RealFont
 }

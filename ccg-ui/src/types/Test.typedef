@@ -19,4 +19,6 @@ ProjectDescription [in, out]
 	ptr[] ComplexStruct Cont
 	string[] Korvarna
 	string DataBuildDate
+	string TestIt = "hej"
+	int SecretCode = 1234
 }

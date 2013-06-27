@@ -2,7 +2,7 @@
 
 Font [in, out]
 {
-	file string Source
+	file Source
 	[no-out] string CharacterSet 
 	[hidden] ptr Texture OutputTexture 
 }

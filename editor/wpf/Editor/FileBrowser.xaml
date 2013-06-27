@@ -24,5 +24,7 @@
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Data browser" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource WindowBackgroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
-        <TreeView Grid.Row="1" x:Name="m_treeView"  ItemsSource="{Binding}" Background="{DynamicResource DarkBrush}" />
+        <TreeView Grid.Row="1" x:Name="m_treeView"  ItemsSource="{Binding}" Background="{DynamicResource DarkBrush}" >
+        </TreeView>
+                  
     </Grid></UserControl>

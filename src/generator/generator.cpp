@@ -459,6 +459,20 @@ namespace putki
 			out.line() << "}";
 			out.indent(-1);
 			out.line() << "}";
+
+			out.line() << "inline const char * " << e->name << "_string_by_index(int idx)";
+			out.line() << "{";
+			out.indent(1);
+			out.line() << "switch (idx)";
+			out.line() << "{";
+			out.indent(1);			
+			for (size_t j=0;j<e->values.size();j++)
+				out.line() << "case " << j << ": return \"" << e->values[j].name << "\";";
+			out.line() << "default: return 0;";
+			out.indent(-1);
+			out.line() << "}";
+			out.indent(-1);
+			out.line() << "}";
 		}
 
 		for (size_t i=0;i!=file->structs.size();i++)
@@ -486,20 +500,28 @@ namespace putki
 			{
 				if (s->fields[j].is_array)
 					continue;
-				switch (s->fields[j].type)
+
+				if (!s->fields[j].def_value.empty())
 				{
-					case FIELDTYPE_INT32:
-					case FIELDTYPE_BYTE:
-					case FIELDTYPE_FLOAT:
-					case FIELDTYPE_POINTER:
-						out.line() << s->fields[j].name << " = 0;";
-						break;
-					case FIELDTYPE_ENUM:
-						out.line() << s->fields[j].name << " = (" << s->fields[j].ref_type << ")0;";
-						break;
-					case FIELDTYPE_BOOL:
-						out.line() << s->fields[j].name << " = false;";
-						break;
+					out.line() << s->fields[j].name << " = " << s->fields[j].def_value << ";";
+				}
+				else
+				{
+					switch (s->fields[j].type)
+					{
+						case FIELDTYPE_INT32:
+						case FIELDTYPE_BYTE:
+						case FIELDTYPE_FLOAT:
+						case FIELDTYPE_POINTER:
+							out.line() << s->fields[j].name << " = 0;";
+							break;
+						case FIELDTYPE_ENUM:
+							out.line() << s->fields[j].name << " = (" << s->fields[j].ref_type << ")0;";
+							break;
+						case FIELDTYPE_BOOL:
+							out.line() << s->fields[j].name << " = false;";
+							break;
+					}
 				}
 			}
 			out.indent(-1);
@@ -601,6 +623,11 @@ namespace putki
 			node = "n";
 		}
 
+
+		out.line() << "if (" << node << ")";
+		out.line() << "{";
+		out.indent(1);
+
 		if (f->type == FIELDTYPE_STRING || f->type == FIELDTYPE_FILE)
 		{
 			out.line() << ref << " = " << " putki::parse::get_value_string(" << node << "); ";
@@ -635,6 +662,9 @@ namespace putki
 			out.line(2) << "resolver->resolve_pointer((putki::instance_t *)&" << ref << ", putki::parse::get_value_string(" << node << "));";
 			out.line() << "}";
 		}
+
+		out.indent(-1);
+		out.line() << "}";
 
 		if (f->is_array)
 		{

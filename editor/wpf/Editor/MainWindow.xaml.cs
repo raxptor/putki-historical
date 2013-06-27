@@ -42,7 +42,7 @@ namespace Editor
             lastObject = mi;
 		}
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void Button_Click_Save(object sender, RoutedEventArgs e)
         {
             if (lastObject != null)
             {
@@ -57,5 +57,17 @@ namespace Editor
                 Putki.Sys.MemBuildAsset(lastObject.GetPath());
             }
         }
+
+		private void Button_Click_NewObject(object sender, RoutedEventArgs e)
+		{
+			NewObject ts = new NewObject();
+			ts.Owner = MainWindow.inst;
+			if (ts.ShowDialog() == true)
+			{
+				Putki.MemInstance mi = Putki.Sys.CreateInstance(ts.path, ts.selected);
+				Putki.Sys.SaveObject(mi);
+				m_fileBrowser.LoadFromDisk();
+			}
+		}
 	}
 }

@@ -19,8 +19,20 @@ namespace Editor
                 switch ((int)fh.GetType())
                 {
                     // struct instance
-                    case 4:
-                        return new ObjectEditor();
+					case 4:
+						{
+							Putki.TypeDefinition StructType = fh.GetRefType();
+							string type = StructType.GetName();
+							string editor = StructType.GetInlineEditor();
+							if (StructType.GetInlineEditor() == "Vec4")
+							{
+								return new Vec4Editor();
+							}
+							else
+							{
+								return new ObjectEditor();
+							}
+						}
                     case 3:
                         return new PointerEditor();
                     case 0:
@@ -29,6 +41,8 @@ namespace Editor
                         return new FileEditor();
 					case 7:
 						return new FloatEditor();
+					case 8:
+						return new EnumEditor();
                     // 
                     default:
                         return new TextEditor();

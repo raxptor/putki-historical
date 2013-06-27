@@ -225,12 +225,11 @@ namespace putki
 							unpacked.push_back(path);
 							write = - ((int)unpacked.size());
 						}
-
-						std::cout << " " << path << " => slot " << write << std::endl;
 					}
 					else
 					{
 						write = 1 + packorder[path];
+						std::cout << " " << path << " => slot " << write << std::endl;
 					}
 					
 					// clear whole field.
