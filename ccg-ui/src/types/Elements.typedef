@@ -32,6 +32,7 @@ UIWidget [in, out] rtti
 {
 	float width
 	float height
+	string handler
 	auxptr[] UIElement elements
 }
 

@@ -74,6 +74,8 @@ struct fontbuilder : putki::builder::handler_i
 				inki::FontOutput up;
 				up.PixelSize = font->PixelSizes[sz];
 
+				int border = 1;
+
 				for (unsigned int i=0;i<font->Characters.size();i++)
 				{
 					int idx = FT_Get_Char_Index(face, font->Characters[i]);
@@ -124,8 +126,8 @@ struct fontbuilder : putki::builder::handler_i
 
 					rbp::InputRect next;
 					next.id = i;
-					next.width = bmp->width;
-					next.height = bmp->rows;
+					next.width = bmp->width + 2 * border;
+					next.height = bmp->rows + 2 * border;
 					packs.push_back(next);
 				}
 
@@ -160,7 +162,7 @@ struct fontbuilder : putki::builder::handler_i
 				{
 					for (int x=0;x	<out_width;x++)
 					{
-						outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xff303030;
+						outBmp[y*out_width+x] =  0x00ffffff;
 					}
 				}
 
@@ -188,7 +190,7 @@ struct fontbuilder : putki::builder::handler_i
 					{
 						for (int x=0;x<g.w;x++)
 						{
-							outBmp[out_width * (out.y + y) + (out.x + x)] = g.data[g.w * y + x] * 0x010101 | 0xff000000;
+							outBmp[out_width * (out.y + y + border) + (out.x + x + border)] = g.data[g.w * y + x] * 0x01000000 | 0xffffff;
 						}
 					}
 				}

@@ -81,7 +81,7 @@ namespace putki
 		
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
-			std::cout << " db insert on path [" << path << "]" << std::endl;
+			// std::cout << " db insert on path [" << path << "]" << std::endl;
 			entry e;
 			e.th = th;
 			e.obj = i;

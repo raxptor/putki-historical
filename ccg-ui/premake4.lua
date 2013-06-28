@@ -14,7 +14,7 @@ solution "CCG-UI"
 	dofile "../external/freetype-2.5.0.1/premake.lua"
 
 	project "ccg-ui-putki-lib"
-		kind "StaticLib"
+		kind "SharedLib"
 		language "C++"
 		targetname "ccg-ui-putki-lib"
 		
@@ -26,7 +26,7 @@ solution "CCG-UI"
 		includedirs { "_gen" }
 		includedirs { "../external/libpng" }
 
-		links {"putki-lib"}
+		links "putki-lib"
 
 	project "ccg-ui-databuilder"
 		kind "ConsoleApp"
@@ -46,7 +46,6 @@ solution "CCG-UI"
 
 		links { "ccg-ui-putki-lib"}
 		links { "putki-lib" }
-		links { "jsmn" }
 		links { "freetype2" }
 
 	project "ccg-ui-data-dll"
@@ -62,10 +61,8 @@ solution "CCG-UI"
 		includedirs { "../src", "../src/builder/" }
 		includedirs { "_gen" }
 
-		links { "putki-lib" }
 		links { "ccg-ui-putki-lib"}
-		links { "putki-data-dll-lib" }
-		links { "jsmn" }
+		links { "putki-lib" }
 
  if os.get() == "windows" then
 

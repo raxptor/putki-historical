@@ -1,0 +1,7 @@
+{
+	type: "Texture",
+	data: {
+		Source: "ui/joystick_nob.png",
+		NoOutput: 1
+	}
+}

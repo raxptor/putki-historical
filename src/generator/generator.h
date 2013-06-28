@@ -1,7 +1,7 @@
 #ifndef __PUTKI_GENERATOR_H__
 #define __PUTKI_GENERATOR_H__
 
-#include <parser/parse.h>
+#include <parser/typeparser.h>
 #include <putki/runtime.h>
 #include <generator/indentedwriter.h>
 

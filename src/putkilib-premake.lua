@@ -6,19 +6,21 @@
 	
 	project "putki-lib"
 
-		kind "StaticLib"
+		kind "SharedLib"
 		language "C++"
 		targetname "putki-lib"
 
 		files { "../src/**.cpp", "../src/**.h" }
 		files { "../builder/src/*.cpp" }
 
-		excludes { "../src/data-dll/**" }
 		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
+
 		includedirs { "../src", "../external", "../external/libpng"}
+
 		links {"jsmn"}
 		links {"libpng"}
+		links {"libz"}
 
 		configuration {"windows"}
 			defines {"USE_WINSOCK"}
@@ -27,18 +29,3 @@
 		configuration {"gmake"}
 			links {"pthread"}
 
-	project "putki-data-dll-lib"
-
-		kind "StaticLib"
-		language "C++"
-		targetname "putki-data-dll"
-
-		files { "../src/data-dll/**.cpp", "../src/data-dll/**.h" }
-
-		includedirs { "../src/builder/**.*" }
-		includedirs { "../src/data-dll" }
-		includedirs { "../src", "../src/builder/" }
-
-		links {"jsmn", "libpng"}
-		links { "putki-databuilder-lib"}
-		links { "putki-lib" }

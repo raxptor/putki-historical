@@ -32,6 +32,8 @@ struct atlasbuilder : putki::builder::handler_i
 		int max_width = 1;
 		int max_height = 1;
 
+		int border = 2;
+
 		for (unsigned int i=0;i<atlas->Inputs.size();i++)
 		{
 			putki::pngutil::loaded_png png;
@@ -44,8 +46,8 @@ struct atlasbuilder : putki::builder::handler_i
 			}
 
 			rbp::InputRect ir;
-			ir.width = png.width;
-			ir.height = png.height;
+			ir.width = png.width + 2 * border;
+			ir.height = png.height + 2 * border;
 			ir.id = loaded.size();
 			inputRects.push_back(ir);
 
@@ -111,17 +113,24 @@ struct atlasbuilder : putki::builder::handler_i
 			{
 				putki::pngutil::loaded_png const &g = loaded[packedRects[k].id];
 				rbp::Rect const &out = packedRects[k];
-				std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
 
 				int blah = 0;
 				if (g_outputTexConf[i].scale != 1)
 					blah = rand();
 				
-				for (unsigned int y=0;y<g.height;y++)
+				for (unsigned int y=0;y<out.height;y++)
 				{
-					for (unsigned int x=0;x<g.width;x++)
+					int rl_y = (int)y - border;
+
+					if (rl_y < 0) rl_y = 0;
+					if (rl_y >= g.height) rl_y = g.height-1;
+
+					for (unsigned int x=0;x<out.width;x++)
 					{
-						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * y + x] | blah;
+						int rl_x = (int)x - border;
+						if (rl_x < 0) rl_x = 0;
+						if (rl_x >= g.width) rl_x = g.width-1;
+						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * rl_y + rl_x] | blah;
 					}
 				}
 

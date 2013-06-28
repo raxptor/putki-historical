@@ -195,7 +195,7 @@ namespace putki
 
 			while (outpos < br.created.size())
 			{
-				std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << br.created[outpos] << "]" << std::endl;
+//				std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << br.created[outpos] << "]" << std::endl;
 
 				// => This build step uses input as input still, and a tmp db for output.
 				//

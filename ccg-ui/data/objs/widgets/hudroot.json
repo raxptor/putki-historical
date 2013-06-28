@@ -2,130 +2,21 @@
 	type: "UIWidget",
 	data: {
 			"_rtti_type": 203,
-			"width": 800,
-			"height": 600,
-			"elements": ["widgets/hudroot#aohb", "widgets/hudroot#bcd", "widgets/hudroot#ssej", "widgets/hudroot#txt"]
+			"width": 960,
+			"height": 640,
+			"elements": ["widgets/hudroot#joystick"]
 	},
 	aux: [
 		{
-			ref: "#aohb",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 205,
-						"id": "",
-						"layout": {
-							"x": 10,
-							"y": 10,
-							"width": 66,
-							"height": 58
-					},
-						"expansion": {
-							"x": 0,
-							"y": 0,
-							"width": 1,
-							"height": 1
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "textures/dino3"
+			ref: "#joystick",
+			type: "UIWidgetElement",
+			data {
+				parent: {
+					layout: { y: 490, x: 10 },
+					expansion: { y: 1 }
+				 },
+				widget: "widgets/joystick"
 			}
 		}
-		,
-		{
-			ref: "#bcd",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 205,
-						"id": "kallekula",
-						"layout": {
-							"x": 680,
-							"y": 10,
-							"width": 100,
-							"height": 100
-					},
-						"expansion": {
-							"x": 1,
-							"y": 0,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "textures/dino3"
-			}
-		}
-		,
-		{
-			ref: "#ssej",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 205,
-						"id": "",
-						"layout": {
-							"x": 20,
-							"y": 380,
-							"width": 200,
-							"height": 200
-					},
-						"expansion": {
-							"x": 0,
-							"y": 1,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "textures/dino2"
-			}
-		}
-		,
-		{
-			ref: "#txt",
-			type: "UITextElement",
-			data: {
-					"parent": {
-						"_rtti_type": 205,
-						"id": "",
-						"layout": {
-							"x": 100,
-							"y": 100,
-							"width": 200,
-							"height": 200
-					},
-						"expansion": {
-							"x": 0,
-							"y": 1,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"font": "fonts/calibri"
-			}
-		}
-
 	      ]
 }

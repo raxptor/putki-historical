@@ -69,7 +69,7 @@ namespace
 					std::cout << "=> Adding unresolved pointer for output for path [" << path << "]" << std::endl;
 				}
 				
-				std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
+				// std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
 				// rewrite to output domain
 				*on = obj;
 				return;

@@ -102,7 +102,7 @@ namespace putki
 					dw.db = data->source;
 					e.th->walk_dependencies(e.obj, &dw, true);
 					
-					std::cout << " * adding to package [" << path << "], pulling in " << dw.deps.size() << " dependencies" << std::endl;
+					// std::cout << " * adding to package [" << path << "], pulling in " << dw.deps.size() << " dependencies" << std::endl;
 
 					for (unsigned int i=0;i<dw.deps.size();i++)
 					{
@@ -166,8 +166,8 @@ namespace putki
 		
 		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
-			std::cout << "Writing package with " << data->blobs.size() << " blobs." << std::endl;
-			std::cout << "   (for [" << runtime::desc_str(rt) << "]" << std::endl;
+			std::cout << "Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs." << std::endl;
+
 			// create a pack list and save where each entry goes.
 			std::map<std::string, int> packorder;
 			std::vector<const entry*> packlist;
@@ -229,7 +229,7 @@ namespace putki
 					else
 					{
 						write = 1 + packorder[path];
-						std::cout << " " << path << " => slot " << write << std::endl;
+						// std::cout << " " << path << " => slot " << write << std::endl;
 					}
 					
 					// clear whole field.
@@ -240,7 +240,7 @@ namespace putki
 				}
 			}
 			
-			std::cout << " * Did " << written << " pointer writes." << std::endl;
+			std::cout << " * " << packlist.size() << " blobs, " << written << " pointer writes." << std::endl;
 			
 			char *ptr = buffer;
 			char *end = buffer + available;
@@ -272,7 +272,7 @@ namespace putki
 				}
 				else
 				{
-					std::cout << "Wrote " << (ptr - start) << " bytes for slot " << i << std::endl;
+					// std::cout << "Wrote " << (ptr - start) << " bytes for slot " << i << std::endl;
 				}
 			}
 
@@ -289,7 +289,9 @@ namespace putki
 			// revert all the changes!
 			for (unsigned int i=0;i<pp.ptrs.size();i++)
 				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
-			
+
+			std::cout << "Package ready: wrote " << (ptr - buffer) << " bytes." << std::endl;			
+
 			return ptr - buffer;
 		}
 	}

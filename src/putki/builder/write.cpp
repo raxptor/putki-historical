@@ -27,7 +27,7 @@ namespace putki
 				const char *path = db::pathof(ref_source, obj);
 				if (path && db::is_aux_path_of(ref_source, base, path))
 				{
-					std::cout << "Including aux object [" << path << "]" << std::endl;
+					// std::cout << "Including aux object [" << path << "]" << std::endl;
 					paths.push_back(path);
 
 					auxwriter aw;

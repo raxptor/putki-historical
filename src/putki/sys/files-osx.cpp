@@ -61,7 +61,7 @@ namespace putki
                 std::string fp = p.substr(0,i);
                 
                 mkdir(fp.c_str(), 0755);
-                std::cout << "Creating [" << fp << "]" << std::endl;
+                // std::cout << "Creating [" << fp << "]" << std::endl;
                 i++;
             }
         }

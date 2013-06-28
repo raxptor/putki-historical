@@ -1,0 +1,7 @@
+{
+	type: "Texture",
+	data: {
+		Source: "ui/fire_base.png",
+		NoOutput: 1
+	}
+}
