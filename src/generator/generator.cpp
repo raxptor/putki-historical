@@ -521,6 +521,8 @@ namespace putki
 						case FIELDTYPE_BOOL:
 							out.line() << s->fields[j].name << " = false;";
 							break;
+						default:
+							break;
 					}
 				}
 			}

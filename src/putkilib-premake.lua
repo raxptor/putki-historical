@@ -17,7 +17,8 @@
 		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
 		includedirs { "../src", "../external", "../external/libpng"}
-		links {"jsmn", "libpng"}
+		links {"jsmn"}
+		links {"libpng"}
 
 		configuration {"windows"}
 			defines {"USE_WINSOCK"}

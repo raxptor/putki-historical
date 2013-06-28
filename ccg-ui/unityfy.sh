@@ -1,10 +1,12 @@
 #!/bin/bash
 
 
-./build/ccg-ui-databuilder --csharp
+# ./build/ccg-ui-databuilder --csharp
 
-rm -rf out/Resources
-mkdir out/Resources
+rm -rf out/Unity
+mkdir out/Unity
 
-find out/csharp32 -name "*.pkg" -exec cp {} out/Resources \;
-find out/Resources -name "*.pkg" -exec mv {} {}.bytes \;
+cp -r out/csharp32/Resources out/Unity
+cp -r out/csharp32/packages out/Unity/Resources/
+
+find out/Unity -name "*.*" -exec mv {} {}.bytes \;

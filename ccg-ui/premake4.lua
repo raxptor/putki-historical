@@ -44,8 +44,8 @@ solution "CCG-UI"
 		files { "../claw/src/builder/binpacker/*.*"}
 		includedirs { "../claw/src/"}
 
-		links { "putki-lib" }
 		links { "ccg-ui-putki-lib"}
+		links { "putki-lib" }
 		links { "jsmn" }
 		links { "freetype2" }
 

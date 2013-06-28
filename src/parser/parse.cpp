@@ -17,9 +17,9 @@ namespace putki
 {
 	std::string trim(std::string str)
 	{
-		while (str.size() && (str.back() == ' ' || str.back() == '\t'))
-			str.pop_back();
-		while (str.size() && (str.front() == ' ' || str.front() == '\t'))
+		while (str.size() && (str[str.size()-1] == ' ' || str[str.size()-1] == '\t'))
+			str.erase(str.size()-1, 1);
+		while (str.size() && (str[0] == ' ' || str[0] == '\t'))
 			str.erase(0,1);
 		return str;
 	}
@@ -343,13 +343,13 @@ namespace putki
 							ev.value = -666;
 
 							line = trim(line);
-							if (line.back() == ',')
-								line.pop_back();
-
-							int value = -666;
+							if (line[line.size()-1] == ',')
+								line.erase(line.size()-1,1);
+							
 							int eq = line.find_first_of('=');
 							int end = line.size();
 
+							ev.value = -666;
 							if (eq != std::string::npos)
 							{
 								ev.value = atoi(line.substr(eq+1, line.size()-eq-1).c_str());

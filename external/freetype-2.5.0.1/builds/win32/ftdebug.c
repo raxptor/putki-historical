@@ -51,8 +51,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
 #include <windows.h>
-
+#else
+void OutputDebugStringA(const char *str)
+{
+	printf("FT2 OUT: %s\n", str);
+}
+#endif
 
   /* documentation is in ftdebug.h */
 
