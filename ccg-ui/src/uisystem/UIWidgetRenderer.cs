@@ -4,7 +4,7 @@ namespace CCGUI
 	{
 		struct ElementList
 		{
-			public float x0, y0, x1, y1;
+			public UIElementLayout layout;
 			public UIElementRenderer renderer;
 		};
 
@@ -14,7 +14,6 @@ namespace CCGUI
 		public UIWidgetRenderer(outki.UIWidget widget)
 		{
 			m_data = widget;
-
 			Setup(widget);
 		}
 
@@ -26,24 +25,38 @@ namespace CCGUI
 			{
 				m_rtData[i].renderer = CreateRenderer(m_data.elements[i]);
 			}
-			Layout(0, 0, m_data.width, m_data.height);
 		}
 
-		public void Layout(float x0, float y0, float x1, float y1)
+		public void LayoutElements(UIRenderContext rctx, float nsx0, float nsy0, float nsx1, float nsy1)
 		{
-			float expX = (x1 - x0) - m_data.width;
-			float expY = (y1 - y0) - m_data.height;
+			float expX = (nsx1 - nsx0) - m_data.width;
+			float expY = (nsy1 - nsy0) - m_data.height;
 			if (expX < 0) expX = 0;
 			if (expY < 0) expY = 0;
 
 			for (int i = 0; i < m_rtData.Length; i++)
 			{
 				outki.UIElement el = m_data.elements[i];
-				m_rtData[i].x0 = el.layout.x + el.expansion.x * expX;
-				m_rtData[i].y0 = el.layout.y + el.expansion.y * expY;
-				m_rtData[i].x1 = m_rtData[i].x0 + el.layout.width + el.expansion.width * expX;
-				m_rtData[i].y1 = m_rtData[i].y0 + el.layout.height + el.expansion.height * expY;
+
+				UIElementLayout layout;
+				layout.nsx0 = nsx0 + el.layout.x + el.expansion.x * expX;
+				layout.nsy0 = nsy0 + el.layout.y + el.expansion.y * expY;
+				layout.nsx1 = layout.nsx0 + el.layout.width + el.expansion.width * expX;
+				layout.nsy1 = layout.nsy0 + el.layout.height + el.expansion.height * expY;
+
+				layout.x0 = layout.nsx0 * rctx.LayoutScale + rctx.LayoutOffsetX;
+				layout.y0 = layout.nsy0 * rctx.LayoutScale + rctx.LayoutOffsetY;
+				layout.x1 = layout.nsx1 * rctx.LayoutScale + rctx.LayoutOffsetX;
+				layout.y1 = layout.nsy1 * rctx.LayoutScale + rctx.LayoutOffsetY;
+
+				m_rtData[i].layout = layout;
+				m_rtData[i].renderer.OnLayout(rctx, ref layout);
 			}
+		}
+
+		public void OnLayout(UIRenderContext rctx, ref UIElementLayout elementLayout)
+		{
+			LayoutElements(rctx, elementLayout.nsx0, elementLayout.nsy0, elementLayout.nsx1, elementLayout.nsy1);
 		}
 
 		public UIElementRenderer CreateRenderer(outki.UIElement element)
@@ -54,18 +67,19 @@ namespace CCGUI
 					return new UIWidgetRenderer(((outki.UIWidgetElement)element).widget);
 				case outki.UIBitmapElement.TYPE:
 					return new UIBitmapElementRenderer((outki.UIBitmapElement)element);
+				case outki.UITextElement.TYPE:
+					return new UITextElementRenderer((outki.UITextElement)element);
 				default:
 					return null;
 			}
 		}
 
-		public void Render(UIRenderContext rctx, float x0, float y0, float x1, float y1)
+		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
-			Layout(x0, y0, x1, y1);
 			for (int i = 0; i < m_rtData.Length; i++)
 			{
 				if (m_rtData[i].renderer != null)
-					m_rtData[i].renderer.Render(rctx, m_rtData[i].x0, m_rtData[i].y0, m_rtData[i].x1, m_rtData[i].y1);
+					m_rtData[i].renderer.Render(rctx, ref m_rtData[i].layout);
 			}
 		}
 	}

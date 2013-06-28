@@ -4,11 +4,13 @@
 enum UIScaleMode
 {
 	ScaleMode_None,
-	ScaleMode_Proportional,
+	ScaleMode_Prop_Layout,
+	ScaleMode_Prop_Transform
 }
 
 UIScreen [in, out]
 {
+	bool PreserveLayoutAspect = false
 	enum UIScaleMode ScaleMode
 	ptr UIWidget Root
 	ptr[] Atlas Atlases

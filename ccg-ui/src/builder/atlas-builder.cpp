@@ -35,7 +35,7 @@ struct atlasbuilder : putki::builder::handler_i
 		for (unsigned int i=0;i<atlas->Inputs.size();i++)
 		{
 			putki::pngutil::loaded_png png;
-			if (!putki::pngutil::load(putki::resource::real_path(builder, atlas->Inputs[i].c_str()).c_str(), &png))
+			if (!putki::pngutil::load(putki::resource::real_path(builder, atlas->Inputs[i]->Source.c_str()).c_str(), &png))
 			{
 				putki::builder::build_error(builder, "Failed to load png");
 				png.pixels = &fakepixel;
@@ -105,6 +105,7 @@ struct atlasbuilder : putki::builder::handler_i
 			
 			ao.Width = out_width;
 			ao.Height = out_height;
+			ao.Scale = g_outputTexConf[i].scale;
 
 			for (unsigned int k=0;k<packedRects.size();k++)
 			{
@@ -112,16 +113,20 @@ struct atlasbuilder : putki::builder::handler_i
 				rbp::Rect const &out = packedRects[k];
 				std::cout << "Packed rect[" << k << "] is at " << packedRects[k].x << "/" << packedRects[k].y << "  id:" << packedRects[k].id << std::endl;
 
+				int blah = 0;
+				if (g_outputTexConf[i].scale != 1)
+					blah = rand();
+				
 				for (unsigned int y=0;y<g.height;y++)
 				{
 					for (unsigned int x=0;x<g.width;x++)
 					{
-						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * y + x];
+						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * y + x] | blah;
 					}
 				}
 
 				inki::AtlasEntry e;
-				e.id = atlas->Inputs[packedRects[k].id];
+				e.id = putki::db::pathof_including_unresolved(input, atlas->Inputs[packedRects[k].id]);
 				e.u0 = float(out.x) / float(out_width);
 				e.v0 = float(out.y) / float(out_height);
 				e.u1 = float(out.x + g.width) / float(out_width);
@@ -130,12 +135,13 @@ struct atlasbuilder : putki::builder::handler_i
 				ao.Entries.push_back(e);
 			}
 
-			std::string output_atlas_path = std::string(path) + "_atlas.png";
+			std::stringstream str;
+			str << path << "_atlas_" << i;
+
+			std::string output_atlas_path = str.str() + "_atlas.png";
 			output_atlas_path = putki::pngutil::write_to_temp(builder, output_atlas_path.c_str(), outBmp, out_width, out_height);
 
 			{
-				std::stringstream str;
-				str << path << "_atlas_" << i;
 				std::string outpath = str.str();
 
 				// create new texture.

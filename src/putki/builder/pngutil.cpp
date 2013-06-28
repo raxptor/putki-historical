@@ -81,7 +81,7 @@ namespace putki
 			for (y = 0; y < height; ++y)
 			{
 				png_byte *row = (png_byte*) png_malloc(png_ptr, width * 4);
-				row_pointers[height - y - 1] = row;
+				row_pointers[y] = row;
 				for (x = 0; x < width; ++x) 
 				{
 					*row++ = (pixbuf[y * width + x] >> 16) & 0xff;
@@ -192,7 +192,7 @@ namespace putki
  			
 			for (unsigned int i = 0; i < height; i++)
 			{
-				unsigned int *outptr = &out->pixels[width * (height - i - 1)];
+				unsigned int *outptr = &out->pixels[width * i];
 				unsigned char *inptr = row_pointers[i];
 
 				for (unsigned int x=0;x<width;x++)

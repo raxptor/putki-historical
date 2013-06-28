@@ -2,6 +2,7 @@
 	type: "Font",
 	data: {
 		Source: "fonts/calibri.ttf",
-		CharacterSet: "abcde123"
+		Characters: [65,66,67,68],
+		PixelSizes: [15,20,35,60,80,150]
 	}
 }

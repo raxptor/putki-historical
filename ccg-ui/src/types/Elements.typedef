@@ -1,4 +1,5 @@
 #include Texture.typedef
+#include Font.typedef
 
 UIRect [in, out]
 {
@@ -42,5 +43,12 @@ UIWidgetElement : UIElement [in, out]
 UIBitmapElement : UIElement [in, out]
 {
 	ptr Texture texture
+}
+
+UITextElement : UIElement [in, out]
+{
+	ptr Font font
+	int pixelSize
+	string Text
 }
 

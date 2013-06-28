@@ -18,6 +18,9 @@ struct texbuilder : putki::builder::handler_i
 	{
 		inki::Texture *texture = (inki::Texture *) obj;
 		
+		// this is used for atlas lookups later.
+		texture->id = path;
+
 		if (texture->NoOutput)
 		{
 			// This will not build the TextureOutput, but the asset desc itself will exist.

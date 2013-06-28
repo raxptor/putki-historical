@@ -4,7 +4,7 @@
 			"_rtti_type": 203,
 			"width": 800,
 			"height": 600,
-			"elements": ["widgets/hudroot#aohb", "widgets/hudroot#bcd"]
+			"elements": ["widgets/hudroot#aohb", "widgets/hudroot#bcd", "widgets/hudroot#ssej", "widgets/hudroot#txt"]
 	},
 	aux: [
 		{
@@ -17,8 +17,8 @@
 						"layout": {
 							"x": 10,
 							"y": 10,
-							"width": 660,
-							"height": 580
+							"width": 66,
+							"height": 58
 					},
 						"expansion": {
 							"x": 0,
@@ -66,5 +66,66 @@
 					"texture": "textures/dino3"
 			}
 		}
+		,
+		{
+			ref: "#ssej",
+			type: "UIBitmapElement",
+			data: {
+					"parent": {
+						"_rtti_type": 205,
+						"id": "",
+						"layout": {
+							"x": 20,
+							"y": 380,
+							"width": 200,
+							"height": 200
+					},
+						"expansion": {
+							"x": 0,
+							"y": 1,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"texture": "textures/dino2"
+			}
+		}
+		,
+		{
+			ref: "#txt",
+			type: "UITextElement",
+			data: {
+					"parent": {
+						"_rtti_type": 205,
+						"id": "",
+						"layout": {
+							"x": 100,
+							"y": 100,
+							"width": 200,
+							"height": 200
+					},
+						"expansion": {
+							"x": 0,
+							"y": 1,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"font": "fonts/calibri"
+			}
+		}
+
 	      ]
 }
