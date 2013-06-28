@@ -1,9 +1,10 @@
 namespace CCGUI
 {
-	class UIWidgetRenderer : UIElementRenderer
+	public class UIWidgetRenderer : UIElementRenderer
 	{
 		struct ElementList
 		{
+			public outki.UIElement element;
 			public UIElementLayout layout;
 			public UIElementRenderer renderer;
 		};
@@ -11,19 +12,19 @@ namespace CCGUI
 		outki.UIWidget m_data;
 		ElementList[] m_rtData;
 
-		public UIWidgetRenderer(outki.UIWidget widget)
+		public UIWidgetRenderer(outki.UIWidget widget, UIWidgetHandler handler)
 		{
 			m_data = widget;
-			Setup(widget);
+			Setup(widget, handler);
 		}
 
-		public void Setup(outki.UIWidget widget)
+		public void Setup(outki.UIWidget widget, UIWidgetHandler handler)
 		{
 			int count = m_data.elements.Length;
 			m_rtData = new ElementList[count];
 			for (int i = 0; i < count; i++)
 			{
-				m_rtData[i].renderer = CreateRenderer(m_data.elements[i]);
+				m_rtData[i].renderer = handler.CreateRenderer(m_data.elements[i]);
 			}
 		}
 
@@ -48,7 +49,8 @@ namespace CCGUI
 				layout.y0 = layout.nsy0 * rctx.LayoutScale + rctx.LayoutOffsetY;
 				layout.x1 = layout.nsx1 * rctx.LayoutScale + rctx.LayoutOffsetX;
 				layout.y1 = layout.nsy1 * rctx.LayoutScale + rctx.LayoutOffsetY;
-
+				
+				m_rtData[i].element = el;
 				m_rtData[i].layout = layout;
 				m_rtData[i].renderer.OnLayout(rctx, ref layout);
 			}
@@ -59,28 +61,18 @@ namespace CCGUI
 			LayoutElements(rctx, elementLayout.nsx0, elementLayout.nsy0, elementLayout.nsx1, elementLayout.nsy1);
 		}
 
-		public UIElementRenderer CreateRenderer(outki.UIElement element)
-		{
-			switch (element._rtti_type)
-			{
-				case outki.UIWidgetElement.TYPE:
-					return new UIWidgetRenderer(((outki.UIWidgetElement)element).widget);
-				case outki.UIBitmapElement.TYPE:
-					return new UIBitmapElementRenderer((outki.UIBitmapElement)element);
-				case outki.UITextElement.TYPE:
-					return new UITextElementRenderer((outki.UITextElement)element);
-				default:
-					return null;
-			}
-		}
-
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
 			for (int i = 0; i < m_rtData.Length; i++)
 			{
-				if (m_rtData[i].renderer != null)
-					m_rtData[i].renderer.Render(rctx, ref m_rtData[i].layout);
+				RenderSubElement(rctx, ref layout, m_rtData[i].element, m_rtData[i].renderer, ref m_rtData[i].layout);
 			}
+		}
+	
+		// This can be overriden for custom drawing.
+		virtual public void RenderSubElement(UIRenderContext rctx, ref UIElementLayout myLayout, outki.UIElement element, UIElementRenderer renderer, ref UIElementLayout layout)
+		{
+			renderer.Render(rctx, ref layout);
 		}
 	}
 }

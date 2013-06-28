@@ -6,13 +6,14 @@ namespace CCGUI
 	{
 		outki.UIScreen m_screen;
 
-		UIWidgetRenderer m_rootRenderer;
+		UIElementRenderer m_rootRenderer;
 		UITextureManager m_textureManager;
 
-		public UIScreenRenderer(outki.UIScreen screen)
+		public UIScreenRenderer(outki.UIScreen screen, UIWidgetHandler handler)
 		{
 			m_screen = screen;
-			m_rootRenderer = new UIWidgetRenderer(m_screen.Root);
+			m_rootRenderer = handler.CreateRootRenderer(m_screen.Root);
+
 			m_textureManager = new UITextureManager();
 
 			// Load all associated atlases.

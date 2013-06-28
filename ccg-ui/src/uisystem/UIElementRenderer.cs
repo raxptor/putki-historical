@@ -1,6 +1,5 @@
 namespace CCGUI
 {
-
 	public struct UIElementLayout
 	{
 		// these are the real coordinates for a layout that has been scaled.
@@ -10,7 +9,7 @@ namespace CCGUI
 		public float nsx0, nsy0, nsx1, nsy1;
 	};
 
-	interface UIElementRenderer
+	public interface UIElementRenderer
 	{
 		// Guaranteed to come at least once, and before any rendering takes place.
 		// This is a good place to load in textures for the appropriate resolution.
