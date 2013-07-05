@@ -4,6 +4,7 @@
 #include <putki/builder/package.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/pngutil.h>
+#include <putki/builder/build-db.h>
 #include <putki/builder/db.h>
 
 #include <iostream>
@@ -14,7 +15,7 @@
 
 struct texbuilder : putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::Texture *texture = (inki::Texture *) obj;
 		
@@ -50,7 +51,7 @@ struct texbuilder : putki::builder::handler_i
 			path_res.append("_out");
 			putki::db::insert(output, path_res.c_str(), inki::TextureOutputPng::th(), pngObj);
 
-			putki::buildrecord::add_output(record, path_res.c_str());
+			putki::build_db::add_output(record, path_res.c_str());
 			return false;
 		}
 

@@ -9,9 +9,8 @@ namespace putki
 {
 	namespace db { struct data; }
 	namespace resource { struct data; }
+	namespace build_db { struct record; }
 
-	namespace buildrecord { struct data; }
-	
 	namespace builder
 	{
 		enum
@@ -25,7 +24,7 @@ namespace putki
 
 		struct handler_i
 		{
-			virtual bool handle(data *builder, buildrecord::data *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
+			virtual bool handle(data *builder, build_db::record *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 	
 		data* create(runtime::descptr rt, const char *basepath);
@@ -55,12 +54,6 @@ namespace putki
 		const char *tmp_path(data *d);
 		const char *out_path(data *d);
 		const char *dbg_path(data *d);
-	}
-	
-	namespace buildrecord
-	{
-		void add_input_dependency(buildrecord::data *br, const char *path);
-		void add_output(buildrecord::data *br, const char *path);
 	}
 }
 

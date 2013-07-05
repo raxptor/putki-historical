@@ -4,6 +4,7 @@
 #include <putki/builder/package.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/pngutil.h>
+#include <putki/builder/build-db.h>
 #include <putki/builder/db.h>
 
 #include <iostream>
@@ -19,7 +20,7 @@
 
 struct fontbuilder : putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::Font *font = (inki::Font *) obj;
 
@@ -214,7 +215,7 @@ struct fontbuilder : putki::builder::handler_i
 					font->Outputs.push_back(up);
 
 					// add it so it will be built.
-					putki::buildrecord::add_output(record, outpath.c_str());
+					putki::build_db::add_output(record, outpath.c_str());
 				}
 			}
 			

@@ -1,6 +1,7 @@
 #include "builder.h"
 
 #include <putki/builder/db.h>
+#include <putki/builder/build-db.h>
 
 #include <map>
 #include <string>
@@ -9,25 +10,6 @@
 
 namespace putki
 {
-	namespace buildrecord
-	{
-		struct data
-		{
-			std::vector< std::string > created;
-			std::vector< std::string > dependencies;
-		};
-
-		void add_input_dependency(buildrecord::data *br, const char *path)
-		{
-			br->dependencies.push_back(path);
-		}
-
-		void add_output(buildrecord::data *br, const char *path)
-		{
-			br->created.push_back(path);
-		}
-	}
-
 	namespace builder
 	{
 		struct builder_entry
@@ -48,6 +30,7 @@ namespace putki
 			BuildersMap handlers;
 			runtime::descptr runtime;
 			std::string obj_path, res_path, out_path, tmp_path, dbg_path;
+			build_db::data *build_db;
 		};
 
 		namespace
@@ -98,6 +81,10 @@ namespace putki
 			if (s_init_fn)
 				s_init_fn(d);
 
+			std::string build_db_path = path;
+			build_db_path.append("/out.build-db");
+
+			d->build_db = build_db::load(build_db_path.c_str());
 			return d;
 		}
 
@@ -133,6 +120,7 @@ namespace putki
 
 		void free(data *builder)
 		{
+			build_db::release(builder->build_db);
 			delete builder;
 		}
 		
@@ -153,8 +141,11 @@ namespace putki
 			i->second.handlers.push_back(b);
 		}
 		
-		void build_source_object(data *builder, buildrecord::data * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		void build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
+			// always adds its own output.
+			build_db::add_output(record, path);
+
 			bool handled = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
 			if (i != builder->handlers.end())
@@ -171,31 +162,42 @@ namespace putki
 			
 			if (!handled)
 				db::insert(output, path, th, obj);
+
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
-			buildrecord::data br;
+			build_db::record * br = build_db::create_record(path);
 
 			type_handler_i *th;
 			instance_t obj;
 			if (!db::fetch(input, path, &th, &obj))
 				return;
 
+			build_db::add_input_dependency(br, path);
+
 			putki::db::data *tmp_output = putki::db::create();
 			
 			// since we are reading from the actual input here, clone the object so we can conveniently modify the contents.
 			// this also means a pointer update needs to be done after this step.
 			instance_t clone = th->clone(obj);
-
-			build_source_object(builder, &br, PHASE_INDIVIDUAL, input, path, clone, th, tmp_output);
+			
+			build_source_object(builder, br, PHASE_INDIVIDUAL, input, path, clone, th, tmp_output);
 
 			// sequentially build all outputs as well.
 			unsigned int outpos = 0;
 
-			while (outpos < br.created.size())
+			while (const char *cr_path_ptr = build_db::enum_outputs(br, outpos))
 			{
-//				std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << br.created[outpos] << "]" << std::endl;
+				// ignore what we just built.
+				if (!strcmp(cr_path_ptr, path))
+				{
+					outpos++;
+					continue;
+				}
+
+				std::string cr_path = cr_path_ptr;
+				std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << cr_path << "]" << std::endl;
 
 				// => This build step uses input as input still, and a tmp db for output.
 				//
@@ -206,16 +208,15 @@ namespace putki
 					type_handler_i *th;
 					instance_t obj;
 
-					std::string cr_path = br.created[outpos];
-
 					if (db::fetch(tmp_output, cr_path.c_str(), &th, &obj))
 					{
-						buildrecord::data suboutput;
-						suboutput.dependencies = br.dependencies; // inherit dependencies.
-						build_source_object(builder, &br, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
+						build_db::record *suboutput = build_db::create_record(cr_path.c_str());
+						build_db::copy_input_dependencies(suboutput, br);
 
-						for (unsigned int j=0;j<suboutput.created.size();j++)
-							br.created.push_back(suboutput.created[j]);
+						build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
+
+						build_db::append_extra_outputs(br, suboutput);
+						build_db::commit_record(builder->build_db, suboutput);
 					}
 					else
 					{
@@ -225,6 +226,8 @@ namespace putki
 					outpos++;
 				}
 			}
+
+			build_db::commit_record(builder->build_db, br);
 
 			// merge into the real output.
 			build::post_build_merge_database(tmp_output, output);
@@ -239,8 +242,10 @@ namespace putki
 
 			virtual void record(const char *path, type_handler_i *th, instance_t i) 
 			{
+				/*
 				buildrecord::data br;
 				build_source_object(builder, &br, phase, input, path, i, th, output);
+				*/
 			}
 		};
 

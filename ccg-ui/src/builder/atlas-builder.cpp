@@ -4,6 +4,7 @@
 #include <putki/builder/package.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/pngutil.h>
+#include <putki/builder/build-db.h>
 #include <putki/builder/db.h>
 
 #include <iostream>
@@ -19,7 +20,7 @@
 
 struct atlasbuilder : putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::buildrecord::data *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::Atlas *atlas = (inki::Atlas *) obj;
 		std::cout << "Processing atlas [" << path << "]" << std::endl;
@@ -157,7 +158,7 @@ struct atlasbuilder : putki::builder::handler_i
 				inki::Texture *texture = inki::Texture::alloc();
 				texture->Source = output_atlas_path;
 				putki::db::insert(output, outpath.c_str(), inki::Texture::th(), texture);
-				putki::buildrecord::add_output(record, outpath.c_str());
+				putki::build_db::add_output(record, outpath.c_str());
 
 				ao.Texture = texture;
 				atlas->Outputs.push_back(ao);

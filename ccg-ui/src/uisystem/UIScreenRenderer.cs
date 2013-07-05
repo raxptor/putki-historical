@@ -86,8 +86,6 @@ namespace CCGUI
 
 			m_rootRenderer.OnLayout(rctx, ref el);
 			m_rootRenderer.Render(rctx, ref el);
-
-
 		}
 	}
 
