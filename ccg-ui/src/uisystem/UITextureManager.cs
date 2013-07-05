@@ -38,7 +38,7 @@ namespace CCGUI
 				outki.AtlasOutput pickedAtlas = null;
 				foreach (outki.AtlasOutput output in a.Outputs)
 				{
-					double diff = Math.Abs(output.Scale - pixelScale);
+					double diff = Math.Abs(1 - output.Scale / pixelScale);
 					if (diff < bestMatch)
 					{
 						bestMatch = diff;

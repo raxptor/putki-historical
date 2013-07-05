@@ -18,6 +18,81 @@
 
 #include "textureconfig.h"
 
+namespace
+{
+	#define KERNEL_SIZE 5
+	struct sample_kernel
+	{
+		float k[KERNEL_SIZE * KERNEL_SIZE];
+	};
+
+	void make_sample_kernel(sample_kernel *out, float rt, float suppression = 0.90f, float adjx=0, float adjy=0)
+	{
+		const float d = sqrt(-2 * logf(suppression)) / (rt * 2.0f * 3.1415f);
+		const float mul = 1.0f / sqrtf(2.0f * 3.1415f * d);
+
+		float sum = 0;
+		for (int x=0;x<KERNEL_SIZE;x++)
+		{
+			for (int y=0;y<KERNEL_SIZE;y++)
+			{
+				const float cx = x - KERNEL_SIZE / 2 - adjx;
+				const float cy = y - KERNEL_SIZE / 2 - adjy;
+				const float val = mul * expf( - float(cx*cx + cy*cy) / (2.0f * d *d));
+				out->k[y*KERNEL_SIZE+x] = val;
+				sum += val;
+			}
+		}
+
+		for (int x=0;x<KERNEL_SIZE*KERNEL_SIZE;x++)
+			out->k[x] /= sum;
+	}
+
+	// point sampling.
+	unsigned long sample(const unsigned int * px, int s_width, int s_height, int t_width, int t_height, const sample_kernel &kernel, int x, int y)
+	{
+		float _x = float(x) * float(s_width) / float(t_width);
+		float _y = float(y) * float(s_height) / float(t_height);
+
+		sample_kernel blah;
+		make_sample_kernel(&blah, float(t_width) / float(s_width), 0.05f, _x - floorf(_x), _y - floorf(_y));
+
+		unsigned int outpx = 0;
+		for (int component=0;component<32;component+=8)
+		{
+			int cx = int(_x) - KERNEL_SIZE / 2;
+			int cy = int(_y) - KERNEL_SIZE / 2;
+			
+			unsigned char *pxc = (unsigned char*) px;
+			pxc += component / 8;
+
+			float sum = 0;
+			for (int y=0;y<KERNEL_SIZE;y++)
+			{
+				for (int x=0;x<KERNEL_SIZE;x++)
+				{
+					int px = cx + x;
+					int py = cy + y;
+					if (px < 0) px = 0;
+					if (py < 0) py = 0;
+					if (px > s_width - 1)  px = s_width  - 1;
+					if (py > s_height - 1) py = s_height - 1;
+					sum += float(pxc[4 * (py * s_width + px)]) * blah.k[y*KERNEL_SIZE+x];
+				}
+			}
+
+			if (sum > 255) sum = 255;
+			if (sum < 0) sum = 255;
+			int val = (int) sum;
+			outpx |= (val << component);
+		}
+	
+		return outpx;
+
+		//return px[s_width * y + x];
+	}
+}
+
 struct atlasbuilder : putki::builder::handler_i
 {
 	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
@@ -47,8 +122,8 @@ struct atlasbuilder : putki::builder::handler_i
 			}
 
 			rbp::InputRect ir;
-			ir.width = png.width + 2 * border;
-			ir.height = png.height + 2 * border;
+			ir.width = png.width;
+			ir.height = png.height;
 			ir.id = loaded.size();
 			inputRects.push_back(ir);
 
@@ -60,50 +135,61 @@ struct atlasbuilder : putki::builder::handler_i
 		}
 		
 
-		int out_width = 1;
-		int out_height = 1;
-
-		// start values that can actually contain the items.
-		while (out_width  < max_width) out_width *= 2;
-		while (out_height < max_height) out_height *= 2;
-
-		std::vector<rbp::Rect> packedRects;
-
-		// pack until we know how to do it!
-		while (true)
-		{
-			rbp::MaxRectsBinPack pack(out_width, out_height);
-
-			std::vector< rbp::InputRect > tmpCopy = inputRects;
-			pack.Insert(tmpCopy, packedRects, rbp::MaxRectsBinPack::RectBottomLeftRule);
-
-			if (packedRects.size() == inputRects.size())
-			{
-				break;
-			}
-			else
-			{
-				if (out_height > out_width)
-					out_width *= 2;
-				else
-					out_height *= 2;
-
-				packedRects.clear();
-			}
-		}
-
-		// make the atlas.
-		unsigned int * outBmp = new unsigned int[out_width * out_height];
-		for (int y=0;y<out_height;y++)
-		{
-			for (int x=0;x<out_width;x++)
-			{
-				outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xff303030;
-			}
-		}
-
 		for (int i=0;i<g_outputTexConfigs;i++)
 		{
+			int out_width = 1;
+			int out_height = 1;
+
+			const TextureScaleConf &scaleConfig = g_outputTexConf[i];
+
+			const int m_w = (int)ceilf(max_width * scaleConfig.scale);
+			const int m_h = (int)ceilf(max_height * scaleConfig.scale);
+
+			// start values that can actually contain the items.
+			while (out_width  < m_w) out_width *= 2;
+			while (out_height < m_h) out_height *= 2;
+
+			std::vector<rbp::Rect> packedRects;
+
+			// pack until we know how to do it!
+			while (true)
+			{
+				rbp::MaxRectsBinPack pack(out_width, out_height);
+
+				std::vector< rbp::InputRect > tmpCopy = inputRects;
+				for (unsigned int i=0;i<tmpCopy.size();i++)
+				{
+					tmpCopy[i].width  = (int)ceilf(tmpCopy[i].width * scaleConfig.scale) + 2 * border;
+					tmpCopy[i].height = (int)ceilf(tmpCopy[i].height * scaleConfig.scale) + 2 * border;
+				}
+
+				pack.Insert(tmpCopy, packedRects, rbp::MaxRectsBinPack::RectBottomLeftRule);
+
+				if (packedRects.size() == inputRects.size())
+				{
+					break;
+				}
+				else
+				{
+					if (out_height > out_width)
+						out_width *= 2;
+					else
+						out_height *= 2;
+
+					packedRects.clear();
+				}
+			}
+
+			// make the atlas.
+			unsigned int * outBmp = new unsigned int[out_width * out_height];
+			for (int y=0;y<out_height;y++)
+			{
+				for (int x=0;x<out_width;x++)
+				{
+					outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xfff0f0f0;
+				}
+			}
+
 			inki::AtlasOutput ao;
 			
 			ao.Width = out_width;
@@ -118,29 +204,23 @@ struct atlasbuilder : putki::builder::handler_i
 				int blah = 0;
 				if (g_outputTexConf[i].scale != 1)
 					blah = rand();
+
+	
+				sample_kernel krn;
+				make_sample_kernel(&krn, scaleConfig.scale);
 				
 				for (int y=0;y<out.height;y++)
 				{
-					int rl_y = (int)y - border;
-
-					if (rl_y < 0) rl_y = 0;
-					if (rl_y >= (int)g.height) rl_y = (int)g.height - 1;
-
-					for (int x=0;x<out.width;x++)
-					{
-						int rl_x = (int)x - border;
-						if (rl_x < 0) rl_x = 0;
-						if (rl_x >= (int)g.width) rl_x = g.width-1;
-						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * rl_y + rl_x] | blah;
-					}
+					 for (int x=0;x<out.width;x++)
+						outBmp[out_width * (out.y + y) + (out.x + x)] = sample(g.pixels, g.width, g.height, out.width - border * 2, out.height - border * 2, krn, x - border, y - border);
 				}
 
 				inki::AtlasEntry e;
 				e.id = putki::db::pathof_including_unresolved(input, atlas->Inputs[packedRects[k].id]);
 				e.u0 = float(out.x + border) / float(out_width);
 				e.v0 = float(out.y + border) / float(out_height);
-				e.u1 = float(out.x + border + g.width) / float(out_width);
-				e.v1 = float(out.y + border + g.height) / float(out_height);
+				e.u1 = float(out.x + out.width - border) / float(out_width);
+				e.v1 = float(out.y + out.height - border) / float(out_height);
 
 				ao.Entries.push_back(e);
 			}
