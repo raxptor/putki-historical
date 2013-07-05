@@ -37,7 +37,10 @@ namespace CCGUI
 
 			foreach (outki.FontOutput fo in m_data.Outputs)
 			{
-				double diff = Math.Abs(1 - (float)fo.PixelSize / (float)pixelSize);
+				//if (fo.PixelSize < pixelSize)
+//					continue;
+
+				double diff = 1 - (float)fo.PixelSize / (float)pixelSize;
 				if (diff < minDiff)
 				{
 					minDiff = diff;

@@ -4,18 +4,69 @@
 			"_rtti_type": 203,
 			"width": 960,
 			"height": 640,
-			"elements": ["widgets/hudroot#joystick"]
+			"handler": "",
+			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#aohb"]
 	},
 	aux: [
 		{
 			ref: "#joystick",
 			type: "UIWidgetElement",
-			data {
-				parent: {
-					layout: { y: 490, x: 10 },
-					expansion: { y: 1 }
-				 },
-				widget: "widgets/joystick"
+			data: {
+					"parent": {
+						"_rtti_type": 204,
+						"id": "",
+						"layout": {
+							"x": 10,
+							"y": 490,
+							"width": 0,
+							"height": 0
+					},
+						"expansion": {
+							"x": 0,
+							"y": 1,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"widget": "widgets/joystick"
+			}
+		}
+		,
+		{
+			ref: "#aohb",
+			type: "UITextElement",
+			data: {
+					"parent": {
+						"_rtti_type": 206,
+						"id": "",
+						"layout": {
+							"x": 100,
+							"y": 100,
+							"width": 300,
+							"height": 100
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"font": "fonts/calibri",
+					"pixelSize": 30,
+					"Text": "Hej baberiba"
 			}
 		}
 	      ]

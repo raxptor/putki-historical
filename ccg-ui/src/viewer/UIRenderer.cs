@@ -37,6 +37,9 @@ namespace CCGUI
 
 		public static void DrawTextureUV(Texture tex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1)
 		{
+			if (u0 == u1 || v0 == v1)
+				return;
+
 			Texture tmp = new Texture();
 			tmp.bmp = tex.bmp;
 			tmp.img = new CroppedBitmap(tex.bmp, new Int32Rect((int)(u0 * tmp.bmp.Width), (int)(v0 * tmp.bmp.Height), (int)((u1 - u0) * tmp.bmp.Width), (int)((v1 - v0) * tmp.bmp.Height)));

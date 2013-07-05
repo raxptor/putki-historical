@@ -18,7 +18,7 @@ namespace CCGUI
 
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
-			m_font.Render(rctx, layout.x0, layout.y0, "Putki!", (int)(100 * rctx.LayoutScale));
+			m_font.Render(rctx, layout.x0, layout.y0, m_element.Text, (int)(100 * rctx.LayoutScale));
 			//UIRenderer.Rect(x0, y0, x1, y1);
 			/*
 			if (m_texture != null)

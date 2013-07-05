@@ -1,8 +1,8 @@
 {
 	type: "Font",
 	data: {
-		Source: "fonts/cooper.ttf",
-		Characters: [65,66,67,68],
-		PixelSizes: [15,20,35,60,80,]
+		Source: "fonts/calibri.ttf",
+		Characters: [65,66,67,68,32],
+		PixelSizes: [8,10,15,20,30,40,80]
 	}
 }

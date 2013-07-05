@@ -1,6 +1,7 @@
 #include Texture.typedef
 #include Font.typedef
 
+
 UIRect [in, out]
 {
 	@inline-editor Vec4
@@ -19,6 +20,32 @@ UIColor [in, out]
 	float a = 255
 }
 
+UIFill [in, out] rtti
+{
+}
+
+UISolidFill : UIFill [in, out] 
+{
+	UIColor color
+}
+
+UIGradientFill : UIFill [in, out]
+{
+	UIColor topleft
+	UIColor topright
+	UIColor bottomleft
+	UIColor bottomright
+}
+
+UISlice9Fill : UIFill [in, out]
+{
+	ptr Texture texture
+	int MarginLeft
+	int MarginTop
+	int MarignRight
+	int MarginBottom
+}
+
 UIElement [in, out] rtti
 {
 	string id
@@ -34,6 +61,11 @@ UIWidget [in, out] rtti
 	float height
 	string handler
 	auxptr[] UIElement elements
+}
+
+UIFillElement : UIElement [in, out]
+{
+	ptr UIFill fill
 }
 
 UIWidgetElement : UIElement [in, out]

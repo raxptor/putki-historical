@@ -163,7 +163,7 @@ struct fontbuilder : putki::builder::handler_i
 				{
 					for (int x=0;x	<out_width;x++)
 					{
-						outBmp[y*out_width+x] =  0x00ffffff;
+						outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xff808080;
 					}
 				}
 
@@ -175,10 +175,10 @@ struct fontbuilder : putki::builder::handler_i
 					// insert into output.
 					inki::FontGlyph fg;
 					fg.glyph = font->Characters[packedRects[k].id];
-					fg.u0 = float(out.x) / float(out_width);
-					fg.v0 = float(out.y) / float(out_height);
-					fg.u1 = float(out.x + g.w) / float(out_width);
-					fg.v1 = float(out.y + g.h) / float(out_height);
+					fg.u0 = float(out.x + border) / float(out_width);
+					fg.v0 = float(out.y + border) / float(out_height);
+					fg.u1 = float(out.x + border + g.w) / float(out_width);
+					fg.v1 = float(out.y + border + g.h) / float(out_height);
 					fg.pixelWidth = g.w;
 					fg.pixelHeight = g.h;
 					fg.bearingX = g.bearingX;

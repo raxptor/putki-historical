@@ -119,28 +119,28 @@ struct atlasbuilder : putki::builder::handler_i
 				if (g_outputTexConf[i].scale != 1)
 					blah = rand();
 				
-				for (unsigned int y=0;y<out.height;y++)
+				for (int y=0;y<out.height;y++)
 				{
 					int rl_y = (int)y - border;
 
 					if (rl_y < 0) rl_y = 0;
-					if (rl_y >= g.height) rl_y = g.height-1;
+					if (rl_y >= (int)g.height) rl_y = (int)g.height - 1;
 
-					for (unsigned int x=0;x<out.width;x++)
+					for (int x=0;x<out.width;x++)
 					{
 						int rl_x = (int)x - border;
 						if (rl_x < 0) rl_x = 0;
-						if (rl_x >= g.width) rl_x = g.width-1;
+						if (rl_x >= (int)g.width) rl_x = g.width-1;
 						outBmp[out_width * (out.y + y) + (out.x + x)] = g.pixels[g.width * rl_y + rl_x] | blah;
 					}
 				}
 
 				inki::AtlasEntry e;
 				e.id = putki::db::pathof_including_unresolved(input, atlas->Inputs[packedRects[k].id]);
-				e.u0 = float(out.x) / float(out_width);
-				e.v0 = float(out.y) / float(out_height);
-				e.u1 = float(out.x + g.width) / float(out_width);
-				e.v1 = float(out.y + g.height) / float(out_height);
+				e.u0 = float(out.x + border) / float(out_width);
+				e.v0 = float(out.y + border) / float(out_height);
+				e.u1 = float(out.x + border + g.width) / float(out_width);
+				e.v1 = float(out.y + border + g.height) / float(out_height);
 
 				ao.Entries.push_back(e);
 			}

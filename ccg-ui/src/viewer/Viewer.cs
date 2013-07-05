@@ -7,6 +7,25 @@ using System.IO;
 
 namespace ViewerApp
 {
+
+	public class ViewerWidgetHandler : CCGUI.UIWidgetHandler
+	{
+		public ViewerWidgetHandler()
+		{
+
+		}
+
+		public CCGUI.UIElementRenderer CreateRootRenderer(outki.UIWidget widget)
+		{
+			return CCGUI.UIDefaultWidgetHandler.CreateRootRenderer(widget, this);
+		}
+
+		public CCGUI.UIElementRenderer CreateRenderer(outki.UIElement element)
+		{
+			return CCGUI.UIDefaultWidgetHandler.CreateRenderer(element, this);
+		}
+	}
+
     class Viewer
     {
 		[STAThread]
@@ -17,7 +36,7 @@ namespace ViewerApp
 
 			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");
 
-			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(screen));
+			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(screen, new ViewerWidgetHandler()));
 			w.ShowDialog();
 
 

@@ -6,11 +6,17 @@
 	
 	project "putki-lib"
 
-		kind "SharedLib"
+		if os.get() == "windows" then
+			kind "StaticLib"
+		else
+			kind "SharedLib"
+		end
+	
 		language "C++"
 		targetname "putki-lib"
 
 		files { "../src/**.cpp", "../src/**.h" }
+		files { "../src/**.cpp", "../src/**.h" }	
 		files { "../builder/src/*.cpp" }
 
 		excludes { "../src/cpp-runtime/**" }
