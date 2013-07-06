@@ -54,7 +54,6 @@ solution "Testproj"
 		includedirs { "_gen" }
 
 		links { "testapp-putki-lib"}
-		links { "putki-data-dll-lib" }
 		links { "putki-lib" }
 		links { "jsmn" }
 

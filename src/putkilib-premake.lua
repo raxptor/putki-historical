@@ -1,3 +1,7 @@
+
+	configuration {"windows"}
+		defines {"USE_WINSOCK"}
+
 	project "jsmn"
 		kind "StaticLib"
 		targetname "jsmn"
@@ -29,9 +33,7 @@
 		links {"libz"}
 
 		configuration {"windows"}
-			defines {"USE_WINSOCK"}
 			links {"ws2_32"}
 
 		configuration {"gmake"}
 			links {"pthread"}
-

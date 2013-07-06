@@ -2,6 +2,7 @@
 #include <putki/builder/build.h>
 #include <putki/builder/builder.h>
 #include <putki/builder/package.h>
+#include <putki/builder/build-db.h>
 
 #include <inki/types/core.h>
 #include <inki/types/test.h>
@@ -14,7 +15,7 @@ namespace inki
 
 struct blob_handler : public putki::builder::handler_i
 {
-	virtual bool handle(putki::builder::data *builder, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
+	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
 	{
 		inki::gurka *b = (inki::gurka*) obj;
 
