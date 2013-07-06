@@ -46,19 +46,41 @@ namespace Editor
 		public void Bind(int i)
 		{
 			m_lb[i].Content = m_fh[i].GetName();
-			m_tb[i].Text = m_fh[i].GetFloat(m_mi).ToString();
+
+			if ((int)m_fh[i].GetType() == 7) // float
+				m_tb[i].Text = m_fh[i].GetFloat(m_mi).ToString();
+			else if ((int)m_fh[i].GetType() == 1) // byte
+				m_tb[i].Text = m_fh[i].GetByte(m_mi).ToString();
+
 			m_tb[i].TextChanged += delegate
 			{
-				float o;
-				if (Single.TryParse(m_tb[i].Text, out o))
-				{					
-					m_fh[i].SetFloat(m_mi, o);
-					m_tb[i].Foreground = m_obrush;
-				}
-				else
+				if ((int)m_fh[i].GetType() == 7) // float
 				{
-					m_tb[i].Foreground = Brushes.Red;
+					float o;
+					if (Single.TryParse(m_tb[i].Text, out o))
+					{
+						m_fh[i].SetFloat(m_mi, o);
+						m_tb[i].Foreground = m_obrush;
+					}
+					else
+					{
+						m_tb[i].Foreground = Brushes.Red;
+					}
 				}
+				else if ((int)m_fh[i].GetType() == 1) // byte
+				{
+					byte o;
+					if (Byte.TryParse(m_tb[i].Text, out o))
+					{
+						m_fh[i].SetByte(m_mi, o);
+						m_tb[i].Foreground = m_obrush;
+					}
+					else
+					{
+						m_tb[i].Foreground = Brushes.Red;
+					}
+				}
+
 			};
 		}
 

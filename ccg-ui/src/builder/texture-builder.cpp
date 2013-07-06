@@ -22,36 +22,36 @@ struct texbuilder : putki::builder::handler_i
 		// this is used for atlas lookups later.
 		texture->id = path;
 
-		if (texture->NoOutput)
-		{
-			// This will not build the TextureOutput, but the asset desc itself will exist.
-			return false;
-		}
-
 		std::cout << "Processing texture [" << path << "] source <" << texture->Source << ">" << std::endl;
 
 		putki::pngutil::loaded_png png;
 		if (putki::pngutil::load(putki::resource::real_path(builder, texture->Source.c_str()).c_str(), &png))
 		{
-			// these are the direct load textures.
-			inki::TextureOutputPng *pngObj = inki::TextureOutputPng::alloc();
-			pngObj->PngPath = std::string("Resources/") + path + ".png";
-			pngObj->parent.u0 = 0;
-			pngObj->parent.v0 = 0;
-			pngObj->parent.u1 = 1.0f;
-			pngObj->parent.v1 = 1.0f;
+			texture->Width = png.width;
+			texture->Height = png.height;
 
-			putki::pngutil::write_to_output(builder, pngObj->PngPath.c_str(), png.pixels, png.width, png.height);
+			if (!texture->NoOutput)
+			{
+				// these are the direct load textures.
+				inki::TextureOutputPng *pngObj = inki::TextureOutputPng::alloc();
+				pngObj->PngPath = std::string("Resources/") + path + ".png";
+				pngObj->parent.u0 = 0;
+				pngObj->parent.v0 = 0;
+				pngObj->parent.u1 = 1.0f;
+				pngObj->parent.v1 = 1.0f;
+
+				putki::pngutil::write_to_output(builder, pngObj->PngPath.c_str(), png.pixels, png.width, png.height);			
+
+				texture->Output = &pngObj->parent;
+				
+				std::string path_res(path);
+				path_res.append("_out");
+				putki::db::insert(output, path_res.c_str(), inki::TextureOutputPng::th(), pngObj);
+
+				putki::build_db::add_output(record, path_res.c_str());
+			}
+
 			putki::pngutil::free(&png);
-
-			texture->Output = &pngObj->parent;
-
-			// add.
-			std::string path_res(path);
-			path_res.append("_out");
-			putki::db::insert(output, path_res.c_str(), inki::TextureOutputPng::th(), pngObj);
-
-			putki::build_db::add_output(record, path_res.c_str());
 			return false;
 		}
 

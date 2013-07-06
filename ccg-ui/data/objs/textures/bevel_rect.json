@@ -1,0 +1,12 @@
+{
+	type: "Texture",
+	data: {
+			"_rtti_type": 703,
+			"Source": "textures/bevel_rect.png",
+			"Output": "",
+			"id": "",
+			"NoOutput": 1
+	},
+	aux: [
+	      ]
+}

@@ -56,6 +56,8 @@ namespace putki
 			return "int";
 		case FIELDTYPE_BYTE:
 			return "unsigned char";
+		case FIELDTYPE_FLOAT:
+			return "float";
 		default:
 			return "???";
 		}
@@ -94,7 +96,7 @@ namespace putki
 		case FIELDTYPE_INT32:
 			return "int";
 		case FIELDTYPE_BYTE:
-			return "char";
+			return "unsigned char";
 		case FIELDTYPE_POINTER:
 			return "void*";
 		case FIELDTYPE_FLOAT:

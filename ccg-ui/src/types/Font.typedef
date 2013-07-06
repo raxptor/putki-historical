@@ -22,6 +22,8 @@ FontOutput [in, out]
 	[hidden] int[] KerningCharR
 	[hidden] int[] KerningOfs
 	[hidden] int PixelSize
+	[hidden] int BBoxMinY
+	[hidden] int BBoxMaxY
 }
 
 Font [in, out]

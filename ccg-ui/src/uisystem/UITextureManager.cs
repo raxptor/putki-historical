@@ -27,7 +27,7 @@ namespace CCGUI
 		}
 
 		// id is path really.
-		public UIRenderer.Texture ResolveTexture(outki.Texture tex, float pixelScale, float u0, float v0, float u1, float v1)
+		public UIRenderer.Texture ResolveTexture(outki.Texture tex, float pixelScale, float u0, float v0, float u1, float v1, bool uvInTexels = false)
 		{
 			if (m_mapping.ContainsKey(tex.id))
 			{
@@ -44,6 +44,15 @@ namespace CCGUI
 						bestMatch = diff;
 						pickedAtlas = output;
 					}
+				}
+
+				if (uvInTexels)
+				{
+					// u/v are in original texture coordinates.
+					u0 = u0 / tex.Width;
+					u1 = u1 / tex.Width;
+					v0 = v0 / tex.Height;
+					v1 = v1 / tex.Height;
 				}
 
 				foreach (outki.AtlasEntry entry in pickedAtlas.Entries)

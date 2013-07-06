@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Drawing;
 
 namespace CCGUI
 {
@@ -28,6 +29,17 @@ namespace CCGUI
 		public static void Rect(float x0, float y0, float x1, float y1)
 		{
 			dc.DrawRectangle(Brushes.Red, new Pen(), new Rect(x0, y0, x1 - x0, y1 - y0));
+		}
+
+		private static Color ConvertColor(outki.UIColor color)
+		{
+			return Color.FromArgb(color.a, color.r, color.g, color.b);
+		}
+
+		public static void DrawSolidRect(float x0, float y0, float x1, float y1, outki.UIColor color)
+		{
+			Brush b = new SolidColorBrush(ConvertColor(color));
+			dc.DrawRectangle(b, new Pen(), new Rect(x0, y0, x1 - x0, y1 - y0));
 		}
 
 		public static void DrawTexture(Texture tex, float x0, float y0, float x1, float y1)

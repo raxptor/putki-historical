@@ -1,11 +1,11 @@
 {
 	type: "UIWidget",
 	data: {
-			"_rtti_type": 203,
+			"_rtti_type": 207,
 			"width": 960,
 			"height": 640,
 			"handler": "",
-			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#aohb"]
+			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#ssej", "widgets/hudroot#aohb"]
 	},
 	aux: [
 		{
@@ -13,7 +13,7 @@
 			type: "UIWidgetElement",
 			data: {
 					"parent": {
-						"_rtti_type": 204,
+						"_rtti_type": 209,
 						"id": "",
 						"layout": {
 							"x": 10,
@@ -39,22 +39,52 @@
 		}
 		,
 		{
+			ref: "#ssej",
+			type: "UIFillElement",
+			data: {
+					"parent": {
+						"_rtti_type": 208,
+						"id": "",
+						"layout": {
+							"x": 150,
+							"y": 100,
+							"width": 500,
+							"height": 100
+					},
+						"expansion": {
+							"x": 0.5,
+							"y": 0,
+							"width": 0.5,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"fill": "ui/styles/slice9-bevel-rect"
+			}
+		}
+		,
+		{
 			ref: "#aohb",
 			type: "UITextElement",
 			data: {
 					"parent": {
-						"_rtti_type": 206,
+						"_rtti_type": 211,
 						"id": "",
 						"layout": {
-							"x": 100,
+							"x": 150,
 							"y": 100,
-							"width": 300,
+							"width": 500,
 							"height": 100
 					},
 						"expansion": {
-							"x": 0,
+							"x": 0.5,
 							"y": 0,
-							"width": 0,
+							"width": 0.5,
 							"height": 0
 					},
 						"color": {
@@ -65,8 +95,13 @@
 					}
 				},
 					"font": "fonts/calibri",
-					"pixelSize": 30,
-					"Text": "Hej baberiba"
+					"pixelSize": 100,
+					"Text": "Hej baberiba",
+					"HorizontalAlignment": "UIHorizontalAlignment_Center",
+					"VerticalAlignment": "UIVerticalAlignment_Center",
+					"BackgroundFill": {
+						"_rtti_type": 0
+				}
 			}
 		}
 	      ]

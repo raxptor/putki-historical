@@ -75,6 +75,9 @@ struct fontbuilder : putki::builder::handler_i
 				inki::FontOutput up;
 				up.PixelSize = font->PixelSizes[sz];
 
+				up.BBoxMinY = 1000000;
+				up.BBoxMaxY = -100000;
+
 				int border = 1;
 
 				for (unsigned int i=0;i<font->Characters.size();i++)
@@ -102,6 +105,11 @@ struct fontbuilder : putki::builder::handler_i
 					g.bearingY = face->glyph->metrics.horiBearingY;
 					g.advance = face->glyph->metrics.horiAdvance;
 					glyphs.push_back(g);
+
+					const int y0 = g.bearingY - 64 * g.h;
+					const int y1 = g.bearingY;
+					if (y0 < up.BBoxMinY) up.BBoxMinY = y0;
+					if (y1 > up.BBoxMaxY) up.BBoxMaxY = y1;
 
 					for (unsigned int j=0;j<font->Characters.size();j++)
 					{

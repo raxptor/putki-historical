@@ -1,3 +1,5 @@
+using System;
+
 namespace CCGUI
 {
 	public class UIWidgetRenderer : UIElementRenderer
@@ -40,15 +42,19 @@ namespace CCGUI
 				outki.UIElement el = m_data.elements[i];
 
 				UIElementLayout layout;
+
+				float width  = el.layout.width + el.expansion.width * expX;
+				float height = el.layout.height + el.expansion.height * expY;
+
 				layout.nsx0 = nsx0 + el.layout.x + el.expansion.x * expX;
 				layout.nsy0 = nsy0 + el.layout.y + el.expansion.y * expY;
-				layout.nsx1 = layout.nsx0 + el.layout.width + el.expansion.width * expX;
-				layout.nsy1 = layout.nsy0 + el.layout.height + el.expansion.height * expY;
+				layout.nsx1 = layout.nsx0 + width;
+				layout.nsy1 = layout.nsy0 + height;
 
-				layout.x0 = layout.nsx0 * rctx.LayoutScale + rctx.LayoutOffsetX;
-				layout.y0 = layout.nsy0 * rctx.LayoutScale + rctx.LayoutOffsetY;
-				layout.x1 = layout.nsx1 * rctx.LayoutScale + rctx.LayoutOffsetX;
-				layout.y1 = layout.nsy1 * rctx.LayoutScale + rctx.LayoutOffsetY;
+				layout.x0 = (float) Math.Floor(layout.nsx0 * rctx.LayoutScale + rctx.LayoutOffsetX);
+				layout.y0 = (float) Math.Floor(layout.nsy0 * rctx.LayoutScale + rctx.LayoutOffsetY);
+				layout.x1 = layout.x0 + (float) Math.Floor(0.5f + width * rctx.LayoutScale);
+				layout.y1 = layout.y0 + (float) Math.Floor(0.5f + height * rctx.LayoutScale);
 				
 				m_rtData[i].element = el;
 				m_rtData[i].layout = layout;

@@ -1,6 +1,19 @@
 #include Texture.typedef
 #include Font.typedef
 
+enum UIVerticalAlignment
+{
+	UIVerticalAlignment_Top,
+	UIVerticalAlignment_Center,
+	UIVerticalAlignment_Bottom,
+}
+
+enum UIHorizontalAlignment
+{
+	UIHorizontalAlignment_Left,
+	UIHorizontalAlignment_Center,
+	UIHorizontalAlignment_Right,
+}
 
 UIRect [in, out]
 {
@@ -14,10 +27,10 @@ UIRect [in, out]
 UIColor [in, out]
 {
 	@inline-editor Vec4
-	float r = 255
-	float g = 255
-	float b = 255
-	float a = 255
+	byte r = 255
+	byte g = 255
+	byte b = 255
+	byte a = 255
 }
 
 UIFill [in, out] rtti
@@ -44,6 +57,10 @@ UISlice9Fill : UIFill [in, out]
 	int MarginTop
 	int MarignRight
 	int MarginBottom
+	int ExpandLeft
+	int ExpandRight
+	int ExpandTop
+	int ExpandBottom
 }
 
 UIElement [in, out] rtti
@@ -83,5 +100,10 @@ UITextElement : UIElement [in, out]
 	ptr Font font
 	int pixelSize
 	string Text
+
+	enum UIHorizontalAlignment HorizontalAlignment = UIHorizontalAlignment_Center
+	enum UIVerticalAlignment VerticalAlignment = UIVerticalAlignment_Center
+
+	UIFill BackgroundFill
 }
 

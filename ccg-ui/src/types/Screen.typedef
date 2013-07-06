@@ -11,8 +11,9 @@ enum UIScaleMode
 UIScreen [in, out]
 {
 	bool PreserveLayoutAspect = false
+	bool SnapScale = true
 	enum UIScaleMode ScaleMode
 	ptr UIWidget Root
 	ptr[] Atlas Atlases
+	float[] [hidden] ScalingForSnapping
 }
-

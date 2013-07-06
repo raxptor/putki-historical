@@ -67,6 +67,28 @@ namespace CCGUI
 				float sHeight = (el.y1 - el.y0) / m_screen.Root.height;
 				float sScale = sWidth < sHeight ? sWidth : sHeight;
 
+				if (m_screen.SnapScale)
+				{
+					for (int i=0;i<m_screen.ScalingForSnapping.Length;i++)
+					{
+						if (sScale > m_screen.ScalingForSnapping[i])
+						{
+							sScale = m_screen.ScalingForSnapping[i];
+							break;
+						}
+					}
+				}
+
+				/*
+				bool snapScale = true;
+				if (snapScale)
+				{
+					if (sScale > 1) sScale = 1;
+					if (sScale > ) sScale = 1;
+				}
+				 */
+
+
 				rctx.LayoutScale = sScale;
 				rctx.LayoutOffsetX = -(float)Math.Floor(el.x0 * (rctx.LayoutScale - 1));
 				rctx.LayoutOffsetY = -(float)Math.Floor(el.y0 * (rctx.LayoutScale - 1));

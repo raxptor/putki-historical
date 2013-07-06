@@ -159,8 +159,8 @@ struct atlasbuilder : putki::builder::handler_i
 				std::vector< rbp::InputRect > tmpCopy = inputRects;
 				for (unsigned int i=0;i<tmpCopy.size();i++)
 				{
-					tmpCopy[i].width  = (int)ceilf(tmpCopy[i].width * scaleConfig.scale) + 2 * border;
-					tmpCopy[i].height = (int)ceilf(tmpCopy[i].height * scaleConfig.scale) + 2 * border;
+					tmpCopy[i].width  = (int)floorf(0.5f + tmpCopy[i].width * scaleConfig.scale) + 2 * border;
+					tmpCopy[i].height = (int)floorf(0.5f + tmpCopy[i].height * scaleConfig.scale) + 2 * border;
 				}
 
 				pack.Insert(tmpCopy, packedRects, rbp::MaxRectsBinPack::RectBottomLeftRule);

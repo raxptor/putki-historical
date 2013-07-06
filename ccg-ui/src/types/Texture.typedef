@@ -25,4 +25,6 @@ Texture [in, out] rtti
 	[hidden] ptr TextureOutput Output
 	[hidden] string id
 	[no-out] bool NoOutput
+	[hidden] int Width
+	[hidden] int Height
 }

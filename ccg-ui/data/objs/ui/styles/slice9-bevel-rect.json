@@ -1,0 +1,19 @@
+{
+	type: "UISlice9Fill",
+	data: {
+			"parent": {
+				"_rtti_type": 205
+		},
+			"texture": "textures/bevel_rect",
+			"MarginLeft": 15,
+			"MarginTop": 15,
+			"MarignRight": 15,
+			"MarginBottom": 15,
+			"ExpandLeft": 20,
+			"ExpandRight": 20,
+			"ExpandTop": 20,
+			"ExpandBottom": 20
+	},
+	aux: [
+	      ]
+}

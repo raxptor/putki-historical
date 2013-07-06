@@ -18,6 +18,8 @@ namespace CCGUI
 					return new UIBitmapElementRenderer((outki.UIBitmapElement)element);
 				case outki.UITextElement.TYPE:
 					return new UITextElementRenderer((outki.UITextElement)element);
+				case outki.UIFillElement.TYPE:
+					return new UIFillElementRenderer((outki.UIFillElement)element);
 				default:
 					return null;
 			}

@@ -35,6 +35,8 @@ namespace putki
 	{
 		switch (f->type)
 		{
+			case FIELDTYPE_FLOAT:
+			case FIELDTYPE_ENUM:
 			case FIELDTYPE_INT32:
 				return "4";
 			case FIELDTYPE_BYTE:
