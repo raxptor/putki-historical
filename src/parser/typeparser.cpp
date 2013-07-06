@@ -12,7 +12,6 @@
 #include <cstdlib>
 #include <cstdio>
 
-
 namespace putki
 {
 	std::string trim(std::string str)
@@ -175,7 +174,7 @@ namespace putki
 		free(dup);
 	}
 
-	void parse(const char *in_path, const char *name, int type_id_start, parsed_file *out)
+	void parse(const char *in_path, const char *name, int * type_id_counter, parsed_file *out)
 	{
 		std::cout << "Compiling [" << name << "]" << std::endl;
 		std::ifstream f(in_path);
@@ -257,7 +256,7 @@ namespace putki
 					{
 						if (in_struct)
 						{
-							datastruct.unique_id = type_id_start++;
+							datastruct.unique_id = (*type_id_counter)++;
 
 							// postprocess
 							if (!datastruct.parent.empty())

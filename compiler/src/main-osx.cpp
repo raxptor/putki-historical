@@ -11,6 +11,11 @@
 
 //#include <unistd.h>
 
+// from config
+std::string g_module_name;
+std::string g_loader_name;
+int g_unique_id_counter = 0;
+
 namespace
 {
 	const char *s_inpath;
@@ -24,6 +29,9 @@ namespace
 
 	std::stringstream s_csharp_switch_case;
 	std::stringstream s_csharp_switch_case_resolve;
+
+	std::stringstream s_putki_master;
+	std::stringstream s_runtime_master;
 	
 	int type_id = 0;
 }
@@ -80,6 +88,9 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	std::ofstream f_dll_impl(dll_impl.c_str());
 	f_dll_impl << "#pragma once" << std::endl;
 	f_dll_impl << "#include <inki" << out_base << ".h>" << std::endl;
+
+	s_putki_master << "#include \"data-dll" << out_base << "_impl.cpp\"" << std::endl;
+	s_putki_master << "#include \"inki" << out_base << "_inki.cpp\"" << std::endl;
 	
 	putki::write_dll_impl(&pf, putki::indentedwriter(f_dll_impl));
 
@@ -110,10 +121,8 @@ void file(const char *fullpath, const char *name)
 
 	if (fn.substr(fn.size() - len, len) == ending)
 	{
-		type_id += 100;
-		
 		putki::parsed_file pf;
-		putki::parse(fullpath, name, type_id, &pf);
+		putki::parse(fullpath, name, &g_unique_id_counter, &pf);
 		write_out(pf, fullpath, name, len);
 	}
 }
@@ -121,27 +130,30 @@ void file(const char *fullpath, const char *name)
 
 int main (int argc, char *argv[])
 {
+	std::ifstream config("putki-compiler.config");
+	config >> g_module_name >> g_loader_name >> g_unique_id_counter;
+	if (g_loader_name.empty() || g_unique_id_counter == 0)
+	{
+		std::cout << "Could not load settings from putki-compiler.config!" << std::endl;
+		return 1;
+	}
+
 	s_inpath = "src";
 	s_rt_outpath = "_gen/outki";
 	s_putki_outpath = "_gen/inki";
 	s_dll_outpath = "_gen/data-dll";
 	s_csharp_outpath = "_gen/outki_csharp";
 		
-	const char *module_name = "test_project";
-	if (argc > 1)
-		module_name = argv[1];
-
 	// add internal records for packages
 	
 	putki::sys::search_tree(s_inpath, file);
 	
-
 	// bind calls
 	std::ofstream f_bind((std::string(s_putki_outpath) + "/bind.cpp").c_str());        
 	f_bind << "#include <putki/builder/typereg.h>" << std::endl << std::endl;
 	f_bind << s_bind_decl.str() << std::endl;
 	f_bind << "namespace inki {" << std::endl;
-	f_bind << "void bind_" << module_name << "()" << std::endl << "{" << std::endl;
+	f_bind << "void bind_" << g_module_name << "()" << std::endl << "{" << std::endl;
 	f_bind << s_bind_calls.str() << std::endl;
 	f_bind << "}" << std::endl;
 	f_bind << "}" << std::endl;
@@ -150,7 +162,7 @@ int main (int argc, char *argv[])
 	std::ofstream f_bind_dll((std::string(s_putki_outpath) + "/bind-dll.cpp").c_str()); 
 	f_bind_dll << s_bind_decl_dll.str() << std::endl;
 	f_bind_dll << "namespace inki {" << std::endl;
-	f_bind_dll << "void bind_" << module_name << "_dll()" << std::endl << "{" << std::endl;
+	f_bind_dll << "void bind_" << g_module_name << "_dll()" << std::endl << "{" << std::endl;
 	f_bind_dll<< s_bind_calls_dll.str() << std::endl;
 	f_bind_dll << "}" << std::endl;
 	f_bind_dll << "}" << std::endl;
@@ -161,25 +173,34 @@ int main (int argc, char *argv[])
 	f_switch << "#include <putki/blob.h>" << std::endl;
 	f_switch << "#include <putki/types.h>" << std::endl;
 	f_switch << "namespace outki {" << std::endl;
-	f_switch << "char* post_blob_load_" << module_name << "(int type, putki::depwalker_i *ptr_reg, char *begin, char *end)" << std::endl << "{" << std::endl;
+	f_switch << "char* post_blob_load_" << g_module_name << "(int type, putki::depwalker_i *ptr_reg, char *begin, char *end)" << std::endl << "{" << std::endl;
 	f_switch << "	switch (type) {" << std::endl;
 	f_switch << s_blob_load_calls.str() << std::endl;
 	f_switch << "		default: return 0;" << std::endl;
 	f_switch << "	}" << std::endl;
 	f_switch << "}" << std::endl;
-	f_switch << "void bind_" << module_name << "_loaders()" << std::endl;
+	f_switch << "void bind_" << g_module_name << "_loaders()" << std::endl;
 	f_switch << "{" << std::endl;
-	f_switch << "   add_blob_loader(post_blob_load_" << module_name << ");" << std::endl;
+	f_switch << "   add_blob_loader(post_blob_load_" << g_module_name << ");" << std::endl;
 	f_switch << "}" << std::endl;
 	f_switch << "}" << std::endl;
+
+	std::ofstream f_putki_master(std::string("_gen") + "/" + g_module_name + "-putki-master.cpp");
+	f_putki_master << s_putki_master.str() << std::endl;
+	f_putki_master << "#include \"inki/bind.cpp\"" << std::endl;
+	f_putki_master << "#include \"inki/bind-dll.cpp\"" << std::endl;
+	
+	std::ofstream f_runtime_master(std::string("_gen") + "/" + g_module_name + "-runtime-master.cpp");
+	f_runtime_master << s_runtime_master.str() << std::endl;
+	f_runtime_master << "#include \"outki/blobload.cpp\"" << std::endl;
 
 
 	// runtime c# switch case blob load
 	{
-		std::ofstream f_switch((std::string(s_csharp_outpath) + "/OutkiLoaders.cs").c_str());
+		std::ofstream f_switch((std::string(s_csharp_outpath) + "/" + g_loader_name + "DataLoader.cs").c_str());
 		f_switch << "namespace outki" << std::endl;
 		f_switch << "{" << std::endl;
-		f_switch << "	public class Loader" << std::endl;
+		f_switch << "	public class " << g_loader_name << "DataLoader" << std::endl;
 		f_switch << "	{" << std::endl;
 		f_switch << "		public static void ResolveFromPackage(int type, object obj, Putki.Package pkg)" << std::endl;
 		f_switch << "		{" << std::endl;
@@ -201,6 +222,8 @@ int main (int argc, char *argv[])
 		f_switch << "	}" << std::endl;
 		f_switch << "}" << std::endl;
 	}
+
+
 	
  	return 0;
 }

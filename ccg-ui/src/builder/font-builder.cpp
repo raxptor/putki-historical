@@ -10,8 +10,8 @@
 #include <iostream>
 #include <sstream>
 
-#include <inki/types/Font.h>
-#include <inki/types/Texture.h>
+#include <inki/types/ccg-ui/Font.h>
+#include <inki/types/ccg-ui/Texture.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

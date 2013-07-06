@@ -339,7 +339,7 @@ namespace putki
 			switch_case_out.line() << "	return o;";
 			switch_case_out.line() << "}";
 
-			switch_case_resolve.line() << "case " << s->unique_id << ": ((" << s->name << ")obj).ResolveFromPackage(pkg); break;";
+			switch_case_resolve.line() << "\t\t\t\tcase " << s->unique_id << ": ((" << s->name << ")obj).ResolveFromPackage(pkg); break;";
 
 			out.line();
 		}

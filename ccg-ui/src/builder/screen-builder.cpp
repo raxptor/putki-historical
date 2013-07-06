@@ -6,7 +6,7 @@
 #include <putki/builder/build-db.h>
 #include <putki/builder/db.h>
 
-#include <inki/types/Screen.h>
+#include <inki/types/ccg-ui/Screen.h>
 
 #include "textureconfig.h"
 

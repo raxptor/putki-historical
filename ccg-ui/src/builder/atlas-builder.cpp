@@ -11,8 +11,8 @@
 #include <vector>
 #include <sstream>
 
-#include <inki/types/Texture.h>
-#include <inki/types/Atlas.h>
+#include <inki/types/ccg-ui/Texture.h>
+#include <inki/types/ccg-ui/Atlas.h>
 
 #include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
 

@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include <inki/types/Texture.h>
+#include <inki/types/ccg-ui/Texture.h>
 
 #include "textureconfig.h"
 

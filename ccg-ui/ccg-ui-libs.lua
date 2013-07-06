@@ -1,13 +1,3 @@
-solution "CCG-UI"
-
-	configurations {"Release", "Debug"}
-	location "build"
-	targetdir "build"
-	flags { "Symbols" }
-	defines {"_CRT_SECURE_NO_WARNINGS"}
-
-	configuration "Debug"
-		defines {"DEBUG"}
 
 	dofile "../src/putkilib-premake.lua"
 	dofile "../external/libpng/premake.lua"
@@ -25,8 +15,7 @@ solution "CCG-UI"
 		targetname "ccg-ui-putki-lib"
 		
 		files { "src/types/**.typedef" }
-		files { "_gen/inki/**.cpp", "_gen/inki/**.h" }
-		files { "_gen/data-dll/**.cpp", "_gen/data-dll/**.h" }
+		files { "_gen/*putki-master.cpp", "_gen/inki/**.h", "_gen/data-dll/**.h" }
 
 		includedirs { "../src", "../src/builder", "../src/data-dll" }
 		includedirs { "_gen" }
@@ -35,7 +24,13 @@ solution "CCG-UI"
 		links {"putki-lib"}
 
 	project "ccg-ui-databuilder"
-		kind "ConsoleApp"
+
+		if os.get() == "windows" then
+			kind "StaticLib"
+		else
+			kind "SharedLib"
+		end
+
 		language "C++"
 		targetname "ccg-ui-databuilder"
 
@@ -44,8 +39,8 @@ solution "CCG-UI"
 		includedirs { "../external/libpng"}
 		includedirs { "../external/freetype-2.5.0.1/include"}
 
-		files { "src/putki/builder-main.cpp" }
 		files { "src/builder/**.*" }
+		files { "src/putki/**.*" }
 
 		files { "../claw/src/builder/binpacker/*.*"}
 		includedirs { "../claw/src/"}
@@ -54,35 +49,19 @@ solution "CCG-UI"
 		links { "putki-lib" }
 		links { "freetype2" }
 
-	project "ccg-ui-data-dll"
-
-		kind "SharedLib"
-		language "C++"
-		targetname "ccg-ui-data-dll"
-
-		files { "src/putki/dll-main.cpp" }
-
-		includedirs { "../src/builder/**.*" }
-		includedirs { "../src/data-dll" }
-		includedirs { "../src", "../src/builder/" }
-		includedirs { "_gen" }
-
-		links { "ccg-ui-putki-lib"}
-		links { "putki-lib" }
-
  if os.get() == "windows" then
 
-	project "ccg-ui-viewer"
-		kind "WindowedApp"
+	project "ccg-ui-csharp"
+		kind "SharedLib"
 		language "C#"
-		targetname "ccg-ui-viewer"
+		targetname "ccg-ui-csharp"
 
-		files { "src/viewer/**.*"}
-		files { "src/uisystem/**.*"}
 		files { "_gen/outki_csharp/**.cs"}
+		files { "_gen/outki_csharp/**.cs"}
+		files { "src/uisystem/**.*" }
+		files { "src/uirenderer/*WPF*.cs" }
 		files { "../src/csharp-runtime/**.cs"}
 
 		links { "PresentationFramework", "WindowsBase", "PresentationCore", "System.Xaml", "System" }
+	end
 
-		
-end

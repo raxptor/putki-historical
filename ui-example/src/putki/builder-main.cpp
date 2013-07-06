@@ -6,21 +6,16 @@
 // generated.
 namespace inki
 {
+	void bind_ui_example();
 	void bind_ccg_ui();
 }
 
-//
-void register_font_builder(putki::builder::data *builder);
-void register_texture_builder(putki::builder::data *builder);
-void register_atlas_builder(putki::builder::data *builder);
-void register_screen_builder(putki::builder::data *builder);
+void ccg_ui_register_handlers(putki::builder::data *builder);
 
 void app_register_handlers(putki::builder::data *builder)
 {
-	register_font_builder(builder);
-	register_texture_builder(builder);
-	register_atlas_builder(builder);
-	register_screen_builder(builder);
+	// all the ccg-ui stuff
+	ccg_ui_register_handlers(builder);
 }
 
 void app_build_packages(putki::db::data *out, putki::build::packaging_config *pconf)
@@ -43,6 +38,7 @@ int run_putki_builder(int argc, char **argv);
 int main(int argc, char **argv)
 {
 	inki::bind_ccg_ui();
+	inki::bind_ui_example();
 
 	putki::builder::set_builder_configurator(&app_register_handlers);
 	putki::builder::set_packager(&app_build_packages);

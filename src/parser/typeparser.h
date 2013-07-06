@@ -54,7 +54,7 @@ namespace putki
 		std::vector<std::string> includes;
 	};
 
-	void parse(const char *in_path, const char *name, int type_id_start, parsed_file *out);
+	void parse(const char *in_path, const char *name, int *type_id_counter, parsed_file *out);
 }
 
 #endif

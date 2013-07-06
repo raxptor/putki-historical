@@ -26,12 +26,31 @@ namespace ViewerApp
 		}
 	}
 
+    // Package loader, redirects to the two components.
+    class Loader : Putki.TypeLoader
+    {
+        public void ResolveFromPackage(int type, object obj, Putki.Package pkg)
+        {
+            outki.CCGUIDataLoader.ResolveFromPackage(type, obj, pkg);
+            outki.UIExampleDataLoader.ResolveFromPackage(type, obj, pkg);
+        }
+
+        public object LoadFromPackage(int type, Putki.PackageReader reader)
+        {
+            object tmp = outki.CCGUIDataLoader.LoadFromPackage(type, reader);
+            if (tmp != null)
+                return tmp;
+
+            return outki.UIExampleDataLoader.LoadFromPackage(type, reader);
+        }
+    }
+
     class Viewer
     {
 		[STAThread]
         static void Main(string[] args)
         {
-			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"));
+			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
 
 
 			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");

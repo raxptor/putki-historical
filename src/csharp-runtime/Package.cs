@@ -2,6 +2,13 @@ using System.Text;
 
 namespace Putki
 {
+    // Implemented by app.
+    public interface TypeLoader
+    {
+        void ResolveFromPackage(int type, object obj, Putki.Package pkg);
+        object LoadFromPackage(int type, Putki.PackageReader reader);
+    }
+
 	public class PackageReader
 	{
 		static UTF8Encoding enc = new UTF8Encoding();
@@ -12,7 +19,7 @@ namespace Putki
 		public PackageReader(byte[] _data)
 		{
 			data = _data;
-			pos = 0;
+            pos = 0;
 		}
 		
 		public int ReadInt32()
@@ -99,7 +106,7 @@ namespace Putki
 			return null;
 		}
 		
-		public bool LoadFromBytes(byte[] data)
+		public bool LoadFromBytes(byte[] data, TypeLoader loader)
 		{
 			PackageReader rdr = new PackageReader(data);
 			
@@ -117,12 +124,12 @@ namespace Putki
 				if ((hdr & pathFlag) == pathFlag)
 					m_slots[i].path = rdr.ReadString(rdr.ReadInt16());	
 
-				m_slots[i].inst = outki.Loader.LoadFromPackage(m_slots[i].type, rdr);
+				m_slots[i].inst = loader.LoadFromPackage(m_slots[i].type, rdr);
 			}
 			
 			for (int i=0;i<slots;i++)
 			{
-				outki.Loader.ResolveFromPackage(m_slots[i].type, m_slots[i].inst, this);
+				loader.ResolveFromPackage(m_slots[i].type, m_slots[i].inst, this);
 			}
 			
 			return true;
@@ -136,10 +143,10 @@ namespace Putki
 	
 	public class PackageLoader
 	{
-		static public Package FromBytes(byte[] bytes)
+		static public Package FromBytes(byte[] bytes, TypeLoader loader)
 		{
 			Package p = new Package();
-			if (p.LoadFromBytes(bytes))
+			if (p.LoadFromBytes(bytes, loader))
 				return p;
 			else
 				return null;
