@@ -17,7 +17,7 @@ namespace Editor
         App()
         {
              //Putki.Sys.Load("C:\\gitproj\\putki\\test-project\\build\\testapp-data-dll.dll", "c:\\gitproj\\putki\\test-project\\data");
-            Putki.Sys.Load("C:\\gitproj\\putki\\ccg-ui\\build\\ccg-ui-data-dll.dll", "c:\\gitproj\\putki\\ccg-ui\\data\\objs");
+            Putki.Sys.Load("C:\\gitproj\\putki\\ui-example\\build\\ui-example-data-dll.dll", "c:\\gitproj\\putki\\ui-example\\data\\objs");
 
             for (int i=0;;i++)
             {

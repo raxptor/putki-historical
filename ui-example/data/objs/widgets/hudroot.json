@@ -1,11 +1,11 @@
 {
 	type: "UIWidget",
 	data: {
-			"_rtti_type": 207,
+			"_rtti_type": 11,
 			"width": 960,
 			"height": 640,
 			"handler": "",
-			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#ssej", "widgets/hudroot#aohb"]
+			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#ssej", "widgets/hudroot#aohb", "widgets/hudroot#ffec"]
 	},
 	aux: [
 		{
@@ -13,7 +13,7 @@
 			type: "UIWidgetElement",
 			data: {
 					"parent": {
-						"_rtti_type": 209,
+						"_rtti_type": 13,
 						"id": "",
 						"layout": {
 							"x": 10,
@@ -43,7 +43,7 @@
 			type: "UIFillElement",
 			data: {
 					"parent": {
-						"_rtti_type": 208,
+						"_rtti_type": 12,
 						"id": "",
 						"layout": {
 							"x": 150,
@@ -73,7 +73,7 @@
 			type: "UITextElement",
 			data: {
 					"parent": {
-						"_rtti_type": 211,
+						"_rtti_type": 15,
 						"id": "",
 						"layout": {
 							"x": 150,
@@ -100,8 +100,38 @@
 					"HorizontalAlignment": "UIHorizontalAlignment_Center",
 					"VerticalAlignment": "UIVerticalAlignment_Center",
 					"BackgroundFill": {
-						"_rtti_type": 0
+						"_rtti_type": 6
 				}
+			}
+		}
+		,
+		{
+			ref: "#ffec",
+			type: "SpecialElement",
+			data: {
+					"parent": {
+						"_rtti_type": 101,
+						"id": "",
+						"layout": {
+							"x": 10,
+							"y": 10,
+							"width": 790,
+							"height": 580
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 1,
+							"height": 1
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"bareriba": ""
 			}
 		}
 	      ]

@@ -7,6 +7,25 @@ using System.IO;
 
 namespace ViewerApp
 {
+    class SpecialElementRenderer : CCGUI.UIElementRenderer
+    {
+        outki.SpecialElement m_element;
+
+        public SpecialElementRenderer(outki.SpecialElement element)
+        {
+            m_element = element;
+        }
+
+        public void OnLayout(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout elementLayout)
+        {
+        }
+
+        public void Render(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout layout)
+        {
+
+        }
+    }
+
 
 	public class ViewerWidgetHandler : CCGUI.UIWidgetHandler
 	{
@@ -22,6 +41,13 @@ namespace ViewerApp
 
 		public CCGUI.UIElementRenderer CreateRenderer(outki.UIElement element)
 		{
+            switch (element._rtti_type)
+            {
+                case outki.SpecialElement.TYPE:
+                    return new SpecialElementRenderer(element as outki.SpecialElement);
+                default:
+                    break;
+            }
 			return CCGUI.UIDefaultWidgetHandler.CreateRenderer(element, this);
 		}
 	}

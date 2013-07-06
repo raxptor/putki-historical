@@ -40,7 +40,7 @@ namespace Editor
 		public void LoadFromDisk()
 		{
 			var itemProvider = new FileTree.ItemProvider();
-			var items = itemProvider.GetItems("c:/gitproj/putki/ccg-ui/data/objs", "");
+			var items = itemProvider.GetItems("c:/gitproj/putki/ui-example/data/objs", "");
             //var items = itemProvider.GetItems("c:/gitproj/putki/test-project/data", "");
 			DataContext = items;
 		}

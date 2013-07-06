@@ -38,11 +38,11 @@ solution "ExampleUI"
 		
 		links {"ccg-ui-putki-lib"}
 
-	project "example-databuilder"
+	project "ui-example-databuilder"
 
 		kind "ConsoleApp"
 		language "C++"
-		targetname "example-databuilder"
+		targetname "ui-example-databuilder"
 
 		includedirs { "_gen" }
 		includedirs { "../ccg-ui/_gen" }
@@ -54,11 +54,11 @@ solution "ExampleUI"
 		links { "example-putki-lib"}
 		links { "ccg-ui-databuilder"}
 
-	project "example-data-dll"
+	project "ui-example-data-dll"
 
 		kind "SharedLib"
 		language "C++"
-		targetname "example-data-dll"
+		targetname "ui-example-data-dll"
 
 		files { "src/putki/dll-main.cpp" }
 
