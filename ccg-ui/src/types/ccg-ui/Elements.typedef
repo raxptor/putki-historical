@@ -63,6 +63,20 @@ UISlice9Fill : UIFill [in, out]
 	int ExpandBottom
 }
 
+UIFontStyle [in, out]
+{
+	Font Font
+	int PixelSize
+}
+
+UIButtonStyle [in, out]
+{
+	ptr UIFill Normal
+	ptr UIFill Highlight
+	ptr UIFill Pressed
+	ptr UIFontStyle FontStyle
+}
+
 UIElement [in, out] rtti
 {
 	string id
