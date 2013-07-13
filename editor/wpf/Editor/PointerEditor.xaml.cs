@@ -80,19 +80,32 @@ namespace Editor
 
         private void OnInstantiate(object sender, RoutedEventArgs e)
         {
-            if (m_fh.IsAuxPtr())
-            {
-                TypeSelector ts = new TypeSelector();
-                ts.Owner = MainWindow.inst;
-                ts.FillWithTypes(m_fh.GetRefType());
-                if (ts.ShowDialog() == true)
-                {
-                    m_ptr_target = Putki.Sys.CreateAuxInstance(m_mi, ts.selected);
-                    m_fh.SetArrayIndex(m_idx);
-                    m_fh.SetPointer(m_mi, m_ptr_target.GetPath());
-                    m_root.OnStructureChanged();
-                }
-            }
+			if (m_fh.IsAuxPtr())
+			{
+				TypeSelector ts = new TypeSelector();
+				ts.Owner = MainWindow.inst;
+				ts.FillWithTypes(m_fh.GetRefType());
+				if (ts.ShowDialog() == true)
+				{
+					m_ptr_target = Putki.Sys.CreateAuxInstance(m_mi, ts.selected);
+					m_fh.SetArrayIndex(m_idx);
+					m_fh.SetPointer(m_mi, m_ptr_target.GetPath());
+					m_root.OnStructureChanged();
+				}
+			}
+			else
+			{ 
+				ObjectSelector ts = new ObjectSelector();
+				ts.Owner = MainWindow.inst;
+				ts.SelectByTypes(m_fh.GetRefType());
+				if (ts.ShowDialog() == true)
+				{
+					m_fh.SetArrayIndex(m_idx);
+					m_fh.SetPointer(m_mi, ts.selected);
+					m_root.OnStructureChanged();
+					m_tbox.Text = ts.selected;
+				}
+			}
         }
 
         private void OnNull(object sender, RoutedEventArgs e)

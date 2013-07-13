@@ -29,19 +29,52 @@ namespace Editor
 	{
 		public event EventHandler FileSelected;
 
+		public Dictionary<string, Putki.TypeDefinition> m_dataPaths = null;
+
 		public FileBrowser()
 		{
-			InitializeComponent();			
+			InitializeComponent();	
 			m_treeView.SelectedItemChanged += SelectionChanged;
 
 			LoadFromDisk();
 		}
 
+		public List<string> AssetsByType(Putki.TypeDefinition def)
+		{
+			List<string> n = new List<string>();
+			foreach (string name in m_dataPaths.Keys)
+			{
+				if (m_dataPaths[name].GetName() == def.GetName())
+					n.Add(name);
+			}
+			return n;
+		}
+
+		public void Add(FileTree.Item item)
+		{
+			FileTree.DirectoryItem di = item as FileTree.DirectoryItem;
+			if (di != null)
+			{
+				foreach (FileTree.Item i in di.Items)
+					Add(i);
+				return;
+			}
+
+			Putki.MemInstance mi = Putki.Sys.LoadFromDisk(item.Path);
+			if (mi != null)
+				m_dataPaths.Add(mi.GetPath(), mi.GetType());			
+		}
+
 		public void LoadFromDisk()
 		{
+			m_dataPaths = new Dictionary<string, Putki.TypeDefinition>();
+
 			var itemProvider = new FileTree.ItemProvider();
 			var items = itemProvider.GetItems("c:/gitproj/ccg-cybots/data/objs", "");
-            //var items = itemProvider.GetItems("c:/gitproj/putki/test-project/data", "");
+
+			foreach (FileTree.Item i in items)
+				Add(i);
+
 			DataContext = items;
 		}
 

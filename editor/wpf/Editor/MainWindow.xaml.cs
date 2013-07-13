@@ -31,6 +31,11 @@ namespace Editor
 			m_fileBrowser.FileSelected += OnFileSelected;
 		}
 
+		public FileBrowser GetFileTree()
+		{
+			return m_fileBrowser;
+		}
+
 		public void OnFileSelected(object sender, EventArgs a)
 		{
 			FileSelectedArgs fsa = (FileSelectedArgs)a;

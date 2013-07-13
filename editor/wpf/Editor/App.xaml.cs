@@ -20,7 +20,7 @@ namespace Editor
 
 			foreach (string line in File.ReadLines("putki-editor.config"))
 			{
-
+				//line.Split(" ", StringSplitOptions);
 			}
 
              //Putki.Sys.Load("C:\\gitproj\\putki\\test-project\\build\\testapp-data-dll.dll", "c:\\gitproj\\putki\\test-project\\data");

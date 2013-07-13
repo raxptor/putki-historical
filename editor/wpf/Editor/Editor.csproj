@@ -58,6 +58,9 @@
     <Compile Include="ArrayEditor.xaml.cs">
       <DependentUpon>ArrayEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ObjectSelector.xaml.cs">
+      <DependentUpon>ObjectSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EnumEditor.xaml.cs">
       <DependentUpon>EnumEditor.xaml</DependentUpon>
     </Compile>
@@ -90,6 +93,10 @@
     <Page Include="ArrayEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ObjectSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="EnumEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
