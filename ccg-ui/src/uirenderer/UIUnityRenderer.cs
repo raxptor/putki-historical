@@ -113,7 +113,7 @@ public class UIRenderer
 	{
 		DrawTextureUV(tex, x0, y0, x1, y1, tex.u0, tex.v0, tex.u1, tex.v1);
 	}
-	
+		
 	public static void DrawTextureUV(Texture tex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1)
 	{		
 		if (tex.ld != lastTexture || begin == 0)
@@ -136,6 +136,10 @@ public class UIRenderer
 		GL.Vertex3(x1, y1, 0);
 		GL.TexCoord2(u0, 1 - v1);
 		GL.Vertex3(x0, y1, 0);
+	}
+	
+	public static void DrawSolidRect(float x0, float y0, float x1, float y1, outki.UIColor col)
+	{
 	}
 
 	public static void Begin()
