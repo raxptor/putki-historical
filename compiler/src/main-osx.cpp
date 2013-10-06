@@ -185,12 +185,12 @@ int main (int argc, char *argv[])
 	f_switch << "}" << std::endl;
 	f_switch << "}" << std::endl;
 
-	std::ofstream f_putki_master(std::string("_gen") + "/" + g_module_name + "-putki-master.cpp");
+	std::ofstream f_putki_master((std::string("_gen") + "/" + g_module_name + "-putki-master.cpp").c_str());
 	f_putki_master << s_putki_master.str() << std::endl;
 	f_putki_master << "#include \"inki/bind.cpp\"" << std::endl;
 	f_putki_master << "#include \"inki/bind-dll.cpp\"" << std::endl;
 	
-	std::ofstream f_runtime_master(std::string("_gen") + "/" + g_module_name + "-runtime-master.cpp");
+	std::ofstream f_runtime_master((std::string("_gen") + "/" + g_module_name + "-runtime-master.cpp").c_str());
 	f_runtime_master << s_runtime_master.str() << std::endl;
 	f_runtime_master << "#include \"outki/blobload.cpp\"" << std::endl;
 

@@ -53,6 +53,8 @@ solution "ExampleUI"
 
 		links { "example-putki-lib"}
 		links { "ccg-ui-databuilder"}
+		links { "ccg-ui-putki-lib"}
+		links { "putki-lib"}
 
 	project "ui-example-data-dll"
 

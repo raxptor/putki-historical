@@ -16,6 +16,8 @@
 
 #include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
 
+#include <math.h>
+
 #include "textureconfig.h"
 
 namespace

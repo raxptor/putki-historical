@@ -1,8 +1,7 @@
 #!/bin/bash
 
-
-# ./build/ccg-ui-databuilder --csharp
-DYLD_LIBRARY_PATH=build ./build/ccg-ui-databuilder --csharp
+# ./build/ui-example-databuilder --csharp
+DYLD_LIBRARY_PATH=build ./build/ui-example-databuilder --csharp
 
 rm -rf out/Unity
 mkdir out/Unity
