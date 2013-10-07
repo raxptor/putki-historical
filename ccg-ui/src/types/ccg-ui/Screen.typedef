@@ -8,11 +8,20 @@ enum UIScaleMode
 	ScaleMode_Prop_Transform
 }
 
-UIScreen [in, out]
+UIScreenConfig [in, out]
 {
 	bool PreserveLayoutAspect = false
 	bool SnapScale = true
 	enum UIScaleMode ScaleMode
+	int CutL = 0
+	int CutR = 0
+	int CutT = 0
+	int CutB = 0
+}
+
+UIScreen [in, out]
+{
+	ptr UIScreenConfig Config
 	ptr UIWidget Root
 	ptr[] Atlas Atlases
 	float[] [hidden] ScalingForSnapping

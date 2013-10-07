@@ -16,7 +16,9 @@ struct screenbuilder : putki::builder::handler_i
 	{
 		inki::UIScreen *screen = (inki::UIScreen *) obj;
 
-		if (screen->SnapScale)
+		// ERR IF screen->Config == null
+		
+		if (screen && screen->Config && screen->Config->SnapScale)
 		{
 			for (int i=0;i<g_outputTexConfigs;i++)
 				screen->ScalingForSnapping.push_back(g_outputTexConf[i].scale);

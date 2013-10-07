@@ -25,25 +25,29 @@ namespace CCGUI
 		public void Draw(float x0, float y0, float x1, float y1)
 		{
 			// calculate the scale
-			bool preserveLayoutAspect = false;
-			bool useLayoutScaling = true;
-			bool useMatrixScaling = false;
-
+			bool preserveLayoutAspect = m_screen.Config.PreserveLayoutAspect;
+			bool useLayoutScaling = (m_screen.Config.ScaleMode == outki.UIScaleMode.ScaleMode_Prop_Layout);
+			bool useMatrixScaling = (m_screen.Config.ScaleMode == outki.UIScaleMode.ScaleMode_Prop_Transform);
+			
 			UIElementLayout el = new UIElementLayout();
 
 			// Compute the actual screen pixels (first iteration), to figure out where on 
 			// the display this screen should be layouted.
 			if (preserveLayoutAspect)
 			{
-				float sWidth = (x1 - x0) / m_screen.Root.width;
-				float sHeight = (y1 - y0) / m_screen.Root.height;
+				float cutW = m_screen.Root.width - m_screen.Config.CutL - m_screen.Config.CutR;
+				float cutH = m_screen.Root.height - m_screen.Config.CutT - m_screen.Config.CutB;
+					
+				// when layouting here, 
+				float sWidth = (x1 - x0) / cutW;
+				float sHeight = (y1 - y0) / cutH;
 
 				// use the lowest size.
 				float sScale = sWidth < sHeight ? sWidth : sHeight;
 
 				float tgtWidth = (float)Math.Floor(m_screen.Root.width * sScale);
 				float tgtHeight = (float)Math.Floor(m_screen.Root.height * sScale);
-
+				
 				el.x0 = (float)Math.Floor((x0 + x1 - tgtWidth) / 2);
 				el.y0 = (float)Math.Floor((y0 + y1 - tgtHeight) / 2);
 				el.x1 = el.x0 + tgtWidth;
@@ -67,7 +71,7 @@ namespace CCGUI
 				float sHeight = (el.y1 - el.y0) / m_screen.Root.height;
 				float sScale = sWidth < sHeight ? sWidth : sHeight;
 
-				if (m_screen.SnapScale)
+				if (m_screen.Config.SnapScale)
 				{
 					for (int i=0;i<m_screen.ScalingForSnapping.Length;i++)
 					{
@@ -78,16 +82,6 @@ namespace CCGUI
 						}
 					}
 				}
-
-				/*
-				bool snapScale = true;
-				if (snapScale)
-				{
-					if (sScale > 1) sScale = 1;
-					if (sScale > ) sScale = 1;
-				}
-				 */
-
 
 				rctx.LayoutScale = sScale;
 				rctx.LayoutOffsetX = -(float)Math.Floor(el.x0 * (rctx.LayoutScale - 1));
@@ -105,7 +99,7 @@ namespace CCGUI
 			el.nsy0 = el.y0;
 			el.nsx1 = el.x0 + (float) Math.Floor((el.x1 - el.x0) / rctx.LayoutScale);
 			el.nsy1 = el.y0 + (float) Math.Floor((el.y1 - el.y0) / rctx.LayoutScale);
-
+						
 			m_rootRenderer.OnLayout(rctx, ref el);
 			m_rootRenderer.Render(rctx, ref el);
 		}
