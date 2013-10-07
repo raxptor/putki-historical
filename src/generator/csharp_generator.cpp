@@ -279,8 +279,10 @@ namespace putki
 			out.line() << new_hide_str << "public void ResolveFromPackage(Putki.Package pkg)";
 			out.line() << "{";
 			out.indent(1);
+
+			if (!s->parent.empty())
+				out.line() << "base.ResolveFromPackage(pkg);";
 			
-			out.line() << "// Load from byte buffer";
 			for (size_t i=0;i<s->fields.size();i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
