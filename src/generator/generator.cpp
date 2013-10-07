@@ -781,7 +781,8 @@ namespace putki
 
 				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
 				{
-				    out.line() << levelCheck << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker);";
+				    // structs are not considered chlidren
+				    out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker, traverseChildren);";
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{

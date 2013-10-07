@@ -63,6 +63,11 @@ UISlice9Fill : UIFill [in, out]
 	int ExpandBottom
 }
 
+UIBitmapFill : UIFill [in, out]
+{
+	ptr Texture Texture
+}
+
 UIFontStyle [in, out]
 {
 	Font Font
