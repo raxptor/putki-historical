@@ -1,10 +1,12 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\FileIndex.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\DLLLoader.cs">
     <Files>
-      <File FileName="PutkEd\MainWindow.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Loader.cs" Line="4" Column="1" />
-      <File FileName="PutkEd\FileIndex.cs" Line="4" Column="14" />
+      <File FileName="PutkEd\MainWindow.cs" Line="32" Column="18" />
+      <File FileName="PutkEd\Loader.cs" Line="22" Column="6" />
+      <File FileName="PutkEd\FileIndex.cs" Line="4" Column="1" />
+      <File FileName="PutkEd\DLLLoader.cs" Line="7" Column="24" />
+      <File FileName="PutkEd\Program.cs" Line="20" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
