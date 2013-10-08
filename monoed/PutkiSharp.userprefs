@@ -1,0 +1,15 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\FileIndex.cs">
+    <Files>
+      <File FileName="PutkEd\MainWindow.cs" Line="17" Column="10" />
+      <File FileName="PutkEd\Loader.cs" Line="39" Column="4" />
+      <File FileName="PutkEd\Program.cs" Line="30" Column="1" />
+      <File FileName="PutkEd\FileIndex.cs" Line="25" Column="3" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
