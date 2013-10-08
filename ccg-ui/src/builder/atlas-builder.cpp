@@ -14,7 +14,7 @@
 #include <inki/types/ccg-ui/Texture.h>
 #include <inki/types/ccg-ui/Atlas.h>
 
-#include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
+#include <binpacker/maxrects_binpack.h>
 
 #include <math.h>
 

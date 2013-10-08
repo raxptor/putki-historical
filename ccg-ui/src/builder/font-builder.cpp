@@ -16,7 +16,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <builder/binpacker/maxrects_binpack.h> // NOTE: Claw include.
+#include <binpacker/maxrects_binpack.h> // NOTE: Claw include.
 
 struct fontbuilder : putki::builder::handler_i
 {

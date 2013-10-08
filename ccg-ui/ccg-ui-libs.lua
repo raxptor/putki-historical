@@ -17,7 +17,7 @@
 		files { "src/types/**.typedef" }
 		files { "_gen/*putki-master.cpp", "_gen/inki/**.h", "_gen/data-dll/**.h" }
 
-		includedirs { "../src", "../src/builder", "../src/data-dll" }
+		includedirs { "src", "../src", "../src/builder", "../src/data-dll" }
 		includedirs { "_gen" }
 		includedirs { "../external/libpng" }
 
@@ -35,12 +35,13 @@
 		targetname "ccg-ui-databuilder"
 
 		includedirs { "_gen" }
-		includedirs { "../src", "../src/builder" }
+		includedirs { "src", "../src", "../src/builder" }
 		includedirs { "../external/libpng"}
 		includedirs { "../external/freetype-2.5.0.1/include"}
 
 		files { "src/builder/**.*" }
 		files { "src/putki/**.*" }
+		files { "src/binpacker/**.*" }
 
 		files { "../claw/src/builder/binpacker/*.*"}
 		includedirs { "../claw/src/"}
