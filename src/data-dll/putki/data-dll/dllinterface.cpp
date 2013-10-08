@@ -131,13 +131,11 @@ namespace putki
 		{			
 			load_file_into_db(_path.c_str(), path, _db, false);
 
-			std::cout << "Loaded " << path << std::endl;
 			type_handler_i *th;
 			instance_t obj;
 			
 			if (db::fetch(_db, path, &th, &obj))
 			{
-				std::cout << "Found in db!" << std::endl;
 				mem_instance_real *mi = new mem_instance_real();
 				mi->is_struct_instance = false;
 				mi->th = th;
@@ -145,12 +143,13 @@ namespace putki
 				mi->inst = obj;
 				mi->path = strdup(path);
 				mi->refs_db = _db;
-
-				std::cout << mi->th << " " << mi->eth << " " << mi->inst;
 				return mi;
 			}
-
-			std::cout << "!Not found in DB!" << std::endl;
+			else
+			{
+				std::cout << "disk_load: Failed to load (" << path << ")!" << std::endl;
+			}
+			
 			return 0;
 		}
 

@@ -29,7 +29,7 @@ public partial class MainWindow : Gtk.Window
 
 		foreach (PutkEd.FileIndex.Entry e in PutkEd.MainClass.s_fileIndex.GetAssets())
 		{
-			ls.AppendValues(e.AssetName, "<unknown>");
+			ls.AppendValues(e.AssetName, e.DisplayType);
 		}
 		
 		m_fileTree.Model = ls;
@@ -41,5 +41,22 @@ public partial class MainWindow : Gtk.Window
 	{
 		Application.Quit();
 		a.RetVal = true;
+	}
+
+	protected void OnEditAsset (object sender, EventArgs e)
+	{
+		TreeModel model;
+		TreeIter iter;
+
+		if (m_fileTree.Selection.GetSelected(out model, out iter))
+		{		
+			string Path = model.GetValue(iter, 0).ToString();
+			PutkEd.DLLLoader.MemInstance mi = PutkEd.MainClass.s_dataDll.DiskLoad(Path);
+			if (mi != null)
+			{
+				PutkEd.AssetEditor ae = new PutkEd.AssetEditor(mi);
+				ae.Show();
+			}
+		}
 	}
 }

@@ -8,6 +8,7 @@ public partial class MainWindow
 	private global::Gtk.TreeView m_fileTree;
 	private global::Gtk.HBox hbox6;
 	private global::Gtk.Button button7;
+	private global::Gtk.Button button1;
 	private global::Gtk.VBox vbox3;
 	private global::Gtk.Button button3;
 	private global::Gtk.Button button4;
@@ -57,14 +58,25 @@ public partial class MainWindow
 		w3.Position = 0;
 		w3.Expand = false;
 		w3.Fill = false;
-		this.vbox4.Add (this.hbox6);
-		global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.vbox4 [this.hbox6]));
+		// Container child hbox6.Gtk.Box+BoxChild
+		this.button1 = new global::Gtk.Button ();
+		this.button1.CanFocus = true;
+		this.button1.Name = "button1";
+		this.button1.UseUnderline = true;
+		this.button1.Label = global::Mono.Unix.Catalog.GetString ("New Asset");
+		this.hbox6.Add (this.button1);
+		global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.hbox6 [this.button1]));
 		w4.Position = 1;
 		w4.Expand = false;
 		w4.Fill = false;
+		this.vbox4.Add (this.hbox6);
+		global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.vbox4 [this.hbox6]));
+		w5.Position = 1;
+		w5.Expand = false;
+		w5.Fill = false;
 		this.hbox2.Add (this.vbox4);
-		global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox4]));
-		w5.Position = 0;
+		global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox4]));
+		w6.Position = 0;
 		// Container child hbox2.Gtk.Box+BoxChild
 		this.vbox3 = new global::Gtk.VBox ();
 		this.vbox3.Name = "vbox3";
@@ -74,12 +86,12 @@ public partial class MainWindow
 		this.button3.CanFocus = true;
 		this.button3.Name = "button3";
 		this.button3.UseUnderline = true;
-		this.button3.Label = global::Mono.Unix.Catalog.GetString ("GtkButton");
+		this.button3.Label = global::Mono.Unix.Catalog.GetString ("Edit");
 		this.vbox3.Add (this.button3);
-		global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.button3]));
-		w6.Position = 0;
-		w6.Expand = false;
-		w6.Fill = false;
+		global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.button3]));
+		w7.Position = 0;
+		w7.Expand = false;
+		w7.Fill = false;
 		// Container child vbox3.Gtk.Box+BoxChild
 		this.button4 = new global::Gtk.Button ();
 		this.button4.CanFocus = true;
@@ -87,22 +99,23 @@ public partial class MainWindow
 		this.button4.UseUnderline = true;
 		this.button4.Label = global::Mono.Unix.Catalog.GetString ("GtkButton");
 		this.vbox3.Add (this.button4);
-		global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.button4]));
-		w7.Position = 1;
-		w7.Expand = false;
-		w7.Fill = false;
-		this.hbox2.Add (this.vbox3);
-		global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox3]));
+		global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.button4]));
 		w8.Position = 1;
 		w8.Expand = false;
 		w8.Fill = false;
+		this.hbox2.Add (this.vbox3);
+		global::Gtk.Box.BoxChild w9 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox3]));
+		w9.Position = 1;
+		w9.Expand = false;
+		w9.Fill = false;
 		this.Add (this.hbox2);
 		if ((this.Child != null)) {
 			this.Child.ShowAll ();
 		}
-		this.DefaultWidth = 1014;
+		this.DefaultWidth = 1097;
 		this.DefaultHeight = 745;
 		this.Show ();
 		this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
+		this.button3.Clicked += new global::System.EventHandler (this.OnEditAsset);
 	}
 }

@@ -68,6 +68,8 @@
     <Compile Include="Loader.cs" />
     <Compile Include="FileIndex.cs" />
     <Compile Include="DLLLoader.cs" />
+    <Compile Include="AssetEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.AssetEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

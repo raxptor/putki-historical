@@ -14,15 +14,16 @@ namespace PutkEd
 		{
 			Directory.SetCurrentDirectory("c:\\gitproj\\putki\\ui-example");
 
-			s_dataDll = new DLLLoader();
-			s_dataDll.Load();
+			s_loader = new Loader();
 
+			s_dataDll = new DLLLoader();
+			s_dataDll.Load(s_loader.m_configOpts["datadll"], s_loader.m_configOpts["obj"]);
 
 			s_fileIndex = new FileIndex();
-			s_fileIndex.Load("data/objs");
+			s_fileIndex.Load(s_loader.m_configOpts["obj"]);
 
 			Application.Init();
-			s_loader = new Loader();
+
 			MainWindow win = new MainWindow();
 			win.Show();
 						

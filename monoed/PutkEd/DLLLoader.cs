@@ -23,9 +23,42 @@ namespace PutkEd
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Type_GetName(IntPtr type);
 
-		public void Load()
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_TypeOf(IntPtr MemInstance);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_DiskLoad(string path);
+
+		private static string MSTR(IntPtr a)
 		{
-			if (MED_Initialize("c:\\gitproj\\putki\\ui-example\\build\\ui-example-data-dll.dll", "c:\\gitproj\\putki\\ui-example\\data") > 0)
+			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(a);
+		}
+
+		public class MemInstance
+		{
+			public IntPtr PutkiInst;
+
+			public string GetTypeName()
+			{
+				return MSTR(DLLLoader.MED_Type_GetName(MED_TypeOf(PutkiInst)));
+			}
+		}
+
+		public MemInstance DiskLoad(string path)
+		{
+			IntPtr p = MED_DiskLoad(path);
+			if ((int)p != 0)
+			{
+				MemInstance mi = new MemInstance();
+				mi.PutkiInst = p;
+				return mi;
+			}
+			return null;
+		}
+
+		public void Load(string DataDLL, string DataPath)
+		{
+			if (MED_Initialize(DataDLL, DataPath) > 0)
 			{
 				for (int i=0;i<1000;i++)
 				{
@@ -33,7 +66,7 @@ namespace PutkEd
 					if ((int)p != 0)
 					{
 						Types t = new Types();
-						t.Name = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(MED_Type_GetName(p));
+						t.Name = MSTR(MED_Type_GetName(p));
 						t.Handler = p;
 						m_loadedTypes.Add(t);
 					}

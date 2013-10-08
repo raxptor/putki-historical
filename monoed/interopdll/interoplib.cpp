@@ -46,8 +46,19 @@ extern "C"
 		return g_loaded_dll->type_by_index(i);
 	}
 
+	DSPEC putki::ext_type_handler_i* MED_TypeOf(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->type_of(mi);
+	}
+
+	DSPEC putki::mem_instance* MED_DiskLoad(const char *path)
+	{
+		return g_loaded_dll->disk_load(path);
+	}
+
 	DSPEC const char* MED_Type_GetName(putki::ext_type_handler_i* type)
 	{
 		return type->name();
 	}
+
 }

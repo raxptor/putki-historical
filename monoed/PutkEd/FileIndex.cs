@@ -9,13 +9,14 @@ namespace PutkEd
 
 		public class LoadedInfo
 		{
-
+			public DLLLoader.MemInstance LoadedMI;
 		};
 
 		public class Entry
 		{
 			public string FilePath;
 			public string AssetName;
+			public string DisplayType;
 			public LoadedInfo Info;
 		};
 
@@ -72,6 +73,17 @@ namespace PutkEd
 				Entry e = new Entry();
 				e.FilePath = n;
 				e.AssetName = n.Substring(pathCut).Replace(".json", "");
+
+				DLLLoader.MemInstance mi = MainClass.s_dataDll.DiskLoad(e.AssetName);
+				if (mi != null)
+				{
+					// Store 
+					LoadedInfo li = new LoadedInfo();
+					li.LoadedMI = mi;
+					e.Info = li;
+					e.DisplayType = mi.GetTypeName();
+				}
+
 				m_assets.Add(e);
 				// Console.WriteLine("[" + e.FilePath + "] contains [" + e.AssetName + "]");
 			}
