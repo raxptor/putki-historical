@@ -27,8 +27,10 @@ public partial class MainWindow : Gtk.Window
 
 		Gtk.ListStore ls = new Gtk.ListStore (typeof(string), typeof(string));
 
-		ls.AppendValues("Kula", "Kalas");
-		ls.AppendValues("Banan", "Korv");
+		foreach (PutkEd.FileIndex.Entry e in PutkEd.MainClass.s_fileIndex.GetAssets())
+		{
+			ls.AppendValues(e.AssetName, "<unknown>");
+		}
 		
 		m_fileTree.Model = ls;
 
