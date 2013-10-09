@@ -61,4 +61,14 @@ extern "C"
 		return type->name();
 	}
 
+	DSPEC const char* MED_Field_GetName(putki::ext_field_handler_i *field)
+	{
+		return field->name();
+	}
+
+	DSPEC putki::ext_field_handler_i * MED_Type_GetField(putki::ext_type_handler_i * type, int i)
+	{
+		return type->field(i);
+	}
+
 }

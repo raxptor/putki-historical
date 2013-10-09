@@ -29,9 +29,25 @@ namespace PutkEd
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_DiskLoad(string path);
 
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Type_GetField(IntPtr type, int i);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetName(IntPtr field);
+
 		private static string MSTR(IntPtr a)
 		{
 			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(a);
+		}
+
+		public class PutkiField
+		{
+			public IntPtr Handler;
+
+			public string GetName()
+			{
+				return MSTR(MED_Field_GetName(Handler));
+			}
 		}
 
 		public class MemInstance
@@ -40,7 +56,19 @@ namespace PutkEd
 
 			public string GetTypeName()
 			{
-				return MSTR(DLLLoader.MED_Type_GetName(MED_TypeOf(PutkiInst)));
+				return MSTR(MED_Type_GetName(MED_TypeOf(PutkiInst)));
+			}
+
+			public PutkiField GetField(int index)
+			{
+				IntPtr p = MED_Type_GetField(MED_TypeOf(PutkiInst), index);
+				if ((int)p != 0)
+				{
+					PutkiField pf = new PutkiField();
+					pf.Handler = p;
+					return pf;
+				}
+				return null;
 			}
 		}
 
@@ -72,7 +100,6 @@ namespace PutkEd
 					}
 				}
 			}
-
 			System.Console.WriteLine("I have loaded (" + m_loadedTypes.Count + ") types.");
 		}
 

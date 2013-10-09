@@ -6,6 +6,8 @@ namespace PutkEd
 	{
 		private global::Gtk.VBox vbox1;
 		private global::Gtk.Label label1;
+		private global::Gtk.ScrolledWindow GtkScrolledWindow;
+		private global::Gtk.TreeView m_props;
 
 		protected virtual void Build ()
 		{
@@ -27,6 +29,18 @@ namespace PutkEd
 			w1.Position = 0;
 			w1.Expand = false;
 			w1.Fill = false;
+			// Container child vbox1.Gtk.Box+BoxChild
+			this.GtkScrolledWindow = new global::Gtk.ScrolledWindow ();
+			this.GtkScrolledWindow.Name = "GtkScrolledWindow";
+			this.GtkScrolledWindow.ShadowType = ((global::Gtk.ShadowType)(1));
+			// Container child GtkScrolledWindow.Gtk.Container+ContainerChild
+			this.m_props = new global::Gtk.TreeView ();
+			this.m_props.CanFocus = true;
+			this.m_props.Name = "m_props";
+			this.GtkScrolledWindow.Add (this.m_props);
+			this.vbox1.Add (this.GtkScrolledWindow);
+			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.GtkScrolledWindow]));
+			w3.Position = 2;
 			this.Add (this.vbox1);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
