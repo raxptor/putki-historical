@@ -12,7 +12,7 @@ namespace PutkEd
 		
 		public static void Main (string[] args)
 		{
-			Directory.SetCurrentDirectory("c:\\gitproj\\putki\\ui-example");
+			Directory.SetCurrentDirectory("/Users/dannilsson/git/lilwiz");
 
 			s_loader = new Loader();
 

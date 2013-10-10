@@ -6,8 +6,12 @@
 #endif
 
 // SIMPLIFIED INTERFACE FOR MONO ED 
-
+#ifdef _WIN32
 #define DSPEC __declspec(dllexport)
+#else
+#define DSPEC __cdecl
+#include<dlfcn.h>
+#endif
 
 putki::data_dll_i * g_loaded_dll = 0;
 
@@ -30,12 +34,37 @@ extern "C"
 			}
 			else
 			{
-				std::cout << "MED_Initialize: Failed loading entry point." << std::endl;
+				std::cerr << "MED_Initialize: Failed loading entry point." << std::endl;
 			}
 		}
 		else
 		{
-			std::cout << "MED_Initialize: Failed loading library" << std::endl;
+			std::cerr << "MED_Initialize: Failed loading library" << std::endl;
+		}
+#else
+
+		std::cout << "MED_Initialize: dlopen" << std::endl;
+		void *p = dlopen(dllPath, RTLD_NOW);
+		std::cout << "MED_Initialize: returned (" << p << ")" << std::endl;
+		if (p)
+		{
+			std::cout << "MED_Initialize: Loaded library (" << p << ")" << std::endl;
+			CreateF *f = (CreateF*) dlsym(p, "load_data_dll");
+
+			std::cout << "MED_Initialize: Resolved symbol to (" << f << ")" << std::endl;
+			if (f)
+			{
+				g_loaded_dll = f(dataPath);
+				std::cout << "Loaded dll interface at " << g_loaded_dll << "!" << std::endl;
+			}
+			else
+			{
+				std::cerr << "Failed finding entry point in module [" << dllPath << "]." << std::endl;
+			}
+		}
+		else
+		{
+			std::cout << "Failed loading library [" << dllPath << "]" << std::endl;
 		}
 #endif
 		return g_loaded_dll != 0;
@@ -69,6 +98,21 @@ extern "C"
 	DSPEC putki::ext_field_handler_i * MED_Type_GetField(putki::ext_type_handler_i * type, int i)
 	{
 		return type->field(i);
+	}
+
+	DSPEC int MED_Field_GetType(putki::ext_field_handler_i * field)
+	{
+		return field->type();
+	}
+
+	DSPEC const char * MED_Field_GetString(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_string(mi);
+	}
+
+	DSPEC putki::mem_instance* MED_Field_GetStructInstance(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->make_struct_instance(mi);
 	}
 
 }

@@ -54,7 +54,8 @@ public partial class MainWindow : Gtk.Window
 			PutkEd.DLLLoader.MemInstance mi = PutkEd.MainClass.s_dataDll.DiskLoad(Path);
 			if (mi != null)
 			{
-				PutkEd.AssetEditor ae = new PutkEd.AssetEditor(mi);
+				PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
+				ae.SetObject(mi);
 				ae.Show();
 			}
 		}

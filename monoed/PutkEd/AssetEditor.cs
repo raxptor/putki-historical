@@ -1,45 +1,110 @@
 using System;
+using System.Collections.Generic;
 using Gtk;
 
 namespace PutkEd
 {
 	public partial class AssetEditor : Gtk.Window
 	{
-		DLLLoader.MemInstance m_mi;
+		ObjectEditor m_rootObj;
+		List<RowNode> m_tree = new List<RowNode>();
 
-		public AssetEditor(DLLLoader.MemInstance instance) : base(Gtk.WindowType.Toplevel)
+		public class RowNode
 		{
-			m_mi = instance;
-			this.Build();
+			public DLLLoader.MemInstance mi;
+			public DLLLoader.PutkiField fh;
+			public TypeEditor editor;
 
-			this.Title = m_mi.GetTypeName() + " editor";
-
-			
-			// Path
-			Gtk.CellRendererText r0 = new Gtk.CellRendererText();
-			TreeViewColumn c0 = new TreeViewColumn("Field", r0);
-			c0.AddAttribute(r0, "text", 0);
-			m_props.InsertColumn (c0, 0);
-
-			// Type
-			Gtk.CellRendererText r1 = new Gtk.CellRendererText();
-			TreeViewColumn c1 = new TreeViewColumn("Value", r1);
-			c1.AddAttribute(r1, "text", 1);
-			m_props.InsertColumn (c1, 1);
-
-			Gtk.ListStore ls = new Gtk.ListStore (typeof(string), typeof(string));
-
-
-			for (int i=0;i<10000;i++)
-			{
-				DLLLoader.PutkiField pf = m_mi.GetField(i);
-				if (pf != null)
-				{
-					ls.AppendValues(pf.GetName(), "korv");
-				}
-			}
-
-			m_props.Model = ls;
+			public List<RowNode> children = new List<RowNode>();
+			public int arrayIndex = -1;
 		}
+
+		public AssetEditor() : base (Gtk.WindowType.Toplevel)
+		{
+			Build();
+			ShowAll();
+		}
+
+		public void SetObject(DLLLoader.MemInstance mi)
+		{
+			// m_label.Visibility = Visibility.Collapsed; // nly for structs.
+			m_rootObj = new ObjectEditor();
+			m_rootObj.SetObject(mi, null, 0);
+
+			OnStructureChanged();
+			this.Title = mi.GetTypeName() + " editor";
+		}
+
+		public void OnStructureChanged()
+		{
+			m_tree = m_rootObj.GetChildRows();
+			int rows = Layout(m_tree, 0, 0) + 1;
+
+			this.SetSizeRequest(Looks.PropEdWidth, rows * Looks.FieldHeight);
+
+			ShowAll();
+		}
+
+		public int Layout(List<RowNode> list, int rowIndex, int indent)
+		{
+			Console.WriteLine("Layouting " + list.Count + " items row " + rowIndex);
+			int idx = 0;
+			foreach (RowNode rn in list)
+			{
+				if (rn.fh != null && rn.fh.GetName() == "parent")
+				{
+					rowIndex = Layout(rn.children, rowIndex, indent);
+					continue;
+				}
+
+				int y0 = 5 + rowIndex * Looks.FieldHeight;
+
+				Label name = new Label();
+
+				if (rn.fh != null)
+				{
+					if (rn.fh.IsArray() && !(rn.editor is ArrayEditor))
+						name.Text = rn.fh.GetName() + "[" + (idx++) + "]";
+					else
+						name.Text = rn.fh.GetName();
+				}
+				else
+				{
+					name.Text = rn.mi.GetPath();
+				}
+
+				m_propEd.Put(name, 10 + indent * Looks.IndentWidth, y0);
+
+				// 
+				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 110, Looks.FieldHeight);
+				m_propEd.Put(rn.editor.GetRoot(), 95, y0);
+
+				// If is is array entry
+				if (rn.fh != null && rn.fh.IsArray())
+				{
+					Button b = new Button();
+
+					if (rn.arrayIndex == -1)
+					{
+						b.Label = "Add";
+						//						b.Click += delegate { InsertClick(rn); };
+					}
+					else
+					{
+						b.Label = "Del";
+						//						b.Click += delegate { EraseClick(rn); };
+					}
+
+					m_propEd.Put(b, 100, 25 * rowIndex);
+				}
+
+				rn.editor.OnConnect(this);
+				rowIndex = Layout(rn.children, rowIndex + 1, indent + 1);
+			}
+			return rowIndex;
+		}
+
 	}
+
+
 }

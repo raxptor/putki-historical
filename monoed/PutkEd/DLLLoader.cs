@@ -35,6 +35,15 @@ namespace PutkEd
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetName(IntPtr field);
 
+		[DllImport("monoed-interop")]
+		private static extern int MED_Field_GetType(IntPtr field);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetString(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetStructInstance(IntPtr field, IntPtr mi);
+
 		private static string MSTR(IntPtr a)
 		{
 			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(a);
@@ -48,6 +57,33 @@ namespace PutkEd
 			{
 				return MSTR(MED_Field_GetName(Handler));
 			}
+
+			public int GetFieldType()
+			{
+				return MED_Field_GetType(Handler);
+			}
+
+			public string GetString(MemInstance mi)
+			{
+				return MSTR(MED_Field_GetString(Handler, mi.PutkiInst));
+			}
+
+			public MemInstance GetStructInstance(MemInstance mi)
+			{
+				MemInstance smi = new MemInstance();
+				smi.PutkiInst = MED_Field_GetStructInstance(Handler, mi.PutkiInst);
+				return smi;
+			}
+
+			public bool IsArray()
+			{
+				return false;
+			}
+
+			public bool ShowInEditor()
+			{
+				return true;
+			}
 		}
 
 		public class MemInstance
@@ -57,6 +93,11 @@ namespace PutkEd
 			public string GetTypeName()
 			{
 				return MSTR(MED_Type_GetName(MED_TypeOf(PutkiInst)));
+			}
+
+			public string GetPath()
+			{
+				return "Sökvägen 3";
 			}
 
 			public PutkiField GetField(int index)
@@ -86,8 +127,11 @@ namespace PutkEd
 
 		public void Load(string DataDLL, string DataPath)
 		{
+			System.Console.WriteLine("Calling!");
 			if (MED_Initialize(DataDLL, DataPath) > 0)
 			{
+				System.Console.WriteLine("done");
+
 				for (int i=0;i<1000;i++)
 				{
 					IntPtr p = MED_TypeByIndex(i);
