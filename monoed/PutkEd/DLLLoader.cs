@@ -36,6 +36,12 @@ namespace PutkEd
 		private static extern IntPtr MED_Field_GetName(IntPtr field);
 
 		[DllImport("monoed-interop")]
+		private static extern int MED_Field_IsArray(IntPtr field);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetArrayIndex(IntPtr field, int index);
+
+		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetType(IntPtr field);
 
 		[DllImport("monoed-interop")]
@@ -63,6 +69,16 @@ namespace PutkEd
 				return MED_Field_GetType(Handler);
 			}
 
+			public bool IsArray()
+			{
+				return MED_Field_IsArray(Handler) != 0;
+			}
+
+			public void SetArrayIndex(int i)
+			{
+				MED_Field_SetArrayIndex(Handler, i);
+			}
+
 			public string GetString(MemInstance mi)
 			{
 				return MSTR(MED_Field_GetString(Handler, mi.PutkiInst));
@@ -73,11 +89,6 @@ namespace PutkEd
 				MemInstance smi = new MemInstance();
 				smi.PutkiInst = MED_Field_GetStructInstance(Handler, mi.PutkiInst);
 				return smi;
-			}
-
-			public bool IsArray()
-			{
-				return false;
 			}
 
 			public bool ShowInEditor()

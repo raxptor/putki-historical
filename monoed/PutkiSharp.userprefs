@@ -1,19 +1,25 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/gtk-gui/generated.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\EditorCreator.cs">
     <Files>
-      <File FileName="PutkEd/ArrayEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd/EditorCreator.cs" Line="1" Column="1" />
-      <File FileName="PutkEd/AssetEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd/MainWindow.cs" Line="1" Column="1" />
-      <File FileName="PutkEd/gtk-gui/generated.cs" Line="82" Column="43" />
+      <File FileName="PutkEd\EditorCreator.cs" Line="16" Column="5" />
+      <File FileName="PutkEd\AssetEditor.cs" Line="15" Column="28" />
+      <File FileName="PutkEd\ObjectEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\MainWindow.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\Fenster.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\Widget.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\ArrayEditor.cs" Line="18" Column="4" />
+      <File FileName="PutkEd\DLLLoader.cs" Line="79" Column="5" />
+      <File FileName="PutkEd\TypeEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\TextEditor.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="PutkEd" expanded="True">
-            <Node name="UserInterface" expanded="True" selected="True" />
+            <Node name="UserInterface" expanded="True" />
             <Node name="Properties" expanded="True" />
+            <Node name="EditorCreator.cs" selected="True" />
           </Node>
         </State>
       </Pad>

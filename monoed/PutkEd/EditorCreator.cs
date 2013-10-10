@@ -7,6 +7,11 @@ namespace PutkEd
 	{
 		public static TypeEditor MakeEditor(DLLLoader.PutkiField fh, bool isArray)
 		{
+			if (isArray)
+			{
+				return new ArrayEditor();
+			}
+
 			switch (fh.GetFieldType())
 			{
 				case 4:

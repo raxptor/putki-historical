@@ -1,6 +1,9 @@
 solution "ExampleUI"
 
+	platforms { "x32" }
+
 	configurations {"Release", "Debug"}
+
 	location "build"
 	targetdir "build"
 	flags { "Symbols" }
@@ -8,6 +11,7 @@ solution "ExampleUI"
 
 	configuration "Debug"
 		defines {"DEBUG"}
+
 
 	dofile "../ccg-ui/ccg-ui-libs.lua"
 

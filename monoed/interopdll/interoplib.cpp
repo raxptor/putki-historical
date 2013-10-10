@@ -24,6 +24,7 @@ extern "C"
 		std::cout << "MED_Initialize: Loading library [" << dllPath << "]" << std::endl;
 
 #if defined(_WIN32)
+		std::cout << "MED_Initialize: Loading library [" << dllPath << "]" << std::endl;
 		HMODULE module = LoadLibrary(dllPath);
 		if (module)
 		{
@@ -34,12 +35,12 @@ extern "C"
 			}
 			else
 			{
-				std::cerr << "MED_Initialize: Failed loading entry point." << std::endl;
+				std::cout << "MED_Initialize: Failed loading entry point." << std::endl;
 			}
 		}
 		else
 		{
-			std::cerr << "MED_Initialize: Failed loading library" << std::endl;
+			std::cout << "MED_Initialize: Failed loading library" << std::endl;
 		}
 #else
 
@@ -105,6 +106,16 @@ extern "C"
 		return field->type();
 	}
 
+	DSPEC int MED_Field_IsArray(putki::ext_field_handler_i * field)
+	{
+		return field->is_array();
+	}
+
+	DSPEC void MED_Field_SetArrayIndex(putki::ext_field_handler_i * field, int index)
+	{
+		return field->set_array_index(index);
+	}
+
 	DSPEC const char * MED_Field_GetString(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_string(mi);
@@ -114,5 +125,4 @@ extern "C"
 	{
 		return field->make_struct_instance(mi);
 	}
-
 }

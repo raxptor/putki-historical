@@ -58,7 +58,8 @@ namespace Stetic
 			if ((this.uimanager != null)) {
 				Gtk.Widget w;
 				w = this.child.Toplevel;
-				if (((w != null) && typeof(Gtk.Window).IsInstanceOfType (w))) {
+				if (((w != null) 
+					&& typeof(Gtk.Window).IsInstanceOfType (w))) {
 					((Gtk.Window)(w)).AddAccelGroup (this.uimanager.AccelGroup);
 					this.uimanager = null;
 				}
@@ -68,9 +69,6 @@ namespace Stetic
 
 	internal class ActionGroups
 	{
-		private static global::Gtk.ActionGroup group1;
-		private static global::Gtk.ActionGroup group2;
-
 		public static Gtk.ActionGroup GetActionGroup (System.Type type)
 		{
 			return Stetic.ActionGroups.GetActionGroup (type.FullName);
@@ -78,21 +76,7 @@ namespace Stetic
 
 		public static Gtk.ActionGroup GetActionGroup (string name)
 		{
-			if ((name == "PutkEd.Theme")) {
-				if ((global::Stetic.ActionGroups.group1 == null)) {
-					global::Stetic.ActionGroups.group1 = new PutkEd.Theme ();
-				}
-				return global::Stetic.ActionGroups.group1;
-			} else {
-				if ((name == "PutkEd.Theme")) {
-					if ((global::Stetic.ActionGroups.group2 == null)) {
-						global::Stetic.ActionGroups.group2 = new PutkEd.Theme ();
-					}
-					return global::Stetic.ActionGroups.group2;
-				} else {
-					return null;
-				}
-			}
+			return null;
 		}
 	}
 }

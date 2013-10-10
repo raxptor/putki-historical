@@ -4,6 +4,8 @@ namespace PutkEd
 {
 	public partial class AssetEditor
 	{
+		private global::Gtk.VBox vbox1;
+		private global::Gtk.Label label1;
 		private global::Gtk.ScrolledWindow scrolledwindow1;
 		private global::Gtk.Fixed m_propEd;
 
@@ -12,28 +14,42 @@ namespace PutkEd
 			global::Stetic.Gui.Initialize (this);
 			// Widget PutkEd.AssetEditor
 			global::Stetic.BinContainer.Attach (this);
-			this.WidthRequest = 400;
 			this.Name = "PutkEd.AssetEditor";
 			// Container child PutkEd.AssetEditor.Gtk.Container+ContainerChild
+			this.vbox1 = new global::Gtk.VBox ();
+			this.vbox1.Name = "vbox1";
+			this.vbox1.Spacing = 6;
+			// Container child vbox1.Gtk.Box+BoxChild
+			this.label1 = new global::Gtk.Label ();
+			this.label1.Name = "label1";
+			this.label1.LabelProp = global::Mono.Unix.Catalog.GetString ("AssetPath");
+			this.vbox1.Add (this.label1);
+			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.label1]));
+			w1.Position = 0;
+			w1.Expand = false;
+			w1.Fill = false;
+			// Container child vbox1.Gtk.Box+BoxChild
 			this.scrolledwindow1 = new global::Gtk.ScrolledWindow ();
 			this.scrolledwindow1.CanFocus = true;
 			this.scrolledwindow1.Name = "scrolledwindow1";
-			this.scrolledwindow1.HscrollbarPolicy = ((global::Gtk.PolicyType)(2));
 			this.scrolledwindow1.ShadowType = ((global::Gtk.ShadowType)(1));
 			// Container child scrolledwindow1.Gtk.Container+ContainerChild
-			global::Gtk.Viewport w1 = new global::Gtk.Viewport ();
-			w1.ShadowType = ((global::Gtk.ShadowType)(0));
+			global::Gtk.Viewport w2 = new global::Gtk.Viewport ();
+			w2.ShadowType = ((global::Gtk.ShadowType)(0));
 			// Container child GtkViewport.Gtk.Container+ContainerChild
 			this.m_propEd = new global::Gtk.Fixed ();
 			this.m_propEd.Name = "m_propEd";
 			this.m_propEd.HasWindow = false;
-			w1.Add (this.m_propEd);
-			this.scrolledwindow1.Add (w1);
-			this.Add (this.scrolledwindow1);
+			w2.Add (this.m_propEd);
+			this.scrolledwindow1.Add (w2);
+			this.vbox1.Add (this.scrolledwindow1);
+			global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.scrolledwindow1]));
+			w5.Position = 1;
+			this.Add (this.vbox1);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}
-			this.Hide ();
+			this.Show ();
 		}
 	}
 }

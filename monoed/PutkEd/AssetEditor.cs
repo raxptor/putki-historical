@@ -40,7 +40,7 @@ namespace PutkEd
 			m_tree = m_rootObj.GetChildRows();
 			int rows = Layout(m_tree, 0, 0) + 1;
 
-			this.SetSizeRequest(Looks.PropEdWidth, rows * Looks.FieldHeight);
+			this.SetSizeRequest(Looks.PropEdWidth, rows * Looks.FieldHeight + 100);
 
 			ShowAll();
 		}
@@ -76,7 +76,7 @@ namespace PutkEd
 				m_propEd.Put(name, 10 + indent * Looks.IndentWidth, y0);
 
 				// 
-				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 110, Looks.FieldHeight);
+				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 180, Looks.FieldHeight);
 				m_propEd.Put(rn.editor.GetRoot(), 95, y0);
 
 				// If is is array entry
@@ -95,7 +95,8 @@ namespace PutkEd
 						//						b.Click += delegate { EraseClick(rn); };
 					}
 
-					m_propEd.Put(b, 100, 25 * rowIndex);
+					b.SetSizeRequest(70, Looks.FieldHeight);
+					m_propEd.Put(b, Looks.PropEdWidth - 80, y0);
 				}
 
 				rn.editor.OnConnect(this);

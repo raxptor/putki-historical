@@ -1,6 +1,8 @@
 solution "MonoEdInterop"
 
 	platforms { "x32" }
+	
+
 	configurations "Release"
 
 	project "monoedinterop"

@@ -49,7 +49,7 @@ namespace putki
 				}
 
 				const std::string str(beg, end - beg);
-				int pos = str.find_first_of("=");
+				std::string::size_type pos = str.find_first_of("=");
 				if (pos == std::string::npos)
 				{
 
