@@ -23,7 +23,7 @@ namespace PutkEd
 		{
 			m_mi = mi;
 			m_fh = fi;
-			m_label.Text = "Array (" + 444 /*fi.GetArraySize(mi)*/ + " items)";
+			m_label.Text = "Array (" + fi.GetArraySize(mi) + " items)";
 		}
 
 		public void OnConnect(AssetEditor root)

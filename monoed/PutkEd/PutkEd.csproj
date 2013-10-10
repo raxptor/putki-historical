@@ -94,6 +94,14 @@
     <Compile Include="ArrayEditor.cs" />
     <Compile Include="IntEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.IntEditor.cs" />
+    <Compile Include="BoolEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.BoolEditor.cs" />
+    <Compile Include="NewAssetDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.NewAssetDialog.cs" />
+    <Compile Include="PointerEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.PointerEditor.cs" />
+    <Compile Include="Vec4Editor.cs" />
+    <Compile Include="gtk-gui\PutkEd.Vec4Editor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

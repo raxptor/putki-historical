@@ -86,9 +86,24 @@ extern "C"
 		return g_loaded_dll->disk_load(path);
 	}
 
+	DSPEC putki::mem_instance* MED_CreateInstance(const char *path, putki::ext_type_handler_i * type)
+	{
+		return g_loaded_dll->create_instance(path, type);
+	}
+
+	DSPEC void MED_DiskSave(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->disk_save(mi);
+	}
+
 	DSPEC const char* MED_Type_GetName(putki::ext_type_handler_i* type)
 	{
 		return type->name();
+	}
+
+	DSPEC const char* MED_Type_GetInlineEditor(putki::ext_type_handler_i* type)
+	{
+		return type->inline_editor();
 	}
 
 	DSPEC const char* MED_Field_GetName(putki::ext_field_handler_i *field)
@@ -111,6 +126,16 @@ extern "C"
 		return field->is_array();
 	}
 
+	DSPEC int MED_Field_ShowInEditor(putki::ext_field_handler_i * field)
+	{
+		return field->show_in_editor();
+	}
+
+	DSPEC const char * MED_Field_GetRefType(putki::ext_field_handler_i * field)
+	{
+		return field->ref_type_name();
+	}
+
 	DSPEC int MED_Field_GetArraySize(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_array_size(mi);
@@ -121,14 +146,44 @@ extern "C"
 		return field->set_array_index(index);
 	}
 
+	DSPEC void MED_Field_ArrayInsert(putki::ext_field_handler_i * field, putki::mem_instance *mi)
+	{
+		return field->array_insert(mi);
+	}
+
+	DSPEC void MED_Field_ArrayErase(putki::ext_field_handler_i * field, putki::mem_instance *mi)
+	{
+		return field->array_erase(mi);
+	}
+
+	DSPEC bool MED_Field_IsAuxPtr(putki::ext_field_handler_i * field)
+	{
+		return field->is_aux_ptr();
+	}
+
 	DSPEC const char * MED_Field_GetString(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_string(mi);
 	}
 
+	DSPEC float MED_Field_GetFloat(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_float(mi);
+	}
+
+	DSPEC const char * MED_Field_GetPointer(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_pointer(mi);
+	}
+
 	DSPEC int MED_Field_GetInt32(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_int32(mi);
+	}
+
+	DSPEC int MED_Field_GetByte(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_byte(mi);
 	}
 
 	DSPEC bool MED_Field_GetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi)
@@ -140,4 +195,36 @@ extern "C"
 	{
 		return field->make_struct_instance(mi);
 	}
+
+	DSPEC void MED_Field_SetString(putki::ext_field_handler_i * field, putki::mem_instance * mi, const char *value)
+	{
+		return field->set_string(mi, value);
+	}
+
+	DSPEC void MED_Field_SetPointer(putki::ext_field_handler_i * field, putki::mem_instance * mi, const char *value)
+	{
+		return field->set_pointer(mi, value);
+	}
+
+	DSPEC void MED_Field_SetInt32(putki::ext_field_handler_i * field, putki::mem_instance * mi, int value)
+	{
+		return field->set_int32(mi, value);
+	}
+
+	DSPEC void MED_Field_SetFloat(putki::ext_field_handler_i * field, putki::mem_instance * mi, float value)
+	{
+		return field->set_float(mi, value);
+	}
+
+	DSPEC void MED_Field_SetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi, bool value)
+	{
+		return field->set_bool(mi, value);
+	}
+
+	DSPEC void MED_Field_SetByte(putki::ext_field_handler_i * field, putki::mem_instance * mi, int value)
+	{
+		return field->set_byte(mi, (char)value);
+	}
 }
+
+

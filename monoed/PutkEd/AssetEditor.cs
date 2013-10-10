@@ -7,7 +7,9 @@ namespace PutkEd
 	public partial class AssetEditor : Gtk.Window
 	{
 		ObjectEditor m_rootObj;
+		DLLLoader.MemInstance m_mi;
 		List<RowNode> m_tree = new List<RowNode>();
+		List<Widget> m_destroyList = new List<Widget>();
 
 		public class RowNode
 		{
@@ -30,6 +32,7 @@ namespace PutkEd
 			// m_label.Visibility = Visibility.Collapsed; // nly for structs.
 			m_rootObj = new ObjectEditor();
 			m_rootObj.SetObject(mi, null, 0);
+			m_mi = mi;
 
 			OnStructureChanged();
 			this.Title = mi.GetTypeName() + " editor";
@@ -37,17 +40,24 @@ namespace PutkEd
 
 		public void OnStructureChanged()
 		{
+			foreach (Widget w in m_destroyList)
+				w.Destroy();
+			m_destroyList.Clear();
+
 			m_tree = m_rootObj.GetChildRows();
 			int rows = Layout(m_tree, 0, 0) + 1;
 
-			this.SetSizeRequest(Looks.PropEdWidth, rows * Looks.FieldHeight + 100);
+			int reqSize = rows * Looks.FieldHeight + 100;
+			if (reqSize > 600)
+				reqSize = 600;
+
+			this.SetSizeRequest(Looks.PropEdWidth, reqSize);
 
 			ShowAll();
 		}
 
 		public int Layout(List<RowNode> list, int rowIndex, int indent)
 		{
-			Console.WriteLine("Layouting " + list.Count + " items row " + rowIndex);
 			int idx = 0;
 			foreach (RowNode rn in list)
 			{
@@ -70,14 +80,16 @@ namespace PutkEd
 				}
 				else
 				{
-					name.Text = rn.mi.GetPath();
+					name.Text = "";//rn.mi.GetPath();
 				}
 
-				m_propEd.Put(name, 10 + indent * Looks.IndentWidth, y0);
+				m_propEd.Put(name, 10 + indent * Looks.IndentWidth, y0 + 4);
+				m_destroyList.Add(name);
 
 				// 
-				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 250, Looks.FieldHeight);
-				m_propEd.Put(rn.editor.GetRoot(), Looks.PropEdWidth - 400, y0);
+				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 250, Looks.FieldHeight - 2);
+				m_propEd.Put(rn.editor.GetRoot(), Looks.PropEdWidth - 400, y0 + 1);
+				m_destroyList.Add(rn.editor.GetRoot());
 
 				// If is is array entry
 				if (rn.fh != null && rn.fh.IsArray())
@@ -87,16 +99,17 @@ namespace PutkEd
 					if (rn.arrayIndex == -1)
 					{
 						b.Label = "+";
-						//						b.Click += delegate { InsertClick(rn); };
+						b.Clicked += delegate { InsertClick(rn); };
 					}
 					else
 					{
 						b.Label = "-";
-						//						b.Click += delegate { EraseClick(rn); };
+						b.Clicked += delegate { EraseClick(rn); };
 					}
 
-					b.SetSizeRequest(30, Looks.FieldHeight);
-					m_propEd.Put(b, Looks.PropEdWidth - 50, y0);
+					b.SetSizeRequest(30, Looks.FieldHeight - 2);
+					m_propEd.Put(b, Looks.PropEdWidth - 50, y0 + 1);
+					m_destroyList.Add(b);
 				}
 
 				rn.editor.OnConnect(this);
@@ -105,6 +118,24 @@ namespace PutkEd
 			return rowIndex;
 		}
 
+		public void InsertClick(RowNode node)
+		{
+			node.fh.SetArrayIndex(0);
+			node.fh.ArrayInsert(node.mi);
+			OnStructureChanged();
+		}
+
+		public void EraseClick(RowNode node)
+		{
+			node.fh.SetArrayIndex(node.arrayIndex);
+			node.fh.ArrayErase(node.mi);
+			OnStructureChanged();
+		}
+
+		protected void OnSaveClicked (object sender, EventArgs e)
+		{
+			m_mi.DiskSave();
+		}
 	}
 
 

@@ -30,25 +30,52 @@ namespace PutkEd
 		private static extern IntPtr MED_DiskLoad(string path);
 
 		[DllImport("monoed-interop")]
+		private static extern void MED_DiskSave(IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_CreateInstance(string path, IntPtr typehandler);
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Type_GetField(IntPtr type, int i);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetName(IntPtr field);
 
 		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetRefType(IntPtr field);
+
+		[DllImport("monoed-interop")]
 		private static extern int MED_Field_IsArray(IntPtr field);
 
 		[DllImport("monoed-interop")]
+		private static extern bool MED_Field_IsAuxPtr(IntPtr field);
+
+		[DllImport("monoed-interop")]
+		private static extern bool MED_Field_ShowInEditor(IntPtr field);
+
+		[DllImport("monoed-interop")]
 		private static extern void MED_Field_SetArrayIndex(IntPtr field, int index);
+		
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Type_GetInlineEditor(IntPtr type);
 
 		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetArraySize(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_ArrayInsert(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_ArrayErase(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetType(IntPtr field);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetString(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetPointer(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetInt32(IntPtr field, IntPtr mi);
@@ -60,7 +87,28 @@ namespace PutkEd
 		private static extern bool MED_Field_GetBool(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
+		private static extern int MED_Field_GetByte(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetStructInstance(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetString(IntPtr field, IntPtr mi, string value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetPointer(IntPtr field, IntPtr mi, string value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetInt32(IntPtr field, IntPtr mi, int value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetBool(IntPtr field, IntPtr mi, bool value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetByte(IntPtr field, IntPtr mi, int value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetFloat(IntPtr field, IntPtr mi, float value);
 
 		private static string MSTR(IntPtr a)
 		{
@@ -81,6 +129,11 @@ namespace PutkEd
 				return MED_Field_GetType(Handler);
 			}
 
+			public string GetRefType()
+			{
+				return MSTR(MED_Field_GetRefType(Handler));
+			}
+
 			public bool IsArray()
 			{
 				return MED_Field_IsArray(Handler) != 0;
@@ -96,11 +149,26 @@ namespace PutkEd
 				MED_Field_SetArrayIndex(Handler, i);
 			}
 
+			public void ArrayInsert(MemInstance mi)
+			{
+				MED_Field_ArrayInsert(Handler, mi.PutkiInst);
+			}
+
+			public void ArrayErase(MemInstance mi)
+			{
+				MED_Field_ArrayErase(Handler, mi.PutkiInst);
+			}
+
 			public string GetString(MemInstance mi)
 			{
 				return MSTR(MED_Field_GetString(Handler, mi.PutkiInst));
 			}
 						
+			public string GetPointer(MemInstance mi)
+			{
+				return MSTR(MED_Field_GetPointer(Handler, mi.PutkiInst));
+			}
+
 			public int GetInt32(MemInstance mi)
 			{
 				return MED_Field_GetInt32(Handler, mi.PutkiInst);
@@ -116,6 +184,46 @@ namespace PutkEd
 				return MED_Field_GetBool(Handler, mi.PutkiInst);
 			}
 
+			public byte GetByte(MemInstance mi)
+			{
+				return (byte) MED_Field_GetByte(Handler, mi.PutkiInst);
+			}
+
+			public void SetString(MemInstance mi, string value)
+			{
+				MED_Field_SetString(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetPointer(MemInstance mi, string value)
+			{
+				MED_Field_SetPointer(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetInt32(MemInstance mi, int value)
+			{
+				MED_Field_SetInt32(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetBool(MemInstance mi, bool  value)
+			{
+				MED_Field_SetBool(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetByte(MemInstance mi, byte value)
+			{
+				MED_Field_SetByte(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetFloat(MemInstance mi, float value)
+			{
+				MED_Field_SetFloat(Handler, mi.PutkiInst, value);
+			}
+
+			public bool IsAuxPtr()
+			{
+				return MED_Field_IsAuxPtr(Handler);
+			}
+
 			public MemInstance GetStructInstance(MemInstance mi)
 			{
 				MemInstance smi = new MemInstance();
@@ -125,7 +233,7 @@ namespace PutkEd
 
 			public bool ShowInEditor()
 			{
-				return true;
+				return MED_Field_ShowInEditor(Handler);
 			}
 		}
 
@@ -137,10 +245,15 @@ namespace PutkEd
 			{
 				return MSTR(MED_Type_GetName(MED_TypeOf(PutkiInst)));
 			}
-
+			
 			public string GetPath()
 			{
-				return "Sökvägen 3";
+				return "";
+			}
+
+			public void DiskSave()
+			{
+				MED_DiskSave(PutkiInst);
 			}
 
 			public PutkiField GetField(int index)
@@ -154,9 +267,21 @@ namespace PutkEd
 				}
 				return null;
 			}
+
+			public static MemInstance LoadFromDisk(string path)
+			{
+				return DiskLoad(path);
+			}
+
+			public static MemInstance Create(string path, Types th)
+			{
+				MemInstance mi = new MemInstance();
+				mi.PutkiInst = MED_CreateInstance(path, th.Handler);
+				return mi;
+			}
 		}
 
-		public MemInstance DiskLoad(string path)
+		public static  MemInstance DiskLoad(string path)
 		{
 			IntPtr p = MED_DiskLoad(path);
 			if ((int)p != 0)
@@ -166,6 +291,19 @@ namespace PutkEd
 				return mi;
 			}
 			return null;
+		}
+
+		public static String GetInlineEditor(Types tu)
+		{
+			IntPtr t = MED_Type_GetInlineEditor(tu.Handler);
+			if ((int)t != 0)
+				return MSTR(t);
+			return null;
+		}
+
+		public List<Types> GetTypes()
+		{
+			return m_loadedTypes;
 		}
 
 		public void Load(string DataDLL, string DataPath)

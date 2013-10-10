@@ -16,19 +16,26 @@ namespace PutkEd
 			{
 				case 4:
 				{
-					/*
-					Putki.TypeDefinition StructType = fh.GetRefType();
-					string type = StructType.GetName();
-					string editor = StructType.GetInlineEditor();
-					if (StructType.GetInlineEditor() == "Vec4")
+					string RT = fh.GetRefType();
+					String InlineEditor = null;
+					foreach (DLLLoader.Types t in MainClass.s_dataDll.GetTypes())
 					{
-						return new Vec4Editor();
+						if (t.Name == RT)
+						{
+							InlineEditor = DLLLoader.GetInlineEditor(t);
+							break;
+						}
 					}
-					else
-					{
-					*/
+
+					if (InlineEditor == "Vec4")
+						return new Vec4Editor();
+
 					return new ObjectEditor();
 				}
+				case 3:
+					return new PointerEditor();
+				case 6:
+					return new BoolEditor();
 				case 0:
 					return new IntEditor();
 				default:

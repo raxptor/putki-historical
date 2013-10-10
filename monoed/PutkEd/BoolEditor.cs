@@ -1,13 +1,15 @@
 using System;
-using Gtk;
 using System.Collections.Generic;
+using Gtk;
 
 namespace PutkEd
 {
 	[System.ComponentModel.ToolboxItem(true)]
-	public partial class IntEditor : Gtk.Bin, TypeEditor
+	public partial class BoolEditor : Gtk.Bin, TypeEditor
 	{
-		public IntEditor()
+		public int m_arrayIndex;
+
+		public BoolEditor()
 		{
 			this.Build();
 		}
@@ -19,12 +21,14 @@ namespace PutkEd
 
 		public void SetObject(DLLLoader.MemInstance mi, DLLLoader.PutkiField fi, int arrayIndex)
 		{
-			fi.SetArrayIndex(arrayIndex);
+			m_arrayIndex = arrayIndex;
+
+			fi.SetArrayIndex(m_arrayIndex);
+			m_checkbox.Active = fi.GetBool(mi);
+			/*
 			m_tbox.Text = fi.GetInt32(mi).ToString();
 			m_tbox.Changed += delegate {
 				int o;
-
-				fi.SetArrayIndex(arrayIndex);
 				if (Int32.TryParse(m_tbox.Text, out o))
 				{
 					fi.SetInt32(mi, o);
@@ -35,6 +39,7 @@ namespace PutkEd
 					m_tbox.ModifyBase(StateType.Normal, new Gdk.Color(200, 10, 10));
 				}
 			};
+			*/
 		}
 
 		public List<AssetEditor.RowNode> GetChildRows()

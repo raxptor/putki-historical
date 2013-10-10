@@ -4,9 +4,9 @@ namespace PutkEd
 {
 	public class Looks
 	{
-		public static int FieldHeight = 25;
-		public static int IndentWidth = 40;
-		public static int PropEdWidth = 600;
+		public static int FieldHeight = 28;
+		public static int IndentWidth = 5;
+		public static int PropEdWidth = 500;
 	}
 }
 

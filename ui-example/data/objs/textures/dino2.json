@@ -1,7 +1,14 @@
 {
 	type: "Texture",
 	data: {
-		Source: "textures/dino2.png",
-		NoOutput: 0
-	}
+			"_rtti_type": 33,
+			"Source": "textures/dino2.png",
+			"Output": "",
+			"id": "",
+			"NoOutput": 0,
+			"Width": 0,
+			"Height": 2
+	},
+	aux: [
+	      ]
 }

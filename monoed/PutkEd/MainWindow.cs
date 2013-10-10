@@ -51,7 +51,7 @@ public partial class MainWindow : Gtk.Window
 		if (m_fileTree.Selection.GetSelected(out model, out iter))
 		{		
 			string Path = model.GetValue(iter, 0).ToString();
-			PutkEd.DLLLoader.MemInstance mi = PutkEd.MainClass.s_dataDll.DiskLoad(Path);
+			PutkEd.DLLLoader.MemInstance mi = PutkEd.DLLLoader.DiskLoad(Path);
 			if (mi != null)
 			{
 				PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
@@ -59,5 +59,15 @@ public partial class MainWindow : Gtk.Window
 				ae.Show();
 			}
 		}
+	}
+
+	protected void OnNewAsset (object sender, EventArgs e)
+	{
+		PutkEd.NewAssetDialog nad = new PutkEd.NewAssetDialog();
+		if (nad.Run() == 0)
+		{
+
+		}
+		nad.Destroy();
 	}
 }

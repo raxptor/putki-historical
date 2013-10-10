@@ -30,7 +30,7 @@ namespace PutkEd
 			if (fi != null)
 			{
 				// member somewhere.
-				// fi.SetArrayIndex(arrayIndex);
+				fi.SetArrayIndex(arrayIndex);
 				m_obj = fi.GetStructInstance(mi);
 			}
 			else
@@ -50,7 +50,7 @@ namespace PutkEd
 				DLLLoader.PutkiField fh = m_obj.GetField(f);
 				if (fh != null)
 				{
-					// if (fh.ShowInEditor())
+					if (fh.ShowInEditor())
 					{
 						AssetEditor.RowNode e = new AssetEditor.RowNode();
 						e.mi = m_obj;

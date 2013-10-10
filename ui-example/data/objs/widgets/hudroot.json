@@ -1,10 +1,10 @@
 {
 	type: "UIWidget",
 	data: {
-			"_rtti_type": 11,
+			"_rtti_type": 14,
 			"width": 960,
 			"height": 640,
-			"handler": "",
+			"handler": "min dörrknob börjar se lite matt ut",
 			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#ssej", "widgets/hudroot#aohb", "widgets/hudroot#ffec"]
 	},
 	aux: [
@@ -13,25 +13,25 @@
 			type: "UIWidgetElement",
 			data: {
 					"parent": {
-						"_rtti_type": 13,
+						"_rtti_type": 16,
 						"id": "",
 						"layout": {
-							"x": 10,
-							"y": 490,
-							"width": 0,
-							"height": 0
+							"x": 1,
+							"y": 2,
+							"width": 3,
+							"height": 4
 					},
 						"expansion": {
-							"x": 0,
-							"y": 1,
-							"width": 0,
-							"height": 0
+							"x": 5,
+							"y": 6,
+							"width": 7,
+							"height": 8
 					},
 						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
+							"r": 100,
+							"g": 200,
+							"b": 12,
+							"a": 14
 					}
 				},
 					"widget": "widgets/joystick"
@@ -43,7 +43,7 @@
 			type: "UIFillElement",
 			data: {
 					"parent": {
-						"_rtti_type": 12,
+						"_rtti_type": 15,
 						"id": "",
 						"layout": {
 							"x": 150,
@@ -73,7 +73,7 @@
 			type: "UITextElement",
 			data: {
 					"parent": {
-						"_rtti_type": 15,
+						"_rtti_type": 18,
 						"id": "",
 						"layout": {
 							"x": 150,

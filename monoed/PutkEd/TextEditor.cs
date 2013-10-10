@@ -20,6 +20,9 @@ namespace PutkEd
 		public void SetObject(DLLLoader.MemInstance mi, DLLLoader.PutkiField fi, int araryIndex)
 		{
 			m_text.Text = fi.GetString(mi);
+			m_text.Changed += delegate {
+				fi.SetString(mi, m_text.Text);
+			};
 		}
 
 		public List<AssetEditor.RowNode> GetChildRows()
