@@ -34,7 +34,7 @@ namespace PutkEd
 		public List<AssetEditor.RowNode> GetChildRows()
 		{
 			List<AssetEditor.RowNode> list = new List<AssetEditor.RowNode>();
-			int entries = 0; // m_fh.GetArraySize(m_mi);
+			int entries = m_fh.GetArraySize(m_mi);
 			for (int i = 0; i < entries; i++)
 			{
 				AssetEditor.RowNode e = new AssetEditor.RowNode();

@@ -111,6 +111,11 @@ extern "C"
 		return field->is_array();
 	}
 
+	DSPEC int MED_Field_GetArraySize(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_array_size(mi);
+	}
+
 	DSPEC void MED_Field_SetArrayIndex(putki::ext_field_handler_i * field, int index)
 	{
 		return field->set_array_index(index);
@@ -119,6 +124,16 @@ extern "C"
 	DSPEC const char * MED_Field_GetString(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_string(mi);
+	}
+
+	DSPEC int MED_Field_GetInt32(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_int32(mi);
+	}
+
+	DSPEC bool MED_Field_GetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	{
+		return field->get_bool(mi);
 	}
 
 	DSPEC putki::mem_instance* MED_Field_GetStructInstance(putki::ext_field_handler_i * field, putki::mem_instance * mi)

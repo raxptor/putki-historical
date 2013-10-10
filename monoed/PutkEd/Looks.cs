@@ -6,7 +6,7 @@ namespace PutkEd
 	{
 		public static int FieldHeight = 25;
 		public static int IndentWidth = 40;
-		public static int PropEdWidth = 400;
+		public static int PropEdWidth = 600;
 	}
 }
 

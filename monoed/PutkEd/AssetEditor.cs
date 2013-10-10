@@ -76,8 +76,8 @@ namespace PutkEd
 				m_propEd.Put(name, 10 + indent * Looks.IndentWidth, y0);
 
 				// 
-				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 180, Looks.FieldHeight);
-				m_propEd.Put(rn.editor.GetRoot(), 95, y0);
+				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 250, Looks.FieldHeight);
+				m_propEd.Put(rn.editor.GetRoot(), Looks.PropEdWidth - 400, y0);
 
 				// If is is array entry
 				if (rn.fh != null && rn.fh.IsArray())
@@ -86,17 +86,17 @@ namespace PutkEd
 
 					if (rn.arrayIndex == -1)
 					{
-						b.Label = "Add";
+						b.Label = "+";
 						//						b.Click += delegate { InsertClick(rn); };
 					}
 					else
 					{
-						b.Label = "Del";
+						b.Label = "-";
 						//						b.Click += delegate { EraseClick(rn); };
 					}
 
-					b.SetSizeRequest(70, Looks.FieldHeight);
-					m_propEd.Put(b, Looks.PropEdWidth - 80, y0);
+					b.SetSizeRequest(30, Looks.FieldHeight);
+					m_propEd.Put(b, Looks.PropEdWidth - 50, y0);
 				}
 
 				rn.editor.OnConnect(this);

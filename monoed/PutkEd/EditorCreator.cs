@@ -29,7 +29,8 @@ namespace PutkEd
 					*/
 					return new ObjectEditor();
 				}
-
+				case 0:
+					return new IntEditor();
 				default:
 					return new TextEditor();
 			}
@@ -60,8 +61,6 @@ namespace PutkEd
 					}
 						case 3:
 						return new PointerEditor();
-						case 0:
-						return new IntEditor();
 						case 5:
 						return new FileEditor();
 						case 7:

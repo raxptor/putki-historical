@@ -1,17 +1,21 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\EditorCreator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\ArrayEditor.cs">
     <Files>
-      <File FileName="PutkEd\EditorCreator.cs" Line="16" Column="5" />
-      <File FileName="PutkEd\AssetEditor.cs" Line="15" Column="28" />
-      <File FileName="PutkEd\ObjectEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\EditorCreator.cs" Line="34" Column="1" />
+      <File FileName="PutkEd\AssetEditor.cs" Line="74" Column="6" />
+      <File FileName="PutkEd\ObjectEditor.cs" Line="29" Column="1" />
       <File FileName="PutkEd\MainWindow.cs" Line="1" Column="1" />
       <File FileName="PutkEd\Fenster.cs" Line="1" Column="1" />
       <File FileName="PutkEd\Widget.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\ArrayEditor.cs" Line="18" Column="4" />
-      <File FileName="PutkEd\DLLLoader.cs" Line="79" Column="5" />
+      <File FileName="PutkEd\ArrayEditor.cs" Line="46" Column="22" />
+      <File FileName="PutkEd\DLLLoader.cs" Line="58" Column="1" />
       <File FileName="PutkEd\TypeEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\TextEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\TextEditor.cs" Line="25" Column="5" />
+      <File FileName="PutkEd\Looks.cs" Line="9" Column="36" />
+      <File FileName="PutkEd\Program.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\IntEditor.cs" Line="19" Column="3" />
+      <File FileName="PutkEd\Properties\AssemblyInfo.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -19,7 +23,7 @@
           <Node name="PutkEd" expanded="True">
             <Node name="UserInterface" expanded="True" />
             <Node name="Properties" expanded="True" />
-            <Node name="EditorCreator.cs" selected="True" />
+            <Node name="ArrayEditor.cs" selected="True" />
           </Node>
         </State>
       </Pad>

@@ -92,6 +92,8 @@
     <Compile Include="gtk-gui\PutkEd.ObjectEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.AssetEditor.cs" />
     <Compile Include="ArrayEditor.cs" />
+    <Compile Include="IntEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.IntEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

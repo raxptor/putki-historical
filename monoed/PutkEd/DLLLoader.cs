@@ -42,10 +42,22 @@ namespace PutkEd
 		private static extern void MED_Field_SetArrayIndex(IntPtr field, int index);
 
 		[DllImport("monoed-interop")]
+		private static extern int MED_Field_GetArraySize(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetType(IntPtr field);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetString(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern int MED_Field_GetInt32(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern float MED_Field_GetFloat(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern bool MED_Field_GetBool(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetStructInstance(IntPtr field, IntPtr mi);
@@ -74,6 +86,11 @@ namespace PutkEd
 				return MED_Field_IsArray(Handler) != 0;
 			}
 
+			public int GetArraySize(MemInstance mi)
+			{
+				return MED_Field_GetArraySize(Handler, mi.PutkiInst);
+			}
+
 			public void SetArrayIndex(int i)
 			{
 				MED_Field_SetArrayIndex(Handler, i);
@@ -82,6 +99,21 @@ namespace PutkEd
 			public string GetString(MemInstance mi)
 			{
 				return MSTR(MED_Field_GetString(Handler, mi.PutkiInst));
+			}
+						
+			public int GetInt32(MemInstance mi)
+			{
+				return MED_Field_GetInt32(Handler, mi.PutkiInst);
+			}
+
+			public float GetFloat(MemInstance mi)
+			{
+				return MED_Field_GetFloat(Handler, mi.PutkiInst);
+			}			
+
+			public bool GetBool(MemInstance mi)
+			{
+				return MED_Field_GetBool(Handler, mi.PutkiInst);
 			}
 
 			public MemInstance GetStructInstance(MemInstance mi)
