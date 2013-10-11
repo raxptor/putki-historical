@@ -1,34 +1,30 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\DLLLoader.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/DLLLoader.cs">
     <Files>
-      <File FileName="PutkEd\FloatEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\EditorCreator.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\EnumEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\IntEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\DLLLoader.cs" Line="252" Column="26" />
-      <File FileName="PutkEd\NewInstanceDialog.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\ObjectEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\FileIndex.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\BoolEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Program.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\PointerEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\MainWindow.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\TextEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\ArrayEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd/FloatEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd/EditorCreator.cs" Line="42" Column="30" />
+      <File FileName="PutkEd/EnumEditor.cs" Line="36" Column="33" />
+      <File FileName="PutkEd/IntEditor.cs" Line="47" Column="4" />
+      <File FileName="PutkEd/DLLLoader.cs" Line="231" Column="25" />
+      <File FileName="PutkEd/NewInstanceDialog.cs" Line="19" Column="1" />
+      <File FileName="PutkEd/ObjectEditor.cs" Line="37" Column="5" />
+      <File FileName="PutkEd/FileIndex.cs" Line="43" Column="17" />
+      <File FileName="PutkEd/BoolEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd/Program.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="PutkEd" expanded="True">
-            <Node name="DLLLoader.cs" selected="True" />
-          </Node>
+          <Node name="PutkEd" expanded="True" selected="True" />
         </State>
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\gitproj\putki\monoed\PutkEd\IntEditor.cs" line="11" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

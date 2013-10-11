@@ -90,12 +90,12 @@ namespace CCGUI
 			}
 		}
 
-		public void OnLayout(UIRenderContext rctx, ref UIElementLayout elementLayout)
+		virtual public void OnLayout(UIRenderContext rctx, ref UIElementLayout elementLayout)
 		{
 			LayoutElements(rctx, elementLayout.nsx0, elementLayout.nsy0, elementLayout.nsx1, elementLayout.nsy1);
 		}
 
-		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
+		virtual public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
 			DoLiveUpdate(rctx, ref layout);
 
