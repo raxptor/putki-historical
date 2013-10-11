@@ -241,7 +241,7 @@ namespace putki
 						cmd = cmd.substr(0, del);
 					}
 					
-					std::cout << "client [" << cmd << "] arg0 [" << arg0 << "]" << std::endl;
+//					std::cout << "client [" << cmd << "] arg0 [" << arg0 << "]" << std::endl;
 					if (cmd == "init")
 					{
 						// see what runtime it is.
@@ -273,6 +273,7 @@ namespace putki
 						while (accepted_updates < (int)lu->_assets_updates.size())
 						{
 							const char *path = lu->_assets_updates[accepted_updates++].c_str();
+							std::cout << "Client gets [" << path << "] accepted_updates = " << accepted_updates << std::endl;
 							if (!already.count(path))
 							{
 								// need to be found in any of the output dbs.

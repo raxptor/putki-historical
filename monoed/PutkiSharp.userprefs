@@ -1,17 +1,22 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/NewInstanceDialog.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/DLLLoader.cs">
     <Files>
-      <File FileName="PutkEd/NewAssetDialog.cs" Line="11" Column="17" />
-      <File FileName="PutkEd/NewInstanceDialog.cs" Line="23" Column="5" />
+      <File FileName="PutkEd/FloatEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd/EditorCreator.cs" Line="42" Column="30" />
+      <File FileName="PutkEd/EnumEditor.cs" Line="36" Column="33" />
+      <File FileName="PutkEd/IntEditor.cs" Line="47" Column="4" />
+      <File FileName="PutkEd/DLLLoader.cs" Line="240" Column="26" />
+      <File FileName="PutkEd/NewInstanceDialog.cs" Line="19" Column="1" />
+      <File FileName="PutkEd/ObjectEditor.cs" Line="37" Column="5" />
+      <File FileName="PutkEd/FileIndex.cs" Line="43" Column="17" />
+      <File FileName="PutkEd/BoolEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd/Program.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="PutkEd" expanded="True">
-            <Node name="UserInterface" expanded="True" />
-            <Node name="NewInstanceDialog.cs" selected="True" />
-          </Node>
+          <Node name="PutkEd" expanded="True" selected="True" />
         </State>
       </Pad>
     </Pads>

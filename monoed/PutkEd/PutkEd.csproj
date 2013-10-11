@@ -38,7 +38,7 @@
     <ConsolePause>false</ConsolePause>
     <EnvironmentVariables>
       <EnvironmentVariables>
-        <Variable name="MONO_LOG_LEVEL" value="debug" />
+        <Variable name="MONO_LOG_LEVEL" value="none" />
         <Variable name="DYLD_LIBRARY_PATH" value="./build" />
       </EnvironmentVariables>
     </EnvironmentVariables>

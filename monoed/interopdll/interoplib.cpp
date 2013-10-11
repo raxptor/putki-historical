@@ -114,6 +114,11 @@ extern "C"
 		return g_loaded_dll->disk_save(mi);
 	}
 
+	DSPEC void MED_OnObjectModified(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->on_object_modified(g_loaded_dll->path_of(mi));
+	}
+
 	DSPEC const char* MED_Type_GetName(putki::ext_type_handler_i* type)
 	{
 		return type->name();

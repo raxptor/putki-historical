@@ -20,6 +20,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <pthread.h>
 #endif
 
 namespace putki
@@ -60,6 +62,27 @@ namespace putki
 			CreateThread(0, 0, &liveupdate_thread, (void*)skt, 0, 0);
 		}
 	}
+#else
+
+	void* liveupdate_thread(void *r)
+	{
+		liveupdate_thread_real((int)r);
+		return 0;
+	}
+
+	void* accept_thread(void *arg)
+	{
+		std::cout << "[data-dll] started live update accept thread" << std::endl;
+		liveupdate::data *d = (liveupdate::data*) arg;
+		while (true)
+		{
+			int s = putki::liveupdate::accept(d);
+			intptr_t skt = s;
+			pthread_t t;
+			pthread_create(&t, 0, &liveupdate_thread, (void*)skt);
+		}
+		return 0;
+	}
 
 #endif
 
@@ -93,7 +116,15 @@ namespace putki
 			if (_lu)
 				CreateThread(0, 0, &accept_thread, (void*)_lu, 0, 0);
 #else
-			_lu = 0;
+			_lu = putki::liveupdate::start_server(_db);
+			_lu_path = strdup(path);
+			s_live_update = _lu;
+
+			if (_lu)
+			{
+				pthread_t thr;
+				pthread_create(&thr, 0, &accept_thread, _lu);
+			}
 #endif
 		}
 

@@ -39,6 +39,9 @@ namespace PutkEd
 		private static extern void MED_DiskSave(IntPtr mi);
 
 		[DllImport("monoed-interop")]
+		private static extern void MED_OnObjectModified(IntPtr mi);
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_CreateInstance(string path, IntPtr typehandler);
 
 		[DllImport("monoed-interop")]
@@ -170,11 +173,13 @@ namespace PutkEd
 			public void ArrayInsert(MemInstance mi)
 			{
 				MED_Field_ArrayInsert(Handler, mi.PutkiInst);
-			}
+				MED_OnObjectModified(mi.PutkiInst);
+		}
 
 			public void ArrayErase(MemInstance mi)
 			{
 				MED_Field_ArrayErase(Handler, mi.PutkiInst);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public string GetString(MemInstance mi)
@@ -223,36 +228,43 @@ namespace PutkEd
 			public void SetString(MemInstance mi, string value)
 			{
 				MED_Field_SetString(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetEnum(MemInstance mi, string value)
 			{
 				MED_Field_SetEnum(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetPointer(MemInstance mi, string value)
 			{
 				MED_Field_SetPointer(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetInt32(MemInstance mi, int value)
 			{
 				MED_Field_SetInt32(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetBool(MemInstance mi, bool  value)
 			{
 				MED_Field_SetBool(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetByte(MemInstance mi, byte value)
 			{
 				MED_Field_SetByte(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public void SetFloat(MemInstance mi, float value)
 			{
 				MED_Field_SetFloat(Handler, mi.PutkiInst, value);
+				MED_OnObjectModified(mi.PutkiInst);
 			}
 
 			public bool IsAuxPtr()
