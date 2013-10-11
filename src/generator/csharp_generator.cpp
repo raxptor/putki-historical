@@ -248,7 +248,8 @@ namespace putki
 						out.line() << field_ref << " = (" << s->fields[i].ref_type << ")" << content_reader << ".ReadInt32();";
 						break;
 					case FIELDTYPE_POINTER:
-						out.line() << ptr_slot_ref << " = " << content_reader << ".ReadInt32();";
+						out.line() << ptr_slot_ref << " = (short) " << content_reader << ".ReadInt16();";
+						out.line() << content_reader << ".ReadInt16(); // throw away since ptr refs are 16-bit";
 						//out.cont() << f->ref_type;
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:

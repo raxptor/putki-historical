@@ -8,22 +8,39 @@ namespace CCGUI
 
 		UIElementRenderer m_rootRenderer;
 		UITextureManager m_textureManager;
+		UIWidgetHandler m_widgetHandler;
 
 		public UIScreenRenderer(outki.UIScreen screen, UIWidgetHandler handler)
 		{
 			m_screen = screen;
-			m_rootRenderer = handler.CreateRootRenderer(m_screen.Root);
+			m_widgetHandler = handler;
 
+			CreateAndInit();
+		}
+
+		public void CreateAndInit()
+		{
+			m_rootRenderer = m_widgetHandler.CreateRootRenderer(m_screen.Root);
 			m_textureManager = new UITextureManager();
 
 			// Load all associated atlases.
 			foreach (outki.Atlas a in m_screen.Atlases)
-				m_textureManager.AddAtlas(a);
+			{
+				if (a != null)
+					m_textureManager.AddAtlas(a);
+			}
 		}
-
 
 		public void Draw(float x0, float y0, float x1, float y1)
 		{
+			bool mod = false;
+			mod |= Putki.LiveUpdate.Update(ref m_screen);
+			mod |= Putki.LiveUpdate.Update(ref m_screen.Root);
+			if (mod)
+			{
+				CreateAndInit();
+			}
+
 			// calculate the scale
 			bool preserveLayoutAspect = m_screen.Config.PreserveLayoutAspect;
 			bool useLayoutScaling = (m_screen.Config.ScaleMode == outki.UIScaleMode.ScaleMode_Prop_Layout);

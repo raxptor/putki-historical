@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using System.IO;
 
 namespace ViewerApp
@@ -75,13 +76,29 @@ namespace ViewerApp
     {
 		[STAThread]
         static void Main(string[] args)
-        {
+        {			
 			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
-
+			Putki.LiveUpdate.InsertPackage(p);
 
 			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");
 
+			Putki.LiveUpdateClient lup = new Putki.LiveUpdateClient("localhost", new Loader());
+
+			DispatcherTimer dtp = new DispatcherTimer();
+
 			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(screen, new ViewerWidgetHandler()));
+			
+
+			dtp.Tick += delegate
+			{
+				if (lup.Update())
+					w.InvalidateVisual();
+			};
+
+			dtp.Interval = new TimeSpan(0, 0, 0, 0, 10);
+			dtp.Start();
+
+			
 			w.ShowDialog();
 
 

@@ -179,7 +179,7 @@ extern "C"
 		return field->array_erase(mi);
 	}
 
-	DSPEC bool MED_Field_IsAuxPtr(putki::ext_field_handler_i * field)
+	DSPEC int MED_Field_IsAuxPtr(putki::ext_field_handler_i * field)
 	{
 		return field->is_aux_ptr();
 	}

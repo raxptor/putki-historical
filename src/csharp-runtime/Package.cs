@@ -1,4 +1,6 @@
 using System.Text;
+using System.Collections.Generic;
+using System;
 
 namespace Putki
 {
@@ -82,27 +84,104 @@ namespace Putki
 	
 	public class Package
 	{
-		class Slot
+		public class Slot
 		{
 			public string path;
 			public object inst;
 			public int type;
 		};
 		
-		Slot[] m_slots;
+		public Slot[] m_slots;
+
+		string[] m_pathTable;
+
+		List<Package> m_extRefs = null;
+		List<string> m_unresolved = null;
+		bool m_gotUnresolved = false;
+
+		public List<string> TryResolveWithRefs(List<Package> extRefs, TypeLoader loader)
+		{
+			m_extRefs = extRefs;
+			m_unresolved = new List<string>();
+
+			for (int i = 0; i < m_slots.Length; i++)
+			{
+				loader.ResolveFromPackage(m_slots[i].type, m_slots[i].inst, this);
+			}
+
+			List<string> r = m_unresolved;
+			m_unresolved = null;
+			m_extRefs = null;
+			return r;
+		}
+
+		public string RootObjPath()
+		{
+			return m_slots[0].path;
+		}
 		
 		public object ResolveSlot(int index)
 		{
-			if (index > 0)
-				return m_slots[index - 1].inst;
-			return null;
+			if (index == 0)
+			{
+				// null pointer
+				return null;
+			}
+			else if (index > 0)
+			{
+				// slot lookup
+				if (index <= m_slots.Length)
+					return m_slots[index - 1].inst;
+				else
+					return null; // bork.
+			}
+			else
+			{
+				int pt = -index - 1;
+				if (pt < m_pathTable.Length)
+					return Resolve(m_pathTable[pt]);
+				else
+					return null;
+			}
 		}
 		
 		public object Resolve(string path)
 		{
+			if (m_extRefs != null)
+			{
+				foreach (Package p in m_extRefs)
+				{
+					foreach (Slot s in p.m_slots)
+					{
+						if (s.path == path)
+						{
+							return s.inst;
+						}
+					}
+				}
+			}
+
 			foreach (Slot s in m_slots)
+			{
 				if (s.path == path)
+				{
 					return s.inst;
+				}
+			}
+
+			if (path == "")
+			{
+				Console.WriteLine("EMPTY PATH!");
+				return null;
+			}
+
+			m_gotUnresolved = true;
+
+			if (m_unresolved != null)
+			{
+				m_unresolved.Add(path);
+			}
+
 			return null;
 		}
 		
@@ -126,13 +205,19 @@ namespace Putki
 
 				m_slots[i].inst = loader.LoadFromPackage(m_slots[i].type, rdr);
 			}
-			
+
+			int paths = rdr.ReadInt32();
+			m_pathTable = new string[paths];
+			for (int i=0;i<paths;i++)
+				m_pathTable[i] = rdr.ReadString(rdr.ReadInt16());
+
 			for (int i=0;i<slots;i++)
 			{
 				loader.ResolveFromPackage(m_slots[i].type, m_slots[i].inst, this);
 			}
-			
-			return true;
+
+			Console.WriteLine("LoadFromBytes: Got unresolved? " + m_gotUnresolved);
+			return !m_gotUnresolved;
 		}
 
 		public void Release()
@@ -146,10 +231,8 @@ namespace Putki
 		static public Package FromBytes(byte[] bytes, TypeLoader loader)
 		{
 			Package p = new Package();
-			if (p.LoadFromBytes(bytes, loader))
-				return p;
-			else
-				return null;
+			p.LoadFromBytes(bytes, loader);
+			return p;
 		}
 	}	
 }

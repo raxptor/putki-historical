@@ -48,7 +48,7 @@ namespace putki
 			sockaddr_in addrLocal = {};
 			
 			addrLocal.sin_family = AF_INET;
-			addrLocal.sin_port = htons(5566);
+			addrLocal.sin_port = htons(6788);
 			addrLocal.sin_addr.s_addr = htonl(0x7f000001);
 			
 			d->socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -257,6 +257,7 @@ namespace putki
 						if (!builder)
 						{
 							builder = builder::create(rt, sourcepath);
+
 							if (builder)
 							{
 								std::cout << "Created builder for client." << std::endl;

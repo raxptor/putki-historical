@@ -41,6 +41,9 @@ namespace CCGUI
 
 		public void Draw(UIRenderContext ctx, float x0, float y0, float x1, float y1)
 		{
+			if (Putki.LiveUpdate.Update(ref m_data))
+				ResolveTextures(ctx);
+
 			switch (m_data._rtti_type)
 			{
 				case outki.UISolidFill.TYPE:

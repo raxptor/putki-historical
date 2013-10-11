@@ -12,16 +12,16 @@ namespace PutkEd
 		
 		public static void Main (string[] args)
 		{
-			Directory.SetCurrentDirectory("/Users/dannilsson/git/lilwiz");
-			// Directory.SetCurrentDirectory("c:\\gitproj\\putki\\ui-example");
+			//Directory.SetCurrentDirectory("/Users/dannilsson/git/lilwiz");
+			Directory.SetCurrentDirectory("c:\\gitproj\\putki\\ui-example");
 
 			s_loader = new Loader();
 
 			s_dataDll = new DLLLoader();
-			s_dataDll.Load(s_loader.m_configOpts["datadll"], s_loader.m_configOpts["obj"]);
+			s_dataDll.Load(s_loader.m_configOpts["datadll"], s_loader.m_configOpts["datapath"]);
 
 			s_fileIndex = new FileIndex();
-			s_fileIndex.Load(s_loader.m_configOpts["obj"]);
+			s_fileIndex.Load(s_loader.m_configOpts["datapath"] + "/data/objs");
 
 			Application.Init();
 

@@ -54,6 +54,7 @@ namespace putki
 
 	DWORD WINAPI accept_thread(LPVOID arg)
 	{
+		std::cout << "[data-dll] started live update accept thread" << std::endl;
 		liveupdate::data *d = (liveupdate::data*) arg;
 		while (true)
 		{
@@ -96,6 +97,7 @@ namespace putki
 		{
 			_db = db::create();
 			_path = path;
+			_path.append("/data/objs");
 
 #ifdef _WIN32
 
@@ -113,8 +115,12 @@ namespace putki
 			_lu_path = _strdup(path); // ugly!
 			s_live_update  = _lu;
 
+			std::cout << "live update (" << _lu << ") " << std::endl;
+
 			if (_lu)
+			{
 				CreateThread(0, 0, &accept_thread, (void*)_lu, 0, 0);
+			}
 #else
 			_lu = putki::liveupdate::start_server(_db);
 			_lu_path = strdup(path);

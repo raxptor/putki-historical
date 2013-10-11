@@ -60,7 +60,7 @@ namespace PutkEd
 		private static extern int MED_Field_IsArray(IntPtr field);
 
 		[DllImport("monoed-interop")]
-		private static extern bool MED_Field_IsAuxPtr(IntPtr field);
+		private static extern int MED_Field_IsAuxPtr(IntPtr field);
 
 		[DllImport("monoed-interop")]
 		private static extern bool MED_Field_ShowInEditor(IntPtr field);
@@ -269,7 +269,7 @@ namespace PutkEd
 
 			public bool IsAuxPtr()
 			{
-				return MED_Field_IsAuxPtr(Handler);
+				return MED_Field_IsAuxPtr(Handler) != 0;
 			}
 
 			public MemInstance GetStructInstance(MemInstance mi)

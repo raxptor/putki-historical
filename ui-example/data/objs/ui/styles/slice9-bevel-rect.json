@@ -2,7 +2,7 @@
 	type: "UISlice9Fill",
 	data: {
 			"parent": {
-				"_rtti_type": 205
+				"_rtti_type": 9
 		},
 			"texture": "textures/bevel_rect",
 			"MarginLeft": 15,

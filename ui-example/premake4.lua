@@ -75,6 +75,9 @@ solution "ExampleUI"
 		includedirs { "../src/data-dll" }
 
 		links { "example-putki-lib"}
+		links { "ccg-ui-databuilder"}
+		links { "ccg-ui-putki-lib"}
+		links { "putki-lib"}
 
  if os.get() == "windows" then
 

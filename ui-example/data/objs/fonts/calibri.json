@@ -3,7 +3,7 @@
 	data: {
 			"Source": "fonts/calibri.ttf",
 			"Characters": [68, 32, 0],
-			"PixelSizes": [10, 20, 30, 40],
+			"PixelSizes": [10, 20, 30, 50],
 			"Outputs": []
 	},
 	aux: [

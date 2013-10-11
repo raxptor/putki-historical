@@ -16,16 +16,16 @@
 						"_rtti_type": 16,
 						"id": "",
 						"layout": {
-							"x": 1,
-							"y": 2,
-							"width": 3,
-							"height": 4
+							"x": 10,
+							"y": 480,
+							"width": 30,
+							"height": 40
 					},
 						"expansion": {
-							"x": 5,
-							"y": 6,
-							"width": 7,
-							"height": 8
+							"x": 0,
+							"y": 1,
+							"width": 0,
+							"height": 0
 					},
 						"color": {
 							"r": 100,
@@ -95,8 +95,8 @@
 					}
 				},
 					"font": "fonts/calibri",
-					"pixelSize": 100,
-					"Text": "Hej baberiba",
+					"pixelSize": 109,
+					"Text": "hejsan",
 					"HorizontalAlignment": "UIHorizontalAlignment_Center",
 					"VerticalAlignment": "UIVerticalAlignment_Center",
 					"BackgroundFill": {

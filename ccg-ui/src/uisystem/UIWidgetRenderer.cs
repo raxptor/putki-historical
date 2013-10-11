@@ -12,12 +12,15 @@ namespace CCGUI
 		};
 
 		outki.UIWidget m_data;
+		UIWidgetHandler m_handler;
+
 		ElementList[] m_rtData;
 
 		public UIWidgetRenderer(outki.UIWidget widget, UIWidgetHandler handler)
 		{
 			m_data = widget;
-			Setup(widget, handler);
+			m_handler = handler;
+			Setup(m_data, m_handler);
 		}
 
 		public void Setup(outki.UIWidget widget, UIWidgetHandler handler)
@@ -26,7 +29,11 @@ namespace CCGUI
 			m_rtData = new ElementList[count];
 			for (int i = 0; i < count; i++)
 			{
-				m_rtData[i].renderer = handler.CreateRenderer(m_data.elements[i]);
+				m_rtData[i].element = m_data.elements[i];
+
+				// can happen during live update.
+				if (m_rtData[i].element != null)
+					m_rtData[i].renderer = handler.CreateRenderer(m_data.elements[i]);
 			}
 		}
 
@@ -39,7 +46,9 @@ namespace CCGUI
 
 			for (int i = 0; i < m_rtData.Length; i++)
 			{
-				outki.UIElement el = m_data.elements[i];
+				outki.UIElement el = m_rtData[i].element;
+				if (el == null)
+					continue;
 
 				UIElementLayout layout;
 
@@ -69,9 +78,22 @@ namespace CCGUI
 
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
+			// Live update
+			bool change = Putki.LiveUpdate.Update(ref m_data);
+			for (int i = 0; i < m_data.elements.Length; i++)
+				change |= Putki.LiveUpdate.Update(ref m_data.elements[i]);
+
+			// reload if changed.
+			if (change)
+			{
+				Setup(m_data, m_handler);
+				OnLayout(rctx, ref layout);
+			}
+
 			for (int i = 0; i < m_rtData.Length; i++)
 			{
-				RenderSubElement(rctx, ref layout, m_rtData[i].element, m_rtData[i].renderer, ref m_rtData[i].layout);
+				if (m_rtData[i].element != null)
+					RenderSubElement(rctx, ref layout, m_rtData[i].element, m_rtData[i].renderer, ref m_rtData[i].layout);
 			}
 		}
 	
