@@ -65,7 +65,7 @@ namespace Putki
 		public void OnResolved(PkgE p)
 		{
 			Console.WriteLine("Replacing asset " + p.package.RootObjPath());
-			LiveUpdate.InsertPackage(p.package);
+			LiveUpdate.InsertPackage(p.package, m_loader);
 		}
 
 		public bool ResolvePass()
@@ -108,6 +108,8 @@ namespace Putki
 				}
 				m_pending.Clear();
 				Clean();
+
+				LiveUpdate.GlobalUpdate(m_loader);
 				return true;
 			}
 

@@ -1,71 +1,12 @@
 {
 	type: "UIWidget",
 	data: {
-			"_rtti_type": 14,
+			"_rtti_type": 15,
 			"width": 144,
 			"height": 144,
 			"handler": "min dörknob",
-			"elements": ["widgets/joystick#bg1", "widgets/joystick#nob"]
+			"layers": []
 	},
 	aux: [
-		{
-			ref: "#bg1",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 17,
-						"id": "",
-						"layout": {
-							"x": 0,
-							"y": 0,
-							"width": 144,
-							"height": 144
-					},
-						"expansion": {
-							"x": 0,
-							"y": 0,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "ui/joystick_base"
-			}
-		}
-		,
-		{
-			ref: "#nob",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 17,
-						"id": "knob",
-						"layout": {
-							"x": 35,
-							"y": 35,
-							"width": 74,
-							"height": 74
-					},
-						"expansion": {
-							"x": 0,
-							"y": 0,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "ui/joystick_nob"
-			}
-		}
 	      ]
 }

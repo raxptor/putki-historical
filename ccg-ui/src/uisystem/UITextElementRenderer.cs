@@ -14,8 +14,10 @@ namespace CCGUI
 		}
 
 		public void OnLayout(UIRenderContext rctx, ref UIElementLayout elementLayout)
-		{
+		{			
 			m_fmted = m_font.FormatText(rctx, m_element.Text, m_element.pixelSize);
+			if (m_fmted == null)
+				return;
 
 			switch (m_element.HorizontalAlignment)
 			{

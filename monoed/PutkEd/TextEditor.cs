@@ -17,10 +17,12 @@ namespace PutkEd
 			return this;
 		}
 
-		public void SetObject(DLLLoader.MemInstance mi, DLLLoader.PutkiField fi, int araryIndex)
+		public void SetObject(DLLLoader.MemInstance mi, DLLLoader.PutkiField fi, int arrayIndex)
 		{
+			fi.SetArrayIndex(arrayIndex);
 			m_text.Text = fi.GetString(mi);
 			m_text.Changed += delegate {
+				fi.SetArrayIndex(arrayIndex);
 				fi.SetString(mi, m_text.Text);
 			};
 		}

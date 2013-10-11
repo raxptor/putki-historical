@@ -39,8 +39,10 @@ namespace CCGUI
 			}
 		}
 
-		public void Draw(UIRenderContext ctx, float x0, float y0, float x1, float y1)
+		public void Draw(UIRenderContext ctx, float x0, float y0, float x1, float y1)	
 		{
+			if (m_data == null)
+				return;
 			if (Putki.LiveUpdate.Update(ref m_data))
 				ResolveTextures(ctx);
 

@@ -250,16 +250,25 @@ namespace putki
 		{
 			mem_instance_real *org = (mem_instance_real*) onto;
 			type_handler_i *th = putki::typereg_get_handler(eth->name());
+			
+			instance_t aux_parent = org->inst;
+			if (org->is_struct_instance)
+			{
+				// struct instances have correct path so use that to look up the struct parent.
+				type_handler_i *xth;
+				instance_t p;
+				if (db::fetch(_db, org->path, &xth, &p))
+					aux_parent = p;
+			}
 
 			mem_instance_real *mi = new mem_instance_real;
 			mi->is_struct_instance = false;
-			mi->path = strdup(db::make_aux_path(_db, org->inst));
+			mi->path = strdup(db::make_aux_path(_db, aux_parent));
 			mi->th = th;
 			mi->eth = eth;
 			mi->inst = th->alloc();
 			mi->refs_db = _db;
 			db::insert(_db, mi->path, mi->th, mi->inst);
-
 			return mi;
 		}
 

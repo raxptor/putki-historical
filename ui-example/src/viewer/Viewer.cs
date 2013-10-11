@@ -78,11 +78,14 @@ namespace ViewerApp
         static void Main(string[] args)
         {			
 			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
-			Putki.LiveUpdate.InsertPackage(p);
+			Putki.LiveUpdate.InsertPackage(p, new Loader());
 
 			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");
 
-			Putki.LiveUpdateClient lup = new Putki.LiveUpdateClient("localhost", new Loader());
+			Putki.LiveUpdateClient lup = null; 
+			
+			if (args.Length > 1)
+				lup = new Putki.LiveUpdateClient("localhost", new Loader());
 
 			DispatcherTimer dtp = new DispatcherTimer();
 
@@ -91,7 +94,7 @@ namespace ViewerApp
 
 			dtp.Tick += delegate
 			{
-				if (lup.Update())
+				if (lup != null && lup.Update())
 					w.InvalidateVisual();
 			};
 

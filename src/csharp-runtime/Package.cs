@@ -131,7 +131,13 @@ namespace Putki
 			{
 				// slot lookup
 				if (index <= m_slots.Length)
+				{
+					// resolve by path instead if in that mode, and we know the path of the object.
+					if (m_extRefs != null && m_slots[index - 1].path.Length > 0)
+						return Resolve(m_slots[index - 1].path);
+
 					return m_slots[index - 1].inst;
+				}
 				else
 					return null; // bork.
 			}

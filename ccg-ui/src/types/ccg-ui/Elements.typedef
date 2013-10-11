@@ -91,12 +91,17 @@ UIElement [in, out] rtti
 	UIColor color
 }
 
+UIElementLayer [in, out]
+{
+	auxptr[] UIElement elements
+}
+
 UIWidget [in, out] rtti
 {
 	float width
 	float height
 	string handler
-	auxptr[] UIElement elements
+	UIElementLayer[] layers
 }
 
 UIFillElement : UIElement [in, out]

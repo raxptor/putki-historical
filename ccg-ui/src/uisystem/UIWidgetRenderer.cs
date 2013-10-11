@@ -25,15 +25,35 @@ namespace CCGUI
 
 		public void Setup(outki.UIWidget widget, UIWidgetHandler handler)
 		{
-			int count = m_data.elements.Length;
-			m_rtData = new ElementList[count];
-			for (int i = 0; i < count; i++)
+			int elements = 0;
+			int layers = m_data.layers.Length;
+			for (int l = 0; l < layers; l++)
 			{
-				m_rtData[i].element = m_data.elements[i];
+				outki.UIElementLayer layer = m_data.layers[l];
+				if (layer == null)
+					continue;
+				elements += layer.elements.Length;
+			}
 
-				// can happen during live update.
-				if (m_rtData[i].element != null)
-					m_rtData[i].renderer = handler.CreateRenderer(m_data.elements[i]);
+			//
+			int count = 0;
+			m_rtData = new ElementList[elements];
+
+			for (int l = 0; l < layers; l++)
+			{
+				outki.UIElementLayer layer = m_data.layers[l];
+				if (layer == null)
+					continue;
+
+				for (int i = 0; i < layer.elements.Length; i++)
+				{
+					m_rtData[count].element = layer.elements[i];
+					// can happen during live update.
+					if (m_rtData[count].element != null)
+						m_rtData[count].renderer = handler.CreateRenderer(layer.elements[i]);
+
+					count++;
+				}
 			}
 		}
 
@@ -65,7 +85,6 @@ namespace CCGUI
 				layout.x1 = layout.x0 + (float) Math.Floor(0.5f + width * rctx.LayoutScale);
 				layout.y1 = layout.y0 + (float) Math.Floor(0.5f + height * rctx.LayoutScale);
 				
-				m_rtData[i].element = el;
 				m_rtData[i].layout = layout;
 				m_rtData[i].renderer.OnLayout(rctx, ref layout);
 			}
@@ -78,22 +97,29 @@ namespace CCGUI
 
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
+			DoLiveUpdate(rctx, ref layout);
+
+			for (int i = 0; i < m_rtData.Length; i++)
+			{
+				if (m_rtData[i].element != null)
+				{
+					RenderSubElement(rctx, ref layout, m_rtData[i].element, m_rtData[i].renderer, ref m_rtData[i].layout);
+				}
+			}
+		}
+
+		public void DoLiveUpdate(UIRenderContext rctx, ref UIElementLayout layout)
+		{
 			// Live update
 			bool change = Putki.LiveUpdate.Update(ref m_data);
-			for (int i = 0; i < m_data.elements.Length; i++)
-				change |= Putki.LiveUpdate.Update(ref m_data.elements[i]);
+			for (int i = 0; i < m_rtData.Length; i++)
+				change |= Putki.LiveUpdate.IsOld(m_rtData[i].element);
 
 			// reload if changed.
 			if (change)
 			{
 				Setup(m_data, m_handler);
 				OnLayout(rctx, ref layout);
-			}
-
-			for (int i = 0; i < m_rtData.Length; i++)
-			{
-				if (m_rtData[i].element != null)
-					RenderSubElement(rctx, ref layout, m_rtData[i].element, m_rtData[i].renderer, ref m_rtData[i].layout);
 			}
 		}
 	

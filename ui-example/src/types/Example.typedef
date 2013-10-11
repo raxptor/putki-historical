@@ -1,11 +1,2 @@
 #include ccg-ui/Elements.typedef
 
-HejStruct [in, out]
-{
-
-}
-
-SpecialElement : UIElement
-{
-	string bareriba
-}

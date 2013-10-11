@@ -1,60 +1,34 @@
 {
 	type: "UIWidget",
 	data: {
-			"_rtti_type": 14,
+			"_rtti_type": 15,
 			"width": 960,
 			"height": 640,
-			"handler": "min dörrknob börjar se lite matt ut",
-			"elements": ["widgets/hudroot#joystick", "widgets/hudroot#ssej", "widgets/hudroot#aohb", "widgets/hudroot#ffec"]
+			"handler": "",
+			"layers": [{
+				"elements": ["widgets/hudroot#aohb", "widgets/hudroot#ffec"]
+		}, {
+				"elements": ["widgets/hudroot#lbhb"]
+		}]
 	},
 	aux: [
 		{
-			ref: "#joystick",
-			type: "UIWidgetElement",
+			ref: "#aohb",
+			type: "UIBitmapElement",
 			data: {
 					"parent": {
-						"_rtti_type": 16,
+						"_rtti_type": 18,
 						"id": "",
 						"layout": {
-							"x": 10,
-							"y": 480,
-							"width": 30,
-							"height": 40
+							"x": 0,
+							"y": 0,
+							"width": 200,
+							"height": 200
 					},
 						"expansion": {
 							"x": 0,
-							"y": 1,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 100,
-							"g": 200,
-							"b": 12,
-							"a": 14
-					}
-				},
-					"widget": "widgets/joystick"
-			}
-		}
-		,
-		{
-			ref: "#ssej",
-			type: "UIFillElement",
-			data: {
-					"parent": {
-						"_rtti_type": 15,
-						"id": "",
-						"layout": {
-							"x": 150,
-							"y": 100,
-							"width": 500,
-							"height": 100
-					},
-						"expansion": {
-							"x": 0.5,
 							"y": 0,
-							"width": 0.5,
+							"width": 0,
 							"height": 0
 					},
 						"color": {
@@ -64,27 +38,27 @@
 							"a": 255
 					}
 				},
-					"fill": "ui/styles/slice9-bevel-rect"
+					"texture": "textures/dino2"
 			}
 		}
 		,
 		{
-			ref: "#aohb",
+			ref: "#ffec",
 			type: "UITextElement",
 			data: {
 					"parent": {
-						"_rtti_type": 18,
+						"_rtti_type": 19,
 						"id": "",
 						"layout": {
-							"x": 150,
-							"y": 100,
-							"width": 500,
+							"x": 10,
+							"y": 200,
+							"width": 200,
 							"height": 100
 					},
 						"expansion": {
-							"x": 0.5,
+							"x": 0,
 							"y": 0,
-							"width": 0.5,
+							"width": 0,
 							"height": 0
 					},
 						"color": {
@@ -95,34 +69,34 @@
 					}
 				},
 					"font": "fonts/calibri",
-					"pixelSize": 109,
-					"Text": "hejsan",
-					"HorizontalAlignment": "UIHorizontalAlignment_Center",
-					"VerticalAlignment": "UIVerticalAlignment_Center",
+					"pixelSize": 80,
+					"Text": "Hej Baberibs",
+					"HorizontalAlignment": "UIHorizontalAlignment_Left",
+					"VerticalAlignment": "UIVerticalAlignment_Bottom",
 					"BackgroundFill": {
-						"_rtti_type": 6
+						"_rtti_type": 0
 				}
 			}
 		}
 		,
 		{
-			ref: "#ffec",
-			type: "SpecialElement",
+			ref: "#lbhb",
+			type: "UIFillElement",
 			data: {
 					"parent": {
-						"_rtti_type": 101,
+						"_rtti_type": 16,
 						"id": "",
 						"layout": {
-							"x": 10,
-							"y": 10,
-							"width": 790,
-							"height": 580
+							"x": 100,
+							"y": 400,
+							"width": 200,
+							"height": 200
 					},
 						"expansion": {
 							"x": 0,
 							"y": 0,
-							"width": 1,
-							"height": 1
+							"width": 0,
+							"height": 0
 					},
 						"color": {
 							"r": 255,
@@ -131,7 +105,7 @@
 							"a": 255
 					}
 				},
-					"bareriba": ""
+					"fill": "ui/styles/slice9-bevel-rect"
 			}
 		}
 	      ]

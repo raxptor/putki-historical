@@ -34,6 +34,10 @@ namespace CCGUI
 
 		public FormattedText FormatText(UIRenderContext ctx, string text, int pixelSize_)
 		{
+			// Only during live editing.
+			if (m_data == null || pixelSize_ < 1)
+				return null;
+
 			FormattedText fmt = new FormattedText();
 			fmt.glyphs = new FormattedGlyph[text.Count()];
 
@@ -125,7 +129,10 @@ namespace CCGUI
 		}
 
 		public void Render(UIRenderContext ctx, float x0, float y0, FormattedText ft)
-		{	
+		{
+			if (ft == null)
+				return;
+
 			for (int i = 0; i < ft.glyphs.Count(); i++)
 			{
 				if (ft.glyphs[i].w == -666)

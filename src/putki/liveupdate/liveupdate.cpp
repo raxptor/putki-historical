@@ -312,8 +312,7 @@ namespace putki
 							// 
 							std::cout << "Failed to resolve path." << std::endl;
 							leave_lock(lu);
-							buildforclient.erase(buildforclient.begin());put
-
+							buildforclient.erase(buildforclient.begin());
 							continue;
 						}
 
