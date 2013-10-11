@@ -4,12 +4,19 @@ namespace PutkEd
 {
 	public partial class ObjectEditor
 	{
+		private global::Gtk.Label m_typeName;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);
 			// Widget PutkEd.ObjectEditor
 			global::Stetic.BinContainer.Attach (this);
 			this.Name = "PutkEd.ObjectEditor";
+			// Container child PutkEd.ObjectEditor.Gtk.Container+ContainerChild
+			this.m_typeName = new global::Gtk.Label ();
+			this.m_typeName.Name = "m_typeName";
+			this.m_typeName.LabelProp = global::Mono.Unix.Catalog.GetString ("label1");
+			this.Add (this.m_typeName);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}

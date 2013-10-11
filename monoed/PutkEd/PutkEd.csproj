@@ -39,6 +39,7 @@
     <EnvironmentVariables>
       <EnvironmentVariables>
         <Variable name="MONO_LOG_LEVEL" value="debug" />
+        <Variable name="DYLD_LIBRARY_PATH" value="./build" />
       </EnvironmentVariables>
     </EnvironmentVariables>
     <DebugSymbols>true</DebugSymbols>
@@ -102,6 +103,14 @@
     <Compile Include="gtk-gui\PutkEd.PointerEditor.cs" />
     <Compile Include="Vec4Editor.cs" />
     <Compile Include="gtk-gui\PutkEd.Vec4Editor.cs" />
+    <Compile Include="NewInstanceDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.NewInstanceDialog.cs" />
+    <Compile Include="InstancePickerDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.InstancePickerDialog.cs" />
+    <Compile Include="FloatEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.FloatEditor.cs" />
+    <Compile Include="EnumEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.EnumEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

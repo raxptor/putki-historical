@@ -10,6 +10,7 @@ namespace PutkEd
 		int m_idx;
 		DLLLoader.MemInstance m_mi, m_ptr_target;
 		DLLLoader.PutkiField m_fh;
+		AssetEditor m_ae;
 
 		public PointerEditor()
 		{
@@ -64,7 +65,46 @@ namespace PutkEd
 
 		public void OnConnect(AssetEditor root)
 		{
+			m_ae = root;
 		}
+
+		protected void OnStarClicked (object sender, EventArgs e)
+		{
+			if (m_fh.IsAuxPtr())
+			{
+				NewInstanceDialog nid = new NewInstanceDialog();
+				nid.FillWithParentsTo(m_fh.GetRefType());
+				if (nid.Run() == 0)
+				{
+					DLLLoader.MemInstance n = m_mi.CreateAux(nid.m_selectedType);
+					m_fh.SetArrayIndex(m_idx);
+					m_fh.SetPointer(m_mi, n.GetPath());
+					m_ae.OnStructureChanged();
+				}
+				nid.Destroy();
+			}
+			else
+			{
+				InstancePickerDialog ipd = new InstancePickerDialog();
+				ipd.AddForTypes(m_fh.GetRefType());
+				if (ipd.Run() == 0)
+				{
+					m_fh.SetArrayIndex(m_idx);
+					m_fh.SetPointer(m_mi, ipd.m_selectedPath);
+					m_ae.OnStructureChanged();
+				}
+				ipd.Destroy();
+				// Find
+			}
+		}
+
+		protected void OnClearClicked (object sender, EventArgs e)
+		{
+			m_fh.SetArrayIndex(m_idx);
+			m_fh.SetPointer(m_mi, "");
+			m_ae.OnStructureChanged();
+		}
+	
 
 	}
 }

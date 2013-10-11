@@ -36,14 +36,15 @@ namespace PutkEd
 					{
 						if (d.Name == t)
 						{
+							DLLLoader.MemInstance mi = DLLLoader.MemInstance.Create(m_path.Text, d);
 							PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
-							ae.SetObject(DLLLoader.MemInstance.Create(m_path.Text, d));
+							ae.SetObject(mi);
 							ae.Show();
+							mi.DiskSave();
+							Respond(0);
 						}
 					}
 				}
-
-				Respond(0);
 			}
 		}
 

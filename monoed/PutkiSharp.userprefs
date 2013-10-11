@@ -1,32 +1,16 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/NewInstanceDialog.cs">
     <Files>
-      <File FileName="PutkEd\EditorCreator.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\AssetEditor.cs" Line="98" Column="7" />
-      <File FileName="PutkEd\ObjectEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\MainWindow.cs" Line="35" Column="25" />
-      <File FileName="PutkEd\Widget.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\ArrayEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\DLLLoader.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\TypeEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\TextEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Looks.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Program.cs" Line="34" Column="23" />
-      <File FileName="PutkEd\IntEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Properties\AssemblyInfo.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\Loader.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\BoolEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\NewAssetDialog.cs" Line="8" Column="24" />
-      <File FileName="PutkEd\FileIndex.cs" Line="66" Column="6" />
+      <File FileName="PutkEd/NewAssetDialog.cs" Line="11" Column="17" />
+      <File FileName="PutkEd/NewInstanceDialog.cs" Line="23" Column="5" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="PutkEd" expanded="True">
             <Node name="UserInterface" expanded="True" />
-            <Node name="Properties" expanded="True" />
-            <Node name="Program.cs" selected="True" />
+            <Node name="NewInstanceDialog.cs" selected="True" />
           </Node>
         </State>
       </Pad>

@@ -25,21 +25,11 @@ namespace PutkEd
 
 			fi.SetArrayIndex(m_arrayIndex);
 			m_checkbox.Active = fi.GetBool(mi);
-			/*
-			m_tbox.Text = fi.GetInt32(mi).ToString();
-			m_tbox.Changed += delegate {
-				int o;
-				if (Int32.TryParse(m_tbox.Text, out o))
-				{
-					fi.SetInt32(mi, o);
-					m_tbox.ModifyBase(StateType.Normal);
-				}
-				else
-				{
-					m_tbox.ModifyBase(StateType.Normal, new Gdk.Color(200, 10, 10));
-				}
+			m_checkbox.Clicked += delegate(object sender, EventArgs e)
+			{
+				fi.SetArrayIndex(m_arrayIndex);
+				fi.SetBool(mi, m_checkbox.Active);
 			};
-			*/
 		}
 
 		public List<AssetEditor.RowNode> GetChildRows()

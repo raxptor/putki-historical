@@ -36,6 +36,10 @@ namespace PutkEd
 					return new PointerEditor();
 				case 6:
 					return new BoolEditor();
+				case 7:
+					return new FloatEditor();
+				case 8:
+					return new EnumEditor();
 				case 0:
 					return new IntEditor();
 				default:

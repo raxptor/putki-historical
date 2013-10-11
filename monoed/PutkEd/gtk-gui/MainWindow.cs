@@ -112,10 +112,12 @@ public partial class MainWindow
 		if ((this.Child != null)) {
 			this.Child.ShowAll ();
 		}
-		this.DefaultWidth = 1097;
-		this.DefaultHeight = 745;
+		this.DefaultWidth = 416;
+		this.DefaultHeight = 472;
 		this.Show ();
 		this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
+		this.m_fileTree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnRowActivated);
+		this.button7.Clicked += new global::System.EventHandler (this.OnReload);
 		this.button1.Clicked += new global::System.EventHandler (this.OnNewAsset);
 		this.button3.Clicked += new global::System.EventHandler (this.OnEditAsset);
 	}

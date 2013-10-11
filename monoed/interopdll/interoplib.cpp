@@ -45,7 +45,7 @@ extern "C"
 #else
 
 		std::cout << "MED_Initialize: dlopen" << std::endl;
-		void *p = dlopen(dllPath, RTLD_NOW);
+		void *p = dlopen(dllPath, RTLD_LAZY);
 		std::cout << "MED_Initialize: returned (" << p << ")" << std::endl;
 		if (p)
 		{
@@ -65,7 +65,7 @@ extern "C"
 		}
 		else
 		{
-			std::cout << "Failed loading library [" << dllPath << "]" << std::endl;
+			std::cout << "Failed loading library [" << dllPath << "] because (" << dlerror() << ")" << std::endl;
 		}
 #endif
 		return g_loaded_dll != 0;
@@ -76,9 +76,22 @@ extern "C"
 		return g_loaded_dll->type_by_index(i);
 	}
 
+	DSPEC putki::ext_type_handler_i* MED_Type_GetParentType(putki::ext_type_handler_i *input)
+	{
+		const char *pn = input->parent_name();
+		if (pn)
+			return g_loaded_dll->type_by_name(pn);
+		return 0;
+	}
+
 	DSPEC putki::ext_type_handler_i* MED_TypeOf(putki::mem_instance *mi)
 	{
 		return g_loaded_dll->type_of(mi);
+	}
+
+	DSPEC const char *MED_PathOf(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->path_of(mi);
 	}
 
 	DSPEC putki::mem_instance* MED_DiskLoad(const char *path)
@@ -89,6 +102,11 @@ extern "C"
 	DSPEC putki::mem_instance* MED_CreateInstance(const char *path, putki::ext_type_handler_i * type)
 	{
 		return g_loaded_dll->create_instance(path, type);
+	}
+
+	DSPEC putki::mem_instance* MED_CreateAuxInstance(putki::mem_instance *onto, putki::ext_type_handler_i * type)
+	{
+		return g_loaded_dll->create_aux_instance(onto, type);
 	}
 
 	DSPEC void MED_DiskSave(putki::mem_instance *mi)
@@ -194,6 +212,21 @@ extern "C"
 	DSPEC putki::mem_instance* MED_Field_GetStructInstance(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->make_struct_instance(mi);
+	}
+
+	DSPEC const char* MED_Field_GetEnumPossibility(putki::ext_field_handler_i* field, int i)
+	{
+		return field->get_enum_possible_value(i);
+	}
+
+	DSPEC const char* MED_Field_GetEnum(putki::ext_field_handler_i *field, putki::mem_instance *mi)
+	{
+		return field->get_enum(mi);
+	}
+
+	DSPEC void MED_Field_SetEnum(putki::ext_field_handler_i * field, putki::mem_instance * mi, const char *value)
+	{
+		return field->set_enum(mi, value);
 	}
 
 	DSPEC void MED_Field_SetString(putki::ext_field_handler_i * field, putki::mem_instance * mi, const char *value)

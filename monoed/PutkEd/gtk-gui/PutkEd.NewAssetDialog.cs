@@ -46,6 +46,8 @@ namespace PutkEd
 			w1.Add (this.vbox2);
 			global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(w1 [this.vbox2]));
 			w4.Position = 0;
+			w4.Expand = false;
+			w4.Fill = false;
 			// Internal child PutkEd.NewAssetDialog.ActionArea
 			global::Gtk.HButtonBox w5 = this.ActionArea;
 			w5.Name = "dialog1_ActionArea";
@@ -80,8 +82,8 @@ namespace PutkEd
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}
-			this.DefaultWidth = 400;
-			this.DefaultHeight = 300;
+			this.DefaultWidth = 470;
+			this.DefaultHeight = 111;
 			this.Show ();
 			this.buttonCancel.Clicked += new global::System.EventHandler (this.OnCancel);
 			this.buttonOk.Clicked += new global::System.EventHandler (this.OnOK);

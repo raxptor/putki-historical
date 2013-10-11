@@ -6,7 +6,7 @@ namespace PutkEd
 {
 	public class DLLLoader
 	{
-		public struct Types
+		public class Types
 		{
 			public string Name;
 			public IntPtr Handler;
@@ -27,6 +27,12 @@ namespace PutkEd
 		private static extern IntPtr MED_TypeOf(IntPtr MemInstance);
 
 		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Type_GetParentType(IntPtr type);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_PathOf(IntPtr MemInstance);
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_DiskLoad(string path);
 
 		[DllImport("monoed-interop")]
@@ -34,6 +40,9 @@ namespace PutkEd
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_CreateInstance(string path, IntPtr typehandler);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_CreateAuxInstance(IntPtr miOnto, IntPtr typehandler);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Type_GetField(IntPtr type, int i);
@@ -70,9 +79,15 @@ namespace PutkEd
 
 		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetType(IntPtr field);
+				
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetEnumPossibility(IntPtr field, int i);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetString(IntPtr field, IntPtr mi);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Field_GetEnum(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetPointer(IntPtr field, IntPtr mi);
@@ -94,6 +109,9 @@ namespace PutkEd
 
 		[DllImport("monoed-interop")]
 		private static extern void MED_Field_SetString(IntPtr field, IntPtr mi, string value);
+
+		[DllImport("monoed-interop")]
+		private static extern void MED_Field_SetEnum(IntPtr field, IntPtr mi, string value);
 
 		[DllImport("monoed-interop")]
 		private static extern void MED_Field_SetPointer(IntPtr field, IntPtr mi, string value);
@@ -164,6 +182,19 @@ namespace PutkEd
 				return MSTR(MED_Field_GetString(Handler, mi.PutkiInst));
 			}
 						
+			public string GetEnum(MemInstance mi)
+			{
+				return MSTR(MED_Field_GetEnum(Handler, mi.PutkiInst));
+			}
+
+			public String GetEnumPossibility(int idx)
+			{
+				IntPtr i = MED_Field_GetEnumPossibility(Handler, idx);
+				if ((int)i != 0)
+					return MSTR(i);
+				return null;
+			}
+
 			public string GetPointer(MemInstance mi)
 			{
 				return MSTR(MED_Field_GetPointer(Handler, mi.PutkiInst));
@@ -192,6 +223,11 @@ namespace PutkEd
 			public void SetString(MemInstance mi, string value)
 			{
 				MED_Field_SetString(Handler, mi.PutkiInst, value);
+			}
+
+			public void SetEnum(MemInstance mi, string value)
+			{
+				MED_Field_SetEnum(Handler, mi.PutkiInst, value);
 			}
 
 			public void SetPointer(MemInstance mi, string value)
@@ -248,7 +284,7 @@ namespace PutkEd
 			
 			public string GetPath()
 			{
-				return "";
+				return MSTR(MED_PathOf(PutkiInst));
 			}
 
 			public void DiskSave()
@@ -279,6 +315,13 @@ namespace PutkEd
 				mi.PutkiInst = MED_CreateInstance(path, th.Handler);
 				return mi;
 			}
+
+			public MemInstance CreateAux(Types th)
+			{
+				MemInstance mi = new MemInstance();
+				mi.PutkiInst = MED_CreateAuxInstance(PutkiInst, th.Handler);
+				return mi;
+			}
 		}
 
 		public static  MemInstance DiskLoad(string path)
@@ -299,6 +342,20 @@ namespace PutkEd
 			if ((int)t != 0)
 				return MSTR(t);
 			return null;
+		}
+
+		public static bool HasParent(Types which, Types wouldBeParent)
+		{
+			IntPtr b = which.Handler;
+
+			while ((int)b != 0)
+			{
+				if (MED_Type_GetName(b) == MED_Type_GetName(wouldBeParent.Handler))
+					return true;
+				b = MED_Type_GetParentType(b);
+			}
+
+			return false;
 		}
 
 		public List<Types> GetTypes()

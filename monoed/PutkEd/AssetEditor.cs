@@ -33,9 +33,10 @@ namespace PutkEd
 			m_rootObj = new ObjectEditor();
 			m_rootObj.SetObject(mi, null, 0);
 			m_mi = mi;
+			m_path.Text = "[" + mi.GetPath() + "]";
 
 			OnStructureChanged();
-			this.Title = mi.GetTypeName() + " editor";
+			this.Title = "[" + mi.GetPath() + "] " + mi.GetTypeName() + " editor";
 		}
 
 		public void OnStructureChanged()
@@ -87,8 +88,8 @@ namespace PutkEd
 				m_destroyList.Add(name);
 
 				// 
-				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 250, Looks.FieldHeight - 2);
-				m_propEd.Put(rn.editor.GetRoot(), Looks.PropEdWidth - 400, y0 + 1);
+				rn.editor.GetRoot().SetSizeRequest(Looks.PropEdWidth - 260, Looks.FieldHeight - 2);
+				m_propEd.Put(rn.editor.GetRoot(), 200, y0 + 1);
 				m_destroyList.Add(rn.editor.GetRoot());
 
 				// If is is array entry

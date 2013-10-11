@@ -16,7 +16,7 @@ namespace PutkEd
 			this.m_checkbox = new global::Gtk.CheckButton ();
 			this.m_checkbox.CanFocus = true;
 			this.m_checkbox.Name = "m_checkbox";
-			this.m_checkbox.Label = global::Mono.Unix.Catalog.GetString ("checkbutton1");
+			this.m_checkbox.Label = "";
 			this.m_checkbox.Active = true;
 			this.m_checkbox.DrawIndicator = true;
 			this.m_checkbox.UseUnderline = true;

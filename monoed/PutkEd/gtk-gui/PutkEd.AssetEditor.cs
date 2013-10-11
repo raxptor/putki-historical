@@ -6,8 +6,8 @@ namespace PutkEd
 	{
 		private global::Gtk.VBox vbox1;
 		private global::Gtk.HBox hbox1;
-		private global::Gtk.Label label1;
 		private global::Gtk.Button m_save;
+		private global::Gtk.Label m_path;
 		private global::Gtk.ScrolledWindow scrolledwindow1;
 		private global::Gtk.Fixed m_propEd;
 
@@ -16,6 +16,7 @@ namespace PutkEd
 			global::Stetic.Gui.Initialize (this);
 			// Widget PutkEd.AssetEditor
 			global::Stetic.BinContainer.Attach (this);
+			this.WidthRequest = 850;
 			this.Name = "PutkEd.AssetEditor";
 			// Container child PutkEd.AssetEditor.Gtk.Container+ContainerChild
 			this.vbox1 = new global::Gtk.VBox ();
@@ -26,22 +27,23 @@ namespace PutkEd
 			this.hbox1.Name = "hbox1";
 			this.hbox1.Spacing = 6;
 			// Container child hbox1.Gtk.Box+BoxChild
-			this.label1 = new global::Gtk.Label ();
-			this.label1.Name = "label1";
-			this.label1.LabelProp = global::Mono.Unix.Catalog.GetString ("AssetPath");
-			this.hbox1.Add (this.label1);
-			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.label1]));
-			w1.Position = 0;
-			w1.Expand = false;
-			w1.Fill = false;
-			// Container child hbox1.Gtk.Box+BoxChild
 			this.m_save = new global::Gtk.Button ();
 			this.m_save.CanFocus = true;
 			this.m_save.Name = "m_save";
 			this.m_save.UseUnderline = true;
 			this.m_save.Label = global::Mono.Unix.Catalog.GetString ("Save");
 			this.hbox1.Add (this.m_save);
-			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_save]));
+			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_save]));
+			w1.Position = 0;
+			w1.Expand = false;
+			w1.Fill = false;
+			w1.Padding = ((uint)(10));
+			// Container child hbox1.Gtk.Box+BoxChild
+			this.m_path = new global::Gtk.Label ();
+			this.m_path.Name = "m_path";
+			this.m_path.LabelProp = global::Mono.Unix.Catalog.GetString ("label1");
+			this.hbox1.Add (this.m_path);
+			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_path]));
 			w2.Position = 1;
 			w2.Expand = false;
 			w2.Fill = false;

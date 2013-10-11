@@ -21,9 +21,9 @@ namespace PutkEd
 			this.hbox1.Spacing = 6;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.m_tbox = new global::Gtk.Entry ();
-			this.m_tbox.CanFocus = true;
+			this.m_tbox.Sensitive = false;
 			this.m_tbox.Name = "m_tbox";
-			this.m_tbox.IsEditable = true;
+			this.m_tbox.IsEditable = false;
 			this.m_tbox.InvisibleChar = '●';
 			this.hbox1.Add (this.m_tbox);
 			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_tbox]));
@@ -55,6 +55,8 @@ namespace PutkEd
 				this.Child.ShowAll ();
 			}
 			this.Hide ();
+			this.button132.Clicked += new global::System.EventHandler (this.OnStarClicked);
+			this.button133.Clicked += new global::System.EventHandler (this.OnClearClicked);
 		}
 	}
 }

@@ -23,6 +23,7 @@ namespace PutkEd
 		List<string> m_dirs = new List<string>();
 		List<string> m_files = new List<string>();
 		List<Entry> m_assets = new List<Entry>();
+		string m_path;
 
 		public FileIndex()
 		{
@@ -34,9 +35,18 @@ namespace PutkEd
 			return m_assets;
 		}
 
+		public void Reload()
+		{
+			m_dirs.Clear();
+			m_files.Clear();
+			m_assets.Clear();
+			Load(m_path);
+		}
+
 		public void Load(string path)
 		{
 			string cp = Clean(path);
+			m_path = cp;
 
 			List<string> toExplore = new List<string>();
 			toExplore.Add(cp);

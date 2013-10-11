@@ -38,6 +38,7 @@ namespace PutkEd
 				m_obj = mi;
 			}
 
+			m_typeName.Text = m_obj.GetTypeName();
 			m_arrayIndex = arrayIndex;
 		}
 
