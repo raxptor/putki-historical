@@ -1,0 +1,19 @@
+{
+	type: "UISlice9Fill",
+	data: {
+			"parent": {
+				"_rtti_type": 9
+		},
+			"texture": "textures/button/blue-normal",
+			"MarginLeft": 5,
+			"MarginTop": 5,
+			"MarignRight": 5,
+			"MarginBottom": 5,
+			"ExpandLeft": 0,
+			"ExpandRight": 0,
+			"ExpandTop": 0,
+			"ExpandBottom": 0
+	},
+	aux: [
+	      ]
+}

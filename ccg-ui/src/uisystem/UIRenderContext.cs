@@ -7,5 +7,6 @@ namespace CCGUI
 		public float LayoutOffsetX;
 		public float LayoutOffsetY;
 		public UITextureManager TextureManager;
+		public UIInputManager InputManager;
 	}
 }

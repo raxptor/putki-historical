@@ -1,9 +1,9 @@
 {
 	type: "Font",
 	data: {
-			"Source": "fonts/calibri.ttf",
-			"Characters": [68, 32, 0],
-			"PixelSizes": [10, 20, 30, 50],
+			"Source": "fonts/cooper.ttf",
+			"Characters": [0],
+			"PixelSizes": [16, 24],
 			"Outputs": []
 	},
 	aux: [

@@ -1,0 +1,14 @@
+{
+	type: "Texture",
+	data: {
+			"_rtti_type": 34,
+			"Source": "textures/button/blue-normal.png",
+			"Output": "",
+			"id": "",
+			"NoOutput": 0,
+			"Width": 0,
+			"Height": 0
+	},
+	aux: [
+	      ]
+}

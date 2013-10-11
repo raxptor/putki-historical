@@ -17,6 +17,9 @@ namespace ViewerApp
 	public class RootWindow : Window
 	{
 		CCGUI.UIScreenRenderer m_screenRenderer;
+		CCGUI.UIInputState m_input;
+		CCGUI.UIInputManager m_inputManager;
+
 		Grid g = new Grid();
 
 		public RootWindow(CCGUI.UIScreenRenderer scrn)
@@ -26,6 +29,8 @@ namespace ViewerApp
 			Height = 700;
 			Title = "CCG UI Viewer";
 			m_screenRenderer = scrn;
+			m_input = new CCGUI.UIInputState();
+			m_inputManager = new CCGUI.UIInputManager();
 
 			AddChild(g);
 		}
@@ -33,11 +38,38 @@ namespace ViewerApp
 		protected override void OnRender(DrawingContext drawingContext)
 		{
 			drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 2), new Rect(0, 0, 100, 100));
-
 			CCGUI.UIRenderer.dc = drawingContext;
-						
-			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight);
+
+			Point p = Mouse.GetPosition(this);
+			m_input.MouseX = (float)p.X;
+			m_input.MouseY = (float)p.Y;
+
+			m_inputManager.BeginFrame(m_input);
+
+			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, m_inputManager);
+
+			m_input.MouseClicked = false;
+
 			CCGUI.UIRenderer.dc = null;
+		}
+
+		protected override void OnMouseDown(MouseButtonEventArgs e)
+		{
+			m_input.MouseDown = true;
+			InvalidateVisual();
+		}
+
+		protected override void OnMouseUp(MouseButtonEventArgs e)
+		{
+			m_input.MouseClicked = true;
+			m_input.MouseDown = false;
+			InvalidateVisual();
+		}
+
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			base.OnMouseMove(e);
+			InvalidateVisual();
 		}
 	}
 }

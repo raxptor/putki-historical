@@ -3,7 +3,6 @@ namespace CCGUI
 	class UIFillElementRenderer : UIElementRenderer
 	{
 		outki.UIFillElement m_element;
-		//UIRenderer.Texture m_texture;
 		UIFill m_fill;
 
 		public UIFillElementRenderer(outki.UIFillElement element)

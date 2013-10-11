@@ -1,0 +1,10 @@
+{
+	type: "Atlas",
+	data: {
+			"Inputs": ["textures/button/blue-mouseover", "textures/button/blue-normal", "textures/button/blue-pressed"],
+			"ScaleDowns": 0,
+			"Outputs": []
+	},
+	aux: [
+	      ]
+}

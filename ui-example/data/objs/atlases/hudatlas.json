@@ -1,7 +1,10 @@
 {
 	type: "Atlas",
 	data: {
-		Inputs: ["textures/dino1", "textures/dino2", , "textures/dino3", "ui/joystick_base","ui/fire_base", "ui/fire_down", "ui/joystick_nob", "textures/bevel_rect"]
-	}
+			"Inputs": ["ui/joystick_base", "ui/fire_base", "ui/fire_down", "ui/joystick_nob"],
+			"ScaleDowns": 0,
+			"Outputs": []
+	},
+	aux: [
+	      ]
 }
-

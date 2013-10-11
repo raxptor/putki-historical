@@ -20,6 +20,8 @@ namespace CCGUI
 					return new UITextElementRenderer((outki.UITextElement)element);
 				case outki.UIFillElement.TYPE:
 					return new UIFillElementRenderer((outki.UIFillElement)element);
+				case outki.UIButtonElement.TYPE:
+					return new UIButtonElementRenderer((outki.UIButtonElement)element);
 				default:
 					return null;
 			}

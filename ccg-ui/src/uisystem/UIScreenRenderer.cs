@@ -31,7 +31,7 @@ namespace CCGUI
 			}
 		}
 
-		public void Draw(float x0, float y0, float x1, float y1)
+		public void Draw(float x0, float y0, float x1, float y1, UIInputManager inputManager)
 		{
 			bool mod = false;
 			mod |= Putki.LiveUpdate.Update(ref m_screen);
@@ -80,6 +80,7 @@ namespace CCGUI
 
 			// Compute the (uniform) scale factor to use for layout/matrix scaling.
 			UIRenderContext rctx = new UIRenderContext();
+			rctx.InputManager = inputManager;
 			rctx.TextureManager = m_textureManager;
 
 			if (useLayoutScaling || useMatrixScaling)

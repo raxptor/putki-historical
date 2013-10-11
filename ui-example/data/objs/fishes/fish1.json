@@ -1,0 +1,12 @@
+{
+	type: "PeterFish",
+	data: {
+			"Name": "Tasty fish",
+			"TypeOfFish": "FK_Salmon",
+			"IsForLunch": 0,
+			"AlsoDinner": 0,
+			"OtherIngredients": ["Bananas (not too big)", "Korw", "Cucumber", "Bananas", "SHark"]
+	},
+	aux: [
+	      ]
+}

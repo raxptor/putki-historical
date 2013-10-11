@@ -70,7 +70,7 @@ UIBitmapFill : UIFill [in, out]
 
 UIFontStyle [in, out]
 {
-	Font Font
+	ptr Font Font
 	int PixelSize
 }
 
@@ -130,4 +130,15 @@ UITextElement : UIElement [in, out]
 
 	UIFill BackgroundFill
 }
+
+UIButtonElement : UIElement [in, out]
+{
+	ptr UIButtonStyle Style
+	ptr Texture TextureNormal
+	ptr Texture TexturePressed
+
+	string Text
+	string Event
+}
+
 

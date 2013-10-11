@@ -6,91 +6,22 @@
 			"height": 640,
 			"handler": "",
 			"layers": [{
-				"elements": ["widgets/hudroot#aohb", "widgets/hudroot#ffec"]
-		}, {
-				"elements": ["widgets/hudroot#lbhb"]
+				"elements": ["widgets/hudroot#ssej", "widgets/hudroot#aohb", "widgets/hudroot#ffec", "widgets/hudroot#lbhb"]
 		}]
 	},
 	aux: [
 		{
-			ref: "#aohb",
-			type: "UIBitmapElement",
-			data: {
-					"parent": {
-						"_rtti_type": 18,
-						"id": "",
-						"layout": {
-							"x": 0,
-							"y": 0,
-							"width": 200,
-							"height": 200
-					},
-						"expansion": {
-							"x": 0,
-							"y": 0,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"texture": "textures/dino2"
-			}
-		}
-		,
-		{
-			ref: "#ffec",
-			type: "UITextElement",
-			data: {
-					"parent": {
-						"_rtti_type": 19,
-						"id": "",
-						"layout": {
-							"x": 10,
-							"y": 200,
-							"width": 200,
-							"height": 100
-					},
-						"expansion": {
-							"x": 0,
-							"y": 0,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"font": "fonts/calibri",
-					"pixelSize": 80,
-					"Text": "Hej Baberibs",
-					"HorizontalAlignment": "UIHorizontalAlignment_Left",
-					"VerticalAlignment": "UIVerticalAlignment_Bottom",
-					"BackgroundFill": {
-						"_rtti_type": 0
-				}
-			}
-		}
-		,
-		{
-			ref: "#lbhb",
+			ref: "#ssej",
 			type: "UIFillElement",
 			data: {
 					"parent": {
 						"_rtti_type": 16,
 						"id": "",
 						"layout": {
-							"x": 100,
-							"y": 400,
-							"width": 200,
-							"height": 200
+							"x": 10,
+							"y": 10,
+							"width": 64,
+							"height": 64
 					},
 						"expansion": {
 							"x": 0,
@@ -105,7 +36,109 @@
 							"a": 255
 					}
 				},
-					"fill": "ui/styles/slice9-bevel-rect"
+					"fill": "textures/button/blue-normal-fill"
+			}
+		}
+		,
+		{
+			ref: "#aohb",
+			type: "UIButtonElement",
+			data: {
+					"parent": {
+						"_rtti_type": 20,
+						"id": "",
+						"layout": {
+							"x": 100,
+							"y": 100,
+							"width": 200,
+							"height": 50
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"Style": "ui/styles/button-blue",
+					"TextureNormal": "",
+					"TexturePressed": "",
+					"Text": "Knapf",
+					"Event": ""
+			}
+		}
+		,
+		{
+			ref: "#ffec",
+			type: "UIButtonElement",
+			data: {
+					"parent": {
+						"_rtti_type": 20,
+						"id": "",
+						"layout": {
+							"x": 80,
+							"y": 200,
+							"width": 200,
+							"height": 50
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"Style": "ui/styles/button-blue",
+					"TextureNormal": "",
+					"TexturePressed": "",
+					"Text": "Knopf",
+					"Event": ""
+			}
+		}
+		,
+		{
+			ref: "#lbhb",
+			type: "UIButtonElement",
+			data: {
+					"parent": {
+						"_rtti_type": 20,
+						"id": "",
+						"layout": {
+							"x": 100,
+							"y": 400,
+							"width": 300,
+							"height": 300
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"Style": "",
+					"TextureNormal": "ui/fire_base",
+					"TexturePressed": "ui/fire_down",
+					"Text": "Ludde Lump",
+					"Event": ""
 			}
 		}
 	      ]
