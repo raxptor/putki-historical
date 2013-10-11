@@ -1,11 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd\MainWindow.cs">
     <Files>
       <File FileName="PutkEd\FloatEditor.cs" Line="1" Column="1" />
       <File FileName="PutkEd\EditorCreator.cs" Line="1" Column="1" />
       <File FileName="PutkEd\EnumEditor.cs" Line="1" Column="1" />
-      <File FileName="PutkEd\IntEditor.cs" Line="37" Column="6" />
+      <File FileName="PutkEd\IntEditor.cs" Line="1" Column="1" />
       <File FileName="PutkEd\DLLLoader.cs" Line="1" Column="1" />
       <File FileName="PutkEd\NewInstanceDialog.cs" Line="1" Column="1" />
       <File FileName="PutkEd\ObjectEditor.cs" Line="1" Column="1" />
@@ -13,12 +13,13 @@
       <File FileName="PutkEd\BoolEditor.cs" Line="1" Column="1" />
       <File FileName="PutkEd\Program.cs" Line="24" Column="69" />
       <File FileName="PutkEd\PointerEditor.cs" Line="1" Column="1" />
+      <File FileName="PutkEd\MainWindow.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="PutkEd" expanded="True">
-            <Node name="Program.cs" selected="True" />
+            <Node name="MainWindow.cs" selected="True" />
           </Node>
         </State>
       </Pad>

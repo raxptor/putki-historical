@@ -11,14 +11,13 @@ public partial class MainWindow
 	private global::Gtk.Button button1;
 	private global::Gtk.VBox vbox3;
 	private global::Gtk.Button button3;
-	private global::Gtk.Button button4;
 
 	protected virtual void Build ()
 	{
 		global::Stetic.Gui.Initialize (this);
 		// Widget MainWindow
 		this.Name = "MainWindow";
-		this.Title = global::Mono.Unix.Catalog.GetString ("PutkiSharpEd");
+		this.Title = global::Mono.Unix.Catalog.GetString ("KraPutki");
 		this.WindowPosition = ((global::Gtk.WindowPosition)(4));
 		this.BorderWidth = ((uint)(6));
 		// Container child MainWindow.Gtk.Container+ContainerChild
@@ -92,22 +91,11 @@ public partial class MainWindow
 		w7.Position = 0;
 		w7.Expand = false;
 		w7.Fill = false;
-		// Container child vbox3.Gtk.Box+BoxChild
-		this.button4 = new global::Gtk.Button ();
-		this.button4.CanFocus = true;
-		this.button4.Name = "button4";
-		this.button4.UseUnderline = true;
-		this.button4.Label = global::Mono.Unix.Catalog.GetString ("GtkButton");
-		this.vbox3.Add (this.button4);
-		global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.button4]));
+		this.hbox2.Add (this.vbox3);
+		global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox3]));
 		w8.Position = 1;
 		w8.Expand = false;
 		w8.Fill = false;
-		this.hbox2.Add (this.vbox3);
-		global::Gtk.Box.BoxChild w9 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.vbox3]));
-		w9.Position = 1;
-		w9.Expand = false;
-		w9.Fill = false;
 		this.Add (this.hbox2);
 		if ((this.Child != null)) {
 			this.Child.ShowAll ();

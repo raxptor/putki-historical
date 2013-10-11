@@ -1,5 +1,0 @@
-project "Editor"	
-	uuid "A85631CF-900C-4E83-9ADA-050DDF1B33F4"
-	kind "WindowedApp"
-	language "C#"
-	external "Editor"
