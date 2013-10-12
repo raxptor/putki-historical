@@ -22,7 +22,7 @@ namespace CCGUI
 
 				int p = 0;
 
-				int[] us = new int[4] { 0, s9.MarginLeft, s9.texture.Width - s9.MarginLeft, s9.texture.Width };
+				int[] us = new int[4] { 0, s9.MarginLeft, s9.texture.Width - s9.MarignRight, s9.texture.Width };
 				int[] vs = new int[4] { 0, s9.MarginTop, s9.texture.Height - s9.MarginBottom, s9.texture.Height };
 
 				for (int y = 0; y < 3; y++)
@@ -90,8 +90,8 @@ namespace CCGUI
 						x1 += (float) Math.Floor(s9.ExpandRight * ctx.LayoutScale);
 						y1 += (float) Math.Floor(s9.ExpandBottom * ctx.LayoutScale);
 
-						float[] xs = new float[4] { x0, x0 + s9.MarginLeft, x1 - s9.MarginLeft, x1 };
-						float[] ys = new float[4] { y0, y0 + s9.MarginTop, y1 - s9.MarginBottom, y1 };
+						float[] xs = new float[4] { x0, x0 + s9.MarginLeft * ctx.LayoutScale, x1 - s9.MarignRight * ctx.LayoutScale, x1 };
+						float[] ys = new float[4] { y0, y0 + s9.MarginTop * ctx.LayoutScale, y1 - s9.MarginBottom * ctx.LayoutScale, y1 };
 
 						for (int y = 0; y < 3; y++)
 						{

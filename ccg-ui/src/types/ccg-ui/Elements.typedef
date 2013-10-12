@@ -66,8 +66,8 @@ UISlice9Fill : UIFill [in, out]
 	int MarignRight
 	int MarginBottom
 	int ExpandLeft
-	int ExpandRight
 	int ExpandTop
+	int ExpandRight
 	int ExpandBottom
 }
 

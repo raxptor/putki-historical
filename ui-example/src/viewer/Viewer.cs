@@ -20,6 +20,8 @@ namespace ViewerApp
 
 		public override void OnLayout(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout elementLayout)
 		{
+			base.OnLayout(rctx, ref elementLayout);
+
 			m_tex = new CCGUI.UIRenderer.Texture[m_widget.Blocks.Length];
 			for (int i = 0; i < m_widget.Blocks.Length; i++)
 				m_tex[i] = rctx.TextureManager.ResolveTexture(m_widget.Blocks[i], rctx.LayoutScale, 0, 0, 1, 1);
@@ -27,6 +29,8 @@ namespace ViewerApp
 
 		public override void Render(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout layout)
 		{
+			base.Render(rctx, ref layout);
+
 			float sX = (layout.x1 - layout.x0 - (m_widget.BlocksX - 1) * m_widget.SpacingX) / m_widget.BlocksX;
 			float sY = (layout.y1 - layout.y0 - (m_widget.BlocksY - 1) * m_widget.SpacingY) / m_widget.BlocksY;
 
