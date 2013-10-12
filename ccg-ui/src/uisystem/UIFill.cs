@@ -67,6 +67,13 @@ namespace CCGUI
 						UIRenderer.DrawSolidRect(x0, y0, x1, y1, sf.color);
 						break;
 					}
+				
+				case outki.UIGradientFill.TYPE:
+					{
+						outki.UIGradientFill gf = m_data as outki.UIGradientFill;
+						UIRenderer.DrawGradientRect(x0, y0, x1, y1, gf.topleft, gf.topright, gf.bottomleft, gf.bottomright);
+						break;
+					}
 
 				case outki.UIBitmapFill.TYPE:
 					{

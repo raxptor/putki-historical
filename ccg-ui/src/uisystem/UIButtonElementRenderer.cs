@@ -54,21 +54,21 @@ namespace CCGUI
 			switch (UIElementLogic.GetButtonVisualState(rctx.InputManager, this, m_touchInteraction))
 			{
 				case UIElementLogic.ButtonVisualStates.NORMAL:
-					// UIRenderer.SetColor(new UIRenderer.RColor(255,255,255,255));	
+					UIRenderer.SetColor(new UIRenderer.RColor(1,1,1,0.5f));	
 					if (m_f0 != null)
 						m_f0.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_normal != null)
 						UIRenderer.DrawTexture(m_normal, layout.x0, layout.y0, layout.x1, layout.y1);
 					break;
 				case UIElementLogic.ButtonVisualStates.MOUSEOVER:
-					// UIRenderer.SetColor(new UIRenderer.RColor(0,255,0,255));
+					UIRenderer.SetColor(new UIRenderer.RColor(1,1,1,0.7f));
 					if (m_f1 != null)
 						m_f1.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_normal != null)
 						UIRenderer.DrawTexture(m_normal, layout.x0, layout.y0, layout.x1, layout.y1);
 					break;
 				case UIElementLogic.ButtonVisualStates.PRESSED:
-					// UIRenderer.SetColor(new UIRenderer.RColor(255,0,0,255));
+					UIRenderer.SetColor(new UIRenderer.RColor(1,1,1,1));
 					if (m_f2 != null)
 						m_f2.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_pressed != null)
@@ -76,7 +76,7 @@ namespace CCGUI
 					break;
 			}
 	
-			// UIRenderer.SetColor(new UIRenderer.RColor(255,255,255,255));	
+			UIRenderer.SetColor(new UIRenderer.RColor(1,1,1,1));
 		
 			if (m_font != null && m_formattedText != null)
 				m_font.Render(rctx, (layout.x0 + layout.x1 - m_formattedText.x1) / 2, (layout.y0 + layout.y1 - (m_formattedText.y1 - m_formattedText.y0)) / 2 - m_formattedText.y0, m_formattedText);

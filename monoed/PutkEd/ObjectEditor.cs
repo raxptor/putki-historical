@@ -9,10 +9,16 @@ namespace PutkEd
 	{
 		DLLLoader.MemInstance m_obj;
 		public int m_arrayIndex = 0;
+		public bool m_isExpanded = false;
 
 		public ObjectEditor()
 		{
 			this.Build();
+		}
+
+		public bool IsExpanded()
+		{
+			return m_isExpanded;
 		}
 
 		public void OnConnect(AssetEditor root)

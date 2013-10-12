@@ -19,6 +19,7 @@ namespace PutkEd
 
 			public List<RowNode> children = new List<RowNode>();
 			public int arrayIndex = -1;
+			public bool expanded = false;
 		}
 
 		public AssetEditor() : base (Gtk.WindowType.Toplevel)
@@ -46,6 +47,16 @@ namespace PutkEd
 			m_destroyList.Clear();
 
 			m_tree = m_rootObj.GetChildRows();
+			LayoutAll();
+		}
+
+		public void LayoutAll()
+		{
+			foreach (Widget w in m_destroyList)
+				m_propEd.Remove(w);
+
+			m_destroyList.Clear();
+
 			int rows = Layout(m_tree, 0, 0) + 1;
 
 			int reqSize = rows * Looks.FieldHeight + 100;
