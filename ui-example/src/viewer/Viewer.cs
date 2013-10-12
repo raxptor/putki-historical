@@ -8,24 +8,50 @@ using System.IO;
 
 namespace ViewerApp
 {
-    class SpecialElementRenderer : CCGUI.UIElementRenderer
-    {
-        outki.SpecialElement m_element;
+	class TetrisFieldWidgetRenderer : CCGUI.UIWidgetRenderer
+	{
+		outki.TetrisFieldWidget m_widget;
+		CCGUI.UIRenderer.Texture[] m_tex = null;
 
-        public SpecialElementRenderer(outki.SpecialElement element)
-        {
-            m_element = element;
-        }
+		public TetrisFieldWidgetRenderer(outki.UIWidget widget, CCGUI.UIWidgetHandler handler) : base(widget, handler)
+		{
+			m_widget = widget as outki.TetrisFieldWidget;
+		}
 
-        public void OnLayout(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout elementLayout)
-        {
-        }
+		public override void OnLayout(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout elementLayout)
+		{
+			m_tex = new CCGUI.UIRenderer.Texture[m_widget.Blocks.Length];
+			for (int i = 0; i < m_widget.Blocks.Length; i++)
+				m_tex[i] = rctx.TextureManager.ResolveTexture(m_widget.Blocks[i], rctx.LayoutScale, 0, 0, 1, 1);
+		}
 
-        public void Render(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout layout)
-        {
+		public override void Render(CCGUI.UIRenderContext rctx, ref CCGUI.UIElementLayout layout)
+		{
+			float sX = (layout.x1 - layout.x0 - (m_widget.BlocksX - 1) * m_widget.SpacingX) / m_widget.BlocksX;
+			float sY = (layout.y1 - layout.y0 - (m_widget.BlocksY - 1) * m_widget.SpacingY) / m_widget.BlocksY;
 
-        }
-    }
+			System.Random r = new System.Random();
+			for (int y = 0; y < m_widget.BlocksY; y++)
+			{
+				for (int x = 0; x < m_widget.BlocksX; x++)
+				{
+					float x0 = layout.x0 + sX * x + m_widget.SpacingX * x;
+					float y0 = layout.y0 + sY * y + m_widget.SpacingY * y;
+					float x1 = x0 + sX;
+					float y1 = y0 + sY;
+
+					if (x == m_widget.BlocksX - 1)
+						x1 = layout.x1;
+					if (y == m_widget.BlocksY - 1)
+						y1 = layout.y1;
+
+					int b = r.Next() % 6;
+					if (b < m_tex.Length)
+						CCGUI.UIRenderer.DrawTexture(m_tex[b], x0, y0, x1, y1);
+				}
+			}
+		}
+	}
 
 
 	public class ViewerWidgetHandler : CCGUI.UIWidgetHandler
@@ -35,21 +61,22 @@ namespace ViewerApp
 
 		}
 
-		public CCGUI.UIElementRenderer CreateRootRenderer(outki.UIWidget widget)
+		public CCGUI.UIWidgetRenderer CreateWidgetRenderer(outki.UIWidget widget)
 		{
-			return CCGUI.UIDefaultWidgetHandler.CreateRootRenderer(widget, this);
+			switch (widget._rtti_type)
+			{
+				case outki.TetrisFieldWidget.TYPE:
+					return new TetrisFieldWidgetRenderer(widget, this);
+				default:
+					break;
+			}
+
+			return CCGUI.UIDefaultWidgetHandler.CreateWidgetRenderer(widget, this);
 		}
 
 		public CCGUI.UIElementRenderer CreateRenderer(outki.UIElement element)
 		{
-            switch (element._rtti_type)
-            {
-                case outki.SpecialElement.TYPE:
-                    return new SpecialElementRenderer(element as outki.SpecialElement);
-                default:
-                    break;
-            }
-			return CCGUI.UIDefaultWidgetHandler.CreateRenderer(element, this);
+			return CCGUI.UIDefaultWidgetHandler.CreateElementRenderer(element, this);
 		}
 	}
 

@@ -2,8 +2,8 @@
 	type: "UIWidget",
 	data: {
 			"_rtti_type": 16,
-			"width": 640,
-			"height": 640,
+			"width": 338,
+			"height": 361,
 			"handler": "",
 			"layers": [{
 				"elements": ["tetris/gamescreenroot#ffec"]
@@ -22,8 +22,8 @@
 						"layout": {
 							"x": 0,
 							"y": 0,
-							"width": 640,
-							"height": 640
+							"width": 338,
+							"height": 361
 					},
 						"expansion": {
 							"x": 0,
@@ -50,8 +50,8 @@
 						"_rtti_type": 18,
 						"id": "gameboard",
 						"layout": {
-							"x": 151,
-							"y": 140,
+							"x": 0,
+							"y": 0,
 							"width": 338,
 							"height": 361
 					},

@@ -1,0 +1,19 @@
+{
+	type: "TetrisFieldWidget",
+	data: {
+			"parent": {
+				"_rtti_type": 100,
+				"width": 150,
+				"height": 320,
+				"handler": "",
+				"layers": []
+		},
+			"Blocks": ["tetris/blocks/b0", "tetris/blocks/b1", "tetris/blocks/b2"],
+			"BlocksX": 10,
+			"BlocksY": 20,
+			"SpacingX": 1,
+			"SpacingY": 1
+	},
+	aux: [
+	      ]
+}

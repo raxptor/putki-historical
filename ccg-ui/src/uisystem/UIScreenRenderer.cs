@@ -20,7 +20,7 @@ namespace CCGUI
 
 		public void CreateAndInit()
 		{
-			m_rootRenderer = m_widgetHandler.CreateRootRenderer(m_screen.Root);
+			m_rootRenderer = m_widgetHandler.CreateWidgetRenderer(m_screen.Root);
 			m_textureManager = new UITextureManager();
 
 			// Load all associated atlases.

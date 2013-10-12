@@ -1,0 +1,11 @@
+#include ccg-ui/Elements.typedef
+
+TetrisFieldWidget : UIWidget
+{
+	ptr[] Texture Blocks
+	int BlocksX = 16
+	int BlocksY = 32
+	int SpacingX = 1
+	int SpacingY = 1
+}
+

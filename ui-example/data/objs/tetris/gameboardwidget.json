@@ -6,7 +6,7 @@
 			"height": 361,
 			"handler": "",
 			"layers": [{
-				"elements": ["tetris/gameboardwidget#ffec"]
+				"elements": ["tetris/gameboardwidget#ffec", "tetris/gameboardwidget#aohb"]
 		}]
 	},
 	aux: [
@@ -20,8 +20,8 @@
 						"layout": {
 							"x": 0,
 							"y": 0,
-							"width": 338,
-							"height": 361
+							"width": 339,
+							"height": 362
 					},
 						"expansion": {
 							"x": 0,
@@ -37,6 +37,36 @@
 					}
 				},
 					"texture": "tetris/board"
+			}
+		}
+		,
+		{
+			ref: "#aohb",
+			type: "UIWidgetElement",
+			data: {
+					"parent": {
+						"_rtti_type": 18,
+						"id": "field",
+						"layout": {
+							"x": 60,
+							"y": 17,
+							"width": 159,
+							"height": 319
+					},
+						"expansion": {
+							"x": 0,
+							"y": 0,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"widget": "tetris/tetrisfieldwidget"
 			}
 		}
 	      ]

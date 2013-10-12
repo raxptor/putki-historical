@@ -1,6 +1,0 @@
-{
-	type: "Texture",
-	data: {
-		Source: "textures/dino3.png"
-	}
-}

@@ -1,7 +1,0 @@
-{
-	type: "Texture",
-	data: {
-		Source: "ui/fire_down.png",
-		NoOutput: 1
-	}
-}

@@ -1,7 +1,7 @@
 {
 	type: "Atlas",
 	data: {
-			"Inputs": ["tetris/bgpattern", "tetris/board"],
+			"Inputs": ["tetris/bgpattern", "tetris/board", "tetris/blocks/b0", "tetris/blocks/b1", "tetris/blocks/b2"],
 			"ScaleDowns": 0,
 			"Outputs": []
 	},

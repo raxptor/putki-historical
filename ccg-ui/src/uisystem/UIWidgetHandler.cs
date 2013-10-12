@@ -2,7 +2,7 @@ namespace CCGUI
 {
 	public interface UIWidgetHandler
 	{
-		UIElementRenderer CreateRootRenderer(outki.UIWidget widget);	
+		UIWidgetRenderer CreateWidgetRenderer(outki.UIWidget widget);
 		UIElementRenderer CreateRenderer(outki.UIElement element);
 	}
 }

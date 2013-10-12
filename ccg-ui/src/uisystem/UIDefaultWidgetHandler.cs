@@ -3,17 +3,17 @@ namespace CCGUI
 {
 	public class UIDefaultWidgetHandler
 	{
-		public static UIElementRenderer CreateRootRenderer(outki.UIWidget widget, UIWidgetHandler handler)
+		public static UIWidgetRenderer CreateWidgetRenderer(outki.UIWidget widget, UIWidgetHandler handler)
 		{
 			return new UIWidgetRenderer(widget, handler);
 		}
 		
-		public static UIElementRenderer CreateRenderer(outki.UIElement element, UIWidgetHandler handler)
+		public static UIElementRenderer CreateElementRenderer(outki.UIElement element, UIWidgetHandler handler)
 		{
 			switch (element._rtti_type)
 			{
 				case outki.UIWidgetElement.TYPE:
-					return new UIWidgetRenderer(((outki.UIWidgetElement)element).widget, handler);
+					return handler.CreateWidgetRenderer(((outki.UIWidgetElement)element).widget);
 				case outki.UIBitmapElement.TYPE:
 					return new UIBitmapElementRenderer((outki.UIBitmapElement)element);
 				case outki.UITextElement.TYPE:

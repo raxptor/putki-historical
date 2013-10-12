@@ -1,7 +1,7 @@
 {
 	type: "UIScreen",
 	data: {
-			"Config": "screens/scaling",
+			"Config": "screens/noscale",
 			"Root": "tetris/gamescreenroot",
 			"Atlases": ["tetris/atlas"],
 			"ScalingForSnapping": []

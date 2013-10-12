@@ -1,9 +1,0 @@
-{
-	type: "UIFontStyle",
-	data: {
-			"Font": "fonts/calibri",
-			"PixelSize": 24
-	},
-	aux: [
-	      ]
-}
