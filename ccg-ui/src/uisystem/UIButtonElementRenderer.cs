@@ -8,6 +8,7 @@ namespace CCGUI
 		UIFont m_font;
 		UIFont.FormattedText m_formattedText;
 		UIRenderer.Texture m_normal, m_pressed;
+		UITouchInteraction m_touchInteraction = new UITouchInteraction();
 
 		public UIButtonElementRenderer(outki.UIButtonElement element)
 		{
@@ -44,31 +45,39 @@ namespace CCGUI
 
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)
 		{
-			UIElementLogic.MouseButton(rctx.InputManager, this, layout.x0, layout.y0, layout.x1, layout.y1);
+			if (UIElementLogic.Button(rctx.InputManager, this, layout.x0, layout.y0, layout.x1, layout.y1, m_touchInteraction))
+			{
+				// clicked.
+			}
 
 			// behold the prettiness.
-			switch (UIElementLogic.GetButtonVisualState(rctx.InputManager, this))
+			switch (UIElementLogic.GetButtonVisualState(rctx.InputManager, this, m_touchInteraction))
 			{
 				case UIElementLogic.ButtonVisualStates.NORMAL:
+					UIRenderer.SetColor(new UIRenderer.RColor(255,255,255,255));	
 					if (m_f0 != null)
 						m_f0.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_normal != null)
 						UIRenderer.DrawTexture(m_normal, layout.x0, layout.y0, layout.x1, layout.y1);
 					break;
 				case UIElementLogic.ButtonVisualStates.MOUSEOVER:
+					UIRenderer.SetColor(new UIRenderer.RColor(0,255,0,255));
 					if (m_f1 != null)
 						m_f1.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_normal != null)
 						UIRenderer.DrawTexture(m_normal, layout.x0, layout.y0, layout.x1, layout.y1);
 					break;
 				case UIElementLogic.ButtonVisualStates.PRESSED:
+					UIRenderer.SetColor(new UIRenderer.RColor(255,0,0,255));
 					if (m_f2 != null)
 						m_f2.Draw(rctx, layout.x0, layout.y0, layout.x1, layout.y1);
 					if (m_pressed != null)
 						UIRenderer.DrawTexture(m_pressed, layout.x0, layout.y0, layout.x1, layout.y1);
 					break;
 			}
-
+	
+			UIRenderer.SetColor(new UIRenderer.RColor(255,255,255,255));	
+		
 			if (m_font != null && m_formattedText != null)
 				m_font.Render(rctx, (layout.x0 + layout.x1 - m_formattedText.x1) / 2, (layout.y0 + layout.y1 - (m_formattedText.y1 - m_formattedText.y0)) / 2 - m_formattedText.y0, m_formattedText);
 		}

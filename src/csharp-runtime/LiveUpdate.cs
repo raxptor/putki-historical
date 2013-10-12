@@ -21,7 +21,8 @@ namespace Putki
 					// someone loaded this before, point them to this new version.
 					if (m_currentMapping.ContainsKey(s.path))
 					{
-						m_globalReplace[m_currentMapping[s.path]] = s.inst;
+						if (m_currentMapping[s.path] != s.inst)
+							m_globalReplace[m_currentMapping[s.path]] = s.inst;
 					}
 
 					// update current mapping.
@@ -50,7 +51,7 @@ namespace Putki
 		{
 			if (probe == null)
 				return false;
-
+				
 			return m_globalReplace.ContainsKey((object)probe);
 		}
 
@@ -58,7 +59,7 @@ namespace Putki
 		{
 			if (probe == null)
 				return false;
-
+			
 			if (m_globalReplace.ContainsKey((object)probe))
 			{
 				probe = (Type) m_globalReplace[(object)probe];

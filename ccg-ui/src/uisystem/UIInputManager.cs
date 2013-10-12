@@ -4,17 +4,31 @@ using System.Text;
 
 namespace CCGUI
 {
-	public class MouseInteraction
+	public struct MouseInteraction
 	{
 		public object ObjectOver;
 		public object ObjectPressed;
 	};
+	
+	public class UITouchInteraction
+	{
+		public UITouchInteraction()
+		{
+			PressedByTouchId = -1;
+			StillInside = false;
+		}
+		
+		public bool StillInside;
+		public int PressedByTouchId;
+	}
 
 	public class UIInputState
 	{
 		public float MouseX;
 		public float MouseY;
 		public bool MouseDown, MouseClicked;
+		
+		public UITusch.Tch[] Touches;
 	};
 
 	public class UIInputManager
@@ -59,6 +73,26 @@ namespace CCGUI
 		{
 			return x >= x0 && y >= y0 && x < x1 && y < y1;
 		}
-
+		
+		public void TouchHitTest(float x0, float y0, float x1, float y1, ref UITouchInteraction interaction)
+		{
+			foreach (UITusch.Tch t in m_state.Touches)
+			{
+				if (t.position.x >= x0 && t.position.y >= y0 && t.position.x < x1 && t.position.y < y1)
+				{
+					interaction.PressedByTouchId = t.fingerId;
+					interaction.StillInside = true;
+					return;
+				}
+				else if (t.fingerId == interaction.PressedByTouchId)
+				{
+					interaction.StillInside = false;
+					return;
+				}
+			}
+			
+			interaction.PressedByTouchId = -1;
+			interaction.StillInside = false;
+		}
 	}
 }

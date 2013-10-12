@@ -9,7 +9,6 @@ namespace Putki
 	{
 		TcpClient m_client = null;
 		StreamWriter m_writer = null;
-		StreamReader m_reader = null;
 
 		byte[] m_buffer = new byte[4 * 1024 * 1024];
 		int m_bufferPos = 0;
@@ -35,7 +34,6 @@ namespace Putki
 				if (m_client.Connected)
 				{
 					m_writer = new StreamWriter(m_client.GetStream());
-					m_reader = new StreamReader(m_client.GetStream());
 					m_writer.WriteLine("init csharp32\n");
 					m_writer.Flush();
 				}
@@ -141,7 +139,8 @@ namespace Putki
 			if (m_bufferPos < 5)
 				return;
 
-			byte pkt_type = m_buffer[0];
+			// - forgot the point of this.
+			// byte pkt_type = m_buffer[0];
 
 			int sz = 0;
 			for (int i = 0; i < 4; i++)

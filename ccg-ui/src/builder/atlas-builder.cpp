@@ -184,6 +184,9 @@ struct atlasbuilder : putki::builder::handler_i
 
 			// make the atlas.
 			unsigned int * outBmp = new unsigned int[out_width * out_height];
+			memset(outBmp, 0x00, sizeof(unsigned int) * out_width * out_height);
+
+			/* - test pattern - 
 			for (int y=0;y<out_height;y++)
 			{
 				for (int x=0;x<out_width;x++)
@@ -191,6 +194,7 @@ struct atlasbuilder : putki::builder::handler_i
 					outBmp[y*out_width+x] = (x^y) & 1 ? 0xff101010 : 0xfff0f0f0;
 				}
 			}
+			*/
 
 			inki::AtlasOutput ao;
 			
@@ -203,11 +207,6 @@ struct atlasbuilder : putki::builder::handler_i
 				putki::pngutil::loaded_png const &g = loaded[packedRects[k].id];
 				rbp::Rect const &out = packedRects[k];
 
-				int blah = 0;
-				if (g_outputTexConf[i].scale != 1)
-					blah = rand();
-
-	
 				sample_kernel krn;
 				make_sample_kernel(&krn, scaleConfig.scale);
 				

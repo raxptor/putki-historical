@@ -2,12 +2,10 @@ namespace CCGUI
 {
 	class UIFillElementRenderer : UIElementRenderer
 	{
-		outki.UIFillElement m_element;
 		UIFill m_fill;
 
 		public UIFillElementRenderer(outki.UIFillElement element)
 		{
-			m_element = element;
 			m_fill = new UIFill(element.fill);
 		}
 
