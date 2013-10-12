@@ -377,11 +377,8 @@ namespace PutkEd
 
 		public void Load(string DataDLL, string DataPath)
 		{
-			System.Console.WriteLine("Calling!");
 			if (MED_Initialize(DataDLL, DataPath) > 0)
 			{
-				System.Console.WriteLine("done");
-
 				for (int i=0;i<1000;i++)
 				{
 					IntPtr p = MED_TypeByIndex(i);
