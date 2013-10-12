@@ -1,0 +1,10 @@
+{
+	type: "Atlas",
+	data: {
+			"Inputs": ["tetris/bgpattern", "tetris/board"],
+			"ScaleDowns": 0,
+			"Outputs": []
+	},
+	aux: [
+	      ]
+}

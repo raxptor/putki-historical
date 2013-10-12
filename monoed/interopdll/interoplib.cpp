@@ -209,7 +209,7 @@ extern "C"
 		return field->get_byte(mi);
 	}
 
-	DSPEC bool MED_Field_GetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	DSPEC int MED_Field_GetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
 		return field->get_bool(mi);
 	}

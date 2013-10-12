@@ -24,6 +24,7 @@ namespace PutkEd
 			m_arrayIndex = arrayIndex;
 
 			fi.SetArrayIndex(m_arrayIndex);
+			Console.WriteLine("Iti si " + fi.GetBool(mi));
 			m_checkbox.Active = fi.GetBool(mi);
 			m_checkbox.Clicked += delegate(object sender, EventArgs e)
 			{

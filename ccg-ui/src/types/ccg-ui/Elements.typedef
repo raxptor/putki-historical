@@ -33,6 +33,14 @@ UIColor [in, out]
 	byte a = 255
 }
 
+UIBitmapTilingSettings [in, out]
+{
+	bool EnableRepeatTiling = false
+	bool UseLayoutScale = false
+	int TileWidth = 64
+	int TileHeight = 64
+}
+
 UIFill [in, out] rtti
 {
 }
@@ -66,6 +74,7 @@ UISlice9Fill : UIFill [in, out]
 UIBitmapFill : UIFill [in, out]
 {
 	ptr Texture Texture
+	UIBitmapTilingSettings Tiling
 }
 
 UIFontStyle [in, out]

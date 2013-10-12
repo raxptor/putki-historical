@@ -22,12 +22,12 @@ namespace ViewerApp
 
 		Grid g = new Grid();
 
-		public RootWindow(CCGUI.UIScreenRenderer scrn)
+		public RootWindow(CCGUI.UIScreenRenderer scrn, string title)
 		{
 			Background = Brushes.Transparent;
 			Width = 900;
 			Height = 700;
-			Title = "CCG UI Viewer";
+			Title = title;
 			m_screenRenderer = scrn;
 			m_input = new CCGUI.UIInputState();
 			m_inputManager = new CCGUI.UIInputManager();

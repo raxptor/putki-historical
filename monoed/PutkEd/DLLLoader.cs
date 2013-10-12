@@ -102,7 +102,7 @@ namespace PutkEd
 		private static extern float MED_Field_GetFloat(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
-		private static extern bool MED_Field_GetBool(IntPtr field, IntPtr mi);
+		private static extern int MED_Field_GetBool(IntPtr field, IntPtr mi);
 
 		[DllImport("monoed-interop")]
 		private static extern int MED_Field_GetByte(IntPtr field, IntPtr mi);
@@ -217,7 +217,7 @@ namespace PutkEd
 
 			public bool GetBool(MemInstance mi)
 			{
-				return MED_Field_GetBool(Handler, mi.PutkiInst);
+				return MED_Field_GetBool(Handler, mi.PutkiInst) != 0;
 			}
 
 			public byte GetByte(MemInstance mi)

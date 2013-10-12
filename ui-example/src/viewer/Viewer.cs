@@ -77,10 +77,8 @@ namespace ViewerApp
 		[STAThread]
         static void Main(string[] args)
         {			
-			Putki.Package p = Putki.PackageLoader.FromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
-			Putki.LiveUpdate.InsertPackage(p, new Loader());
-
-			outki.UIScreen screen = (outki.UIScreen)p.Resolve("screens/ingame");
+			//Putki.PackageManager.LoadFromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
+			Putki.PackageManager.LoadFromBytes(File.ReadAllBytes("packages\\tetris.pkg"), new Loader());
 
 			Putki.LiveUpdateClient lup = null; 
 			
@@ -89,7 +87,9 @@ namespace ViewerApp
 
 			DispatcherTimer dtp = new DispatcherTimer();
 
-			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(screen, new ViewerWidgetHandler()));
+			outki.UIScreen scrn = Putki.PackageManager.Resolve<outki.UIScreen>("tetris/gamescreen");
+
+			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(scrn, new ViewerWidgetHandler()), "CCG-UI C# Runtime");
 			
 
 			dtp.Tick += delegate

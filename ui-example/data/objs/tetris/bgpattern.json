@@ -1,0 +1,14 @@
+{
+	type: "Texture",
+	data: {
+			"_rtti_type": 36,
+			"Source": "tetris/pattern1.png",
+			"Output": "",
+			"id": "",
+			"NoOutput": 1,
+			"Width": 0,
+			"Height": 0
+	},
+	aux: [
+	      ]
+}

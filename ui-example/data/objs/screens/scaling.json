@@ -1,0 +1,14 @@
+{
+	type: "UIScreenConfig",
+	data: {
+			"PreserveLayoutAspect": 0,
+			"SnapScale": 0,
+			"ScaleMode": "ScaleMode_Prop_Layout",
+			"CutL": 0,
+			"CutR": 0,
+			"CutT": 0,
+			"CutB": 0
+	},
+	aux: [
+	      ]
+}

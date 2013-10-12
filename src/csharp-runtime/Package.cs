@@ -231,14 +231,4 @@ namespace Putki
 			m_slots = null;
 		}
 	}
-	
-	public class PackageLoader
-	{
-		static public Package FromBytes(byte[] bytes, TypeLoader loader)
-		{
-			Package p = new Package();
-			p.LoadFromBytes(bytes, loader);
-			return p;
-		}
-	}	
 }

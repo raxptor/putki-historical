@@ -153,7 +153,7 @@ namespace Putki
 
 			PkgE p = new PkgE();
 			p.resolved = false;
-			p.package = Putki.PackageLoader.FromBytes(ut, m_loader);
+			p.package = Putki.PackageManager.LoadFromBytes(ut, m_loader);
 			m_pending.Add(p);
 
 			int peel = sz + 5;

@@ -14,6 +14,7 @@ namespace CCGUI
 		public void OnLayout(UIRenderContext rctx, ref UIElementLayout elementLayout)
 		{
 			m_fill.ResolveTextures(rctx);
+			m_fill.OnLayout(rctx, elementLayout.x0, elementLayout.y0, elementLayout.x1, elementLayout.y1);
 		}
 
 		public void Render(UIRenderContext rctx, ref UIElementLayout layout)

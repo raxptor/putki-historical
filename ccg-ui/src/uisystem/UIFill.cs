@@ -6,6 +6,7 @@ namespace CCGUI
 	{
 		outki.UIFill m_data;
 		UIRenderer.Texture[] m_tex = null;
+		UITiledFill m_tiledFillRender = null;
 
 		public UIFill(outki.UIFill data)
 		{
@@ -39,6 +40,18 @@ namespace CCGUI
 			}
 		}
 
+		public void OnLayout(UIRenderContext rctx, float x0, float y0, float x1, float y1)
+		{
+			if (m_data is outki.UIBitmapFill)
+			{
+				outki.UIBitmapFill bf = m_data as outki.UIBitmapFill;
+				if (bf.Tiling.EnableRepeatTiling)
+					m_tiledFillRender = UITiledFill.CreateFill(rctx, bf.Texture, bf.Tiling, x0, y0, x1, y1);
+				else
+					m_tiledFillRender = null;
+			}
+		}
+
 		public void Draw(UIRenderContext ctx, float x0, float y0, float x1, float y1)	
 		{
 			if (m_data == null)
@@ -52,6 +65,19 @@ namespace CCGUI
 					{
 						outki.UISolidFill sf = m_data as outki.UISolidFill;
 						UIRenderer.DrawSolidRect(x0, y0, x1, y1, sf.color);
+						break;
+					}
+
+				case outki.UIBitmapFill.TYPE:
+					{
+						if (m_tiledFillRender != null)
+						{
+							m_tiledFillRender.Draw();
+						}
+						else
+						{
+
+						}
 						break;
 					}
 
