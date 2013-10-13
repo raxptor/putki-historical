@@ -318,6 +318,7 @@ namespace PutkEd
 
 			public static MemInstance LoadFromDisk(string path)
 			{
+				Console.WriteLine("LoadFromDisk[" + path + "]");
 				return DiskLoad(path);
 			}
 

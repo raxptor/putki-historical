@@ -18,7 +18,8 @@ namespace CCGUI
 				m_f0 = new UIFill(m_element.Style.Normal);
 				m_f1 = new UIFill(m_element.Style.Highlight);
 				m_f2 = new UIFill(m_element.Style.Pressed);
-				m_font = new UIFont(m_element.Style.FontStyle.Font);
+				if (m_element.Style.FontStyle != null)
+					m_font = new UIFont(m_element.Style.FontStyle.Font);
 			}
 		}
 

@@ -50,7 +50,9 @@ namespace CCGUI
 					m_rtData[count].element = layer.elements[i];
 					// can happen during live update.
 					if (m_rtData[count].element != null)
+					{
 						m_rtData[count].renderer = handler.CreateRenderer(layer.elements[i]);
+					}
 
 					count++;
 				}

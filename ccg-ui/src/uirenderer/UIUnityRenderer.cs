@@ -17,9 +17,11 @@ public class UIRenderer
 		public float r, g, b, a;
 	}
 	
-	public static RColor m_currentColor = new RColor(255,255,255,255);
+	public static RColor m_currentColor = new RColor(1,1,1,1);
 	public static int begin = -1;
 	public static Shader TexturedShader = null;
+	public static Shader SolidShader = null;
+	public static Material SolidMaterial = null;
 	
 	public class LoadedTexture
 	{
@@ -138,12 +140,69 @@ public class UIRenderer
 		GL.Vertex3(x0, y1, 0);
 	}
 	
-	public static void DrawSolidRect(float x0, float y0, float x1, float y1, outki.UIColor col)
+	public static void DrawSolidRect(float x0, float y0, float x1, float y1, outki.UIColor col = null)
 	{
+		if (lastTexture != null || begin == 0)
+		{
+			if (begin != 0)
+				GL.End();
+			
+			lastTexture = null;
+			SolidMaterial.SetPass(0);
+			GL.Begin(GL.QUADS);
+			begin = 1;
+		}
+
+		if (col == null)
+			GL.Color(new Color(m_currentColor.r, m_currentColor.g, m_currentColor.b, m_currentColor.a));
+		else
+			GL.Color(new Color(m_currentColor.r * col.r / 255, m_currentColor.g * col.g / 255.0f, m_currentColor.b * col.b / 255.0f, m_currentColor.a * col.a / 255.0f));
+
+		GL.Vertex3(x0, y0, 0);
+		GL.Vertex3(x1, y0, 0);
+		GL.Vertex3(x1, y1, 0);
+		GL.Vertex3(x0, y1, 0);
 	}
+	
+	public static void HelpGLColor(outki.UIColor t)
+	{
+		GL.Color(new Color(m_currentColor.r * t.r / 255, m_currentColor.g * t.g / 255.0f, m_currentColor.b * t.b / 255.0f, m_currentColor.a * t.a / 255.0f));		
+	}
+	
+	public static void DrawGradientRect(float x0, float y0, float x1, float y1, 
+	                                    outki.UIColor tl, outki.UIColor tr,
+	                                    outki.UIColor bl, outki.UIColor br)
+	
+	{
+		if (lastTexture != null || begin == 0)
+		{
+			if (begin != 0)
+				GL.End();
+			
+			lastTexture = null;
+			SolidMaterial.SetPass(0);
+			GL.Begin(GL.QUADS);
+			begin = 1;
+		}
+
+		HelpGLColor(tl);
+		GL.Vertex3(x0, y0, 0);
+		HelpGLColor(tr);
+		GL.Vertex3(x1, y0, 0);
+		HelpGLColor(br);
+		GL.Vertex3(x1, y1, 0);
+		HelpGLColor(bl);
+		GL.Vertex3(x0, y1, 0);
+	}	
 
 	public static void Begin()
 	{
+		if (SolidMaterial == null && SolidShader != null)
+		{
+			SolidMaterial =	new Material(SolidShader);
+		}
+		
+		m_currentColor.r = m_currentColor.g = m_currentColor.b = m_currentColor.a = 1.0f;
 		GL.LoadPixelMatrix(0, Screen.width, Screen.height, 0);
 	}
 	

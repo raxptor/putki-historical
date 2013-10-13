@@ -42,11 +42,13 @@ namespace CCGUI
 				}
 			}
 			
-			bool pr = (ti != null) && (ti.PressedByTouchId != -1) && ti.StillInside;
-			im.TouchHitTest(x0, y0, x1, y1, ref ti);
-
-			if (ti.PressedByTouchId == -1 && pr)
-				return true;
+			if (ti != null)
+			{
+				bool pr = (ti.PressedByTouchId != -1) && ti.StillInside;
+				im.TouchHitTest(x0, y0, x1, y1, ref ti);
+				if (ti.PressedByTouchId == -1 && pr)
+					return true;
+			}
 			
 			return false;
 		}
