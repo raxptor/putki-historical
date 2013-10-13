@@ -5,6 +5,7 @@
 *.filters
 *.make
 *.csproj
+*~ 
 bin
 out
 App.config
