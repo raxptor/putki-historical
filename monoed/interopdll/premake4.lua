@@ -1,7 +1,7 @@
 solution "MonoEdInterop"
 
 	platforms { "x32" }
-	
+	flags {"StaticRuntime"}
 
 	configurations "Release"
 

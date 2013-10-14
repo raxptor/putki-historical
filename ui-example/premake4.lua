@@ -9,9 +9,12 @@ solution "ExampleUI"
 	flags { "Symbols" }
 	defines {"_CRT_SECURE_NO_WARNINGS"}
 
+	if os.get() == "windows" then
+		flags {"StaticRuntime"}
+	end
+
 	configuration "Debug"
 		defines {"DEBUG"}
-
 
 	dofile "../ccg-ui/ccg-ui-libs.lua"
 

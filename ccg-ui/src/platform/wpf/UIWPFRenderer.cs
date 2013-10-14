@@ -26,6 +26,18 @@ namespace CCGUI
 			public BitmapImage bmp;
 		};
 
+		public class RColor
+		{
+			public RColor(float R, float G, float B, float A)
+			{
+				r = R;
+				g = G;
+				b = B;
+				a = A;
+			}
+			float r, g, b, a;
+		}
+
 		public static void Rect(float x0, float y0, float x1, float y1)
 		{
 			dc.DrawRectangle(Brushes.Red, new Pen(), new Rect(x0, y0, x1 - x0, y1 - y0));
@@ -34,6 +46,16 @@ namespace CCGUI
 		private static Color ConvertColor(outki.UIColor color)
 		{
 			return Color.FromArgb(color.a, color.r, color.g, color.b);
+		}
+
+		public static void SetColor(RColor r)
+		{
+
+		}
+
+		public static void DrawGradientRect(float x0, float y0, float x1, float y1, outki.UIColor tl, outki.UIColor tr, outki.UIColor bl, outki.UIColor br)
+		{
+
 		}
 
 		public static void DrawSolidRect(float x0, float y0, float x1, float y1, outki.UIColor color)

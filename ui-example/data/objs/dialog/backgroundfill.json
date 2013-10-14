@@ -1,0 +1,19 @@
+{
+	type: "UISlice9Fill",
+	data: {
+			"parent": {
+				"_rtti_type": 10
+		},
+			"texture": "dialog/frametexture",
+			"MarginLeft": 4,
+			"MarginTop": 20,
+			"MarignRight": 12,
+			"MarginBottom": 12,
+			"ExpandLeft": 4,
+			"ExpandTop": 12,
+			"ExpandRight": 12,
+			"ExpandBottom": 12
+	},
+	aux: [
+	      ]
+}

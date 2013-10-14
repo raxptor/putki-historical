@@ -2,20 +2,16 @@
 	type: "UIWidget",
 	data: {
 			"_rtti_type": 16,
-			"width": 338,
-			"height": 361,
+			"width": 160,
+			"height": 120,
 			"handler": "",
 			"layers": [{
-				"elements": ["tetris/gamescreenroot#ffec"]
-		}, {
-				"elements": ["tetris/gamescreenroot#ssej"]
-		}, {
-				"elements": ["tetris/gamescreenroot#lbhb"]
+				"elements": ["dialog/widget#ssej", "dialog/widget#aohb", "dialog/widget#ffec"]
 		}]
 	},
 	aux: [
 		{
-			ref: "#ffec",
+			ref: "#ssej",
 			type: "UIFillElement",
 			data: {
 					"parent": {
@@ -24,8 +20,8 @@
 						"layout": {
 							"x": 0,
 							"y": 0,
-							"width": 338,
-							"height": 361
+							"width": 160,
+							"height": 120
 					},
 						"expansion": {
 							"x": 0,
@@ -40,56 +36,26 @@
 							"a": 255
 					}
 				},
-					"fill": "tetris/bg-fill"
+					"fill": "dialog/backgroundfill"
 			}
 		}
 		,
 		{
-			ref: "#ssej",
-			type: "UIWidgetElement",
+			ref: "#aohb",
+			type: "UIButtonElement",
 			data: {
 					"parent": {
-						"_rtti_type": 18,
-						"id": "gameboard",
-						"layout": {
-							"x": 0,
-							"y": 0,
-							"width": 338,
-							"height": 361
-					},
-						"expansion": {
-							"x": 0.5,
-							"y": 0.5,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"widget": "tetris/gameboardwidget"
-			}
-		}
-		,
-		{
-			ref: "#lbhb",
-			type: "UIWidgetElement",
-			data: {
-					"parent": {
-						"_rtti_type": 18,
+						"_rtti_type": 21,
 						"id": "",
 						"layout": {
-							"x": 20,
-							"y": 60,
-							"width": 320,
-							"height": 240
+							"x": 70,
+							"y": 80,
+							"width": 80,
+							"height": 30
 					},
 						"expansion": {
-							"x": 0.5,
-							"y": 0.5,
+							"x": 1,
+							"y": 1,
 							"width": 0,
 							"height": 0
 					},
@@ -100,7 +66,45 @@
 							"a": 255
 					}
 				},
-					"widget": "dialog/widget"
+					"Style": "dialog/buttonstyle",
+					"TextureNormal": "",
+					"TexturePressed": "",
+					"Text": "Test",
+					"Event": ""
+			}
+		}
+		,
+		{
+			ref: "#ffec",
+			type: "UIButtonElement",
+			data: {
+					"parent": {
+						"_rtti_type": 21,
+						"id": "",
+						"layout": {
+							"x": -20,
+							"y": 80,
+							"width": 80,
+							"height": 30
+					},
+						"expansion": {
+							"x": 1,
+							"y": 1,
+							"width": 0,
+							"height": 0
+					},
+						"color": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
+					}
+				},
+					"Style": "dialog/buttonstyle",
+					"TextureNormal": "",
+					"TexturePressed": "",
+					"Text": "OK",
+					"Event": ""
 			}
 		}
 	      ]

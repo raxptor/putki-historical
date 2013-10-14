@@ -1,0 +1,19 @@
+{
+	type: "UISlice9Fill",
+	data: {
+			"parent": {
+				"_rtti_type": 10
+		},
+			"texture": "tetris/board",
+			"MarginLeft": 60,
+			"MarginTop": 17,
+			"MarignRight": 120,
+			"MarginBottom": 26,
+			"ExpandLeft": 60,
+			"ExpandTop": 17,
+			"ExpandRight": 120,
+			"ExpandBottom": 26
+	},
+	aux: [
+	      ]
+}

@@ -60,7 +60,7 @@
 		files { "_gen/outki_csharp/**.cs"}
 		files { "_gen/outki_csharp/**.cs"}
 		files { "src/uisystem/**.*" }
-		files { "src/uirenderer/*WPF*.cs" }
+		files { "src/platform/wpf/**.cs" }
 		files { "../src/csharp-runtime/**.cs"}
 
 		links { "PresentationFramework", "WindowsBase", "PresentationCore", "System.Xaml", "System" }

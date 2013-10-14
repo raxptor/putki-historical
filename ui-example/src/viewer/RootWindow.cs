@@ -44,6 +44,7 @@ namespace ViewerApp
 			m_input.MouseX = (float)p.X;
 			m_input.MouseY = (float)p.Y;
 
+			m_input.Touches = UITusch.Read();
 			m_inputManager.BeginFrame(m_input);
 
 			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, m_inputManager);
