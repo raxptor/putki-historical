@@ -2,6 +2,14 @@ using System;
 
 namespace CCGUI
 {
+	class NullEventHandler : EventHandler
+	{
+		public void OnEvent(string what)
+		{
+			// null
+		}
+	}
+		
 	public class UIScreenRenderer
 	{
 		outki.UIScreen m_screen;
@@ -31,7 +39,7 @@ namespace CCGUI
 			}
 		}
 
-		public void Draw(float x0, float y0, float x1, float y1, UIInputManager inputManager)
+		public void Draw(float x0, float y0, float x1, float y1, UIInputManager inputManager, EventHandler eventHandler)
 		{
 			bool mod = false;
 			mod |= Putki.LiveUpdate.Update(ref m_screen);
@@ -82,6 +90,10 @@ namespace CCGUI
 			UIRenderContext rctx = new UIRenderContext();
 			rctx.InputManager = inputManager;
 			rctx.TextureManager = m_textureManager;
+			rctx.EventHandler = eventHandler;
+			
+			if (rctx.EventHandler == null)
+				rctx.EventHandler = new NullEventHandler();
 
 			if (useLayoutScaling || useMatrixScaling)
 			{

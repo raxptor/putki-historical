@@ -49,6 +49,8 @@ namespace CCGUI
 			if (UIElementLogic.Button(rctx.InputManager, this, layout.x0, layout.y0, layout.x1, layout.y1, m_touchInteraction))
 			{
 				// clicked.
+				if (m_element.Event.Length > 0)
+					rctx.EventHandler.OnEvent(m_element.Event);
 			}
 
 			// behold the prettiness.
