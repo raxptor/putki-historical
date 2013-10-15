@@ -34,7 +34,7 @@ namespace PutkEd
 			catch (Exception e)
 			{
 				Console.WriteLine("Error! " + e.ToString());
-				throw;
+	        			throw;
 			}
 		}
 	}
