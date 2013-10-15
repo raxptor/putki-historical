@@ -11,7 +11,7 @@ namespace PutkEd
 			this.Build();
 
 			List<string> types = new List<string>();
-			foreach (DLLLoader.Types d in MainClass.s_dataDll.GetTypes())
+			foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 			{
 				types.Add(d.Name);
 			}
@@ -32,7 +32,7 @@ namespace PutkEd
 					string t = m_types.Model.GetValue(i, 0).ToString();
 					Console.WriteLine("Creating asset " + t + " with path [" + m_path.Text + "]");
 
-					foreach (DLLLoader.Types d in MainClass.s_dataDll.GetTypes())
+					foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 					{
 						if (d.Name == t)
 						{

@@ -16,11 +16,11 @@ namespace PutkEd
 		public void FillWithParentsTo(string RefType)
 		{
 			List<string> types = new List<string>();
-			foreach (DLLLoader.Types d in MainClass.s_dataDll.GetTypes())
+			foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 			{
 				if (RefType == d.Name)
 				{
-					foreach (DLLLoader.Types e in MainClass.s_dataDll.GetTypes())
+					foreach (DLLLoader.Types e in PutkEdMain.s_dataDll.GetTypes())
 					{
 						if (DLLLoader.HasParent(e, d))
 							types.Add(e.Name);
@@ -41,7 +41,7 @@ namespace PutkEd
 			if (m_types.GetActiveIter(out i))
 			{
 				string t = m_types.Model.GetValue(i, 0).ToString();
-				foreach (DLLLoader.Types d in MainClass.s_dataDll.GetTypes())
+				foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 				{
 					if (d.Name == t)
 					{

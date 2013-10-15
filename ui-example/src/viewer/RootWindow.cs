@@ -20,7 +20,7 @@ namespace ViewerApp
 		CCGUI.UIInputState m_input;
 		CCGUI.UIInputManager m_inputManager;
 
-		Grid g = new Grid();
+		Grid g = new Grid();		
 
 		public RootWindow(CCGUI.UIScreenRenderer scrn, string title)
 		{
@@ -45,9 +45,9 @@ namespace ViewerApp
 			m_input.MouseY = (float)p.Y;
 
 			m_input.Touches = UITusch.Read();
-			m_inputManager.BeginFrame(m_input);
+			m_inputManager.BeginFrame(m_input);			
 
-			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, m_inputManager);
+			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, m_inputManager, null);
 
 			m_input.MouseClicked = false;
 

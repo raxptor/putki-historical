@@ -16,7 +16,7 @@ namespace PutkEd
 		public void AddForTypes(string TypeName)
 		{
 			DLLLoader.Types want = null;
-			foreach (DLLLoader.Types d in MainClass.s_dataDll.GetTypes())
+			foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 			{
 				if (TypeName == d.Name)
 					want = d;
@@ -36,9 +36,9 @@ namespace PutkEd
 
 			Gtk.ListStore ls = new Gtk.ListStore (typeof(string), typeof(string));
 
-			foreach (PutkEd.FileIndex.Entry entry in PutkEd.MainClass.s_fileIndex.GetAssets())
+			foreach (PutkEd.FileIndex.Entry entry in PutkEdMain.s_fileIndex.GetAssets())
 			{
-				foreach (DLLLoader.Types e in MainClass.s_dataDll.GetTypes())
+				foreach (DLLLoader.Types e in PutkEdMain.s_dataDll.GetTypes())
 				{
 					if (entry.DisplayType == e.Name && DLLLoader.HasParent(e, want))
 					{

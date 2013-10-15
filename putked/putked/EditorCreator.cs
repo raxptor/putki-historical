@@ -18,7 +18,7 @@ namespace PutkEd
 				{
 					string RT = fh.GetRefType();
 					String InlineEditor = null;
-					foreach (DLLLoader.Types t in MainClass.s_dataDll.GetTypes())
+					foreach (DLLLoader.Types t in PutkEdMain.s_dataDll.GetTypes())
 					{
 						if (t.Name == RT)
 						{

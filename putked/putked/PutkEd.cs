@@ -5,12 +5,12 @@ using Gtk;
 
 namespace PutkEd
 {
-	class MainClass
+	public class PutkEdMain
 	{
 		public static Loader s_loader = null;
 		public static FileIndex s_fileIndex = null;
 		public static DLLLoader s_dataDll = null;
-		
+
 		public static void Main (string[] args)
 		{
 			Application.Init();
@@ -42,8 +42,8 @@ namespace PutkEd
 					break;
 
 				Gtk.FileChooserDialog fcd = new Gtk.FileChooserDialog("PutkEd - Choose project root", null, FileChooserAction.Open, 
-				"Cancel",ResponseType.Cancel, "Open",ResponseType.Accept);
-			
+				                                                      "Cancel",ResponseType.Cancel, "Open",ResponseType.Accept);
+
 
 				FileFilter f = new FileFilter();
 				f.Name = "PutkEd Configuration";
@@ -76,7 +76,7 @@ namespace PutkEd
 
 			s_fileIndex = new FileIndex();
 			s_fileIndex.Load(s_loader.m_configOpts["datapath"] + "/data/objs");
-		
+
 			// -------------------------------------------------------
 			// If we made it all the way here, store the config!
 
@@ -94,9 +94,23 @@ namespace PutkEd
 				Console.WriteLine("Failing to store configuration path");
 			}
 
+
+			Type ti = typeof(EditorPlugin);
+			foreach (System.Reflection.Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type t in asm.GetTypes())
+				{
+					if (ti.IsAssignableFrom(t) && !t.IsInterface)
+					{
+						Console.WriteLine("I got the type [" + t.Name + "]");
+					}
+				}
+			}
+
+
 			MainWindow win = new MainWindow();
 			win.Show();
-						
+
 			Application.Run ();
 		}
 	}

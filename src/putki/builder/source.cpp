@@ -91,7 +91,6 @@ namespace putki
 	// adds unresolved pointer to the db through resolve_pointer.
 	void load_into_db(db::data *db, const char *fullpath, const char *name)
 	{
-		// std::cout << "[load into db <" << fullpath << "> <" << name << ">" << std::endl;
 		//
 		std::string asset_name(name);
 		int p = asset_name.find_last_of('.');
@@ -156,7 +155,11 @@ namespace putki
 
 
 
-			putki::parse::free(pd);
+			putki::parse::free(pd);		
+		}
+		else
+		{
+			std::cout << "[failed to load into db <" << fullpath << "> <" << name << ">" << std::endl;
 		}
 	}
 
@@ -207,7 +210,9 @@ namespace putki
 				if (loaded.count(file) == 0)
 				{
 					ld++;
-					std::cout << "Loading additional [" << file << "]" << std::endl;
+					//
+					// std::cout << "Loading additional [" << file << "] into db " << d << std::endl;
+					//
 					load_into_db(d, (std::string(sourcepath) + "/" + file).c_str(), file.c_str());
 					loaded.insert(file);
 				}

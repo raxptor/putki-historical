@@ -32,9 +32,9 @@ public partial class MainWindow : Gtk.Window
 	{
 		Gtk.ListStore ls = new Gtk.ListStore (typeof(string), typeof(string));
 
-		PutkEd.MainClass.s_fileIndex.Reload();
+		PutkEd.PutkEdMain.s_fileIndex.Reload();
 
-		foreach (PutkEd.FileIndex.Entry e in PutkEd.MainClass.s_fileIndex.GetAssets())
+		foreach (PutkEd.FileIndex.Entry e in PutkEd.PutkEdMain.s_fileIndex.GetAssets())
 		{
 			ls.AppendValues(e.AssetName, e.DisplayType);
 		}
