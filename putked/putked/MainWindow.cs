@@ -25,6 +25,20 @@ public partial class MainWindow : Gtk.Window
 		c1.AddAttribute(r1, "text", 1);
 		m_fileTree.InsertColumn (c1, 1);
 
+		foreach (PutkEd.EditorPlugin p in PutkEd.PutkEdMain.s_plugins)
+		{		
+			Button b = new Button(p.GetDescription());
+			vbox3.Add(b);
+			Gtk.Box.BoxChild bc = (Box.BoxChild) vbox3[b];		
+			bc.Fill = false;
+			bc.Expand = false;
+
+			b.Clicked += delegate(object sender, EventArgs e)
+			{
+				OpenAssetEditor(p);
+			};
+		}
+
 		ScanFiles();
 	}
 
@@ -50,7 +64,7 @@ public partial class MainWindow : Gtk.Window
 		a.RetVal = true;
 	}
 
-	protected void OnEditAsset (object sender, EventArgs e)
+	private void OpenAssetEditor(PutkEd.EditorPlugin plugin = null)
 	{
 		TreeModel model;
 		TreeIter iter;
@@ -61,11 +75,23 @@ public partial class MainWindow : Gtk.Window
 			PutkEd.DLLLoader.MemInstance mi = PutkEd.DLLLoader.DiskLoad(Path);
 			if (mi != null)
 			{
-				PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
-				ae.SetObject(mi);
-				ae.Show();
+				if (plugin == null)
+				{
+					PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
+					ae.SetObject(mi);
+					ae.Show();
+				}
+				else
+				{
+					plugin.LaunchEditor(mi);
+				}
 			}
 		}
+	}
+
+	protected void OnEditAsset (object sender, EventArgs e)
+	{
+		OpenAssetEditor(null);
 	}
 
 	protected void OnNewAsset (object sender, EventArgs e)
@@ -83,7 +109,7 @@ public partial class MainWindow : Gtk.Window
 		OnEditAsset(o, args);
 	}
 
-	protected void OnReload (object sender, EventArgs e)
+	protected void OnReloadIndex(object sender, EventArgs e)
 	{
 		ScanFiles();
 	}

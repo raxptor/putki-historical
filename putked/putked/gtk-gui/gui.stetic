@@ -152,7 +152,7 @@
                     <property name="Type">TextOnly</property>
                     <property name="Label" translatable="yes">Reload Index</property>
                     <property name="UseUnderline">True</property>
-                    <signal name="Clicked" handler="OnReload" />
+                    <signal name="Clicked" handler="OnReloadIndex" />
                   </widget>
                   <packing>
                     <property name="Position">0</property>

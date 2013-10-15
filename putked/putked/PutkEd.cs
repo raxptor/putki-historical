@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.IsolatedStorage;
+using System.Collections.Generic;
 using Gtk;
 
 namespace PutkEd
@@ -10,6 +11,7 @@ namespace PutkEd
 		public static Loader s_loader = null;
 		public static FileIndex s_fileIndex = null;
 		public static DLLLoader s_dataDll = null;
+		public static List<EditorPlugin> s_plugins = new List<EditorPlugin>();
 
 		public static void Main (string[] args)
 		{
@@ -94,7 +96,7 @@ namespace PutkEd
 				Console.WriteLine("Failing to store configuration path");
 			}
 
-
+		
 			Type ti = typeof(EditorPlugin);
 			foreach (System.Reflection.Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
 			{
@@ -103,6 +105,7 @@ namespace PutkEd
 					if (ti.IsAssignableFrom(t) && !t.IsInterface)
 					{
 						Console.WriteLine("I got the type [" + t.Name + "]");
+						s_plugins.Add((EditorPlugin) Activator.CreateInstance(t));
 					}
 				}
 			}

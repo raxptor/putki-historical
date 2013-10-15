@@ -2,7 +2,7 @@ using System;
 
 namespace ccguiputkedplugin
 {
-	public class CCGUIPutkEdPlugin
+	public class CCGUIPutkEdPlugin : PutkEd.EditorPlugin
 	{
 		public CCGUIPutkEdPlugin ()
 		{
@@ -23,7 +23,7 @@ namespace ccguiputkedplugin
 			return false;
 		}
 
-		void LaunchEditor(PutkEd.DLLLoader.MemInstance mi)
+		public void LaunchEditor(PutkEd.DLLLoader.MemInstance mi)
 		{
 			WidgetEditorWindow win = new WidgetEditorWindow();
 			win.Show();
