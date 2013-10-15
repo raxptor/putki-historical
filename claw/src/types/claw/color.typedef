@@ -1,8 +1,0 @@
-
-rgba [in, out]
-{
-	byte r
-	byte g
-	byte b
-	byte a
-}
