@@ -1,17 +1,13 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PutkEd/PointerEditor.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="putked\Program.cs">
     <Files>
-      <File FileName="PutkEd/DLLLoader.cs" Line="1" Column="1" />
-      <File FileName="PutkEd/PointerEditor.cs" Line="31" Column="33" />
+      <File FileName="PutkEd\PointerEditor.cs" Line="41" Column="31" />
+      <File FileName="putked\Program.cs" Line="32" Column="4" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
-        <State expanded="True">
-          <Node name="PutkEd" expanded="True">
-            <Node name="PointerEditor.cs" selected="True" />
-          </Node>
-        </State>
+        <State expanded="True" />
       </Pad>
       <Pad Id="ClassPad">
         <State expanded="True" selected="True" />
