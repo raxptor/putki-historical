@@ -29,10 +29,16 @@ void app_build_packages(putki::db::data *out, putki::build::packaging_config *pc
 	*/
 	{
 		putki::package::data *pkg = putki::package::create(out);
-		putki::package::add(pkg, "tetris/gamescreen", true);
+		putki::package::add(pkg, "tetris/gamescreen", true);		
 		putki::build::commit_package(pkg, pconf, "tetris.pkg");
 	}
 
+	{
+		putki::package::data *pkg = putki::package::create(out);
+		putki::package::add(pkg, "dialog/widget", true);
+		putki::package::add(pkg, "dialog/containerscreen", true);
+		putki::build::commit_package(pkg, pconf, "dialogs.pkg");
+	}
 }
 
 int run_putki_builder(int argc, char **argv);

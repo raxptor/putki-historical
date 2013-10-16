@@ -5,6 +5,10 @@ namespace CCGUI
 	{
 		public static UIWidgetRenderer CreateWidgetRenderer(outki.UIWidget widget, UIWidgetHandler handler)
 		{
+			// special case for dialogs system.
+			if (widget.handler == "dialog-container")
+				return new UIDialogContainerRenderer(widget, handler);
+
 			return new UIWidgetRenderer(widget, handler);
 		}
 		

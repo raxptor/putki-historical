@@ -106,10 +106,10 @@ namespace ViewerApp
     class Viewer
     {
 		[STAThread]
-        static void Main(string[] args)
-        {			
-			//Putki.PackageManager.LoadFromBytes(File.ReadAllBytes("packages\\static.pkg"), new Loader());
+		static void Main(string[] args)
+		{
 			Putki.PackageManager.LoadFromBytes(File.ReadAllBytes("packages\\tetris.pkg"), new Loader());
+			Putki.PackageManager.LoadFromBytes(File.ReadAllBytes("packages\\dialogs.pkg"), new Loader());
 
 			Putki.LiveUpdateClient lup = null; 
 			
@@ -118,15 +118,21 @@ namespace ViewerApp
 
 			DispatcherTimer dtp = new DispatcherTimer();
 
-			outki.UIScreen scrn = Putki.PackageManager.Resolve<outki.UIScreen>("tetris/gamescreen");
-
-			RootWindow w = new RootWindow(new CCGUI.UIScreenRenderer(scrn, new ViewerWidgetHandler()), "CCG-UI C# Runtime");
+			RootWindow w = new RootWindow("CCG-UI C# Runtime");
 			
+			w.AddScreen(new CCGUI.UIScreenRenderer(Putki.PackageManager.Resolve<outki.UIScreen>("tetris/gamescreen"), new ViewerWidgetHandler()));
+			w.AddScreen(new CCGUI.UIScreenRenderer(Putki.PackageManager.Resolve<outki.UIScreen>("dialog/containerscreen"), new ViewerWidgetHandler()));
+
+			CCGUI.UIDialogManager.AddDialog(Putki.PackageManager.Resolve<outki.UIWidget>("dialog/widget"), null);
+
 
 			dtp.Tick += delegate
 			{
-				if (lup != null && lup.Update())
+				w.DeltaTime += 0.010f;
+				if (lup != null && lup.Update() || w.DeltaTime > 0.03f)
+				{				
 					w.InvalidateVisual();
+				}
 			};
 
 			dtp.Interval = new TimeSpan(0, 0, 0, 0, 10);

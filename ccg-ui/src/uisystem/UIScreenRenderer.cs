@@ -39,7 +39,7 @@ namespace CCGUI
 			}
 		}
 
-		public void Draw(float x0, float y0, float x1, float y1, UIInputManager inputManager, EventHandler eventHandler)
+		public void Draw(float x0, float y0, float x1, float y1, float frameDelta, UIInputManager inputManager, EventHandler eventHandler)
 		{
 			bool mod = false;
 			mod |= Putki.LiveUpdate.Update(ref m_screen);
@@ -91,6 +91,7 @@ namespace CCGUI
 			rctx.InputManager = inputManager;
 			rctx.TextureManager = m_textureManager;
 			rctx.EventHandler = eventHandler;
+			rctx.FrameDelta = frameDelta;
 			
 			if (rctx.EventHandler == null)
 				rctx.EventHandler = new NullEventHandler();

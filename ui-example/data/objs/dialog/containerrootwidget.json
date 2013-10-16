@@ -1,0 +1,14 @@
+{
+	type: "UIWidget",
+	data: {
+			"_rtti_type": 16,
+			"width": 1024,
+			"height": 1024,
+			"handler": "dialog-container",
+			"layers": [{
+				"elements": []
+		}]
+	},
+	aux: [
+	      ]
+}

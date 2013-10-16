@@ -10,7 +10,7 @@
 		}, {
 				"elements": ["tetris/gamescreenroot#ssej"]
 		}, {
-				"elements": ["tetris/gamescreenroot#lbhb"]
+				"elements": []
 		}]
 	},
 	aux: [
@@ -71,36 +71,6 @@
 					}
 				},
 					"widget": "tetris/gameboardwidget"
-			}
-		}
-		,
-		{
-			ref: "#lbhb",
-			type: "UIWidgetElement",
-			data: {
-					"parent": {
-						"_rtti_type": 18,
-						"id": "",
-						"layout": {
-							"x": 20,
-							"y": 60,
-							"width": 320,
-							"height": 240
-					},
-						"expansion": {
-							"x": 0.5,
-							"y": 0.5,
-							"width": 0,
-							"height": 0
-					},
-						"color": {
-							"r": 255,
-							"g": 255,
-							"b": 255,
-							"a": 255
-					}
-				},
-					"widget": "dialog/widget"
 			}
 		}
 	      ]

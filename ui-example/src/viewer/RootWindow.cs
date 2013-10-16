@@ -16,23 +16,29 @@ namespace ViewerApp
 {
 	public class RootWindow : Window
 	{
-		CCGUI.UIScreenRenderer m_screenRenderer;
+		public List<CCGUI.UIScreenRenderer> m_screens = new List<CCGUI.UIScreenRenderer>();
 		CCGUI.UIInputState m_input;
 		CCGUI.UIInputManager m_inputManager;
 
+		public float DeltaTime = 0;
+
 		Grid g = new Grid();		
 
-		public RootWindow(CCGUI.UIScreenRenderer scrn, string title)
+		public RootWindow(string title)
 		{
 			Background = Brushes.Transparent;
 			Width = 900;
 			Height = 700;
 			Title = title;
-			m_screenRenderer = scrn;
 			m_input = new CCGUI.UIInputState();
 			m_inputManager = new CCGUI.UIInputManager();
 
 			AddChild(g);
+		}
+
+		public void AddScreen(CCGUI.UIScreenRenderer r)
+		{
+			m_screens.Add(r);
 		}
 
 		protected override void OnRender(DrawingContext drawingContext)
@@ -45,9 +51,12 @@ namespace ViewerApp
 			m_input.MouseY = (float)p.Y;
 
 			m_input.Touches = UITusch.Read();
-			m_inputManager.BeginFrame(m_input);			
+			m_inputManager.BeginFrame(m_input);
 
-			m_screenRenderer.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, m_inputManager, null);
+			foreach (CCGUI.UIScreenRenderer r in m_screens)
+				r.Draw(0, 0, (float)g.ActualWidth, (float)g.ActualHeight, DeltaTime, m_inputManager, null);
+
+			DeltaTime = 0;
 
 			m_input.MouseClicked = false;
 
