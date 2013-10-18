@@ -26,16 +26,16 @@ public partial class MainWindow : Gtk.Window
 		m_fileTree.InsertColumn (c1, 1);
 
 		foreach (PutkEd.EditorPlugin p in PutkEd.PutkEdMain.s_plugins)
-		{		
+		{
 			Button b = new Button(p.GetDescription());
 			vbox3.Add(b);
-			Gtk.Box.BoxChild bc = (Box.BoxChild) vbox3[b];		
+			Gtk.Box.BoxChild bc = (Box.BoxChild) vbox3[b];
 			bc.Fill = false;
 			bc.Expand = false;
 
 			b.Clicked += delegate(object sender, EventArgs e)
 			{
-				OpenAssetEditor(p);
+				OnEditAsset(sender, e);
 			};
 		}
 
@@ -64,7 +64,24 @@ public partial class MainWindow : Gtk.Window
 		a.RetVal = true;
 	}
 
-	private void OpenAssetEditor(PutkEd.EditorPlugin plugin = null)
+	private void OpenAssetEditor(PutkEd.DLLLoader.MemInstance mi, PutkEd.EditorPlugin plugin = null)
+	{
+		if (mi != null)
+		{
+			if (plugin == null)
+			{
+				PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
+				ae.SetObject(mi);
+				ae.Show();
+			}
+			else
+			{
+				plugin.LaunchEditor(mi);
+			}
+		}
+	}
+
+	protected void OnEditAsset (object sender, EventArgs e)
 	{
 		TreeModel model;
 		TreeIter iter;
@@ -73,25 +90,17 @@ public partial class MainWindow : Gtk.Window
 		{		
 			string Path = model.GetValue(iter, 0).ToString();
 			PutkEd.DLLLoader.MemInstance mi = PutkEd.DLLLoader.DiskLoad(Path);
-			if (mi != null)
+
+			foreach (PutkEd.EditorPlugin p in PutkEd.PutkEdMain.s_plugins)
 			{
-				if (plugin == null)
+				if (p.CanEditType(mi.GetPutkiType()))
 				{
-					PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
-					ae.SetObject(mi);
-					ae.Show();
-				}
-				else
-				{
-					plugin.LaunchEditor(mi);
+					OpenAssetEditor(mi, p);
+					return;
 				}
 			}
+			OpenAssetEditor(mi, null);
 		}
-	}
-
-	protected void OnEditAsset (object sender, EventArgs e)
-	{
-		OpenAssetEditor(null);
 	}
 
 	protected void OnNewAsset (object sender, EventArgs e)
@@ -112,6 +121,11 @@ public partial class MainWindow : Gtk.Window
 	protected void OnReloadIndex(object sender, EventArgs e)
 	{
 		ScanFiles();
+	}
+
+	protected void OnCursorChanged (object sender, EventArgs e)
+	{
+
 	}
 
 }

@@ -26,7 +26,6 @@ namespace PutkEd
 							types.Add(e.Name);
 					}
 				}
-
 			}
 
 			types.Sort();

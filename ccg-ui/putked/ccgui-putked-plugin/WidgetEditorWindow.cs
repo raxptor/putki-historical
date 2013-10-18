@@ -8,6 +8,8 @@ namespace ccguiputkedplugin
 				base(Gtk.WindowType.Toplevel)
 		{
 			this.Build ();
+		//Add(new WidgetViewer());
+			this.ShowAll();
 		}
 	}
 }

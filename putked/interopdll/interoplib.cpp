@@ -76,6 +76,11 @@ extern "C"
 		return g_loaded_dll->type_by_index(i);
 	}
 
+	DSPEC putki::ext_type_handler_i* MED_TypeByName(const char *name)
+	{
+		return g_loaded_dll->type_by_name(name);
+	}
+
 	DSPEC putki::ext_type_handler_i* MED_Type_GetParentType(putki::ext_type_handler_i *input)
 	{
 		const char *pn = input->parent_name();

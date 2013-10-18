@@ -106,6 +106,7 @@ public partial class MainWindow
 		this.Show ();
 		this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 		this.m_fileTree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnRowActivated);
+		this.m_fileTree.CursorChanged += new global::System.EventHandler (this.OnCursorChanged);
 		this.button7.Clicked += new global::System.EventHandler (this.OnReloadIndex);
 		this.button1.Clicked += new global::System.EventHandler (this.OnNewAsset);
 		this.button3.Clicked += new global::System.EventHandler (this.OnEditAsset);

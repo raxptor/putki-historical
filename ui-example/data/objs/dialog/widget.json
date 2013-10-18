@@ -138,11 +138,11 @@
 				},
 					"font": "fonts/calibri",
 					"pixelSize": 24,
-					"Text": "Dialog box test.",
+					"Text": "Dialog",
 					"HorizontalAlignment": "UIHorizontalAlignment_Center",
 					"VerticalAlignment": "UIVerticalAlignment_Top",
 					"BackgroundFill": {
-						"_rtti_type": 0
+						"_rtti_type": 7
 				}
 			}
 		}

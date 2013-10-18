@@ -133,6 +133,7 @@
                     <property name="EnableSearch">False</property>
                     <property name="SearchColumn">0</property>
                     <signal name="RowActivated" handler="OnRowActivated" />
+                    <signal name="CursorChanged" handler="OnCursorChanged" />
                   </widget>
                 </child>
               </widget>

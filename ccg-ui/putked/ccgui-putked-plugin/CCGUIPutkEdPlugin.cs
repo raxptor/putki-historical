@@ -1,4 +1,5 @@
 using System;
+using PutkEd;
 
 namespace ccguiputkedplugin
 {
@@ -16,16 +17,16 @@ namespace ccguiputkedplugin
 
 		public bool CanEditType(PutkEd.DLLLoader.Types pt)
 		{
-			if (pt.Name == "UIWidget")
-			{
-				return true;
-			}
-			return false;
+			DLLLoader.Types wt = DLLLoader.GetTypeByName("UIWidget");
+			if (wt == null)
+				return false;
+
+			return DLLLoader.HasParent(pt, wt);
 		}
 
 		public void LaunchEditor(PutkEd.DLLLoader.MemInstance mi)
 		{
-			WidgetEditorWindow win = new WidgetEditorWindow();
+			WidgetEditWindow win = new WidgetEditWindow(mi);
 			win.Show();
 		}
 	}

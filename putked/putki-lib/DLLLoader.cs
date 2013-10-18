@@ -19,6 +19,9 @@ namespace PutkEd
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_TypeByIndex(int i);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_TypeByName(string name);
 		
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Type_GetName(IntPtr type);
@@ -174,7 +177,7 @@ namespace PutkEd
 			{
 				MED_Field_ArrayInsert(Handler, mi.PutkiInst);
 				MED_OnObjectModified(mi.PutkiInst);
-		}
+			}
 
 			public void ArrayErase(MemInstance mi)
 			{
@@ -293,7 +296,15 @@ namespace PutkEd
 			{
 				return MSTR(MED_Type_GetName(MED_TypeOf(PutkiInst)));
 			}
-			
+
+			public Types GetPutkiType()
+			{
+				Types t = new Types();
+				t.Handler = MED_TypeOf(PutkiInst);
+				t.Name = MSTR(MED_Type_GetName(t.Handler));
+				return t;
+			}
+
 			public string GetPath()
 			{
 				return MSTR(MED_PathOf(PutkiInst));
@@ -374,6 +385,21 @@ namespace PutkEd
 		public List<Types> GetTypes()
 		{
 			return m_loadedTypes;
+		}
+
+		public static Types GetTypeByName(string s)
+		{
+			IntPtr b = MED_TypeByName(s);
+
+			if ((int)b != 0)
+			{
+				Types t = new Types();
+				t.Name = MSTR(MED_Type_GetName(b));
+				t.Handler = b;
+				return t;
+			}
+
+			return null;
 		}
 
 		public void Load(string DataDLL, string DataPath)
