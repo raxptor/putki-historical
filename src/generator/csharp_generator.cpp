@@ -408,24 +408,41 @@ namespace putki
 				if (!strcmp(f->name.c_str(), "parent"))
 					continue;
 
-				const char *args = s->fields[i].is_array ? "(int arrayIndex)" : "()";
+				const char *args = "()";
+
+				if (s->fields[i].is_array)
+				{
+					args = "(int arrayIndex)";
+					out.line() << "public int num_" << s->fields[i].name << "() { return mi.GetField(" << i << ").GetArraySize(m_mi); }";
+					out.line();
+				}
 
 				////////////////////
 				// First we do get.
 
+				std::string get_name = std::string("get_") + s->fields[i].name;
+
+				if (get_name == "get__rtti_type")
+					get_name = "get_rtti_type";
+
 				switch (s->fields[i].type)
 				{
 					case FIELDTYPE_INT32:
-						out.line() << "int get_" << s->fields[i].name << args;
+						out.line() << "public int " << get_name << args;
 						break;
 					case FIELDTYPE_STRING:
-						out.line() << "string get_" << s->fields[i].name << args;
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_POINTER:
+						out.line() << "public string " <<get_name << args;
+						break;
+					case FIELDTYPE_STRUCT_INSTANCE:
+						out.line() << s->fields[i].ref_type << " " << get_name << args;
 						break;
 					case FIELDTYPE_FLOAT:
-						out.line() << "float get_" << s->fields[i].name << args;
+						out.line() << "public float " << get_name << args;
 						break;
 					default:
-						out.line() << "void get_" << s->fields[i].name << args;
+						out.line() << "public void  " << get_name << args;
 						break;
 				}
 
@@ -441,7 +458,14 @@ namespace putki
 						out.line() << "return mi.GetField(" << i << ").GetInt32(m_mi);";
 						break;
 					case FIELDTYPE_STRING:
-						out.line() << "return mi.GetString(" << i << ").GetInt32(m_mi);";
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_POINTER:
+						out.line() << "return mi.GetField(" << i << ").GetString(m_mi);";
+						break;
+					case FIELDTYPE_STRUCT_INSTANCE:
+						out.line() << "DLLLoader.MemInstance ml = mi.GetField(" << i << ").GetStructInstance(m_mi);";
+						out.line() << "if (ml == null) return null;";
+						out.line() << "return new " << s->fields[i].ref_type << "(ml);";
 						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << "return mi.GetField(" << i << ").GetFloat(m_mi);";
@@ -463,7 +487,6 @@ namespace putki
 			if (!s->parent.empty())
 				new_hide_str = "new ";
 
-			out.line() << new_hide_str << "public const int SIZE = " << size << expr_size_add <<";";
 			out.line() << new_hide_str << "public const int TYPE = " << s->unique_id << ";";
 
 			out.indent(-1);

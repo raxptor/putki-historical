@@ -108,8 +108,6 @@ namespace putki
 						out->is_array = true;
 					}
 					
-					std::cout << " Type is '" << type << "'" << std::endl;
-
 					if (!strcmp(type.c_str(), "string"))
 						out->type = putki::FIELDTYPE_STRING;
 					else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "u32"))
@@ -238,7 +236,6 @@ namespace putki
 				{
 					in_struct = true;
 					parse_header(line.c_str(), &datastruct);
-					std::cout << "reading datatype [" << datastruct.name << "]" << std::endl;
 				}
 			}
 			else
@@ -330,7 +327,6 @@ namespace putki
 							}
 							else
 							{
-								std::cout << "field:" << line << std::endl;
 								parsed_field pf;
 								parse_field(line.c_str(), &pf);
 								datastruct.fields.push_back(pf);
