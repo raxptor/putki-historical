@@ -7,7 +7,7 @@ namespace CCGUI
 	class UIDialogContainerRenderer : UIWidgetRenderer
 	{
 		UIWidgetHandler m_handler;
-		float m_plateFade = -1.0f;
+		float m_plateFade = 0;
 
 		// 
 		public UIDialogContainerRenderer(outki.UIWidget widget, UIWidgetHandler handler) : base(widget, handler)
@@ -46,7 +46,7 @@ namespace CCGUI
 			}
 			else
 			{
-				m_plateFade += rctx.FrameDelta * 5 * (fadeTarget - m_plateFade);
+				m_plateFade += rctx.FrameDelta * 5.0f * (fadeTarget - m_plateFade);
 				if (fadeTarget == 1 && m_plateFade > 0.98f)
 					m_plateFade = 1.0f;
 				else if (fadeTarget == 0 && m_plateFade < 0.02f)

@@ -21,6 +21,5 @@ AtlasOutput [in, out]
 Atlas [in, out]
 {
 	ptr[] Texture Inputs
-	[no-out] int ScaleDowns
 	[hidden] AtlasOutput[] Outputs
 }

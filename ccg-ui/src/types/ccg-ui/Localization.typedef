@@ -5,11 +5,7 @@ enum Language
 	English
 	Swedish
 	French
-	Finnish
-	Japanese
-	Invalid = 100
-	Banani
-	Kaluau = 33333
+	German
 }
 
 Translation [in, out]
