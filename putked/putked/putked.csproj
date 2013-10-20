@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{168A9417-EB78-4C88-B52F-A5BC0D5C0D61}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>PutkEd</RootNamespace>
+    <AssemblyName>PutkEd</AssemblyName>
+    <StartupObject>PutkEd.MainClass</StartupObject>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ApplicationIcon>putkico.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <EnvironmentVariables>
+      <EnvironmentVariables>
+        <Variable name="DYLD_LIBRARY_PATH" value="./build" />
+        <Variable name="MONO_LOG_LEVEL" value="none" />
+      </EnvironmentVariables>
+    </EnvironmentVariables>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <EnvironmentVariables>
+      <EnvironmentVariables>
+        <Variable name="MONO_LOG_LEVEL" value="none" />
+        <Variable name="DYLD_LIBRARY_PATH" value="./build" />
+      </EnvironmentVariables>
+    </EnvironmentVariables>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug/x64|x86' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Debug\x64</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnvironmentVariables>
+      <EnvironmentVariables>
+        <Variable name="MONO_LOG_LEVEL" value="debug" />
+      </EnvironmentVariables>
+    </EnvironmentVariables>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Mono.Posix" />
+    <Reference Include="gtk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="glib-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="pango-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="gtk-gui\gui.stetic">
+      <LogicalName>gui.stetic</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="gtk-gui\generated.cs" />
+    <Compile Include="MainWindow.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Loader.cs" />
+    <Compile Include="FileIndex.cs" />
+    <Compile Include="TypeEditor.cs" />
+    <Compile Include="EditorCreator.cs" />
+    <Compile Include="gtk-gui\PutkEd.TextEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.ArrayEditor.cs" />
+    <Compile Include="Looks.cs" />
+    <Compile Include="EmptyClass.cs" />
+    <Compile Include="TextEditor.cs" />
+    <Compile Include="AssetEditor.cs" />
+    <Compile Include="gtk-gui\MainWindow.cs" />
+    <Compile Include="ObjectEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.ObjectEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.AssetEditor.cs" />
+    <Compile Include="ArrayEditor.cs" />
+    <Compile Include="IntEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.IntEditor.cs" />
+    <Compile Include="BoolEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.BoolEditor.cs" />
+    <Compile Include="NewAssetDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.NewAssetDialog.cs" />
+    <Compile Include="PointerEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.PointerEditor.cs" />
+    <Compile Include="Vec4Editor.cs" />
+    <Compile Include="gtk-gui\PutkEd.Vec4Editor.cs" />
+    <Compile Include="NewInstanceDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.NewInstanceDialog.cs" />
+    <Compile Include="InstancePickerDialog.cs" />
+    <Compile Include="gtk-gui\PutkEd.InstancePickerDialog.cs" />
+    <Compile Include="FloatEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.FloatEditor.cs" />
+    <Compile Include="EnumEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.EnumEditor.cs" />
+    <Compile Include="PutkEd.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy NoTabsAfterNonTabs="True" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy IndentSwitchBody="True" AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" EventRemoveBraceStyle="NextLine" StatementBraceStyle="NextLine" ElseNewLinePlacement="NewLine" CatchNewLinePlacement="NewLine" FinallyNewLinePlacement="NewLine" WhileNewLinePlacement="DoNotCare" ArrayInitializerWrapping="DoNotChange" ArrayInitializerBraceStyle="NextLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeDelegateDeclarationParentheses="False" NewParentheses="False" SpacesBeforeBrackets="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <TextStylePolicy FileWidth="120" TabsToSpaces="False" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="Editors\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\putki-lib\putki-lib.csproj">
+      <Project>{72E9BCF0-B1DA-4789-A676-C2ABAB38FCDD}</Project>
+      <Name>putki-lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

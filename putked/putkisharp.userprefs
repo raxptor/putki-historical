@@ -1,15 +1,15 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="putki-lib\DataHelper.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="putki-lib\DLLLoader.cs">
     <Files>
-      <File FileName="putked\MainWindow.cs" Line="81" Column="4" />
+      <File FileName="putked\MainWindow.cs" Line="1" Column="1" />
       <File FileName="putked\NewAssetDialog.cs" Line="1" Column="1" />
-      <File FileName="putki-lib\DLLLoader.cs" Line="7" Column="1" />
+      <File FileName="putki-lib\DLLLoader.cs" Line="166" Column="27" />
       <File FileName="putked\PutkEd.cs" Line="1" Column="1" />
-      <File FileName="putked\TextEditor.cs" Line="8" Column="36" />
-      <File FileName="putked\NewInstanceDialog.cs" Line="19" Column="1" />
+      <File FileName="putked\TextEditor.cs" Line="1" Column="1" />
+      <File FileName="putked\NewInstanceDialog.cs" Line="1" Column="1" />
       <File FileName="putki-lib\DataHelper.cs" Line="43" Column="12" />
-      <File FileName="putked\EditorCreator.cs" Line="35" Column="1" />
+      <File FileName="putked\EditorCreator.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -19,7 +19,7 @@
             <Node name="Properties" expanded="True" />
           </Node>
           <Node name="putki-lib" expanded="True">
-            <Node name="DataHelper.cs" selected="True" />
+            <Node name="DLLLoader.cs" selected="True" />
           </Node>
         </State>
       </Pad>

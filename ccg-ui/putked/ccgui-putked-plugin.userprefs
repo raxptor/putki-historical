@@ -4,7 +4,7 @@
     <Files>
       <File FileName="ccgui-putked-plugin\WidgetEditWindow.cs" Line="1" Column="1" />
       <File FileName="ccgui-putked-plugin\WidgetViewer.cs" Line="1" Column="1" />
-      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="35" Column="7" />
+      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="23" Column="4" />
       <File FileName="ccgui-putked-plugin\CCGUIPutkEdPlugin.cs" Line="1" Column="1" />
     </Files>
     <Pads>
