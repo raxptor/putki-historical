@@ -164,9 +164,10 @@ namespace putki
 			delete mi;
 		}
 
-		mem_instance* disk_load(const char *path) 
-		{			
-			load_file_into_db(_path.c_str(), path, _db, false);
+		mem_instance* disk_load(const char *path, bool enable_read_cache = true) 
+		{
+			if (!enable_read_cache)
+				load_file_into_db(_path.c_str(), path, _db, false);
 
 			type_handler_i *th;
 			instance_t obj;
@@ -184,7 +185,15 @@ namespace putki
 			}
 			else
 			{
-				std::cout << "disk_load: Failed to load (" << path << ")!" << std::endl;
+				if (!enable_read_cache)
+				{
+					std::cout << "disk_load: Failed to load (" << path << ")!" << std::endl;
+					return 0;
+				}
+				else
+				{
+					return disk_load(path, false);
+				}
 			}
 			
 			return 0;

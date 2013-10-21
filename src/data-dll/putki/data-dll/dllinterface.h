@@ -91,7 +91,7 @@ namespace putki
 
 		virtual void free_instance(mem_instance *mi) = 0;
 
-		virtual mem_instance* disk_load(const char *path) = 0;
+		virtual mem_instance* disk_load(const char *path, bool enable_read_cache = true) = 0;
 		virtual void disk_save(mem_instance *mi) = 0;
 
 		virtual ext_type_handler_i* type_of(mem_instance *mi) = 0;

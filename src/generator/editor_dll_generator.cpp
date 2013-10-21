@@ -290,6 +290,8 @@ namespace putki
 			{
 				if (s->fields[j].name != "_rtti_type")
 				{
+					s->fields[j]._WROTE_DLL_FIELD_INDEX = idx;
+
 					out.line();
 					out.line() << "case " << idx++ << ": ";;
 					out.line() << "{";

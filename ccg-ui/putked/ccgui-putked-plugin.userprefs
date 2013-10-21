@@ -2,10 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="ccgui-putked-plugin\WidgetEditorWidget.cs">
     <Files>
-      <File FileName="ccgui-putked-plugin\WidgetEditWindow.cs" Line="1" Column="1" />
-      <File FileName="ccgui-putked-plugin\WidgetViewer.cs" Line="1" Column="1" />
-      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="23" Column="4" />
-      <File FileName="ccgui-putked-plugin\CCGUIPutkEdPlugin.cs" Line="1" Column="1" />
+      <File FileName="c:\gitproj\putki\ccg-ui\_gen\inki_csharp\types\ccg-ui\Atlas.cs" Line="99" Column="20" />
+      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="43" Column="6" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -13,6 +11,8 @@
           <Node name="ccgui-putked-plugin" expanded="True">
             <Node name="References" expanded="True" />
             <Node name="UserInterface" expanded="True" />
+            <Node name="ccg-gen" expanded="True" />
+            <Node name="Properties" expanded="True" />
             <Node name="WidgetEditorWidget.cs" selected="True" />
           </Node>
         </State>
@@ -26,7 +26,10 @@
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\gitproj\putki\ccg-ui\putked\ccgui-putked-plugin\gtk-gui\ccguiputkedplugin.WidgetEditorWindow.cs" line="9" column="1" />
+      <Breakpoint file="C:\gitproj\putki\ccg-ui\putked\ccgui-putked-plugin\gtk-gui\ccguiputkedplugin.WidgetEditorWindow.cs" line="10" column="2" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

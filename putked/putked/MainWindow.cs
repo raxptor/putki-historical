@@ -1,4 +1,5 @@
 using System;
+using PutkEd;
 using Gtk;
 
 public partial class MainWindow : Gtk.Window
@@ -25,7 +26,7 @@ public partial class MainWindow : Gtk.Window
 		c1.AddAttribute(r1, "text", 1);
 		m_fileTree.InsertColumn (c1, 1);
 
-		foreach (PutkEd.EditorPlugin p in PutkEd.PutkEdMain.s_plugins)
+		foreach (EditorPlugin p in PutkEdMain.s_plugins)
 		{
 			Button b = new Button(p.GetDescription());
 			vbox3.Add(b);
@@ -46,9 +47,9 @@ public partial class MainWindow : Gtk.Window
 	{
 		Gtk.ListStore ls = new Gtk.ListStore (typeof(string), typeof(string));
 
-		PutkEd.PutkEdMain.s_fileIndex.Reload();
+		PutkEdMain.s_fileIndex.Reload();
 
-		foreach (PutkEd.FileIndex.Entry e in PutkEd.PutkEdMain.s_fileIndex.GetAssets())
+		foreach (FileIndex.Entry e in PutkEdMain.s_fileIndex.GetAssets())
 		{
 			ls.AppendValues(e.AssetName, e.DisplayType);
 		}
@@ -64,13 +65,13 @@ public partial class MainWindow : Gtk.Window
 		a.RetVal = true;
 	}
 
-	private void OpenAssetEditor(PutkEd.DLLLoader.MemInstance mi, PutkEd.EditorPlugin plugin = null)
+	private void OpenAssetEditor(DLLLoader.MemInstance mi, EditorPlugin plugin = null)
 	{
 		if (mi != null)
 		{
 			if (plugin == null)
 			{
-				PutkEd.AssetEditor ae = new PutkEd.AssetEditor();
+				AssetEditor ae = new AssetEditor();
 				ae.SetObject(mi);
 				ae.Show();
 			}
@@ -89,9 +90,9 @@ public partial class MainWindow : Gtk.Window
 		if (m_fileTree.Selection.GetSelected(out model, out iter))
 		{		
 			string Path = model.GetValue(iter, 0).ToString();
-			PutkEd.DLLLoader.MemInstance mi = PutkEd.DLLLoader.DiskLoad(Path);
+			DLLLoader.MemInstance mi = DLLLoader.MemInstance.Load(Path);
 
-			foreach (PutkEd.EditorPlugin p in PutkEd.PutkEdMain.s_plugins)
+			foreach (EditorPlugin p in PutkEdMain.s_plugins)
 			{
 				if (p.CanEditType(mi.GetPutkiType()))
 				{
@@ -105,7 +106,7 @@ public partial class MainWindow : Gtk.Window
 
 	protected void OnNewAsset (object sender, EventArgs e)
 	{
-		PutkEd.NewAssetDialog nad = new PutkEd.NewAssetDialog();
+		NewAssetDialog nad = new NewAssetDialog();
 		if (nad.Run() == 0)
 		{
 			ScanFiles();

@@ -10,6 +10,11 @@ namespace putki
 {	
 	struct parsed_field
 	{
+		parsed_field()
+		{
+			_WROTE_DLL_FIELD_INDEX = -1;
+		}
+
 		int domains;
 
 		putki::field_type type;
@@ -20,6 +25,8 @@ namespace putki
 		std::string name;
 		std::string ref_type;
 		std::string def_value;
+
+		int _WROTE_DLL_FIELD_INDEX;
 	};
 
 	struct enum_value

@@ -84,7 +84,7 @@ namespace PutkEd
 				e.FilePath = n;
 				e.AssetName = n.Substring(pathCut).Replace(".json", "");
 
-				DLLLoader.MemInstance mi = PutkEd.DLLLoader.DiskLoad(e.AssetName);
+				DLLLoader.MemInstance mi = DLLLoader.MemInstance.Load(e.AssetName);
 				if (mi != null)
 				{
 					// Store 

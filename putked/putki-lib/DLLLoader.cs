@@ -36,7 +36,7 @@ namespace PutkEd
 		private static extern IntPtr MED_PathOf(IntPtr MemInstance);
 
 		[DllImport("monoed-interop")]
-		private static extern IntPtr MED_DiskLoad(string path);
+		private static extern IntPtr MED_DiskLoad(string path, bool enable_read_cache);
 
 		[DllImport("monoed-interop")]
 		private static extern void MED_DiskSave(IntPtr mi);
@@ -329,8 +329,14 @@ namespace PutkEd
 
 			public static MemInstance LoadFromDisk(string path)
 			{
-				Console.WriteLine("LoadFromDisk[" + path + "]");
-				return DiskLoad(path);
+				Console.WriteLine("Load (uncached) [" + path + "]");
+				return DiskLoad(path, false);
+			}
+
+			public static MemInstance Load(string path)
+			{
+				Console.WriteLine("Load (cached) [" + path + "]");
+				return DiskLoad(path, true);
 			}
 
 			public static MemInstance Create(string path, Types th)
@@ -348,9 +354,9 @@ namespace PutkEd
 			}
 		}
 
-		public static  MemInstance DiskLoad(string path)
+		public static  MemInstance DiskLoad(string path, bool enableCache)
 		{
-			IntPtr p = MED_DiskLoad(path);
+			IntPtr p = MED_DiskLoad(path, enableCache);
 			if ((int)p != 0)
 			{
 				MemInstance mi = new MemInstance();

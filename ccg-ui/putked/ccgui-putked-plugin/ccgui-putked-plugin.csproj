@@ -66,6 +66,24 @@
     <Compile Include="gtk-gui\ccguiputkedplugin.WidgetEditWindow.cs" />
     <Compile Include="WidgetEditorWidget.cs" />
     <Compile Include="gtk-gui\ccguiputkedplugin.WidgetEditorWidget.cs" />
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Atlas.cs">
+      <Link>ccg-gen\Atlas.cs</Link>
+    </Compile>
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Elements.cs">
+      <Link>ccg-gen\Elements.cs</Link>
+    </Compile>
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Font.cs">
+      <Link>ccg-gen\Font.cs</Link>
+    </Compile>
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Localization.cs">
+      <Link>ccg-gen\Localization.cs</Link>
+    </Compile>
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Screen.cs">
+      <Link>ccg-gen\Screen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\_gen\inki_csharp\types\ccg-ui\Texture.cs">
+      <Link>ccg-gen\Texture.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -78,4 +96,7 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="ccg-gen\" />
+  </ItemGroup>
 </Project>

@@ -31,7 +31,7 @@ namespace PutkEd
 			fi.SetArrayIndex(arrayIndex);
 
 			String r = fi.GetPointer(mi);
-			m_ptr_target = r.Length > 0 ? DLLLoader.MemInstance.LoadFromDisk(r) : null;
+			m_ptr_target = r.Length > 0 ? DLLLoader.MemInstance.Load(r) : null;
 			if (m_ptr_target == null)
 			{
 				m_tbox.ModifyBase(StateType.Normal, new Gdk.Color(200, 10, 10));
