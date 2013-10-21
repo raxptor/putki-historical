@@ -492,7 +492,7 @@ namespace putki
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
-					case FIELDTYPE_POINTER:
+					case FIELDTYPE_POINTER: 
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetString(m_mi);";
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:

@@ -1,16 +1,16 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="putked\PointerEditor.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="putki-lib\DLLLoader.cs">
     <Files>
-      <File FileName="putked\MainWindow.cs" Line="29" Column="12" />
+      <File FileName="putked\MainWindow.cs" Line="1" Column="1" />
       <File FileName="putked\NewAssetDialog.cs" Line="1" Column="1" />
-      <File FileName="putki-lib\DLLLoader.cs" Line="337" Column="5" />
+      <File FileName="putki-lib\DLLLoader.cs" Line="237" Column="32" />
       <File FileName="putked\PutkEd.cs" Line="1" Column="1" />
       <File FileName="putked\TextEditor.cs" Line="1" Column="1" />
       <File FileName="putked\NewInstanceDialog.cs" Line="1" Column="1" />
       <File FileName="putki-lib\DataHelper.cs" Line="1" Column="1" />
       <File FileName="putked\EditorCreator.cs" Line="1" Column="1" />
-      <File FileName="putked\FileIndex.cs" Line="79" Column="4" />
+      <File FileName="putked\FileIndex.cs" Line="1" Column="1" />
       <File FileName="putked\PointerEditor.cs" Line="78" Column="6" />
     </Files>
     <Pads>
@@ -19,9 +19,10 @@
           <Node name="putked" expanded="True">
             <Node name="UserInterface" expanded="True" />
             <Node name="Properties" expanded="True" />
-            <Node name="PointerEditor.cs" selected="True" />
           </Node>
-          <Node name="putki-lib" expanded="True" />
+          <Node name="putki-lib" expanded="True">
+            <Node name="DLLLoader.cs" selected="True" />
+          </Node>
         </State>
       </Pad>
       <Pad Id="ClassPad">

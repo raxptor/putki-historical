@@ -6,11 +6,11 @@ namespace ccguiputkedplugin
 	[System.ComponentModel.ToolboxItem (true)]
 	public class WidgetViewer : Gtk.DrawingArea
 	{
-		DLLLoader.MemInstance m_mi;
+		inki.UIWidget m_widget;
 
-		public WidgetViewer(DLLLoader.MemInstance mi)
+		public WidgetViewer(inki.UIWidget widget)
 		{
-			m_mi = mi;
+			m_widget = widget;
 		}
 
 		protected override bool OnButtonPressEvent (Gdk.EventButton ev)
@@ -26,6 +26,34 @@ namespace ccguiputkedplugin
 			// Insert drawing code here.
 			Gdk.GC g = new Gdk.GC(GdkWindow);
 			g.RgbFgColor = new Gdk.Color(0,0,100);
+			g.RgbBgColor = new Gdk.Color(0,0,0);
+
+
+			for (int i=0;i<m_widget.get_layers_count();i++)
+			{
+				inki.UIElementLayer layer = m_widget.get_layers(i);
+				if (layer != null)
+				{
+					Console.WriteLine("  and it has " + layer.get_elements_count() + " elements");
+					for (int j=0;j<layer.get_elements_count();j++)
+					{
+						inki.UIElement el = layer.resolve_elements(j);
+						Console.WriteLine("    element[" + j + "] = " + el);
+						if (el != null)
+						{
+							Console.WriteLine("    => type = " + el.m_mi.GetTypeName());
+							inki.UIRect lr = el.get_layout();
+							Gdk.Rectangle r = new Gdk.Rectangle((int)lr.get_x(), (int)lr.get_y(), (int)lr.get_width(), (int)lr.get_height());
+							GdkWindow.DrawRectangle(g, false, r);
+						}
+					}
+
+				}
+			}
+
+
+
+
 			GdkWindow.DrawLine(g, 0, 0, 100, 100);
 
 			return true;

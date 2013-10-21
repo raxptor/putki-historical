@@ -1,9 +1,14 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ccgui-putked-plugin\WidgetEditorWidget.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="..\_gen\inki_csharp\types\ccg-ui\Elements.cs">
     <Files>
-      <File FileName="c:\gitproj\putki\ccg-ui\_gen\inki_csharp\types\ccg-ui\Atlas.cs" Line="99" Column="20" />
-      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="43" Column="6" />
+      <File FileName="c:\gitproj\putki\ccg-ui\_gen\inki_csharp\types\ccg-ui\Atlas.cs" Line="1" Column="1" />
+      <File FileName="ccgui-putked-plugin\WidgetEditorWidget.cs" Line="1" Column="1" />
+      <File FileName="ccgui-putked-plugin\CCGUIPutkEdPlugin.cs" Line="1" Column="1" />
+      <File FileName="ccgui-putked-plugin\Launcher.cs" Line="1" Column="1" />
+      <File FileName="ccgui-putked-plugin\WidgetEditWindow.cs" Line="1" Column="1" />
+      <File FileName="..\_gen\inki_csharp\types\ccg-ui\Elements.cs" Line="425" Column="22" />
+      <File FileName="ccgui-putked-plugin\WidgetViewer.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -11,9 +16,10 @@
           <Node name="ccgui-putked-plugin" expanded="True">
             <Node name="References" expanded="True" />
             <Node name="UserInterface" expanded="True" />
-            <Node name="ccg-gen" expanded="True" />
+            <Node name="ccg-gen" expanded="True">
+              <Node name="Elements.cs" selected="True" />
+            </Node>
             <Node name="Properties" expanded="True" />
-            <Node name="WidgetEditorWidget.cs" selected="True" />
           </Node>
         </State>
       </Pad>

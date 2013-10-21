@@ -279,6 +279,8 @@ namespace PutkEd
 			{
 				MemInstance smi = new MemInstance();
 				smi.PutkiInst = MED_Field_GetStructInstance(Handler, mi.PutkiInst);
+				if ((int)smi.PutkiInst == 0)
+					return null;
 				return smi;
 			}
 
