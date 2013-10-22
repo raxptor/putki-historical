@@ -45,11 +45,14 @@ namespace PutkEd
 
 		public void Load(string path)
 		{
+			Console.WriteLine("loading path " + path);
 			string cp = Clean(path);
 			m_path = cp;
 
 			List<string> toExplore = new List<string>();
 			toExplore.Add(cp);
+
+			m_dirs.Add(path);
 
 			while (toExplore.Count > 0)
 			{
@@ -68,13 +71,15 @@ namespace PutkEd
 
 			foreach (string dn in m_dirs)
 			{
+				Console.WriteLine("loading files in " + dn);
 				List<string> files = new List<string>(Directory.EnumerateFiles(dn));
 				foreach (string f in files)
 				{
+					Console.WriteLine("loading " + f);
 					string cf = Clean(f);
 					m_files.Add(cf);
 				}
-				// Console.WriteLine("Path [" + dn + "] contains " + m_files.Count + " file(s)");
+				Console.WriteLine("Path [" + dn + "] contains " + m_files.Count + " file(s)");
 			}
 
 			int pathCut = cp.Length + 1; // cut the '/'

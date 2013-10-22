@@ -36,7 +36,7 @@
     <Reference Include="System" />
     <Reference Include="Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756" />
     <Reference Include="libstetic">
-      <HintPath>..\..\..\..\..\Program Files %28x86%29\Xamarin Studio\AddIns\MonoDevelop.GtkCore\libstetic.dll</HintPath>
+      <HintPath>c:\Program Files %28x86%29\Xamarin Studio\AddIns\MonoDevelop.GtkCore\libstetic.dll</HintPath>
     </Reference>
     <Reference Include="gtk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
@@ -44,12 +44,6 @@
     <Reference Include="pango-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <Reference Include="PutkEd">
-      <HintPath>..\..\..\putked\putked\bin\Release\PutkEd.exe</HintPath>
-    </Reference>
-    <Reference Include="putki-lib">
-      <HintPath>..\..\..\putked\putki-lib\bin\Release\putki-lib.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="gtk-gui\gui.stetic">
@@ -83,5 +77,15 @@
   </ProjectExtensions>
   <ItemGroup>
     <Folder Include="ccg-gen\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\putked\putked\putked.csproj">
+      <Project>{168A9417-EB78-4C88-B52F-A5BC0D5C0D61}</Project>
+      <Name>putked</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\putked\putki-lib\putki-lib.csproj">
+      <Project>{72E9BCF0-B1DA-4789-A676-C2ABAB38FCDD}</Project>
+      <Name>putki-lib</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

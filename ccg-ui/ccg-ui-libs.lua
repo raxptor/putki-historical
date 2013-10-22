@@ -74,9 +74,26 @@
 
 		kind "SharedLib"
 		language "C#"
-		targetname "ui-example-putked-typelib"
+		targetname "ccg-ui-putked-typelib"
 		files {"_gen/inki_csharp/**.cs"}
 		links {"putked-lib"}
+
+  if 1 == 2 then
+	project "ccg-ui-putked-plugin"
+
+		kind "SharedLib"
+		language "C#"
+		targetname "ccg-ui-putked-plugin"
+		files {"putked/ccgui-putked-plugin/**.cs"}
+		links {"ccg-ui-putked-typelib"}
+		links {"putked-lib"}
+		links {"gtk-sharp"}
+		links {"atk-sharp"}
+		links {"gdk-sharp"}
+		links {"glib-sharp"}
+		links {"glade-sharp"}
+		links {"libstetic"}
+  end
 
  if os.get() == "windows" then
 
