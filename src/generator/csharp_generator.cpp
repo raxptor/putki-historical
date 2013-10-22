@@ -385,10 +385,13 @@ namespace putki
 
 			std::string expr_size_add = "";
 			
+			out.line() << "[PutkedProxyDescriptor(\"" << s->name << "\")]";
 			out.line() << "public class " << s->name;
 
 			if (!s->parent.empty())
 				out.cont() << " : " << s->parent;
+			else
+				out.cont() << " : PutkEd.ProxyObject";
 
 			const char *newifparent = s->parent.empty() ? "" : "new ";
 
@@ -397,14 +400,14 @@ namespace putki
 			out.line();
 			
 			out.indent(1);
-			out.line() << "public " << s->name << "(DLLLoader.MemInstance mi)";
 
+
+			out.line() << "public" << (s->parent.empty() ? " virtual" : " override") << " void Connect(DLLLoader.MemInstance mi)";
+			out.line() << "{";
 			if (!s->parent.empty())
 			{
-				out.line() << ": base(Get" << s->name << "Parent(mi).m_mi)";
+				out.line(1) << "base.Connect(Get" << s->name << "Parent(mi).m_mi);";
 			}
-
-			out.line() << "{";
 			out.line(1) << "// Should really check here!";
 			out.line(1) << "m_mi = mi;";
 			out.line() << "}";
@@ -433,17 +436,34 @@ namespace putki
 
 				const char *args = "()";
 
-				if (s->fields[i].is_array)
-				{
-					args = "(int arrayIndex)";
-					out.line() << "public int get_" << s->fields[i].name << "_count() { return m_mi.GetField(" << dllindex << ").GetArraySize(m_mi); }";
-					out.line();
-				}
+
 
 				////////////////////
 				// First we do get.
 
-				std::string get_name = std::string("get_") + s->fields[i].name;
+				
+				const char firstletter = s->fields[i].name[0];
+
+				const char *getpfx = "Get";
+				const char *resolvepfx = "Resolve";
+				const char *sizepostfx = "Size";
+
+				if (firstletter >= 'a' && firstletter < 'z')
+				{
+					getpfx = "get_";
+					resolvepfx = "resolve_";
+					sizepostfx = "_size";
+				}
+
+				if (s->fields[i].is_array)
+				{
+					args = "(int arrayIndex)";
+					out.line() << "public int " << getpfx << s->fields[i].name << sizepostfx << "() { return m_mi.GetField(" << dllindex << ").GetArraySize(m_mi); }";
+					out.line();
+				}
+
+
+				std::string get_name = std::string(getpfx) + s->fields[i].name;
 
 				if (get_name == "get__rtti_type")
 					get_name = "get_rtti_type";
@@ -498,7 +518,9 @@ namespace putki
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.line() << "DLLLoader.MemInstance ml = m_mi.GetField(" << dllindex << ").GetStructInstance(m_mi);";
 						out.line() << "if (ml == null) return null;";
-						out.line() << "return new " << s->fields[i].ref_type << "(ml);";
+						out.line() << "inki." << s->fields[i].ref_type << " p = new inki." << s->fields[i].ref_type << "();";
+						out.line() << "p.Connect(ml);";
+						out.line() << "return p;";
 						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetFloat(m_mi);";
@@ -515,14 +537,14 @@ namespace putki
 				if (s->fields[i].type == FIELDTYPE_POINTER)
 				{
 					out.line();
-					out.line() << "public inki." << s->fields[i].ref_type << " resolve_" << s->fields[i].name << args;
+					out.line() << "public inki." << s->fields[i].ref_type << " " << resolvepfx << s->fields[i].name << args;
 					out.line() << "{";
 
 					if (s->fields[i].is_array)
 						out.line(1) << "m_mi.GetField(" << dllindex << ").SetArrayIndex(arrayIndex);";
 
 					out.line(1) << "DLLLoader.MemInstance ml = DLLLoader.MemInstance.Load(m_mi.GetField(" << dllindex << ").GetPointer(m_mi));";
-					out.line(1) << "return ml != null ? new inki." << s->fields[i].ref_type << "(ml) : null;";
+					out.line(1) << "return ml != null ? (DataHelper.CreatePutkEdObj(ml) as inki." << s->fields[i].ref_type << ") : null;";
 					out.line() << "}";
 				}
 				

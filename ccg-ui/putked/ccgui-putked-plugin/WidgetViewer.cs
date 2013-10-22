@@ -29,32 +29,25 @@ namespace ccguiputkedplugin
 			g.RgbBgColor = new Gdk.Color(0,0,0);
 
 
-			for (int i=0;i<m_widget.get_layers_count();i++)
+			for (int i=0;i<m_widget.get_layers_size();i++)
 			{
 				inki.UIElementLayer layer = m_widget.get_layers(i);
 				if (layer != null)
 				{
-					Console.WriteLine("  and it has " + layer.get_elements_count() + " elements");
-					for (int j=0;j<layer.get_elements_count();j++)
+					for (int j=0;j<layer.get_elements_size();j++)
 					{
 						inki.UIElement el = layer.resolve_elements(j);
-						Console.WriteLine("    element[" + j + "] = " + el);
 						if (el != null)
 						{
-							Console.WriteLine("    => type = " + el.m_mi.GetTypeName());
-							inki.UIRect lr = el.get_layout();
+							inki.UIRect lr = el.get_layout();						
 							Gdk.Rectangle r = new Gdk.Rectangle((int)lr.get_x(), (int)lr.get_y(), (int)lr.get_width(), (int)lr.get_height());
+							Console.WriteLine("And it is " + r);
 							GdkWindow.DrawRectangle(g, false, r);
 						}
 					}
 
 				}
 			}
-
-
-
-
-			GdkWindow.DrawLine(g, 0, 0, 100, 100);
 
 			return true;
 		}

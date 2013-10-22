@@ -7,8 +7,6 @@ namespace ccguiputkedplugin
 	[System.ComponentModel.ToolboxItem (true)]
 	public partial class WidgetEditorWidget : Gtk.Bin
 	{
-		DLLLoader.MemInstance m_miOriginal;
-		DLLLoader.MemInstance m_miWidget;
 		inki.UIWidget m_iWidget;
 
 		List<DLLLoader.PutkiField> m_fields = null;
@@ -18,9 +16,7 @@ namespace ccguiputkedplugin
 			// Save both original & miWidget.
 			// In putki these will be same pointers, really, but 
 			// field set will be different!
-			m_miOriginal = mi;
-			m_miWidget = DataHelper.CastUp(mi, DLLLoader.GetTypeByName("UIWidget"));
-			m_iWidget = new inki.UIWidget(m_miWidget);
+			m_iWidget = DataHelper.CreatePutkEdObj(mi) as inki.UIWidget;
 
 			this.Build ();
 

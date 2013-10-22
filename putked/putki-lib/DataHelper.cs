@@ -2,9 +2,25 @@ using System;
 
 namespace PutkEd
 {
-	public static class DataHelper
+	public interface ProxyObject
 	{
-		
+		void Connect(DLLLoader.MemInstance mi);
+	}
+
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+	public class PutkedProxyDescriptor : System.Attribute
+	{
+		//////////////////////////////////////////////////////////////////////////
+		public PutkedProxyDescriptor(string name)
+		{
+			PutkiName = name;
+		}
+
+		public string PutkiName;
+	}
+
+	public static class DataHelper
+	{	
 		// Returns object of type 'parentType' or null
 		public static DLLLoader.MemInstance CastUp(DLLLoader.MemInstance mi, DLLLoader.Types parentType)
 		{
@@ -43,6 +59,40 @@ namespace PutkEd
 					break;
 				}
 			}
+		}
+
+		public static ProxyObject CreatePutkEdObj(DLLLoader.MemInstance mi)
+		{
+			if (mi == null)
+				return null;
+
+			string targetName = mi.GetTypeName();
+
+			Type ti = typeof(ProxyObject);
+			foreach (System.Reflection.Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type t in asm.GetTypes())
+				{
+					if (ti.IsAssignableFrom(t) && !t.IsInterface)
+					{
+						object[] attributes;
+						attributes = t.GetCustomAttributes(typeof(PutkedProxyDescriptor), false);
+						foreach (Object attribute in attributes)
+						{
+							PutkedProxyDescriptor desc = (PutkedProxyDescriptor) attribute;
+							if (desc.PutkiName == targetName)
+							{
+								ProxyObject po = (ProxyObject) Activator.CreateInstance(t);
+								po.Connect(mi);
+								return po;
+							}
+						}
+					}
+				}
+			}
+
+			Console.WriteLine("ERROR: CreatePutkEdObj; no proxy for [" + targetName + "]");
+			return null;
 		}
 	}
 }
