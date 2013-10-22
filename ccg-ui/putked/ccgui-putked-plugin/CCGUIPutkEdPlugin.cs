@@ -17,11 +17,14 @@ namespace ccguiputkedplugin
 
 		public bool CanEditType(PutkEd.DLLLoader.Types pt)
 		{
+			return false;
+			/*
 			DLLLoader.Types wt = DLLLoader.GetTypeByName("UIWidget");
 			if (wt == null)
 				return false;
 
 			return DLLLoader.HasParent(pt, wt);
+			*/
 		}
 
 		public void LaunchEditor(PutkEd.DLLLoader.MemInstance mi)

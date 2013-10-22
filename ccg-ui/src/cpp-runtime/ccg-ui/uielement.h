@@ -5,6 +5,8 @@
 
 namespace ccgui
 {
+	namespace uiscreen { struct instance; }
+
 	namespace uielement
 	{
 		struct layoutinfo
@@ -15,6 +17,7 @@ namespace ccgui
 		struct renderinfo
 		{
 			ccgui::render_api *backend;
+			ccgui::uiscreen::instance *screen;
 		};
 
 		struct drawinfo
