@@ -19,7 +19,7 @@ namespace ccgui
 				case outki::UIBitmapElement::TYPE_ID:
 					{
 						outki::UIBitmapElement *bmp = (outki::UIBitmapElement *) drawinfo->element;
-						rinfo->backend->bind_texture(bmp->texture);
+						rinfo->backend->tex_rect(bmp->texture, drawinfo->layout.x0, drawinfo->layout.y0, drawinfo->layout.x1, drawinfo->layout.y1, 0, 0, 1, 1, 0xffffffff);
 					}
 					break;
 				default:

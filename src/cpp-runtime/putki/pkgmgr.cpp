@@ -186,7 +186,8 @@ namespace putki
 					else
 					{
 						*(ptrs.entries[i].ptr) = 0;
-						unresolved++;
+						if (ptrs.entries[i].index != 0)
+							unresolved++;
 					}
 				}
 

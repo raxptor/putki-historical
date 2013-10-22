@@ -18,7 +18,7 @@ namespace ccgui
 
 			}
 
-			virtual void bind_texture(outki::Texture *texture) = 0;
+			virtual void tex_rect(outki::Texture *texture, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, unsigned int color) = 0;
 
 		private:
 	};
