@@ -51,6 +51,25 @@
 		links { "putki-lib" }
 		links { "freetype2" }
 
+	project "ccg-runtime"
+
+		if os.get() == "windows" then
+			kind "StaticLib"
+		else
+			kind "SharedLib"
+		end
+
+                includedirs { "../src/cpp-runtime" }
+		includedirs { "_gen" }
+
+                files { "src/cpp-runtime/**.cpp" }
+		files { "src/cpp-runtime/**.h" }
+		files { "_gen/outki/**.cpp" }
+		files { "_gen/outki/**.h" }
+
+		language "C++"
+		targetname "ccg-runtime"
+
 	project "ccg-ui-putked-typelib"
 
 		kind "SharedLib"
