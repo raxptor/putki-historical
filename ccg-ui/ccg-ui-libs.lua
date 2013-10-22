@@ -60,6 +60,7 @@
 		end
 
                 includedirs { "../src/cpp-runtime" }
+                includedirs { "src/cpp-runtime" }
 		includedirs { "_gen" }
 
                 files { "src/cpp-runtime/**.cpp" }
