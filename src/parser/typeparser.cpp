@@ -212,7 +212,7 @@ namespace putki
 			if (line.empty())
 				continue;
 
-			if (line[0] == '#')
+			if (line[0] == '#' || line[0] == '%')
 			{
 				int space = line.find_first_of(' ');
 				if (space != std::string::npos)
@@ -220,6 +220,11 @@ namespace putki
 					if (line.substr(0, space) == "#include")
 					{
 						out->includes.push_back(mypath + "/" + line.substr(space + 1, line.size() - space - 1));
+					}
+					else if (line.substr(0, space) == "%include")
+					{
+						// cross project full path include.
+						out->includes.push_back(line.substr(space + 1, line.size() - space - 1));
 					}
 				}
 				continue;

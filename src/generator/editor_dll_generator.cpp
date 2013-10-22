@@ -281,9 +281,12 @@ namespace putki
 			out.line();
 			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";
 			out.line() << "{";
+
 			out.indent(1);
 			out.line() << "switch (idx) {";
 			out.indent(1);
+
+			
 
 			int idx = 0;
 			for (size_t j=0;j!=s->fields.size();j++)
@@ -304,6 +307,7 @@ namespace putki
 			}
 
 			out.line();
+			out.line() << "case 999999: return 0;";
 			out.line() << "default: return 0;";
 			out.indent(-1);
 			out.line() << "} // switch";

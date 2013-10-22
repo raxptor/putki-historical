@@ -757,10 +757,17 @@ namespace putki
 			out.indent(1);
 
 			const char *levelCheck = runtime ? "" : "if (traverseChildren) ";
+			const char *traverseArgs  = runtime ? "" : ", traverseChildren";
 
 			for (size_t j=0;j<s->fields.size();j++)
 			{
 				putki::parsed_field & fd = s->fields[j];
+
+				if (runtime)
+				{
+					if (!(fd.domains & putki::DOMAIN_RUNTIME))
+						continue;
+				}
 
 				std::string ref = "input->" + fd.name;
 
@@ -782,7 +789,7 @@ namespace putki
 				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
 				{
 				    // structs are not considered chlidren
-				    out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker, traverseChildren);";
+				    out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker" << traverseArgs << ");";
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
