@@ -1,5 +1,6 @@
 
 	dofile "../src/putkilib-premake.lua"
+	dofile "../putked/putked-premake.lua"
 	dofile "../external/libpng/premake.lua"
 	dofile "../external/freetype-2.5.0.1/premake.lua"
 
@@ -49,6 +50,14 @@
 		links { "ccg-ui-putki-lib"}
 		links { "putki-lib" }
 		links { "freetype2" }
+
+	project "ccg-ui-putked-typelib"
+
+		kind "SharedLib"
+		language "C#"
+		targetname "ui-example-putked-typelib"
+		files {"_gen/inki_csharp/**.cs"}
+		links {"putked-lib"}
 
  if os.get() == "windows" then
 

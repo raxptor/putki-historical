@@ -82,6 +82,15 @@ solution "ExampleUI"
 		links { "ccg-ui-putki-lib"}
 		links { "putki-lib"}
 
+	project "ui-example-putked-typelib"
+
+		kind "SharedLib"
+		language "C#"
+		targetname "ui-example-putked-typelib"
+		files {"_gen/inki_csharp/**.cs"}
+		links {"ccg-ui-putked-typelib"}
+		links {"putked-lib"}
+		
  if os.get() == "windows" then
 
 	project "example-ui-csharp"

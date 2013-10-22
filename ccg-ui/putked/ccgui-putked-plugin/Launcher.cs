@@ -2,7 +2,7 @@ using System;
 
 namespace ccguiputkedplugin
 {
-	class Launcher
+	public class Launcher
 	{
 		public Launcher()
 		{

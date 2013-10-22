@@ -30,6 +30,7 @@ namespace
 
 	std::stringstream s_csharp_switch_case;
 	std::stringstream s_csharp_switch_case_resolve;
+	std::stringstream s_csharp_inki, s_csharp_outki;
 
 	std::stringstream s_putki_master;
 	std::stringstream s_runtime_master;
@@ -45,8 +46,7 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 	
 	putki::sys::mk_dir_for_path((s_rt_outpath + out_base).c_str());
 	putki::sys::mk_dir_for_path((s_putki_outpath + out_base).c_str());
-	putki::sys::mk_dir_for_path((s_csharp_outki_outpath + out_base).c_str());
-	putki::sys::mk_dir_for_path((s_csharp_inki_outpath + out_base).c_str());
+	putki::sys::mk_dir_for_path((s_csharp_outki_outpath + out_base).c_str());	
 	putki::sys::mk_dir_for_path((s_dll_outpath + out_base).c_str());	
 	
 	std::cout << "File [" << name << "]" << std::endl;
@@ -114,9 +114,9 @@ void write_out(putki::parsed_file & pf, const char *fullpath, const char *name, 
 
 	// csharp inki
 	{
-		std::string csharp_code = s_csharp_inki_outpath + out_base + ".cs";
-		std::ofstream f_csharp_code(csharp_code.c_str());
-		putki::write_csharp_inki_class(&pf, putki::indentedwriter(f_csharp_code));
+		putki::write_csharp_inki_class(&pf, putki::indentedwriter(s_csharp_inki));
+
+
 	}
 	
 }
@@ -234,7 +234,14 @@ int main (int argc, char *argv[])
 		f_switch << "}" << std::endl;
 	}
 
-
+	{
+		std::string fn = std::string(s_csharp_inki_outpath) + "/" + g_module_name + ".cs";
+		putki::sys::mk_dir_for_path(fn.c_str());
+		std::ofstream f_cs_inki(fn.c_str());
+		f_cs_inki << "using PutkEd;" << std::endl;
+		f_cs_inki << std::endl;
+		f_cs_inki << s_csharp_inki.str() << std::endl;
+	}
 	
  	return 0;
 }
