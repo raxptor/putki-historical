@@ -112,6 +112,9 @@ struct atlasbuilder : putki::builder::handler_i
 
 		int border = 2;
 
+		if (atlas->Inputs.size() == 1)
+			border = 0;
+
 		for (unsigned int i=0;i<atlas->Inputs.size();i++)
 		{
 			putki::pngutil::loaded_png png;
