@@ -269,6 +269,7 @@ namespace putki
 			out.line();
 			out.line() << "// basic info";
 			out.line() << "const char *name() { return \"" << s->name << "\"; }";
+			out.line() << "const char *module_name() { return \"" << file->modulename << "\"; }";
 			out.line();
 
 			if (s->parent.empty())

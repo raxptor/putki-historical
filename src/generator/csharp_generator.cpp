@@ -417,7 +417,7 @@ namespace putki
 			for (size_t i=0;i<s->fields.size();i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
-				if (!(f->domains & putki::DOMAIN_RUNTIME))
+				if (!(f->domains & putki::DOMAIN_INPUT))
 					continue;
 //				if (!strcmp(f->name.c_str(), "parent"))
 // continue;
@@ -432,7 +432,7 @@ namespace putki
 				}
 
 				const char *args = "()";
-
+				const char *args_set0 = "";
 
 
 				////////////////////
@@ -442,12 +442,14 @@ namespace putki
 				const char firstletter = s->fields[i].name[0];
 
 				const char *getpfx = "Get";
+				const char *setpfx = "Set";
 				const char *resolvepfx = "Resolve";
 				const char *sizepostfx = "Size";
 
 				if (firstletter >= 'a' && firstletter < 'z')
 				{
 					getpfx = "get_";
+					setpfx = "set_";
 					resolvepfx = "resolve_";
 					sizepostfx = "_size";
 				}
@@ -455,12 +457,14 @@ namespace putki
 				if (s->fields[i].is_array)
 				{
 					args = "(int arrayIndex)";
+					args_set0 = "int arrayIndex, ";
 					out.line() << "public int " << getpfx << s->fields[i].name << sizepostfx << "() { return m_mi.GetField(" << dllindex << ").GetArraySize(m_mi); }";
 					out.line();
 				}
 
 
 				std::string get_name = std::string(getpfx) + s->fields[i].name;
+				std::string set_name = std::string(setpfx) + s->fields[i].name;
 
 				if (get_name == "get__rtti_type")
 					get_name = "get_rtti_type";
@@ -521,6 +525,53 @@ namespace putki
 						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetFloat(m_mi);";
+						break;
+					default:
+						out.line() << "// nothing";
+						break;
+				}
+
+				out.indent(-1);
+				out.line() << "}";
+
+				// SET
+
+				switch (s->fields[i].type)
+				{
+					case FIELDTYPE_INT32:
+						out.line() << "public void " << set_name << "(" << args_set0 << "int value)";
+						break;
+					case FIELDTYPE_STRING:
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_POINTER:
+						out.line() << "public void " << set_name << "(" << args_set0 << "string value)";
+						break;
+					case FIELDTYPE_FLOAT:
+						out.line() << "public void " << set_name << "(" << args_set0 << "float value)";
+						break;
+					default:
+						out.line() << "public void  " << set_name << "(" << args_set0 << "int dummy)";
+						break;
+				}
+
+				out.line() << "{";
+				out.indent(1);
+
+				if (s->fields[i].is_array)
+					out.line() << "m_mi.GetField(" << dllindex << ").SetArrayIndex(arrayIndex);";
+
+				switch (s->fields[i].type)
+				{
+					case FIELDTYPE_INT32:
+						out.line() << "m_mi.GetField(" << dllindex << ").SetInt32(m_mi, value);";
+						break;
+					case FIELDTYPE_STRING:
+					case FIELDTYPE_FILE:
+					case FIELDTYPE_POINTER: 
+						out.line() << "m_mi.GetField(" << dllindex << ").SetString(m_mi, value);";
+						break;		
+					case FIELDTYPE_FLOAT:
+						out.line() << "m_mi.GetField(" << dllindex << ").SetFloat(m_mi, value);";
 						break;
 					default:
 						out.line() << "// nothing";

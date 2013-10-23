@@ -132,6 +132,8 @@ void file(const char *fullpath, const char *name)
 	if (fn.substr(fn.size() - len, len) == ending)
 	{
 		putki::parsed_file pf;
+		pf.modulename = g_module_name;
+
 		putki::parse(fullpath, name, &g_unique_id_counter, &pf);
 		write_out(pf, fullpath, name, len);
 	}
