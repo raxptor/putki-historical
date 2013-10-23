@@ -36,7 +36,7 @@ public partial class MainWindow : Gtk.Window
 
 			b.Clicked += delegate(object sender, EventArgs e)
 			{
-				OnEditAsset(sender, e);
+				OpenAssetEditor(p);
 			};
 		}
 
@@ -65,7 +65,7 @@ public partial class MainWindow : Gtk.Window
 		a.RetVal = true;
 	}
 
-	private void OpenAssetEditor(DLLLoader.MemInstance mi, EditorPlugin plugin = null)
+	private void OpenAssetEditor(DLLLoader.MemInstance mi, EditorPlugin plugin)
 	{
 		if (mi != null)
 		{
@@ -77,12 +77,13 @@ public partial class MainWindow : Gtk.Window
 			}
 			else
 			{
-				plugin.LaunchEditor(mi);
+				if (plugin.CanEditType(mi.GetPutkiType()))
+					plugin.LaunchEditor(mi);
 			}
 		}
 	}
 
-	protected void OnEditAsset (object sender, EventArgs e)
+	private void OpenAssetEditor(EditorPlugin plugin)
 	{
 		TreeModel model;
 		TreeIter iter;
@@ -91,17 +92,14 @@ public partial class MainWindow : Gtk.Window
 		{		
 			string Path = model.GetValue(iter, 0).ToString();
 			DLLLoader.MemInstance mi = DLLLoader.MemInstance.Load(Path);
-
-			foreach (EditorPlugin p in PutkEdMain.s_plugins)
-			{
-				if (p.CanEditType(mi.GetPutkiType()))
-				{
-					OpenAssetEditor(mi, p);
-					return;
-				}
-			}
-			OpenAssetEditor(mi, null);
+			OpenAssetEditor(mi, plugin);
 		}
+	}
+
+	// Clicked edit button
+	protected void OnEditAsset (object sender, EventArgs e)
+	{
+		OpenAssetEditor(null);
 	}
 
 	protected void OnNewAsset (object sender, EventArgs e)

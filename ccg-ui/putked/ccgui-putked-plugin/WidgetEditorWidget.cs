@@ -9,8 +9,6 @@ namespace ccguiputkedplugin
 	{
 		inki.UIWidget m_iWidget;
 
-		List<DLLLoader.PutkiField> m_fields = null;
-
 		public WidgetEditorWidget(DLLLoader.MemInstance mi) : base()
 		{
 			// Save both original & miWidget.
