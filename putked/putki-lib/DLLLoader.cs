@@ -348,7 +348,6 @@ namespace PutkEd
 
 			public static MemInstance Load(string path)
 			{
-				Console.WriteLine("Load (cached) [" + path + "]");
 				return DiskLoad(path, true);
 			}
 
