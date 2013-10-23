@@ -13,6 +13,11 @@ namespace PutkEd
 			this.Build();
 		}
 
+		public string FormatName(DLLLoader.Types e)
+		{
+			return "[" + e.Module + "] - " + e.Name;
+		}
+
 		public void FillWithParentsTo(string RefType)
 		{
 			List<string> types = new List<string>();
@@ -23,7 +28,7 @@ namespace PutkEd
 					foreach (DLLLoader.Types e in PutkEdMain.s_dataDll.GetTypes())
 					{
 						if (DLLLoader.HasParent(e, d))
-							types.Add(e.Name);
+							types.Add(FormatName(e));
 					}
 				}
 			}
@@ -42,7 +47,7 @@ namespace PutkEd
 				string t = m_types.Model.GetValue(i, 0).ToString();
 				foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 				{
-					if (d.Name == t)
+					if (FormatName(d) == t)
 					{
 						m_selectedType = d;
 						Respond(0);

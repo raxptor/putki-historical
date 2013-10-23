@@ -71,8 +71,13 @@ namespace putki
 	struct ext_type_handler_i
 	{
 		virtual const char * name() = 0;
+		virtual const char * module_name() = 0;
 		virtual const char * parent_name() = 0;
 		virtual const char * inline_editor() = 0;
+
+		virtual bool permit_as_aux_instance() { return true; }
+		virtual bool permit_as_asset() { return true; }
+
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
 	};
 

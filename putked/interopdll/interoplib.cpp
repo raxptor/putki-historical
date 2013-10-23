@@ -129,6 +129,21 @@ extern "C"
 		return type->name();
 	}
 
+	DSPEC const char* MED_Type_GetModuleName(putki::ext_type_handler_i* type)
+	{
+		return type->module_name();
+	}
+
+	DSPEC int MED_Type_PermitAsAsset(putki::ext_type_handler_i* type)
+	{
+		return type->permit_as_asset();
+	}
+
+	DSPEC int MED_Type_PermitAsAuxInstance(putki::ext_type_handler_i* type)
+	{
+		return type->permit_as_aux_instance();
+	}
+
 	DSPEC const char* MED_Type_GetInlineEditor(putki::ext_type_handler_i* type)
 	{
 		return type->inline_editor();

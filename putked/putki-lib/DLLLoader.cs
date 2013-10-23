@@ -6,14 +6,6 @@ namespace PutkEd
 {
 	public class DLLLoader
 	{
-		public class Types
-		{
-			public string Name;
-			public IntPtr Handler;
-		};
-
-		List<Types> m_loadedTypes = new List<Types>();
-		
 		[DllImport("monoed-interop")]
 		private static extern int MED_Initialize(string DllPath, string DataPath);
 
@@ -25,6 +17,9 @@ namespace PutkEd
 		
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Type_GetName(IntPtr type);
+
+		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_Type_GetModuleName(IntPtr type);
 
 		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_TypeOf(IntPtr MemInstance);
@@ -138,6 +133,25 @@ namespace PutkEd
 		{
 			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(a);
 		}
+
+		public class Types
+		{
+			public Types(IntPtr orgType)
+			{
+				Handler = orgType;
+				Name = MSTR(MED_Type_GetName(orgType));
+				Module = MSTR(MED_Type_GetModuleName(orgType));
+				AllowAsAsset = true;
+				AllowAsAuxPtr = true;
+			}
+			public string Name;
+			public string Module;
+			public IntPtr Handler;
+			public bool AllowAsAsset;
+			public bool AllowAsAuxPtr;
+		};
+
+		List<Types> m_loadedTypes = new List<Types>();
 
 		public class PutkiField
 		{
@@ -301,10 +315,7 @@ namespace PutkEd
 
 			public Types GetPutkiType()
 			{
-				Types t = new Types();
-				t.Handler = MED_TypeOf(PutkiInst);
-				t.Name = MSTR(MED_Type_GetName(t.Handler));
-				return t;
+				return new Types(MED_TypeOf(PutkiInst));
 			}
 
 			public string GetPath()
@@ -401,10 +412,7 @@ namespace PutkEd
 
 			if ((int)b != 0)
 			{
-				Types t = new Types();
-				t.Name = MSTR(MED_Type_GetName(b));
-				t.Handler = b;
-				return t;
+				return new Types(b);
 			}
 
 			return null;
@@ -419,9 +427,7 @@ namespace PutkEd
 					IntPtr p = MED_TypeByIndex(i);
 					if ((int)p != 0)
 					{
-						Types t = new Types();
-						t.Name = MSTR(MED_Type_GetName(p));
-						t.Handler = p;
+						Types t = new Types(p);
 						m_loadedTypes.Add(t);
 					}
 				}

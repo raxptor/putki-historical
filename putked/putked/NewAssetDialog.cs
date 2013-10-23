@@ -13,12 +13,18 @@ namespace PutkEd
 			List<string> types = new List<string>();
 			foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 			{
-				types.Add(d.Name);
+				types.Add(FormatName(d));
 			}
 
 			types.Sort();
 			foreach (string s in types)
 				m_types.AppendText(s);		
+		}
+
+
+		public string FormatName(DLLLoader.Types e)
+		{
+			return "[" + e.Module + "] - " + e.Name;
 		}
 
 		protected void OnOK (object sender, EventArgs e)
@@ -34,7 +40,7 @@ namespace PutkEd
 
 					foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 					{
-						if (d.Name == t)
+						if (FormatName(d) == t)
 						{
 							DLLLoader.MemInstance mi = DLLLoader.MemInstance.Create(m_path.Text, d);
 							PutkEd.AssetEditor ae = new PutkEd.AssetEditor();

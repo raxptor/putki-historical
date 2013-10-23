@@ -1,4 +1,8 @@
 *.ncb
+*.dll
+*.exp
+*.ilk
+*.lib
 *.suo
 *.user
 *.vcxproj
