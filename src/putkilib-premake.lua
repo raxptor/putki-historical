@@ -37,3 +37,14 @@
 
 		configuration {"gmake"}
 			links {"pthread"}
+
+
+	project "putki-runtime-lib"
+
+		kind "StaticLib"
+	
+		language "C++"
+		targetname "putki-runtime-lib"
+
+		files { "../src/cpp-runtime/**.cpp", "../src/cpp-runtime/**.h" }
+		includedirs { "../src/cpp-runtime" }

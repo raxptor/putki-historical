@@ -9,6 +9,9 @@ namespace putki
 
 		void search_tree(const char *root_directory, file_enum_t callback);
 		void mk_dir_for_path(const char *path);
+		
+		void chdir_push(const char *path);
+		void chdir_pop();
 	}
 
 }

@@ -53,11 +53,7 @@
 
 	project "ccg-runtime"
 
-		if os.get() == "windows" then
-			kind "StaticLib"
-		else
-			kind "SharedLib"
-		end
+		kind "StaticLib"
 
                 includedirs { "../src/cpp-runtime" }
                 includedirs { "src/cpp-runtime" }
@@ -71,6 +67,10 @@
 		language "C++"
 		targetname "ccg-runtime"
 
+		links {"putki-runtime-lib"}
+
+  if os.get() == "windows" then
+
 	project "ccg-ui-putked-typelib"
 
 		kind "SharedLib"
@@ -79,7 +79,6 @@
 		files {"_gen/inki_csharp/**.cs"}
 		links {"putked-lib"}
 
-  if 1 == 2 then
 	project "ccg-ui-putked-plugin"
 
 		kind "SharedLib"

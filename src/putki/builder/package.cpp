@@ -264,7 +264,6 @@ namespace putki
 					ptr = pack_int32_field(ptr, packlist[i]->th->id());
 				}
 
-				char *start = ptr;
 				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
 				if (!ptr)
 				{

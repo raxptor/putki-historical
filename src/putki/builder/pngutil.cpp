@@ -53,7 +53,6 @@ namespace putki
 			size_t x, y;
 			png_byte ** row_pointers = NULL;
 			int status = -1;
-			int depth = 8;
 
 			png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 			if (png_ptr == NULL) {

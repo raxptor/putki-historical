@@ -17,10 +17,6 @@ solution "Compiler"
 		files { "../src/parser/**.h", "../src/generator/**.h" }
 		files { "../src/putki/**.h" }
 
-		files { "src/main-osx.cpp" }
+		files { "src/main.cpp" }
 		includedirs { "../src", "../src/cpp-runtime/", "../external" }
-
-		configuration "Release"
-			defines {"DEBUG"}
-
 

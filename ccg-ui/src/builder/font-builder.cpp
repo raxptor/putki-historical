@@ -18,6 +18,15 @@
 
 #include <binpacker/maxrects_binpack.h> // NOTE: Claw include.
 
+struct TmpGlyphInfo
+{
+	int w, h;
+	int bearingX, bearingY;
+	int advance;
+	char *data;
+};
+
+
 struct fontbuilder : putki::builder::handler_i
 {
 	virtual bool handle(putki::builder::data *builder, putki::build_db::record *record, putki::db::data *input, const char *path, putki::instance_t obj, putki::db::data *output, int obj_phase)
@@ -61,14 +70,6 @@ struct fontbuilder : putki::builder::handler_i
 				}
 
 				std::vector< rbp::InputRect > packs;
-
-				struct TmpGlyphInfo
-				{
-					int w, h;
-					int bearingX, bearingY;
-					int advance;
-					char *data;
-				};
 
 				std::vector<TmpGlyphInfo> glyphs;
 

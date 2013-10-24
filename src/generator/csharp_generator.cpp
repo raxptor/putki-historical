@@ -410,8 +410,6 @@ namespace putki
 			out.line() << "}";
 			out.line();
 
-			int size = 0;
-
 			out.line() << "// Fields";
 
 			for (size_t i=0;i<s->fields.size();i++)

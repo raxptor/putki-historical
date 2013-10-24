@@ -57,6 +57,7 @@ namespace putki
 		std::string filename;
 		std::string sourcepath;
 		std::string modulename;
+		std::string signature;
 		std::vector<parsed_struct> structs;
 		std::vector<parsed_enum> enums;
 		std::vector<std::string> includes;

@@ -16,6 +16,17 @@ solution "ExampleUI"
 	configuration "Debug"
 		defines {"DEBUG"}
 
+	project "prebuild-dummy" 
+		language "C"
+		kind "SharedLib"
+		files { "src/prebuilddummy.c" }
+
+		if os.get() == "windows" then
+			prebuildcommands { "..\\compiler\\build\\compiler" }
+		else
+			prebuildcommands { "cd " .. _WORKING_DIR .. " && ../compiler/build/compiler " }
+		end
+
 	dofile "../ccg-ui/ccg-ui-libs.lua"
 
 	project "example-putki-lib"
@@ -44,6 +55,7 @@ solution "ExampleUI"
 		includedirs { "../src/data-dll" }
 		
 		links {"ccg-ui-putki-lib"}
+		links {"putki-lib"}
 
 	project "ui-example-databuilder"
 
@@ -82,6 +94,8 @@ solution "ExampleUI"
 		links { "ccg-ui-putki-lib"}
 		links { "putki-lib"}
 
+  if os.get() == "windows" then
+
 	project "ui-example-putked-typelib"
 
 		kind "SharedLib"
@@ -91,8 +105,6 @@ solution "ExampleUI"
 		links {"ccg-ui-putked-typelib"}
 		links {"putked-lib"}
 		
- if os.get() == "windows" then
-
 	project "example-ui-csharp"
 
 		kind "WindowedApp"

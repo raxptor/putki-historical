@@ -6,6 +6,7 @@ enum Language
 	Swedish
 	French
 	German
+	Chinese
 }
 
 Translation [in, out]
