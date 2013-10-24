@@ -67,7 +67,7 @@ namespace putki
 
 	void* liveupdate_thread(void *r)
 	{
-		liveupdate_thread_real((int)r);
+		liveupdate_thread_real((intptr_t)r);
 		return 0;
 	}
 
