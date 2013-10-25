@@ -12,11 +12,14 @@ solution "Compiler"
 		kind "ConsoleApp"
 		language "C++"
 		targetname "compiler"
-		files { "../src/putki/sys/**.cpp", "../src/parser/**.cpp", "../src/generator/**.cpp", "../src/generator/**.h", "../src/compiler/**.cpp", "../src/compiler/**.h" }
+
+		files { "src/**.cpp"}
+		files { "src/**.h" }
+
+		files { "../src/putki/sys/**.cpp" }
+		files { "../src/putki/sys/**.h" }
 		files { "../src/putki/runtime.cpp"}
-		files { "../src/parser/**.h", "../src/generator/**.h" }
 		files { "../src/putki/**.h" }
 
-		files { "src/main.cpp" }
-		includedirs { "../src", "../src/cpp-runtime/", "../external" }
+		includedirs { "src", "../src", "../external" }
 

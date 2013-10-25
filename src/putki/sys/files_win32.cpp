@@ -14,6 +14,15 @@ namespace putki
 
 	namespace sys
 	{
+		void chdir_push(const char *path)
+		{
+			SetCurrentDirectory(path);
+		}
+
+		void chdir_pop()
+		{
+		}
+
 		void search_tree_internal(const char *root_directory, file_enum_t callback, int cut_length)
 		{
 			std::string root(root_directory);

@@ -1,7 +1,6 @@
 #include "generator.h"
 
 #include <putki/domains.h>
-#include <putki/types.h>
 #include <generator/indentedwriter.h>
 
 #include <iostream>
