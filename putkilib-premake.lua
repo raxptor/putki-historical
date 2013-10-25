@@ -9,6 +9,8 @@
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
 
+	dofile "external/libz/premake.lua"
+	
 	project "jsmn"
 
 		kind "StaticLib"
