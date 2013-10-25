@@ -1,0 +1,51 @@
+
+	PUTKI_PATH = path.getdirectory(_SCRIPT)
+	ZLIB_PATH = PUTKI_PATH .. "/external/zlib"
+
+	PUTKI_LIB_INCLUDE = PUTKI_PATH .. "/src/"
+	PUTKI_RT_INCLUDE = PUTKI_PATH .. "/src/cpp-runtime"
+
+	configuration {"windows"}
+		defines {"USE_WINSOCK"}
+
+	project "jsmn"
+
+		kind "StaticLib"
+		targetname "jsmn"
+		language "C++"
+		files { "../external/jsmn/*.cpp", "../external/jsmn/*.h"}
+	
+	project "putki-lib"
+
+		language "C++"
+		targetname "putki-lib"
+
+
+		if os.get() == "windows" then
+			kind "StaticLib"
+		else
+			kind "SharedLib"
+		end
+
+		files { "src/**.cpp", "src/**.h" }
+		files { "src/**.cpp", "src/**.h" }	
+		files { "builder/src/*.cpp" }
+		excludes { "src/cpp-runtime/**" }
+		includedirs { "src", "external"}
+
+		links {"jsmn"}
+		links {"libz"}
+
+		configuration {"windows"}
+			links {"ws2_32"}
+		configuration {"gmake"}
+			links {"pthread"}
+
+	project "putki-runtime-lib"
+
+		language "C++"
+		targetname "putki-runtime-lib"
+		kind "StaticLib"	
+
+		files { "src/cpp-runtime/**.cpp", "src/cpp-runtime/**.h" }
+		includedirs { "src/cpp-runtime" }
