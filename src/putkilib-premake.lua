@@ -26,7 +26,7 @@
 		excludes { "../src/cpp-runtime/**" }
 		excludes { "../src/generator/**" }
 
-		includedirs { "../src", "../external", "../external/libpng"}
+		includedirs { "../src", "../external"}
 
 		links {"jsmn"}
 		links {"libpng"}
