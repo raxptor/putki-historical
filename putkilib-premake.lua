@@ -1,9 +1,10 @@
 
 	PUTKI_PATH = path.getdirectory(_SCRIPT)
-	ZLIB_PATH = PUTKI_PATH .. "/external/zlib"
+	ZLIB_PATH = PUTKI_PATH .. "/external/libz"
 
-	PUTKI_LIB_INCLUDE = PUTKI_PATH .. "/src/"
-	PUTKI_RT_INCLUDE = PUTKI_PATH .. "/src/cpp-runtime"
+	ZLIB_INCLUDES = { ZLIB_PATH }
+	PUTKI_LIB_INCLUDES = { PUTKI_PATH .. "/src/", PUTKI_PATH .. "/src/data-dll" }
+	PUTKI_RT_INCLUDES = { PUTKI_PATH .. "/src/cpp-runtime" }
 
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
@@ -13,7 +14,7 @@
 		kind "StaticLib"
 		targetname "jsmn"
 		language "C++"
-		files { "../external/jsmn/*.cpp", "../external/jsmn/*.h"}
+		files { "external/jsmn/*.cpp", "external/jsmn/*.h"}
 	
 	project "putki-lib"
 
@@ -49,3 +50,15 @@
 
 		files { "src/cpp-runtime/**.cpp", "src/cpp-runtime/**.h" }
 		includedirs { "src/cpp-runtime" }
+
+if os.get() == "windows" then
+
+	project "putki-runtime-csharp"
+		kind "SharedLib"
+		language "C#"
+		targetname "putki-runtime-csharp"
+		files { "src/csharp-runtime/**.cs"}
+		links { "System" }
+
+end
+	
