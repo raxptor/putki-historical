@@ -32,6 +32,8 @@ namespace putki
 		out->name = "";
 		out->domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 		out->is_type_root = false;
+		out->permit_as_asset = true;
+		out->permit_as_auxptr = true;
 
 		bool read_parent = false;
 
@@ -54,6 +56,20 @@ namespace putki
 			{
 				out->is_type_root = true;
 			}
+			else if (!strcmp(tok, "no-asset"))
+			{
+				out->permit_as_asset = false;
+			}
+			else if (!strcmp(tok, "no-auxptr"))
+			{
+				out->permit_as_auxptr = false;
+			}
+			else if (!strcmp(tok, "non-instantiable"))
+			{
+				out->permit_as_asset = false;
+				out->permit_as_auxptr = false;
+			}
+			
 			tok = strtok(0, " ");
 		}
 

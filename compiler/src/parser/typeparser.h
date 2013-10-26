@@ -50,6 +50,8 @@ namespace putki
 		std::string parent;
 		std::string inline_editor;
 		bool is_type_root;
+		bool permit_as_auxptr;
+		bool permit_as_asset;
 	};
 
 	struct parsed_file

@@ -75,8 +75,8 @@ namespace putki
 		virtual const char * parent_name() = 0;
 		virtual const char * inline_editor() = 0;
 
-		virtual bool permit_as_aux_instance() { return true; }
-		virtual bool permit_as_asset() { return true; }
+		virtual bool permit_as_aux_instance() = 0;
+		virtual bool permit_as_asset() = 0;
 
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
 	};
