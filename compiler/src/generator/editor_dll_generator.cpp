@@ -270,7 +270,7 @@ namespace putki
 			out.line() << "const char *name() { return \"" << s->name << "\"; }";
 			out.line() << "const char *module_name() { return \"" << file->modulename << "\"; }";
 			out.line() << "bool permit_as_asset() { return " << (s->permit_as_asset ? "true" : "false") << "; }";
-			out.line() << "bool permit_as_auxptr() { return " << (s->permit_as_auxptr ? "true" : "false") << "; }";
+			out.line() << "bool permit_as_aux_instance() { return " << (s->permit_as_auxptr ? "true" : "false") << "; }";
 			out.line();
 
 			if (s->parent.empty())
