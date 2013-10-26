@@ -27,6 +27,9 @@ namespace PutkEd
 				{
 					foreach (DLLLoader.Types e in PutkEdMain.s_dataDll.GetTypes())
 					{
+						if (!e.AllowAsAuxPtr)
+							continue;
+
 						if (DLLLoader.HasParent(e, d))
 							types.Add(FormatName(e));
 					}

@@ -49,6 +49,12 @@ namespace PutkEd
 		private static extern IntPtr MED_Type_GetField(IntPtr type, int i);
 
 		[DllImport("monoed-interop")]
+		private static extern int MED_Type_PermitAsAsset(IntPtr type);
+
+		[DllImport("monoed-interop")]
+		private static extern int MED_Type_PermitAsAuxInstance(IntPtr type);
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_Field_GetName(IntPtr field);
 
 		[DllImport("monoed-interop")]
@@ -141,8 +147,8 @@ namespace PutkEd
 				Handler = orgType;
 				Name = MSTR(MED_Type_GetName(orgType));
 				Module = MSTR(MED_Type_GetModuleName(orgType));
-				AllowAsAsset = true;
-				AllowAsAuxPtr = true;
+				AllowAsAsset = MED_Type_PermitAsAsset(orgType) != 0;
+				AllowAsAuxPtr = MED_Type_PermitAsAuxInstance(orgType) != 0;
 			}
 			public string Name;
 			public string Module;

@@ -13,6 +13,9 @@ namespace PutkEd
 			List<string> types = new List<string>();
 			foreach (DLLLoader.Types d in PutkEdMain.s_dataDll.GetTypes())
 			{
+				if (!d.AllowAsAsset)
+					continue;
+
 				types.Add(FormatName(d));
 			}
 
