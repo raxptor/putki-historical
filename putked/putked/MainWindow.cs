@@ -28,19 +28,25 @@ public partial class MainWindow : Gtk.Window
 
 		foreach (EditorPlugin p in PutkEdMain.s_plugins)
 		{
-			Button b = new Button(p.GetDescription());
-			vbox3.Add(b);
-			Gtk.Box.BoxChild bc = (Box.BoxChild) vbox3[b];
-			bc.Fill = false;
-			bc.Expand = false;
-
-			b.Clicked += delegate(object sender, EventArgs e)
-			{
-				OpenAssetEditor(p);
-			};
+			AddPluginButton(p);
 		}
 
 		ScanFiles();
+	}
+
+
+	public void AddPluginButton(EditorPlugin p)
+	{
+		Button b = new Button(p.GetDescription());
+		vbox3.Add(b);
+		Gtk.Box.BoxChild bc = (Box.BoxChild)vbox3[b];
+		bc.Fill = false;
+		bc.Expand = false;
+
+		b.Clicked += delegate(object sender, EventArgs e)
+		{
+			OpenAssetEditor(p);
+		};
 	}
 
 	public void ScanFiles()

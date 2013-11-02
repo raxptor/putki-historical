@@ -126,15 +126,20 @@ namespace parse
 
 
 	data * parse(const char *full_path)
-	{
-		std::ifstream f(full_path);
-
+	{		
 		FILE *fp = ::fopen(full_path, "rb");
 		if (!fp)
 			return 0;
 
-		char tmp[65536];
-		int rd = fread(tmp, 1, 65000, fp);
+		::fseek(fp, 0, SEEK_END);
+		long size = ftell(fp); // get current file pointer
+		::fseek(fp, 0, SEEK_SET);
+		if (size < 0)
+			return 0;
+
+		char *tmp = new char[size+1];
+		int rd = ::fread(tmp, 1, size, fp);
+		::fclose(fp);
 
 		PARSE_DEBUG("Read " << rd << "bytes.." << std::endl);
 
@@ -143,17 +148,19 @@ namespace parse
 		jsmn_parser p;
 		jsmn_init(&p);
 
-		const unsigned int maxtok = 4096;
-		jsmntok_t tok[maxtok];
+		const unsigned int maxtok = 1024*1024;
+		static jsmntok_t *tok = new jsmntok_t[maxtok];
 		jsmnerr_t err = jsmn_parse(&p, tmp, tok, maxtok);
 		if (err != JSMN_SUCCESS)
 		{
+			delete [] tmp;
 			std::cout << "Parse failure!" << std::endl;
 			return 0;
 		}
 
 		if (tok[0].type != JSMN_OBJECT)
 		{
+			delete [] tmp;
 			std::cout << "First element is not object!" << std::endl;
 			return 0;
 		}
@@ -228,6 +235,7 @@ namespace parse
 		} while (!pst.empty());
 
 		PARSE_DEBUG("Parse success!" << std::endl);
+		delete [] tmp;
 
 		data *pd = new data;
 		pd->root = root;

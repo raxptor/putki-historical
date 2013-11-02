@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PutkEd
 {
@@ -6,6 +7,32 @@ namespace PutkEd
 	{
 		void Connect(DLLLoader.MemInstance mi);
 	}
+
+    public class ResolveCache
+    {
+        // These cached objects actually don't contain any data, besides the MemInstance which actually
+        // points to a c++ struct somewhere, which actually holds the data.
+        private static Dictionary<string, object> s_c = new Dictionary<string, object>();
+
+        public object Resolve(string path)
+        {
+            if (s_c.ContainsKey(path))
+                return s_c[path];
+
+            DLLLoader.MemInstance mi = DLLLoader.DiskLoad(path, true);
+            if (mi == null)
+            {
+                s_c.Add(path, mi);
+                return null;
+            }
+
+            object pobj = DataHelper.CreatePutkEdObj(mi);
+            s_c.Add(path, pobj);
+            return pobj;        
+        }
+    }
+
+
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 	public class PutkedProxyDescriptor : System.Attribute
