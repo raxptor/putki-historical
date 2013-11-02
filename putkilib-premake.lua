@@ -5,6 +5,7 @@
 	ZLIB_INCLUDES = { ZLIB_PATH }
 	PUTKI_LIB_INCLUDES = { PUTKI_PATH .. "/src/", PUTKI_PATH .. "/src/data-dll" }
 	PUTKI_RT_INCLUDES = { PUTKI_PATH .. "/src/cpp-runtime" }
+	PUTKI_LIB_LINKS = { "jsmn", "libz", "putki-lib" }
 
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
