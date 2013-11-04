@@ -24,12 +24,7 @@
 		language "C++"
 		targetname "putki-lib"
 
-
-		if os.get() == "windows" then
-			kind "StaticLib"
-		else
-			kind "SharedLib"
-		end
+		kind "StaticLib"
 
 		files { "src/**.cpp", "src/**.h" }
 		files { "src/**.cpp", "src/**.h" }	
