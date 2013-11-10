@@ -443,6 +443,8 @@ namespace putki
 				const char *setpfx = "Set";
 				const char *resolvepfx = "Resolve";
 				const char *sizepostfx = "Size";
+				const char *pushpostfx = "PushBack";
+				const char *erasepostfx = "Erase";
 
 				if (firstletter >= 'a' && firstletter < 'z')
 				{
@@ -450,6 +452,8 @@ namespace putki
 					setpfx = "set_";
 					resolvepfx = "resolve_";
 					sizepostfx = "_size";
+					pushpostfx = "_push_back";
+					erasepostfx = "_erase";
 				}
 
 				if (s->fields[i].is_array)
@@ -457,6 +461,11 @@ namespace putki
 					args = "(int arrayIndex)";
 					args_set0 = "int arrayIndex, ";
 					out.line() << "public int " << getpfx << s->fields[i].name << sizepostfx << "() { return m_mi.GetField(" << dllindex << ").GetArraySize(m_mi); }";
+					out.line();
+
+					out.line() << "public void " << s->fields[i].name << pushpostfx << "() { m_mi.GetField(" << dllindex << ").ArrayInsert(m_mi); }";
+					out.line();
+					out.line() << "public void " << s->fields[i].name << erasepostfx << "(int index) { m_mi.GetField(" << dllindex << ").SetArrayIndex(index); m_mi.GetField(" << dllindex << ").ArrayErase(m_mi); }";
 					out.line();
 				}
 
