@@ -15,7 +15,9 @@
 // from config
 std::string g_module_name;
 std::string g_loader_name;
-int g_unique_id_counter = 0;
+int g_unique_id_counter = 1;
+bool g_lazy_write = false;
+bool g_ignore_config_typeid = false;
 	
 namespace
 {
@@ -90,13 +92,16 @@ struct compile_context
 		std::string csharp_code = s_csharp_outki_outpath + out_base + ".cs";
 		std::string dll_impl = s_dll_outpath + out_base + "_impl.cpp";
 			
-		const bool needupdate = need_update(pf, rt_header.c_str()) || need_update(pf, rt_impl.c_str())
+		bool needupdate = need_update(pf, rt_header.c_str()) || need_update(pf, rt_impl.c_str())
 		|| need_update(pf, putki_header.c_str()) || need_update(pf, putki_impl.c_str())
 		|| need_update(pf, csharp_code.c_str())
 		|| need_update(pf, dll_impl.c_str());
 		
 		if (needupdate)
 			s_wrote_anything = true;
+			
+		if (!g_lazy_write)
+			needupdate = true;
 		
 		if (needupdate)
 		{
@@ -195,7 +200,13 @@ struct compile_context
 	int compile()
 	{
 		std::ifstream config("putki-compiler.config");
-		config >> g_module_name >> g_loader_name >> g_unique_id_counter;
+
+		int id_counter;		
+		config >> g_module_name >> g_loader_name >> id_counter;
+		
+		if (!g_ignore_config_typeid)
+			g_unique_id_counter = id_counter;		
+
 		std::string add;
 		std::string dep_pfx("dep:");
 		while (getline(config, add))
@@ -330,6 +341,14 @@ compile_context* compile_context::g_cur = 0;
 
 int main (int argc, char *argv[])
 {
+	for (int i=1;i<argc;i++)
+	{
+		if (!strcmp(argv[i], "--lazy"))
+			g_lazy_write = true;
+		if (!strcmp(argv[i], "--ignore-config-typeid"))
+			g_ignore_config_typeid = true;		
+	}
+
 	while (true)
 	{
 		compile_context ctx;
