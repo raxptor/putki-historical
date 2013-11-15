@@ -280,20 +280,7 @@ namespace putki
 							datastruct.unique_id = (*type_id_counter)++;
 
 							// postprocess
-							if (!datastruct.parent.empty())
-							{
-								// add in parent automatically.
-								parsed_field pf;
-								pf.name = "parent";
-								pf.type = FIELDTYPE_STRUCT_INSTANCE;
-								pf.ref_type = datastruct.parent;
-								pf.is_array = false;
-								pf.is_aux_ptr = false;
-								pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
-								pf.show_in_editor = true;
-								datastruct.fields.insert(datastruct.fields.begin(), pf);
-							}
-							else if (datastruct.is_type_root)
+							if (datastruct.is_type_root)
 							{
 								parsed_field pf;
 								pf.name = "_rtti_type";

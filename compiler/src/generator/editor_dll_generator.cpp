@@ -283,12 +283,21 @@ namespace putki
 			out.line();
 			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";
 			out.line() << "{";
-
 			out.indent(1);
+			
+			if (!s->parent.empty())
+			{
+				out.line() << "// Redirect to parent";
+				out.line() << "const unsigned int parent_fields = get_" << s->parent << "_ext_type_handler()->num_fields();";
+				out.line() << "if (idx < parent_fields)";
+				out.line(1) << "return get_" << s->parent << "_ext_type_handler()->field(idx - parent_fields);";
+				out.line() << "else";
+				out.line(1) << "idx -= parent_fields;";
+				out.line();
+			}
+
 			out.line() << "switch (idx) {";
 			out.indent(1);
-
-			
 
 			int idx = 0;
 			for (size_t j=0;j!=s->fields.size();j++)
@@ -314,7 +323,22 @@ namespace putki
 			out.indent(-1);
 			out.line() << "} // switch";
 			out.indent(-1);
+			out.line() << "} // function";
+			out.line();
+			
+			// num fields
+			out.line() << "unsigned int num_fields() {";
+			out.indent(1);
+			
+			if (!s->parent.empty())
+				out.line() << "return get_" << s->parent << "t_ext_type_handler()->num_fields() + " << idx << ";";
+			else
+				out.line() << "return " << idx << ";";
+			
+			out.indent(-1);
 			out.line() << "}";
+			
+			out.line();
 			out.indent(-1);
 			out.line() << "};";
 			out.line();

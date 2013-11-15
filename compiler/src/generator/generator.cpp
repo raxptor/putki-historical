@@ -182,7 +182,12 @@ namespace putki
 			out.line();
 
 			out.line() << "#pragma pack(push, 1)";
-			out.line() << "struct " << s->name << " {";
+			out.line() << "struct " << s->name;
+			
+			if (!s->parent.empty())
+				out.cont() << " : public " << s->parent; 
+			
+			out.cont() << " {";
 			out.indent(1);
 
 			for (size_t i=0;i<s->fields.size();i++)
@@ -254,9 +259,7 @@ namespace putki
 					out.line() << "unsigned int " <<f->name << "_size;";
 			}
 
-			if (!s->parent.empty())
-				out.line() << "inline int & rtti_type_ref() { return parent.rtti_type_ref(); }";
-			else if (s->is_type_root)
+			if (s->is_type_root)
 				out.line() << "inline int & rtti_type_ref() { return _rtti_type; }";
 
 			out.line();
@@ -264,18 +267,13 @@ namespace putki
 			out.line() << "enum { TYPE_ID = " << s->unique_id << " };";
 			out.line();
 
-			if (s->is_type_root || !s->parent.empty())
+			if (s->is_type_root)
 			{
 				out.line() << "template<typename Target>";
 				out.line() << "inline Target* exact_cast() { if (rtti_type_ref() == Target::type_id()) return (Target*) this; else return 0; }";
 			}
 
-			if (!s->parent.empty())
-			{
-				out.line() << "template<typename Target>";
-				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return parent.up_cast<Target>(); }";
-			}
-			else if (s->is_type_root)
+			if (s->is_type_root)
 			{
 				out.line() << "template<typename Target>";
 				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return 0; }";
@@ -486,7 +484,13 @@ namespace putki
 			out.line() << "putki::ext_type_handler_i *get_" << s->name << "_ext_type_handler();";
 
 
-			out.line() << "struct " << s->name << " {";
+			out.line() << "struct " << s->name;
+			
+			if (!s->parent.empty())
+				out.cont() << " : public " << s->parent; 
+			
+			out.cont() << " {";
+
 			out.indent(1);
 
 			out.line() << "static inline " << s->name << " * alloc() { return (" << s->name << " *) get_" << s->name << "_type_handler()->alloc(); }";
@@ -551,9 +555,7 @@ namespace putki
 				}
 			}
 
-			if (!s->parent.empty())
-				out.line() << "inline " << putki_field_type_pod(FIELDTYPE_INT32) << " & rtti_type_ref() { return parent.rtti_type_ref(); }";
-			else if (s->is_type_root)
+			if (s->is_type_root)
 				out.line() << "inline " << putki_field_type_pod(FIELDTYPE_INT32) << " & rtti_type_ref() { return _rtti_type; }";
 			
 			out.line();
