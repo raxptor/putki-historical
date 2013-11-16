@@ -10,7 +10,7 @@ namespace putki
 					return "win32";
 				else
 					return "win64";
-			#elif defined(__APPLE__) && defined(__amd64__)
+			#elif defined(__APPLE__)
 				if (sizeof(void*) == 4)
 					return "macosx32";
 				else
