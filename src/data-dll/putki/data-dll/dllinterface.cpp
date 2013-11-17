@@ -16,6 +16,8 @@
 #include <sstream>
 #include <fstream>
 
+#include <stdint.h>
+
 #include <stdlib.h>
 
 #ifdef _WIN32

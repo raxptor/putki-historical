@@ -14,6 +14,8 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include <string.h>
+
 #if defined(USE_WINSOCK)
 	#include <winsock2.h>
 	#pragma comment(lib, "ws2_32.lib")
@@ -25,6 +27,7 @@
 #if !defined(_WIN32)
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
+	#include <unistd.h>
 #endif
 
 namespace putki

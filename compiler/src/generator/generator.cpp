@@ -111,9 +111,9 @@ namespace putki
 	std::string putki_field_type(putki::parsed_field *pf)
 	{
 		if (pf->type == FIELDTYPE_STRUCT_INSTANCE || pf->type == FIELDTYPE_ENUM)
-			return pf->ref_type.c_str();
+			return std::string("inki::") + pf->ref_type;
 		else if (pf->type == FIELDTYPE_POINTER)
-			return pf->ref_type + "*";
+			return std::string("inki::") + pf->ref_type + "*";
 
 		return putki_field_type_pod(pf->type);
 	}
@@ -221,17 +221,17 @@ namespace putki
 							if (rt)
 								out.cont() << ptr_sub(rt) << " ";
 							else
-								out.cont() << f->ref_type << " *";
+								out.cont() << "outki::" << f->ref_type << " *";
 						}
 						break;
 					case FIELDTYPE_ENUM:
 						if (rt)
 							out.cont() << rt_wrap_field_type(FIELDTYPE_ENUM, rt) << " ";
 						else
-							out.cont() << f->ref_type << " ";
+							out.cont() << "outki::" << f->ref_type << " ";
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
-						out.cont() << f->ref_type << " ";
+						out.cont() << "outki::" << f->ref_type << " ";
 						break;
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_STRING:
@@ -413,6 +413,7 @@ namespace putki
 		out.line() << "#define " << deftok;
 
 		out.line();
+		out.line() << "#include <stdlib.h>";
 		out.line() << "#include <string>";
 		out.line() << "#include <vector>";
 		out.line() << "#include <putki/builder/write.h>";
