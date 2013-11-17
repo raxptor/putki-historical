@@ -45,7 +45,7 @@ extern "C"
 #else
 
 		std::cout << "MED_Initialize: dlopen" << std::endl;
-		void *p = dlopen(dllPath, RTLD_LAZY);
+		void *p = dlopen(dllPath, RTLD_LAZY | RTLD_FIRST);
 		std::cout << "MED_Initialize: returned (" << p << ")" << std::endl;
 		if (p)
 		{

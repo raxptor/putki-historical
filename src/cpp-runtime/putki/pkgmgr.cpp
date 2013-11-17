@@ -90,12 +90,9 @@ namespace putki
 				unsigned int path_index = (-e.index) - 1;
 				if (path_index < target->unresolved_size)
 				{
-					std::cout << "Trying to resolve " << target->unresolved[path_index] << "!" << std::endl;
-
 					instance_t nw = resolve(aux, target->unresolved[path_index]);
 					if (nw)
 					{
-						std::cout << "Resolved!" << std::endl;
 						resolved++;
 						(*e.ptr) = nw;
 					}
@@ -150,7 +147,7 @@ namespace putki
 				lp->slots[i].obj = (instance_t) ptr;
 				lp->slots[i].type_id = type_id;
 
-				std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
+				// std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
 				
 				char *next = post_load_by_type(type_id, &ptrs, ptr, end);
 				if (!next)
@@ -187,7 +184,11 @@ namespace putki
 					{
 						*(ptrs.entries[i].ptr) = 0;
 						if (ptrs.entries[i].index != 0)
+						{
+							
+							std::cout << "Unresolved to " << lp->unresolved[(-ptrs.entries[i].index) - 1] << std::endl;
 							unresolved++;
+						}
 					}
 				}
 
@@ -206,6 +207,7 @@ namespace putki
 		{
 			// maybe check here that there is nothing unresolved left. or we might start pointing into junk when stuff
 			// start pointing into this.
+
 			for (unsigned int i=0;i!=lp->slots_size;i++)
 			{
 				if (lp->slots[i].path)

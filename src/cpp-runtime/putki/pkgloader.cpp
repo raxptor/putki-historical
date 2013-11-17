@@ -29,7 +29,7 @@ namespace putki
 			in.read(buffer, size);
 			in.close();
 			
-			std::cout << "Read " << size << " bytes from [" << file << "]" << std::endl;
+			// std::cout << "Read " << size << " bytes from [" << file << "]" << std::endl;
 
 			pkgmgr::loaded_package *p = pkgmgr::parse(buffer, buffer + size, 0);
 			if (!p)

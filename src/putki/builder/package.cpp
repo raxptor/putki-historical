@@ -40,7 +40,7 @@ namespace putki
 				
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					std::cout << "Ignoring unresolved asset with path [" << path << "]";
+					std::cout << "Ignoring unresolved asset with path [" << path << "]" << std::endl;
 
 					// don't traverse.
 					return false;

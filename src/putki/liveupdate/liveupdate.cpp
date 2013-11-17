@@ -178,7 +178,17 @@ namespace putki
 		
 		void send_update(data *lu, const char *path)
 		{
-			enter_lock(lu);
+			std::cout << "Registered update on " << path << "!" << std::endl;
+					
+			// strip off any aux, they will be included too.
+			char npath[512];
+			if (db::base_asset_path(path, npath, 512))
+			{
+				std::cout << " -> Recursing to add base path" << std::endl;
+				send_update(lu, npath);
+			}
+			
+			enter_lock(lu);			
 			lu->_assets_updates.push_back(path);
 			leave_lock(lu);
 		}

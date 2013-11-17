@@ -42,7 +42,7 @@ namespace putki
 		{
 			delete d;
 		}
-
+	
 		void split_aux_path(std::string path, std::string * base, std::string * ref)
 		{
 			int p = path.find_last_of('#');
@@ -56,6 +56,21 @@ namespace putki
 				*base = path;
 				ref->clear();
 			}
+		}
+
+		bool base_asset_path(const char *path, char *result, unsigned int bufsize)
+		{
+			if (!is_aux_path(path))
+				return false;
+			
+			std::string base, ref;
+			split_aux_path(path, &base, &ref);
+			if (base.size() < bufsize)
+			{
+				strcpy(result, base.c_str());
+				return true;
+			}
+			return false;
 		}
 
 		bool is_aux_path(const char *path)

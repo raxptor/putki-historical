@@ -81,11 +81,13 @@ namespace putki
 		{
 			if (!strcmp(path, "N/A"))
 				return;
-
+				
 			// redirect the old if such exists.
 			PathMap::iterator i = s_path2ptr.find(path);
 			if (i != s_path2ptr.end())
+			{
 				s_rewrite[i->second] = ptr;
+			}
 
 			s_path2ptr[path] = ptr;
 		}
@@ -194,12 +196,20 @@ namespace putki
 				}
 
 				for(unsigned int j=0;j<d->pending.size();j++)
+				{
 					if (i != j)
-						d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]);
+					{
+						d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]) &&
+						                         d->pending[j].resolved;
+					}
+				}
 
 				// try with stash
 				for(unsigned int j=0;j<d->stash.size();j++)
-					d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]);
+				{
+					d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]) &&
+									 d->stash[j].resolved;
+				}
 			}
 
 			// see if any packets are ready
@@ -253,7 +263,6 @@ namespace putki
 
 		void on_recv(data *d)
 		{
-			std::cout << "I have " << d->readpos << " bytes in the buffer" << std::endl;
 			// need at least this.
 			if (d->readpos < 5)
 				return;
@@ -264,11 +273,8 @@ namespace putki
 			for (int i=0;i<4;i++)
 				sz |= (((unsigned char)d->readbuf[i+1]) << 8*i);
 
-			std::cout << "Packet type is " << pkt_type << " and size is " << sz << std::endl;
 			if (d->readpos >= (sz + 5))
 			{
-				std::cout << "Got full package" << std::endl;
-
 				data::pkg_e pe;
 				pe.rs = pkgmgr::alloc_resolve_status();
 
