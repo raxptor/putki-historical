@@ -5,6 +5,15 @@
 
 #define LIVEUPDATE_ENABLE 
 
+
+#if defined(LIVEUPDATE_ENABLE)
+	// This macro can be used for checks that should be compiled away when
+	// live editing is not enabled.
+	#define LIVEUPDATE_ISNULL(x) ((void*)x == 0)
+#else
+	#define LIVEUPDATE_ISNULL(x) false
+#endif
+
 namespace putki
 {
 	namespace liveupdate
@@ -20,6 +29,7 @@ namespace putki
 		inline void update(data *d) { }
 		inline void hookup_object(instance_t ptr, const char *path) { }
 #else
+
 		void init();
 		data* connect();
 		void disconnect(data *d);

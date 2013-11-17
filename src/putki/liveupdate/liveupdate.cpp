@@ -5,6 +5,7 @@
 #include <putki/builder/app.h>
 #include <putki/builder/source.h>
 #include <putki/builder/build.h>
+#include <putki/builder/build-db.h>
 #include <putki/builder/package.h>
 
 #include <iostream>
@@ -179,15 +180,6 @@ namespace putki
 		void send_update(data *lu, const char *path)
 		{
 			std::cout << "Registered update on " << path << "!" << std::endl;
-					
-			// strip off any aux, they will be included too.
-			char npath[512];
-			if (db::base_asset_path(path, npath, 512))
-			{
-				std::cout << " -> Recursing to add base path" << std::endl;
-				send_update(lu, npath);
-			}
-			
 			enter_lock(lu);			
 			lu->_assets_updates.push_back(path);
 			leave_lock(lu);
@@ -266,7 +258,7 @@ namespace putki
 
 						if (!builder)
 						{
-							builder = builder::create(rt, sourcepath);
+							builder = builder::create(rt, sourcepath, false);
 
 							if (builder)
 							{
@@ -283,13 +275,24 @@ namespace putki
 						enter_lock(lu);
 						while (accepted_updates < (int)lu->_assets_updates.size())
 						{
-							const char *path = lu->_assets_updates[accepted_updates++].c_str();
-							std::cout << "Client gets [" << path << "] accepted_updates = " << accepted_updates << std::endl;
-							if (!already.count(path))
+							const char *orgpath = lu->_assets_updates[accepted_updates++].c_str();
+							std::cout << "Client gets [" << orgpath << "] accepted_updates = " << accepted_updates << std::endl;
+							
+							build_db::data *bdb = builder::get_build_db(builder);
+							build_db::deplist *dl = build_db::deplist_get(bdb, orgpath);
+							for (unsigned int i=0;;i++)
 							{
-								// need to be found in any of the output dbs.
-								buildforclient.push_back(path);
-								already.insert(path);
+								const char *path = build_db::deplist_entry(dl, i);
+								if (!path)
+									break;
+
+								std::cout << " -> Adding object from deplist [" << path << "]" << std::endl;
+								if (!already.count(path))
+								{
+									// need to be found in any of the output dbs.
+									buildforclient.push_back(path);
+									already.insert(path);
+								}
 							}
 						}
 

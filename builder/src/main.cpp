@@ -73,11 +73,13 @@ int run_putki_builder(int argc, char **argv)
 		}
 	}
 	
-	putki::builder::data *builder = putki::builder::create(rt, ".");
+	putki::builder::data *builder = putki::builder::create(rt, ".", true);
 
 	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
 
 	putki::build::full_build(builder);
+	
+	putki::builder::write_build_db(builder);
 
 	putki::builder::free(builder);
 	

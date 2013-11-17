@@ -6,8 +6,10 @@ namespace putki
 	{
 		struct data;
 		struct record;
+		struct deplist;
 
-		data* load(const char *path);
+		data* create(const char *path, bool load);
+		void store(data *);
 
 		void release(data *d);
 
@@ -20,5 +22,9 @@ namespace putki
 		void append_extra_outputs(record *target, record *source);
 
 		const char *enum_outputs(record *r, unsigned int pos);
+		
+		deplist* deplist_get(data *d, const char *path);
+		const char *deplist_entry(deplist *d, unsigned int index);
+		void deplist_free(deplist *);
 	}
 }

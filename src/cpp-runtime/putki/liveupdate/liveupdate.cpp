@@ -168,16 +168,15 @@ namespace putki
 			pkgmgr::free_resolve_status(p->rs);
 			p->rs = 0;
 
-			const char *objpath = pkgmgr::path_in_package_slot(p->pkg, 0);
-			if (!objpath)
+			for (unsigned int i=0;;i++)
 			{
-				std::cout << "Got package without main object?!" << std::endl;
+				const char *objpath = pkgmgr::path_in_package_slot(p->pkg, i);
+				if (objpath)
+					std::cout << "Object [" << objpath << "] live-updated." << std::endl;
+				else
+					break;
 			}
-			else
-			{
-				std::cout << "Object [" << objpath << "] live-updated." << std::endl;
-				pkgmgr::register_for_liveupdate(p->pkg);
-			}
+			pkgmgr::register_for_liveupdate(p->pkg);
 		}
 
 		void process_pending(data *d)
@@ -185,12 +184,17 @@ namespace putki
 			if (d->pending.empty())
 				return;	
 
+			// this function tail-recurses whenever it made some progress.
+
 			// attempt cross-resolve.
 			for(unsigned int i=0;i<d->pending.size();i++)
 			{
+				std::cout << "Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0) << std::endl;
+
 				// if there are no unresolved references, send directly.
 				if (!pkgmgr::unresolved_reference(d->pending[i].pkg, 0))
 				{
+					std::cout << " -> No unresolved references." << std::endl;
 					d->pending[i].resolved = true;
 					continue;
 				}
@@ -199,24 +203,39 @@ namespace putki
 				{
 					if (i != j)
 					{
-						d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]) &&
-						                         d->pending[j].resolved;
+						if (d->pending[j].resolved)
+						{
+							if (attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]))
+							{
+								d->pending[i].resolved = true;
+								std::cout << "Resolved with pending package" << std::endl;
+							}
+						}
 					}
 				}
 
 				// try with stash
 				for(unsigned int j=0;j<d->stash.size();j++)
 				{
-					d->pending[i].resolved = attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]) &&
-									 d->stash[j].resolved;
+					if (attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]))
+					{
+						std::cout << "Resolved from stash" << std::endl;
+						d->pending[i].resolved = true;
+					}
 				}
+				
+				if (d->pending[i].resolved)
+					std::cout << " -> It is now resolved." << std::endl;
 			}
 
 			// see if any packets are ready
+			bool made_progress = false;
+			
 			for (int i=0;i<(int)d->pending.size();i++)
 			{
 				if (d->pending[i].resolved)
 				{
+					made_progress = true;
 					std::cout << "Fully resolved package at slot " << i << ", moving to stash." << std::endl;
 
 					// clean out stashed with same base object as this, move them to
@@ -232,6 +251,7 @@ namespace putki
 						}
 					}
 
+					std::cout << "Erasing package " << i << std::endl;
 					d->stash.push_back(d->pending[i]);
 					d->pending.erase(d->pending.begin() + i);
 
@@ -259,6 +279,9 @@ namespace putki
 					}
 				}
 			}
+			
+			if (made_progress)
+				process_pending(d);
 		}
 
 		void on_recv(data *d)
@@ -267,7 +290,6 @@ namespace putki
 			if (d->readpos < 5)
 				return;
 			
-			int pkt_type = d->readbuf[0];
 			unsigned long sz = 0;
 
 			for (int i=0;i<4;i++)
@@ -292,6 +314,15 @@ namespace putki
 				}
 				else
 				{
+				
+					for (unsigned int i=0;;i++)
+					{
+						const char *objpath = pkgmgr::path_in_package_slot(pe.pkg, i);
+						if (!objpath)
+							break;
+						std::cout << " slot[" << i << "] is [" << objpath << "]" << std::endl;
+					}
+	
 					bool replaced = false;
 					for (unsigned int i=0;i<d->pending.size();i++)
 					{
@@ -301,6 +332,7 @@ namespace putki
 							pkgmgr::free_resolve_status(d->pending[i].rs);
 							d->pending[i] = pe;
 							replaced = true;
+							std::cout << "Cleaned out package" << std::endl;
 						}
 					}
 

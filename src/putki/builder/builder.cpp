@@ -55,7 +55,7 @@ namespace putki
 				s_packaging_fn(out, pconf);
 		}
 		
-		data* create(runtime::descptr rt, const char *path)
+		data* create(runtime::descptr rt, const char *path, bool reset_build_db)
 		{
 			data *d = new data();
 			d->runtime = rt;
@@ -82,11 +82,18 @@ namespace putki
 				s_init_fn(d);
 
 			std::string build_db_path = path;
-			build_db_path.append("/out.build-db");
-
-			d->build_db = build_db::load(build_db_path.c_str());
+			build_db_path.append("/out/");
+			build_db_path.append(runtime::desc_str(rt));
+			build_db_path.append(".build-db");
+			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
 			return d;
 		}
+		
+		build_db::data *get_build_db(builder::data *d)
+		{
+			return d->build_db;
+		}
+		
 
 		const char *obj_path(data *d)
 		{
@@ -162,7 +169,6 @@ namespace putki
 			
 			if (!handled)
 				db::insert(output, path, th, obj);
-
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
@@ -259,6 +265,11 @@ namespace putki
 			std::cout << "==> Doing global build pass." << std::endl;
 			db::read_all(input, &gb);
 			std::cout << "==> Global build pass done." << std::endl;
+		}
+		
+		void write_build_db(builder::data *d)
+		{
+			build_db::store(d->build_db);
 		}
 		
 		void build_error(data *builder, const char *str)
