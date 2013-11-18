@@ -241,7 +241,9 @@ namespace putki
 			pconf.rt = builder::runtime(builder);
 			putki::builder::invoke_packager(bsf.output, &pconf);
 
-			db::free(bsf.output);
+			// there should be no objects outside these database now.
+			db::free_and_destroy_objs(bsf.input);
+			db::free_and_destroy_objs(bsf.output);
 		}
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)

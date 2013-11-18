@@ -22,6 +22,9 @@ namespace putki
 				case PLATFORM_CSHARP:
 					strcpy(buf, "csharp");
 					break;
+				case PLATFORM_LINUX:
+					strcpy(buf, "linux");
+					break;
 				default:
 					strcpy(buf, "unknown");
 					break;
@@ -37,10 +40,13 @@ namespace putki
 
 		const desc * get(unsigned int index)
 		{
-			static const int count = 5;
+			// if you change this table, re-build the compiler and re-compile everything too.
+			static const int count = 7;
 			static const desc rtd[count] = {
 				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, 1, true},
 				{PLATFORM_MACOSX, LANGUAGE_CPP, 4, 1, true},
+				{PLATFORM_LINUX, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_LINUX, LANGUAGE_CPP, 4, 1, true},
 				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, 1, true},
 				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, 1, true},
 				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, 1, true}
@@ -61,5 +67,4 @@ namespace putki
 			return &rt;
 		}
 	}
-
 }

@@ -14,6 +14,8 @@ namespace putki
 		};
 
 		data * create();
+		
+		void free_and_destroy_objs(data *d);
 		void free(data *);
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);

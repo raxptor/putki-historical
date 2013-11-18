@@ -38,8 +38,19 @@ namespace putki
 			return new data();
 		}
 
+		void free_and_destroy_objs(data *d)
+		{
+			for (std::map<std::string, entry>::iterator i=d->objs.begin();i!=d->objs.end();i++)
+				i->second.th->free(i->second.obj);
+			db::free(d);
+		}
+		
 		void free(data *d)
 		{
+			// all the strdup:ed strings
+			for (std::set<const char*>::iterator i = d->unresolved.begin();i!=d->unresolved.end();i++)
+				::free(const_cast<char*>(*i));
+						
 			delete d;
 		}
 	

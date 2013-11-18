@@ -11,6 +11,7 @@ namespace putki
 			PLATFORM_WINDOWS = 0,
 			PLATFORM_MACOSX = 1,
 			PLATFORM_CSHARP = 2,
+			PLATFORM_LINUX = 3,
 			PLATFORM_UNKNOWN,
 		};
 
@@ -48,7 +49,10 @@ namespace putki
 					return PLATFORM_WINDOWS;
 			#elif defined(__APPLE__)
 					return PLATFORM_MACOSX;
+			#elif defined(linux)
+					return PLATFORM_LINUX;
 			#else
+					#error Add runtime definition for your platform, or fix the ifdefs here!
 					return PLATFORM_UNKNOWN;
 			#endif
 		}

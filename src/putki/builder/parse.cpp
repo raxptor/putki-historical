@@ -23,6 +23,7 @@ namespace parse
 	struct data
 	{
 		node *root;
+		std::vector<node*> allnodes;
 	};
 
 	struct node
@@ -149,7 +150,7 @@ namespace parse
 		jsmn_init(&p);
 
 		const unsigned int maxtok = 1024*1024;
-		static jsmntok_t *tok = new jsmntok_t[maxtok];
+		static jsmntok_t tok[maxtok];
 		jsmnerr_t err = jsmn_parse(&p, tmp, tok, maxtok);
 		if (err != JSMN_SUCCESS)
 		{
@@ -173,10 +174,16 @@ namespace parse
 
 		std::string org_string(tmp);
 
+
+		data *pd = new data;
+
 		do
 		{
 			node *top = pst.empty() ? 0 : pst.top();
 			node *current = new node();
+			
+			// for unalloc only.
+			pd->allnodes.push_back(current);
 
 			if (!root)
 				root = current;
@@ -237,7 +244,6 @@ namespace parse
 		PARSE_DEBUG("Parse success!" << std::endl);
 		delete [] tmp;
 
-		data *pd = new data;
 		pd->root = root;
 		return pd;
 	}
@@ -246,9 +252,11 @@ namespace parse
 	{
 		return pd->root;
 	}
-
+	
 	void free(data *d)
 	{
+		for (unsigned i=0;i<d->allnodes.size();i++)
+			delete d->allnodes[i];
 		delete d;
 	}
 
