@@ -25,6 +25,7 @@ namespace putki
 				return f->ref_type;
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
+			case FIELDTYPE_PATH:
 				return "string";
 			default:
 				return "nada";
@@ -49,6 +50,7 @@ namespace putki
 				return f->ref_type + ".SIZE";
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
+			case FIELDTYPE_PATH:
 				return "4";
 			default:
 				return "1000000";
@@ -139,6 +141,7 @@ namespace putki
 						size += 0;
 						expr_size_add.append(" + " + s->fields[i].ref_type + ".SIZE");
 						break;
+					case FIELDTYPE_PATH:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_STRING:
 						size += 4;
@@ -257,6 +260,7 @@ namespace putki
 						break;
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_STRING:
+					case FIELDTYPE_PATH:
 						{
 							out.line() << field_ref << " = aux.ReadString(" << content_reader << ".ReadInt32());";
 						}
@@ -491,6 +495,7 @@ namespace putki
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
+					case FIELDTYPE_PATH:
 						out.line() << "public string " <<get_name << args;
 						break;
 					case FIELDTYPE_POINTER:
@@ -520,7 +525,8 @@ namespace putki
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
-					case FIELDTYPE_POINTER: 
+					case FIELDTYPE_POINTER:
+					case FIELDTYPE_PATH:
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetString(m_mi);";
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
@@ -551,6 +557,7 @@ namespace putki
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_POINTER:
+					case FIELDTYPE_PATH:
 						out.line() << "public void " << set_name << "(" << args_set0 << "string value)";
 						break;
 					case FIELDTYPE_FLOAT:
@@ -574,7 +581,8 @@ namespace putki
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
-					case FIELDTYPE_POINTER: 
+					case FIELDTYPE_POINTER:
+					case FIELDTYPE_PATH:
 						out.line() << "m_mi.GetField(" << dllindex << ").SetString(m_mi, value);";
 						break;		
 					case FIELDTYPE_FLOAT:

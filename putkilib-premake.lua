@@ -9,8 +9,6 @@
 
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
-	configuration {"linux"}
-		table.insert(PUTKI_LIB_LINKS, "pthread")
 
 	dofile "external/libz/premake.lua"
 	
@@ -39,7 +37,7 @@
 
 		configuration {"windows"}
 			links {"ws2_32"}
-		configuration {"gmake"}
+		configuration {"gmake", "linux"}
 			links {"pthread"}
 
 	project "putki-runtime-lib"

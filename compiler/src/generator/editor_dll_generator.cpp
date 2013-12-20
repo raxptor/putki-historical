@@ -70,7 +70,7 @@ namespace putki
 				std::string new_obj = "0";
 				if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
 					new_obj = s->fields[j].ref_type + "()";
-				else if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE)
+				else if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE || s->fields[j].type == FIELDTYPE_PATH)
 					new_obj = "\"\"";
 
 				out.line() << "void array_insert(putki::mem_instance *obj) { " << vec_ref << "push_back(" + new_obj + "); }";
@@ -109,6 +109,7 @@ namespace putki
 				case FIELDTYPE_INT32: out.cont() << " putki::EXT_FIELDTYPE_INT32; "; break;
 				case FIELDTYPE_POINTER: out.cont() << " putki::EXT_FIELDTYPE_POINTER; "; break;
 				case FIELDTYPE_FILE: out.cont() << " putki::EXT_FIELDTYPE_FILE; "; break;
+				case FIELDTYPE_PATH: out.cont() << " putki::EXT_FIELDTYPE_PATH; "; break;
 				case FIELDTYPE_BYTE: out.cont() << " putki::EXT_FIELDTYPE_BYTE; "; break;
 				case FIELDTYPE_FLOAT: out.cont() << " putki::EXT_FIELDTYPE_FLOAT; "; break;
 				case FIELDTYPE_BOOL: out.cont() << " putki::EXT_FIELDTYPE_BOOL; "; break;
@@ -127,7 +128,7 @@ namespace putki
 			out.line() << "// String type handlers";
 			out.line() << "void set_string(putki::mem_instance *obj, const char *value) {";
 			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE)
+			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE || s->fields[j].type == FIELDTYPE_PATH)
 					write_plain_set(out, s, j, field_ref);
 			out.indent(-1);
 			out.line() << "}";
@@ -136,7 +137,7 @@ namespace putki
 			out.line();
 			out.line() << "const char* get_string(putki::mem_instance *obj) { ";
 			out.indent(1);
-			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE)
+			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE || s->fields[j].type == FIELDTYPE_PATH)
 				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			else
 				out.line() << "return \"####NOT-STRING[" << s->name << "]#####\";";
@@ -181,6 +182,9 @@ namespace putki
 			out.indent(1);
 			if (s->fields[j].type == FIELDTYPE_POINTER)
 				write_pointer_set(out, s, j, field_ref);
+			else if (s->fields[j].type == FIELDTYPE_PATH)
+				write_plain_set(out, s, j, field_ref);
+				
 			out.indent(-1);
 			out.cont() << "	}";
 
@@ -193,6 +197,10 @@ namespace putki
 				out.line() << "putki::instance_t ptr = ((inki::" << s->name << "*)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ";";
 				out.line() << "if (!ptr) return \"\";";
 				out.line() << "return putki::db::pathof_including_unresolved(((putki::mem_instance_real*)obj)->refs_db, ptr);";
+			}
+			else if (s->fields[j].type == FIELDTYPE_PATH)
+			{
+				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			}
 			else
 				out.line() << "return \"NOT A POINTER\";";

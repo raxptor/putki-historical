@@ -133,6 +133,11 @@ namespace putki
 						out->type = putki::FIELDTYPE_BOOL;
 					else if (!strcmp(type.c_str(), "byte"))
 						out->type = putki::FIELDTYPE_BYTE;
+					else if (!strcmp(type.c_str(), "path"))
+					{
+						out->type = putki::FIELDTYPE_PATH;
+						read_ref_type = true;
+					}
 					else if (!strcmp(type.c_str(), "file"))
 					{
 						out->type = putki::FIELDTYPE_FILE;

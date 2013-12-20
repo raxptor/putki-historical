@@ -65,7 +65,7 @@ namespace putki
 
 	const char *rt_wrap_field_type(putki::field_type f, runtime::descptr rt)
 	{
-		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_STRING) // note string too! (because char*)
+		if (f == FIELDTYPE_POINTER || f == FIELDTYPE_PATH || f == FIELDTYPE_STRING) // note string too! (because char*)
 		{
 			return ptr_sub(rt);
 		}
@@ -91,6 +91,7 @@ namespace putki
 		switch (f)
 		{
 		case FIELDTYPE_STRING:
+		case FIELDTYPE_PATH:
 		case FIELDTYPE_FILE:
 			return "std::string";
 		case FIELDTYPE_INT32:
@@ -234,6 +235,7 @@ namespace putki
 						out.cont() << "outki::" << f->ref_type << " ";
 						break;
 					case FIELDTYPE_FILE:
+					case FIELDTYPE_PATH:
 					case FIELDTYPE_STRING:
 						{
 							if (rt)
@@ -377,6 +379,7 @@ namespace putki
 				case FIELDTYPE_INT32:
 					out.line() << "putki::prep_int32_field((char*)&" << fref <<  ");";
 					break;
+				case FIELDTYPE_PATH:
 				case FIELDTYPE_STRING:
 					out.line() << "aux_cur = putki::post_blob_load_string(&" << fref << ", aux_cur, aux_end);";
 					break;
@@ -633,7 +636,7 @@ namespace putki
 		out.line() << "{";
 		out.indent(1);
 
-		if (f->type == FIELDTYPE_STRING || f->type == FIELDTYPE_FILE)
+		if (f->type == FIELDTYPE_STRING || f->type == FIELDTYPE_FILE || f->type == FIELDTYPE_PATH)
 		{
 			out.line() << ref << " = " << " putki::parse::get_value_string(" << node << "); ";
 		}
@@ -853,7 +856,7 @@ namespace putki
 				ref.append("[i]");
 			}
 
-			if (fd.type == FIELDTYPE_STRING || fd.type == FIELDTYPE_FILE)
+			if (fd.type == FIELDTYPE_STRING || fd.type == FIELDTYPE_FILE || fd.type == FIELDTYPE_PATH)
 			{
 				out.line() << "out << " << delim << "putki::write::json_str(" << ref << ".c_str());";
 			}
@@ -1042,7 +1045,7 @@ namespace putki
 					outd = "inp[i]";
 				}
 
-				if (fd.type == FIELDTYPE_STRING)
+				if (fd.type == FIELDTYPE_STRING || fd.type == FIELDTYPE_PATH)
 				{
 					out.line() << "out_beg = putki::pack_string_field((char*) &" << outd << ", " << srcd << ".c_str(), out_beg, out_end);";
 				}
