@@ -226,8 +226,19 @@ namespace putki
 
 		while (getline(f, line))
 		{
+			// trim beginning
+			while (!line.empty() && isspace(line[0]))
+				line.erase(0, 1);
+
+			// erase comments
+			int comment = line.find_first_of('/');
+			if (comment != std::string::npos && (comment + 1) < line.size() && line[comment+1] == '/')
+				line.erase(comment, line.size() - comment);
+
 			if (line.empty())
 				continue;
+				
+			
 				
 			everything.append(line);
 
