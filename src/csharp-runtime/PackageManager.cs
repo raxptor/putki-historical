@@ -11,7 +11,6 @@ namespace Putki
 		{
 			Package p = new Package();
 			p.LoadFromBytes(bytes, loader);
-			LiveUpdate.InsertPackage(p, loader);
 			s_loaded.Insert(0, p);
 			return p;
 		}
