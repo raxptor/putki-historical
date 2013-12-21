@@ -41,14 +41,14 @@ namespace PutkEd
 		{
 			m_lb[i].Text = m_fh[i].GetName();
 
-			if (m_fh[i].GetFieldType() == 7) // float
+			if (m_fh[i].GetFieldType() == 9) // float
 				m_tb[i].Text = m_fh[i].GetFloat(m_mi).ToString();
 			else if ((int)m_fh[i].GetFieldType() == 1) // byte
 				m_tb[i].Text = m_fh[i].GetByte(m_mi).ToString();
 
 			m_tb[i].Changed += delegate
 			{
-				if (m_fh[i].GetFieldType() == 7) // float
+				if (m_fh[i].GetFieldType() == 9) // float
 				{
 					float o;
 					if (Single.TryParse(m_tb[i].Text, out o))

@@ -14,7 +14,7 @@ namespace PutkEd
 
 			switch (fh.GetFieldType())
 			{
-				case 4:
+				case 5:
 				{
 					string RT = fh.GetRefType();
 					String InlineEditor = null;
@@ -34,11 +34,11 @@ namespace PutkEd
 				}
 				case 3:
 					return new PointerEditor();
-				case 6:
-					return new BoolEditor();
-				case 7:
-					return new FloatEditor();
 				case 8:
+					return new BoolEditor();
+				case 9:
+					return new FloatEditor();
+				case 10:
 					return new EnumEditor();
 				case 0:
 					return new IntEditor();
