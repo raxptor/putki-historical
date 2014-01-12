@@ -75,6 +75,11 @@ namespace PutkEd
 				List<string> files = new List<string>(Directory.EnumerateFiles(dn));
 				foreach (string f in files)
 				{
+					// Skip files ending with ~ since those are backup files created
+					// by the authors favorite editor (joe)
+					if (f.Length > 0 && f[f.Length - 1] == '~')
+						continue;
+
 					Console.WriteLine("loading " + f);
 					string cf = Clean(f);
 					m_files.Add(cf);
