@@ -239,7 +239,9 @@ struct compile_context
 		g_cur = this;
 		putki::sys::search_tree(s_inpath, compile_context::s_file);
 		
-		if (!s_wrote_anything)
+		// only skip this when doing lazy writes because it might not have processed any files
+		// and then we want to write out things.
+		if (!s_wrote_anything && g_lazy_write)
 			return 0;
 			
 		// bind calls
