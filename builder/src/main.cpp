@@ -59,6 +59,8 @@ int run_putki_builder(int argc, char **argv)
 	// configure builder with app handlers.
 
 	putki::runtime::descptr rt = putki::runtime::running();
+	
+	const char *single_asset = 0;
 
 	for (int i=1;i<argc;i++)
 	{
@@ -71,16 +73,28 @@ int run_putki_builder(int argc, char **argv)
 			r.low_byte_first = true;
 			rt = &r;
 		}
+		if (!strcmp(argv[i], "--asset"))
+		{
+			if (i+1 < argc)
+				single_asset = argv[++i];
+		}
 	}
 	
 	putki::builder::data *builder = putki::builder::create(rt, ".", true);
 
 	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
 
-	putki::build::full_build(builder);
+	if (single_asset)
+	{
+		putki::build::single_build(builder, single_asset);
+		std::cout << "# Warning: Single building is experimental and may get the build database out of sync." << std::endl;
+	}
+	else
+	{
+		putki::build::full_build(builder);
+		putki::builder::write_build_db(builder);
+	}
 	
-	putki::builder::write_build_db(builder);
-
 	putki::builder::free(builder);
 	
 	if (argc > 1 && !strcmp(argv[1], "--liveupdate"))

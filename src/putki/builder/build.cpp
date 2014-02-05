@@ -192,10 +192,14 @@ namespace putki
 			brp.output = target;
 			putki::db::read_all(source, &brp);
 		}
+		
 
-		void full_build(putki::builder::data *builder)
+		void do_build(putki::builder::data *builder, const char *single_asset)
 		{
-			std::cout << "=> Starting full build" << std::endl;
+			if (single_asset)
+				std::cout << "=> Starting isolated build of " << single_asset << std::endl;
+			else
+				std::cout << "=> Starting full build" << std::endl;
 			
 			db::data *input = putki::db::create();
 			load_tree_into_db(builder::obj_path(builder), input);
@@ -203,14 +207,29 @@ namespace putki
 			std::cout << "=> Loaded DB, building source files" << std::endl;
 			
 			// INDIVIDUAL PHASE
-
 			build_source_file bsf;
 			bsf.input = input;
 			bsf.output = db::create();
 			bsf.builder = builder;
 			
 			// go!
-			db::read_all(input, &bsf);
+			if (single_asset)
+			{
+				type_handler_i *th;
+				instance_t obj;
+				if (db::fetch(input, single_asset, &th, &obj))
+				{
+					bsf.record(single_asset, th, obj);
+				}
+				else
+				{
+					std::cout << "Unable to resolve [" << single_asset << "]!" << std::endl;
+				}
+			}
+			else
+			{
+				db::read_all(input, &bsf);
+			}
 
 			post_build_ptr_update(input, bsf.output);
 						
@@ -230,7 +249,13 @@ namespace putki
 			js.db = bsf.output;
 			js.builder = builder;
 			db::read_all(bsf.output, &js);
-
+			
+			if (single_asset)
+			{
+				std::cout << "=> Not packaging data in single mode." << std::endl;
+				return;
+			}
+					
 			std::cout << "=> Packaging data." << std::endl;
 
 			char pkg_path[1024];
@@ -244,6 +269,16 @@ namespace putki
 			// there should be no objects outside these database now.
 			db::free_and_destroy_objs(bsf.input);
 			db::free_and_destroy_objs(bsf.output);
+		}
+
+		void full_build(putki::builder::data *builder)
+		{
+			do_build(builder, 0);
+		}
+		
+		void single_build(putki::builder::data *builder, const char *single_asset)
+		{
+			do_build(builder, single_asset);
 		}
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
