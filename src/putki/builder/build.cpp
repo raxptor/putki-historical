@@ -105,7 +105,7 @@ namespace
 		
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			std::cout << "=> Building source file [" << path << "]..." << std::endl;
+			// std::cout << "=> Building source file [" << path << "]..." << std::endl;
 
 			putki::db::data *tmp_db = putki::db::create();
 			putki::builder::build_source_object(builder, input, path, tmp_db);
@@ -135,7 +135,7 @@ namespace
 		}
 	};
 
-	struct write_debug_json : public putki::db::enum_i
+	struct write_cache_json : public putki::db::enum_i
 	{
 		putki::builder::data *builder;
 		putki::db::data *db;
@@ -242,9 +242,9 @@ namespace putki
 
 			post_build_ptr_update(input, bsf.output);	
 
-			std::cout << "=> Writing final .json objects for debug" << std::endl;
-			write_debug_json js;
-			js.path_base = builder::dbg_path(builder);
+			std::cout << "=> Writing final .json objects for cache." << std::endl;
+			write_cache_json js;
+			js.path_base = builder::built_obj_path(builder);
 			js.db = bsf.output;
 			js.builder = builder;
 			db::read_all(bsf.output, &js);

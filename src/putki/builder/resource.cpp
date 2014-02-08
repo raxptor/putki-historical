@@ -7,6 +7,10 @@
 #include <iostream>
 #include <string>
 
+extern "C" {
+	#include <md5/md5.h>
+}
+
 namespace putki
 {
 	namespace resource
@@ -32,9 +36,15 @@ namespace putki
 		bool load(builder::data *bld, const char *path, const char **outBytes, long long *outSize)
 		{
 			std::string full_path = real_path(bld, path);
-			std::cout << "I want to load [" << full_path << "]!" << std::endl;
 
-			std::ifstream f(full_path.c_str(), std::ios::binary);	
+			std::ifstream f(full_path.c_str(), std::ios::binary);
+			if (!f.good())
+			{
+				std::string error = "Failed to load resource [" + full_path + "]";
+				builder::build_error(bld, error.c_str());
+				return false;
+			}
+			
 			f.seekg(0, std::ios::end);
 			std::streampos size = f.tellg();
 			f.seekg(0, std::ios::beg);
@@ -50,6 +60,29 @@ namespace putki
 		void free(const char *data)
 		{
 			delete [] data;
+		}
+		
+		std::string signature(builder::data *bld, const char *path)
+		{
+			// optimize this.
+			const char *bytes;
+			long long sz;
+			if (!load(bld, path, &bytes, &sz))
+			{
+				return "(missing)";
+			}
+			else
+			{
+				char signature[64];
+				char signature_string[64];
+				
+				md5_t md5;
+				md5_init(&md5);
+				md5_process(&md5, bytes, (long)sz);
+				md5_finish(&md5, signature);
+				md5_sig_to_string(signature, signature_string, 64);
+				return signature_string;
+			}
 		}
 
 		std::string save_temp(builder::data *builder, const char *path, const char *bytes, long long length)

@@ -27,7 +27,8 @@ namespace putki
 
 		struct enum_db_entries_resolve : public db::enum_i
 		{
-			db::data *db;
+			db::data *db = 0;
+			db::data *extra_resolve_db = 0;
 			
 			bool add_to_load;
 			std::vector<std::string> to_load;
@@ -53,7 +54,12 @@ namespace putki
 					
 					type_handler_i *th;
 					instance_t obj;
+					
 					if (db::fetch(parent->db, path, &th, &obj))
+					{
+						*on = obj;
+					}
+					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj))
 					{
 						*on = obj;
 					}
@@ -187,7 +193,7 @@ namespace putki
 		// and hopefully here there are no unresolved pointers!
 	}
 
-	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve)
+	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)
 	{		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(sourcepath) + "/" + fpath;
@@ -201,6 +207,7 @@ namespace putki
 			enum_db_entries_resolve resolver;
 			resolver.add_to_load = true;
 			resolver.db = d;
+			resolver.extra_resolve_db = resolve_db;
 			db::read_all(d, &resolver);
 			
 			unsigned int ld = 0;

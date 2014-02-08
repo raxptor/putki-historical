@@ -2,6 +2,8 @@
 
 #include <putki/builder/db.h>
 #include <putki/builder/build-db.h>
+#include <putki/builder/resource.h>
+#include <putki/builder/source.h>
 
 #include <map>
 #include <string>
@@ -29,7 +31,7 @@ namespace putki
 		{
 			BuildersMap handlers;
 			runtime::descptr runtime;
-			std::string obj_path, res_path, out_path, tmp_path, dbg_path;
+			std::string obj_path, res_path, out_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 		};
 
@@ -60,7 +62,7 @@ namespace putki
 			data *d = new data();
 			d->runtime = rt;
 
-			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->dbg_path = path;
+			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->built_obj_path = path;
 
 			d->obj_path.append("/data/objs");
 			d->res_path.append("/data/res");
@@ -73,9 +75,9 @@ namespace putki
 			d->tmp_path.append(runtime::desc_str(rt));
 			d->tmp_path.append("/.tmp");
 
-			d->dbg_path.append("/out/");
-			d->dbg_path.append(runtime::desc_str(rt));
-			d->dbg_path.append("/.dbg");
+			d->built_obj_path.append("/out/");
+			d->built_obj_path.append(runtime::desc_str(rt));
+			d->built_obj_path.append("/.dbg");
 
 			// app specific configurators
 			if (s_init_fn)
@@ -115,9 +117,9 @@ namespace putki
 			return d->tmp_path.c_str();
 		}
 
-		const char *dbg_path(data *d)
+		const char *built_obj_path(data *d)
 		{
-			return d->dbg_path.c_str();
+			return d->built_obj_path.c_str();
 		}
 
 		runtime::descptr runtime(builder::data *data)
@@ -148,7 +150,93 @@ namespace putki
 			i->second.handlers.push_back(b);
 		}
 		
-		void build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		// returns either 0 (loaded from cache)
+		// or a reason to rebuild.
+		const char* fetch_cached_build(data *builder, build_db::record * newrecord, builder::handler_i *handler, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		{
+			// Time to hunt for cached object.
+			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
+			if (dlist)
+			{
+				int matches = 0;
+				
+				for (int i=0;;i++)
+				{
+					const char *entrypath = build_db::deplist_path(dlist, i);
+					if (!entrypath)
+						break;
+					
+					const char *signature = build_db::deplist_signature(dlist, i);
+					
+					if (!build_db::deplist_is_external_resource(dlist, i))
+					{
+						const char *builder = build_db::deplist_builder(dlist, i);
+						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
+						
+						std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
+						
+						// only care for builder match when the input is going to be built with this builder
+						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
+						if (sigmatch && buildermatch)
+							matches++;
+						else
+						{
+							if (!buildermatch)
+								return "builder version is different";
+							else
+								std::cout << " -> Detected modification in [" << entrypath << "]" << std::endl;
+							
+							return "input or builder has been modified";
+						}
+					}
+					else
+					{
+						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
+						{
+							return "external source data has been modified";
+						}
+						else
+						{
+							matches++;
+						}
+					}
+				}
+				
+				if (matches)
+				{
+					// replace the build record from the cache.
+					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
+				
+					for (int j=0;;j++)
+					{
+						const char *path = build_db::enum_outputs(newrecord, j);
+						if (!path)
+							break;
+						
+						// load the file and resolve unresolved pointers to the input database (which is how they would be
+						// right after having been built anyway!)
+						load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
+						
+						// todo, verify signature here too maybe?
+					}
+					
+					// Now we hope for the best since these files came from disk and should be OK unless the user
+					// has touched them.
+					return 0;
+				}
+				else
+				{
+					return "0 entries found to compare";
+				}
+				
+				build_db::deplist_free(dlist);
+			}
+			
+			return "no previous build records";
+		}
+		
+		// return true if was built, false if cached.
+		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
@@ -159,25 +247,55 @@ namespace putki
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
 					{
-						e->handler->handle(builder, record, input, path, obj, output, phase);
+						const char *reason = fetch_cached_build(builder, record, e->handler, input, path, obj, th, output);
+						if (reason)
+						{
+							std::cout << " => Building [" << path << "] because " << reason << std::endl;
+							e->handler->handle(builder, record, input, path, obj, output, phase);
+						}
+						else
+						{
+							// std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
+							
+							// build record has been rewritten from cache, can't go modify it more now.
+							return false;
+						}
 						
 						// TODO: Clean up return values. Now always assume they are handled
 						//       if we actually call in here.
 						handled = true;
 						
 						build_db::set_builder(record, e->handler->version());
+						break;
 					}
 				}
 			}
 			
 			if (!handled)
 			{
+				// std::cout << " => Copied [" << path << "] into output (no registered builder)" << std::endl;
 				build_db::set_builder(record, "pukti-generic");
+			}
+
+			type_handler_i *_th;
+			instance_t _obj;
+			if (db::fetch(output, path, &_th, &_obj) && _th == th && _obj == obj)
+			{
+				// Not sure if anything needs to be done, or if this check is at all necessary
+				// When builders produce extra outputs, and they are built,
+				// they will be built into the same database as where they came from, so will always generate this case.
+				// But it means it doesn't need to be added.
+				//
+				// std::cout << "==> Builder already added object! [" << path << "]" << std::endl;
+			}
+			else
+			{
+				// always here output.
 				db::insert(output, path, th, obj);
 			}
 			
-			// always adds its own output.
 			build_db::add_output(record, path, "putki-generic");
+			return true;
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
@@ -187,60 +305,82 @@ namespace putki
 			if (!db::fetch(input, path, &th, &obj))
 				return;
 				
+			// first try to create a new one by cloning what's already in there.
 			build_db::record * br = build_db::create_record(path, db::signature(input, path));
-
 			build_db::add_input_dependency(br, path);
-
-			putki::db::data *tmp_output = putki::db::create();
 			
 			// since we are reading from the actual input here, clone the object so we can conveniently modify the contents.
 			// this also means a pointer update needs to be done after this step.
 			instance_t clone = th->clone(obj);
 			
-			build_source_object(builder, br, PHASE_INDIVIDUAL, input, path, clone, th, tmp_output);
+			putki::db::data *tmp_output = putki::db::create();
 
-			// sequentially build all outputs as well.
-			unsigned int outpos = 0;
-
-			while (const char *cr_path_ptr = build_db::enum_outputs(br, outpos))
+			if (build_source_object(builder, br, PHASE_INDIVIDUAL, input, path, clone, th, tmp_output))
 			{
-				// ignore what we just built.
-				if (!strcmp(cr_path_ptr, path))
+				// sequentially build all outputs as well.
+				unsigned int outpos = 0;
+
+				while (const char *cr_path_ptr = build_db::enum_outputs(br, outpos))
 				{
-					outpos++;
-					continue;
-				}
-
-				std::string cr_path = cr_path_ptr;
-				std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << cr_path << "]" << std::endl;
-
-				// => This build step uses input as input still, and a tmp db for output.
-				//
-				//    Since these objects were generated by the previous build we do not need to clone them; they will not ruin any original input data
-				// 
-				{
-					// note these are in the output
-					type_handler_i *th;
-					instance_t obj;
-
-					if (db::fetch(tmp_output, cr_path.c_str(), &th, &obj))
+					// ignore what we just built.
+					if (!strcmp(cr_path_ptr, path))
 					{
-						build_db::record *suboutput = build_db::create_record(cr_path.c_str(), db::signature(tmp_output, cr_path.c_str()));
-						build_db::copy_input_dependencies(suboutput, br);
-
-						build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
-
-						build_db::append_extra_outputs(br, suboutput);
-						build_db::commit_record(builder->build_db, suboutput);
-					}
-					else
-					{
-						std::cout << " **** BUILD OUTPUT REPORTED ADDED OBJECT WHICH WAS NOT FOUND " << std::endl;
+						outpos++;
+						continue;
 					}
 
-					outpos++;
+					std::string cr_path = cr_path_ptr;
+					std::cout << "      ==> Building subly created input [" << outpos << "] which is [" << cr_path << "]" << std::endl;
+
+					// => This build step uses input as input still, and a tmp db for output.
+					//
+					//    Since these objects were generated by the previous build we do not need to clone them; they will not ruin any original input data
+					// 
+					{
+						// note these are in the output
+						type_handler_i *th;
+						instance_t obj;
+
+						if (db::fetch(tmp_output, cr_path.c_str(), &th, &obj))
+						{
+							build_db::record *suboutput = build_db::create_record(cr_path.c_str(), db::signature(tmp_output, cr_path.c_str()));
+							build_db::copy_input_dependencies(suboutput, br);
+							
+							build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
+							
+							// push up sources dependencies that are in the input, this is convenience for not having to add
+							// manually all the way up.
+							build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), cr_path.c_str());
+							if (dlist)
+							{
+								for (int i=0;;i++)
+								{
+									const char *entrypath = build_db::deplist_path(dlist, i);
+									if (!entrypath)
+										break;
+									if (build_db::deplist_is_external_resource(dlist, i))
+										continue;
+									
+									// Add if exists in input domain. THis is to avoid adding tmp paths
+									// to the input list.
+									if (db::fetch(input, entrypath, &th, &obj))
+										build_db::add_input_dependency(br, entrypath);
+								}
+								build_db::deplist_free(dlist);
+							}
+							
+							build_db::append_extra_outputs(br, suboutput);
+							build_db::commit_record(builder->build_db, suboutput);
+						}
+						else
+						{
+							std::cout << " **** BUILD OUTPUT REPORTED ADDED OBJECT WHICH WAS NOT FOUND " << std::endl;
+						}
+
+						outpos++;
+					}
 				}
-			}
+			} // end if was built.
 
 			build_db::commit_record(builder->build_db, br);
 

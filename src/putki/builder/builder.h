@@ -57,7 +57,7 @@ namespace putki
 		const char *res_path(data *d);
 		const char *tmp_path(data *d);
 		const char *out_path(data *d);
-		const char *dbg_path(data *d);
+		const char *built_obj_path(data *d);
 	}
 }
 
