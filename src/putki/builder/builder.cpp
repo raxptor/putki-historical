@@ -155,7 +155,7 @@ namespace putki
 		const char* fetch_cached_build(data *builder, build_db::record * newrecord, builder::handler_i *handler, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			// Time to hunt for cached object.
-			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
+			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path, false);
 			if (dlist)
 			{
 				int matches = 0;
@@ -173,7 +173,7 @@ namespace putki
 						const char *builder = build_db::deplist_builder(dlist, i);
 						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
 						
-						std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
+						// std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
 						
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
@@ -215,7 +215,12 @@ namespace putki
 						
 						// load the file and resolve unresolved pointers to the input database (which is how they would be
 						// right after having been built anyway!)
-						load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
+						
+						// (we check first so we don't re-load any objects which might already have been pulled in
+						// it would be bad as it would create new pointer to the object and invalidate the previous one.
+						// oh the fun of single file loading.
+						if (!db::fetch(output, path, &th, &obj))
+							load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
 						
 						// todo, verify signature here too maybe?
 					}
@@ -348,11 +353,15 @@ namespace putki
 							
 							build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
 							
+							build_db::append_extra_outputs(br, suboutput);
+							build_db::commit_record(builder->build_db, suboutput);
+							
 							// push up sources dependencies that are in the input, this is convenience for not having to add
 							// manually all the way up.
-							build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), cr_path.c_str());
+							build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), cr_path.c_str(), true);
 							if (dlist)
 							{
+								// Note: this dlist is a dep list wih paths only, don't try reading signatures or such.
 								for (int i=0;;i++)
 								{
 									const char *entrypath = build_db::deplist_path(dlist, i);
@@ -367,10 +376,7 @@ namespace putki
 										build_db::add_input_dependency(br, entrypath);
 								}
 								build_db::deplist_free(dlist);
-							}
-							
-							build_db::append_extra_outputs(br, suboutput);
-							build_db::commit_record(builder->build_db, suboutput);
+							}							
 						}
 						else
 						{

@@ -192,7 +192,7 @@ namespace putki
 
 		// and hopefully here there are no unresolved pointers!
 	}
-
+	
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)
 	{		
 		std::string fpath = std::string(path) + ".json";

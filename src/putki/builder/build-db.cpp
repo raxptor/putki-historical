@@ -94,6 +94,9 @@ namespace putki
 							add_external_resource_dependency(cur, path, extra.c_str());
 						}
 					}
+					
+					if (cur)
+						commit_record(d, cur);
 				}
 			}
 			
@@ -315,7 +318,7 @@ namespace putki
 			return dl;
 		}
 	
-		deplist* inputdeps_get(data *d, const char *path)
+		deplist* inputdeps_get(data *d, const char *path, bool paths_only)
 		{
 			deplist *dl = new deplist();
 		
@@ -325,9 +328,19 @@ namespace putki
 				for (unsigned int i=0;i<q->second.input_dependencies.size();i++)
 				{
 					deplist::entry e;
-					if (!fill_entry(d, q->second.input_dependencies[i].c_str(), &e))
-						return 0;
-					dl->entries.push_back(e);
+					if (paths_only)
+					{
+						e.path = q->second.input_dependencies[i];
+						e.is_external_resource = false;
+						dl->entries.push_back(e);
+	
+					}
+					else
+					{
+						// fetch full
+						if (fill_entry(d, q->second.input_dependencies[i].c_str(), &e))
+							dl->entries.push_back(e);
+					}
 				}
 				for (unsigned int i=0;i<q->second.external_dependencies.size();i++)
 				{
@@ -338,8 +351,8 @@ namespace putki
 					e.signature = q->second.external_dependencies[i].signature;
 					dl->entries.push_back(e);
 				}
-				
 			}
+			
 			return dl;
 		}
 

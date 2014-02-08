@@ -30,8 +30,8 @@ namespace putki
 
 		const char *enum_outputs(record *r, unsigned int pos);
 		
-		deplist* inputdeps_get(data *d, const char *path);
-
+		deplist* inputdeps_get(data *d, const char *path, bool paths_only);
+		
 		deplist* deplist_get(data *d, const char *path);
 
 		const char *deplist_entry(deplist *d, unsigned int index);

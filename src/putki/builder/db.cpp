@@ -1,4 +1,4 @@
-#include "db.h"
+	#include "db.h"
 
 #include <map>
 #include <string>
@@ -124,10 +124,7 @@ namespace putki
 				char signature[16];
 				static char signature_string[64];
 
-				md5_t md5;
-				md5_init(&md5);
-				md5_process(&md5, ss.str().c_str(), ss.str().size());
-				md5_finish(&md5, signature);
+				md5_buffer(ss.str().c_str(), ss.str().size(), signature);
 				md5_sig_to_string(signature, signature_string, 64);
 
 				return signature_string;

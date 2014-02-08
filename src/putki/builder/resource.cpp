@@ -76,10 +76,7 @@ namespace putki
 				char signature[64];
 				char signature_string[64];
 				
-				md5_t md5;
-				md5_init(&md5);
-				md5_process(&md5, bytes, (long)sz);
-				md5_finish(&md5, signature);
+				md5_buffer(bytes, (long)sz, signature);
 				md5_sig_to_string(signature, signature_string, 64);
 				return signature_string;
 			}
