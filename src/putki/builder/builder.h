@@ -24,6 +24,7 @@ namespace putki
 
 		struct handler_i
 		{
+			virtual const char *version() { return "unknown-builder"; };
 			virtual bool handle(data *builder, build_db::record *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 	

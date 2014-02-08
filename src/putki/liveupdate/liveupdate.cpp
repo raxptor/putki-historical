@@ -2,7 +2,6 @@
 
 #include <putki/builder/db.h>
 #include <putki/builder/builder.h>
-#include <putki/builder/app.h>
 #include <putki/builder/source.h>
 #include <putki/builder/build.h>
 #include <putki/builder/build-db.h>

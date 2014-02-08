@@ -150,9 +150,6 @@ namespace putki
 		
 		void build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
-			// always adds its own output.
-			build_db::add_output(record, path);
-
 			bool handled = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
 			if (i != builder->handlers.end())
@@ -162,23 +159,35 @@ namespace putki
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
 					{
-						handled |= e->handler->handle(builder, record, input, path, obj, output, phase);
+						e->handler->handle(builder, record, input, path, obj, output, phase);
+						
+						// TODO: Clean up return values. Now always assume they are handled
+						//       if we actually call in here.
+						handled = true;
+						
+						build_db::set_builder(record, e->handler->version());
 					}
 				}
 			}
 			
 			if (!handled)
+			{
+				build_db::set_builder(record, "pukti-generic");
 				db::insert(output, path, th, obj);
+			}
+			
+			// always adds its own output.
+			build_db::add_output(record, path, "putki-generic");
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
-			build_db::record * br = build_db::create_record(path);
-
 			type_handler_i *th;
 			instance_t obj;
 			if (!db::fetch(input, path, &th, &obj))
 				return;
+				
+			build_db::record * br = build_db::create_record(path, db::signature(input, path));
 
 			build_db::add_input_dependency(br, path);
 
@@ -216,7 +225,7 @@ namespace putki
 
 					if (db::fetch(tmp_output, cr_path.c_str(), &th, &obj))
 					{
-						build_db::record *suboutput = build_db::create_record(cr_path.c_str());
+						build_db::record *suboutput = build_db::create_record(cr_path.c_str(), db::signature(tmp_output, cr_path.c_str()));
 						build_db::copy_input_dependencies(suboutput, br);
 
 						build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);

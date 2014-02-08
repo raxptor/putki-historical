@@ -5,11 +5,18 @@
 #include <iostream>
 #include <set>
 #include <vector>
+#include <sstream>
 
 #include <cstdlib>
 #include <cstdio>
 
 #include <putki/sys/compat.h>
+
+#include <putki/builder/write.h>
+
+extern "C" {
+	#include <md5/md5.h>
+}
 
 namespace putki
 {
@@ -21,6 +28,7 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 			std::vector<std::string> auxrefs;
+			std::string signature;
 		};
 
 		struct data
@@ -105,6 +113,29 @@ namespace putki
 			return pathof(d, obj);
 		}
 		
+		const char *signature(data *d, const char *path)
+		{
+			std::map<std::string, entry>::iterator i = d->objs.find(path);
+			if (i != d->objs.end())
+			{
+				std::stringstream ss;
+				write::write_object_into_stream(ss, d, i->second.th, i->second.obj);
+				
+				char signature[16];
+				static char signature_string[64];
+
+				md5_t md5;
+				md5_init(&md5);
+				md5_process(&md5, ss.str().c_str(), ss.str().size());
+				md5_finish(&md5, signature);
+				md5_sig_to_string(signature, signature_string, 64);
+
+				return signature_string;
+				
+			}
+			return "NO-SIG";
+		}
+				
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			// std::cout << " db insert on path [" << path << "]" << std::endl;

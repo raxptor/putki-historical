@@ -13,7 +13,6 @@
 #include <putki/builder/builder.h>
 #include <putki/builder/source.h>
 #include <putki/builder/package.h>
-#include <putki/builder/app.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/write.h>
 

@@ -13,8 +13,11 @@ namespace putki
 		struct record
 		{
 			std::string source_path;
+			std::string source_sig;
+			std::string builder;
 			std::vector<std::string> input_dependencies;
 			std::vector<std::string> outputs;
+			std::vector<std::string> builders;
 		};
 		
 		typedef std::map<std::string, record> RM;
@@ -45,12 +48,31 @@ namespace putki
 						if (line.size() < 2)
 							continue;
 						
+						std::string extra, extra2;
+
+						// peel off extra2
+						int w = line.find('*');
+						if (w != std::string::npos)
+						{
+							extra2 = line.substr(w + 1, line.size() - w - 1);
+							line.erase(w, line.size() - w);
+						}
+						
+						// then extra
+						w = line.find('@');
+						if (w != std::string::npos)
+						{
+							extra = line.substr(w + 1, line.size() - w - 1);
+							line.erase(w, line.size() - w);
+						}
+							
 						const char *path = &line[2];
+												
 						if (line[0] == '#')
 						{
 							if (cur)
 								commit_record(d, cur);
-							cur = create_record(path);
+							cur = create_record(path, extra.c_str(), extra2.c_str());
 						}
 						else if (line[0] == 'i')
 						{
@@ -58,7 +80,11 @@ namespace putki
 						}
 						else if (line[0] == 'o')
 						{
-							add_output(cur, path);
+							int w = line.find('@');
+							if (w != std::string::npos)
+							{
+								add_output(cur, path, extra.c_str());
+							}
 						}
 					}
 				}
@@ -73,13 +99,15 @@ namespace putki
 			std::cout << "Writing build-db to [" << d->path << "]" << std::endl;
 			for (RM::iterator i=d->records.begin();i!=d->records.end();i++)
 			{
-				dbtxt << "#:" << i->first << "\n";
-
 				record &r = i->second;
+	
+				// sources have extra argument signature, outputs have extra argument builder
+				dbtxt << "#:" << i->first << "@" << r.source_sig << "*" << r.builder << "\n";
+
 				for (unsigned int j=0;j!=r.input_dependencies.size();j++)
 					dbtxt << "i:" << r.input_dependencies[j] << "\n";
 				for (unsigned int j=0;j!=r.outputs.size();j++)
-					dbtxt << "o:" << r.outputs[j] << "\n";
+					dbtxt << "o:" << r.outputs[j] << "@" << r.builders[j] << "\n";
 			}
 		}
 
@@ -88,16 +116,27 @@ namespace putki
 			delete d;
 		}
 
-		record *create_record(const char *input_path)
+		record *create_record(const char *input_path, const char *input_signature, const char *builder)
 		{
 			record *r = new record();
 			r->source_path = input_path;
+			r->source_sig = input_signature;
+			
+			if (builder)
+				r->builder = builder;
 			return r;
 		}
-
-		void add_output(record *r, const char *output_path)
+		
+		void set_builder(record *r, const char *builder)
 		{
+			r->builder = builder;
+		}
+
+		void add_output(record *r, const char *output_path, const char *builder)
+		{
+			std::cout << "Adding output [" << output_path << "] [" << builder << "]" << std::endl;
 			r->outputs.push_back(output_path);
+			r->builders.push_back(builder);
 		}
 
 		void add_input_dependency(record *r, const char *dependency)
@@ -115,7 +154,10 @@ namespace putki
 			for (unsigned int i=0;i<source->outputs.size();i++)
 			{
 				if (source->outputs[i] != source->source_path)
+				{
 					target->outputs.push_back(source->outputs[i]);
+					target->builders.push_back(source->builders[i]);
+				}
 			}
 		}
 

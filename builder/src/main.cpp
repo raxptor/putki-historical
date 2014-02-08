@@ -1,6 +1,5 @@
 #include <putki/builder/build.h>
 #include <putki/builder/builder.h>
-#include <putki/builder/app.h>
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/runtime.h>
 

@@ -29,6 +29,8 @@
 		files { "src/**.cpp", "src/**.h" }
 		files { "src/**.cpp", "src/**.h" }	
 		files { "builder/src/*.cpp" }
+		files { "src/md5/*.*" }
+		
 		excludes { "src/cpp-runtime/**" }
 		includedirs { "src", "external"}
 

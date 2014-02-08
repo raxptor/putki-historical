@@ -13,8 +13,10 @@ namespace putki
 
 		void release(data *d);
 
-		record *create_record(const char *input_path);
-		void add_output(record *r, const char *output_path);
+		record *create_record(const char *input_path, const char *input_sig, const char *builder = 0);
+		
+		void set_builder(record *r, const char *builder);
+		void add_output(record *r, const char *output_path, const char *builder);
 		void add_input_dependency(record *r, const char *dependency);	
 		void commit_record(data *d, record *r);
 
