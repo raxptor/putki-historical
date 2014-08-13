@@ -1,5 +1,5 @@
 solution "Putki"
-	configurations {"Release"}
+	configurations {"Release", "Debug"}
 	location "build"
 	targetdir "build"
 
@@ -17,7 +17,7 @@ solution "Putki"
 		includedirs { "../src", "../src/cpp-runtime/", "../external" }
 		links {"json-parser"}
 
-		configuration "Release"
+		configuration "Debug"
 			defines {"DEBUG"}
 
 

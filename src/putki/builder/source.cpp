@@ -27,14 +27,15 @@ namespace putki
 
 		struct enum_db_entries_resolve : public db::enum_i
 		{
-			db::data *db = 0;
-			db::data *extra_resolve_db = 0;
+			db::data *db;
+			db::data *extra_resolve_db;
 			
 			bool add_to_load;
 			std::vector<std::string> to_load;
 
 			enum_db_entries_resolve()
 			{
+				db = extra_resolve_db = 0;
 				add_to_load = false;
 			}
 
