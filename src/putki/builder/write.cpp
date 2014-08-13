@@ -99,7 +99,7 @@ namespace putki
 				out << "		}" << std::endl;
 			}
 
-			out << "	      ]" << std::endl;
+			out << "	]" << std::endl;
 
 			// now all the aux 
 
