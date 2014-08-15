@@ -884,7 +884,7 @@ namespace putki
 				out.line(1) << "putki::type_handler_i *thandler = inki::get_" << fd.ref_type << "_type_handler();";
 				out.line(1) << "thandler->write_json(ref_source, &" << ref << ", out, indent + 1);";
 				out.line() << "}";
-				out.line() << "out << putki::write::json_indent(indent) << \"}\";";
+				out.line() << "out << putki::write::json_indent(indent+1) << \"}\";";
 			}
 			else
 			{

@@ -62,7 +62,7 @@ namespace putki
 			out << "{" << std::endl;
 			out << "	type: " << json_str(th->name()) << "," << std::endl;
 			out << "	data: {\n";
-			th->write_json(ref_source, obj, out, 2);
+			th->write_json(ref_source, obj, out, 1);
 			out << "	}," << std::endl;
 
 			// collect all aux objects.
