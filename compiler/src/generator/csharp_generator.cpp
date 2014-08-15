@@ -29,7 +29,7 @@ namespace putki
 				return "string";
 			default:
 				return "nada";
-		}		
+		}
 	}
 
 	std::string cs_type_size_expr(putki::parsed_field *f)
@@ -54,7 +54,7 @@ namespace putki
 				return "4";
 			default:
 				return "1000000";
-		}		
+		}
 	}
 
 	void write_csharp_runtime_class(putki::parsed_file *file, putki::indentedwriter out, putki::indentedwriter switch_case_out, putki::indentedwriter switch_case_resolve)
@@ -67,30 +67,30 @@ namespace putki
 
 		out.line() << "// Enums";
 
-		for (size_t i=0;i<file->enums.size();i++)
+		for (size_t i=0; i<file->enums.size(); i++)
 		{
 			putki::parsed_enum *e = &file->enums[i];
 			out.line() << "public enum " << e->name;
 			out.line() << "{";
-			for (size_t j=0;j<e->values.size();j++)
-			{				
+			for (size_t j=0; j<e->values.size(); j++)
+			{
 				if (j > 0)
 					out.cont() << ",";
 				out.line(1) << e->values[j].name << " = " << e->values[j].value;
 			}
 			out.line() << "};";
 		}
-				
-		for (size_t i=0;i!=file->structs.size();i++)
+
+		for (size_t i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			if (!(s->domains & putki::DOMAIN_RUNTIME))
 				continue;
 
 			std::string expr_size_add = "";
-			
+
 			out.line() << "public class " << s->name;
-			
+
 			// c# gets real parenting since we can't fool around with pointer casts.
 			if (!s->parent.empty())
 			{
@@ -100,14 +100,14 @@ namespace putki
 
 			out.line() << "{";
 
-			
+
 			out.indent(1);
 
 			int size = 0;
 
 			out.line() << "// Fields";
 
-			for (size_t i=0;i<s->fields.size();i++)
+			for (size_t i=0; i<s->fields.size(); i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
@@ -116,38 +116,34 @@ namespace putki
 					continue;
 
 				if (s->fields[i].is_array)
-				{
 					size += 8; // ptr & count
-				}
 				else
-				{
 					switch (s->fields[i].type)
 					{
-					case FIELDTYPE_INT32:
-					case FIELDTYPE_FLOAT:
-					case FIELDTYPE_ENUM:
-						size += 4;
-						break;
-					case FIELDTYPE_BYTE:
-						size++;
-						break;
-					case FIELDTYPE_POINTER:
-						size += 4;
-						break;					
-					case FIELDTYPE_BOOL:
-						size += 1;
-						break;
-					case FIELDTYPE_STRUCT_INSTANCE:
-						size += 0;
-						expr_size_add.append(" + " + s->fields[i].ref_type + ".SIZE");
-						break;
-					case FIELDTYPE_PATH:
-					case FIELDTYPE_FILE:
-					case FIELDTYPE_STRING:
-						size += 4;
-						break;
+						case FIELDTYPE_INT32:
+						case FIELDTYPE_FLOAT:
+						case FIELDTYPE_ENUM:
+							size += 4;
+							break;
+						case FIELDTYPE_BYTE:
+							size++;
+							break;
+						case FIELDTYPE_POINTER:
+							size += 4;
+							break;
+						case FIELDTYPE_BOOL:
+							size += 1;
+							break;
+						case FIELDTYPE_STRUCT_INSTANCE:
+							size += 0;
+							expr_size_add.append(" + " + s->fields[i].ref_type + ".SIZE");
+							break;
+						case FIELDTYPE_PATH:
+						case FIELDTYPE_FILE:
+						case FIELDTYPE_STRING:
+							size += 4;
+							break;
 					}
-				}
 
 				out.line() << "public " << cs_type_name(&s->fields[i]);
 
@@ -165,7 +161,7 @@ namespace putki
 				}
 
 				out.line();
-				
+
 			}
 
 			out.line() << "// Generated constants";
@@ -187,26 +183,24 @@ namespace putki
 			out.line(1) << "tmp.ParseFromPackage_" << s->name << "(reader, aux);";
 			out.line(1) << "return tmp;";
 			out.line() << "}";
-			
+
 			out.line();
 			out.line() << "public void ParseFromPackage_" << s->name << "(Putki.PackageReader reader, Putki.PackageReader aux)";
 			out.line() << "{";
 			out.indent(1);
-			
+
 			if (!s->parent.empty())
-			{
 				out.line() << "ParseFromPackage_" << s->parent << "(reader, aux);";
-			}
 
 			out.line() << "// Load from byte buffer";
-			for (size_t i=0;i<s->fields.size();i++)
+			for (size_t i=0; i<s->fields.size(); i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
 				if (!strcmp(f->name.c_str(), "parent"))
 					continue;
-				
+
 				std::string field_ref = f->name;
 				std::string ptr_slot_ref = std::string("_ptr_slot_") + f->name;
 				std::string content_reader = "reader";
@@ -261,10 +255,10 @@ namespace putki
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_PATH:
-						{
-							out.line() << field_ref << " = aux.ReadString(" << content_reader << ".ReadInt32());";
-						}
-						break;
+					{
+						out.line() << field_ref << " = aux.ReadString(" << content_reader << ".ReadInt32());";
+					}
+					break;
 				}
 
 				if (s->fields[i].is_array)
@@ -287,8 +281,8 @@ namespace putki
 
 			if (!s->parent.empty())
 				out.line() << "base.ResolveFromPackage(pkg);";
-			
-			for (size_t i=0;i<s->fields.size();i++)
+
+			for (size_t i=0; i<s->fields.size(); i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
@@ -306,7 +300,7 @@ namespace putki
 					out.line() << "// array reader";
 					out.line() << "for (int i=0;i<" << field_ref << ".Length;i++)";
 					out.line() << "{";
-					
+
 					field_ref = field_ref + "[i]";
 					ptr_slot_ref = ptr_slot_ref + "[i]";
 					out.indent(1);
@@ -330,7 +324,7 @@ namespace putki
 					out.line() << "} // loop";
 				}
 			}
-			
+
 			out.indent(-1);
 			out.line() << "}";
 
@@ -340,8 +334,8 @@ namespace putki
 
 			switch_case_out.line() << "case " << s->unique_id << ":";
 			switch_case_out.line() << "{";
-			switch_case_out.line() << "	Putki.PackageReader aux = reader.CloneAux(" << s->name << ".SIZE);";
-			switch_case_out.line() << "	object o = " << s->name << ".LoadFromPackage(reader, aux);";
+			switch_case_out.line() << "	Putki.PackageReader aux = reader.CloneAux("<< s->name << ".SIZE);";
+			switch_case_out.line() << "	object o = "<< s->name << ".LoadFromPackage(reader, aux);";
 			switch_case_out.line() << "	reader.MoveTo(aux);";
 			switch_case_out.line() << "	return o;";
 			switch_case_out.line() << "}";
@@ -364,28 +358,28 @@ namespace putki
 
 		out.line() << "// Enums";
 
-		for (size_t i=0;i<file->enums.size();i++)
+		for (size_t i=0; i<file->enums.size(); i++)
 		{
 			putki::parsed_enum *e = &file->enums[i];
 			out.line() << "public enum " << e->name;
 			out.line() << "{";
-			for (size_t j=0;j<e->values.size();j++)
-			{				
+			for (size_t j=0; j<e->values.size(); j++)
+			{
 				if (j > 0)
 					out.cont() << ",";
 				out.line(1) << e->values[j].name << " = " << e->values[j].value;
 			}
 			out.line() << "};";
 		}
-				
-		for (size_t i=0;i!=file->structs.size();i++)
+
+		for (size_t i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			if (!(s->domains & putki::DOMAIN_RUNTIME))
 				continue;
 
 			std::string expr_size_add = "";
-			
+
 			out.line() << "[PutkedProxyDescriptor(\"" << s->name << "\")]";
 			out.line() << "public class " << s->name;
 
@@ -399,16 +393,14 @@ namespace putki
 			out.line() << "{";
 			out.line(1) << newifparent << "public DLLLoader.MemInstance m_mi;";
 			out.line();
-			
+
 			out.indent(1);
 
 
 			out.line() << "public" << (s->parent.empty() ? " virtual" : " override") << " void Connect(DLLLoader.MemInstance mi)";
 			out.line() << "{";
 			if (!s->parent.empty())
-			{
 				out.line(1) << "base.Connect(Get" << s->name << "Parent(mi).m_mi);";
-			}
 			out.line(1) << "// Should really check here!";
 			out.line(1) << "m_mi = mi;";
 			out.line() << "}";
@@ -416,7 +408,7 @@ namespace putki
 
 			out.line() << "// Fields";
 
-			for (size_t i=0;i<s->fields.size();i++)
+			for (size_t i=0; i<s->fields.size(); i++)
 			{
 				putki::parsed_field *f = &s->fields[i];
 				if (!(f->domains & putki::DOMAIN_INPUT))
@@ -440,7 +432,7 @@ namespace putki
 				////////////////////
 				// First we do get.
 
-				
+
 				const char firstletter = s->fields[i].name[0];
 
 				const char *getpfx = "Get";
@@ -584,7 +576,7 @@ namespace putki
 					case FIELDTYPE_POINTER:
 					case FIELDTYPE_PATH:
 						out.line() << "m_mi.GetField(" << dllindex << ").SetString(m_mi, value);";
-						break;		
+						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << "m_mi.GetField(" << dllindex << ").SetFloat(m_mi, value);";
 						break;
@@ -610,7 +602,7 @@ namespace putki
 					out.line(1) << "return ml != null ? (DataHelper.CreatePutkEdObj(ml) as inki." << s->fields[i].ref_type << ") : null;";
 					out.line() << "}";
 				}
-				
+
 
 				out.line();
 			}

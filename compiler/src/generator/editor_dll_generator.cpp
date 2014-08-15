@@ -31,7 +31,7 @@ namespace putki
 		out.line() << "void set_" << name << "(putki::mem_instance *obj, " << type_name << " value) {";
 		out.indent(1);
 		if (s->fields[j].type == ft)
-				write_plain_set(out, s, j, field_ref);
+			write_plain_set(out, s, j, field_ref);
 		out.indent(-1);
 		out.line() << "}";
 
@@ -49,7 +49,7 @@ namespace putki
 
 	void write_field_handlers(putki::indentedwriter out, putki::parsed_struct *s)
 	{
-		for (size_t j=0;j!=s->fields.size();j++)
+		for (size_t j=0; j!=s->fields.size(); j++)
 		{
 			out.line() << "//////////////////////////////////////////////////////////////";
 			out.line() << "// Field handler for " << s->name << "." << s->fields[j].name;
@@ -93,7 +93,7 @@ namespace putki
 				showineditor = false;
 
 			out.line() << "bool show_in_editor() { return " << (showineditor ? "true" : "false") << "; }";
-		
+
 			out.line() << "const char* ref_type_name() { ";
 			if (!s->fields[j].ref_type.empty())
 				out.cont() << "return \"" << s->fields[j].ref_type << "\";";
@@ -123,13 +123,13 @@ namespace putki
 			std::string field_ref = s->fields[j].name;
 			if (s->fields[j].is_array)
 				field_ref += "[_idx]";
-						
+
 			// STRING SET
 			out.line() << "// String type handlers";
 			out.line() << "void set_string(putki::mem_instance *obj, const char *value) {";
 			out.indent(1);
 			if (s->fields[j].type == FIELDTYPE_STRING || s->fields[j].type == FIELDTYPE_FILE || s->fields[j].type == FIELDTYPE_PATH)
-					write_plain_set(out, s, j, field_ref);
+				write_plain_set(out, s, j, field_ref);
 			out.indent(-1);
 			out.line() << "}";
 
@@ -154,7 +154,7 @@ namespace putki
 
 			out.indent(-1);
 			out.line() << "}";
-				
+
 			out.line();
 			out.line() << "const char* get_enum(putki::mem_instance *obj) { ";
 			out.indent(1);
@@ -184,7 +184,7 @@ namespace putki
 				write_pointer_set(out, s, j, field_ref);
 			else if (s->fields[j].type == FIELDTYPE_PATH)
 				write_plain_set(out, s, j, field_ref);
-				
+
 			out.indent(-1);
 			out.cont() << "	}";
 
@@ -202,8 +202,9 @@ namespace putki
 			{
 				out.line() << "return ((inki::" << s->name << " *)((putki::mem_instance_real*)obj)->inst)->" << field_ref << ".c_str();";
 			}
-			else
+			else{
 				out.line() << "return \"NOT A POINTER\";";
+			}
 			out.indent(-1);
 			out.line() << "}";
 
@@ -219,7 +220,7 @@ namespace putki
 			if (s->fields[j].type == FIELDTYPE_STRUCT_INSTANCE)
 			{
 				out.line() << "putki::mem_instance_real *omr = (putki::mem_instance_real *)obj;";
-				out.line() << "putki::mem_instance_real *mr = new putki::mem_instance_real();";				
+				out.line() << "putki::mem_instance_real *mr = new putki::mem_instance_real();";
 				out.line() << "mr->is_struct_instance = true;";
 				out.line() << "mr->th = inki::get_" << s->fields[j].ref_type << "_type_handler();";
 				out.line() << "mr->eth = inki::get_" << s->fields[j].ref_type << "_ext_type_handler();";
@@ -232,11 +233,11 @@ namespace putki
 			{
 				out.line() << "return 0;";
 			}
-				
+
 			out.indent(-1);
 			out.line() << "}";
 
-		
+
 			out.line();
 			out.indent(-1);
 			out.line() << "};";
@@ -259,7 +260,7 @@ namespace putki
 		out.line();
 		out.indent(1);
 
-		for (size_t i=0;i!=file->structs.size();i++)
+		for (size_t i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 
@@ -296,10 +297,10 @@ namespace putki
 			out.line() << "switch (idx) {";
 			out.indent(1);
 
-			
+
 
 			int idx = 0;
-			for (size_t j=0;j!=s->fields.size();j++)
+			for (size_t j=0; j!=s->fields.size(); j++)
 			{
 				if (s->fields[j].name != "_rtti_type")
 				{
@@ -358,7 +359,7 @@ namespace putki
 		out.line();
 		out.line() << "namespace inki {";
 		out.indent(1);
-		for (unsigned int i=0;i<file->structs.size();i++)
+		for (unsigned int i=0; i<file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			out.line() << "void bind_type_" << s->name << "_dll();";
@@ -369,7 +370,7 @@ namespace putki
 
 	void write_bind_call_dll(putki::parsed_file *file, putki::indentedwriter out)
 	{
-		for (unsigned int i=0;i<file->structs.size();i++)
+		for (unsigned int i=0; i<file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
 			out.line() << "inki::bind_type_" << s->name << "_dll();";

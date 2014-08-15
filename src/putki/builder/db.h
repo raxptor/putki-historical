@@ -14,7 +14,7 @@ namespace putki
 		};
 
 		data * create();
-		
+
 		void free_and_destroy_objs(data *d);
 		void free(data *);
 
@@ -30,7 +30,7 @@ namespace putki
 		const char *make_aux_path(data *d, instance_t onto);
 		bool is_aux_path_of(data *d, instance_t base, const char *path);
 		bool is_aux_path(const char *path);
-		
+
 		// returns true if was aux ptr and then writes the base path in result if there is room
 		bool base_asset_path(const char *path, char *result, unsigned int bufsize);
 

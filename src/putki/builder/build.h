@@ -9,17 +9,17 @@ namespace putki
 	namespace package { struct data; }
 	namespace db { struct data; }
 	namespace builder { struct data; }
-	
+
 	namespace build
 	{
 		struct packaging_config;
-	
+
 		void full_build(builder::data *builder);
 		void single_build(builder::data *builder, const char *path);
 
 		void post_build_ptr_update(db::data *input, db::data *output);
 		void post_build_merge_database(db::data *source, db::data *target);
-		
+
 		// can be called from user functions.
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path);
 	}

@@ -29,7 +29,7 @@ namespace putki
 			{
 				full_path = builder::res_path(builder);
 			}
-			
+
 			return full_path + "/" + ps;
 		}
 
@@ -44,7 +44,7 @@ namespace putki
 				builder::build_error(bld, error.c_str());
 				return false;
 			}
-			
+
 			f.seekg(0, std::ios::end);
 			std::streampos size = f.tellg();
 			f.seekg(0, std::ios::beg);
@@ -61,7 +61,7 @@ namespace putki
 		{
 			delete [] data;
 		}
-		
+
 		std::string signature(builder::data *bld, const char *path)
 		{
 			// optimize this.
@@ -75,7 +75,7 @@ namespace putki
 			{
 				char signature[64];
 				char signature_string[64];
-				
+
 				md5_buffer(bytes, (long)sz, signature);
 				md5_sig_to_string(signature, signature_string, 64);
 				return signature_string;

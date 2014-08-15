@@ -23,16 +23,18 @@ namespace putki
 
 	ext_type_handler_i *get_ext_type_handler_by_index(unsigned int i)
 	{
-		if (i < typelist.size())
+		if (i < typelist.size()) {
 			return typehandlers[typelist[i]];
+		}
 		return 0;
 	}
 
 	ext_type_handler_i *get_ext_type_handler_by_name(const char *name)
 	{
 		std::map<std::string, ext_type_handler_i* >::iterator i = typehandlers.find(name);
-		if (i != typehandlers.end())
+		if (i != typehandlers.end()) {
 			return i->second;
+		}
 		return 0;
 	}
 }

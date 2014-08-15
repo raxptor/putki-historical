@@ -31,7 +31,7 @@ namespace putki
 
 		virtual ext_field_type type() = 0;
 		virtual const char * ref_type_name() = 0;
-		
+
 		virtual const char * get_enum_possible_value(int idx) = 0;
 		virtual void set_enum(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_enum(mem_instance *obj) = 0;
@@ -64,7 +64,7 @@ namespace putki
 		// Byte
 		virtual void set_byte(mem_instance *obj, unsigned char value) = 0;
 		virtual unsigned char get_byte(mem_instance *obj) = 0;
-		
+
 		virtual mem_instance* make_struct_instance(mem_instance *obj) = 0;
 	};
 

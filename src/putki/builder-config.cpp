@@ -7,7 +7,7 @@ namespace putki
 
 	namespace data_builder_cfg
 	{
-		namespace 
+		namespace
 		{
 			std::string data_input_path;
 			std::string data_output_path;
@@ -34,5 +34,5 @@ namespace putki
 			cfg::free(d);
 		}
 	}
-	
+
 }

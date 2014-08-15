@@ -18,7 +18,7 @@ namespace putki
 			SMap s; // sections
 		};
 
-		namespace 
+		namespace
 		{
 			struct pstate
 			{
@@ -34,17 +34,19 @@ namespace putki
 				while (*beg == ' ' && beg != end) beg++;
 				while (end > beg && end[-1] == ' ') end--;
 
-				if (beg == end)
+				if (beg == end) {
 					return;
+				}
 
 				// These are all way of making comments
-				if (*beg == '#' || *beg == '/' || *beg == ';')
+				if (*beg == '#' || *beg == '/' || *beg == ';') {
 					return;
+				}
 
 				// What row is this.
 				if (beg[0] == '[' && end[-1] == ']')
 				{
-					s->section = std::string(beg + 1, end - beg - 2);					
+					s->section = std::string(beg + 1, end - beg - 2);
 					return;
 				}
 
@@ -69,9 +71,9 @@ namespace putki
 			void parse_it(data *d, const char *txt, size_t sz)
 			{
 				pstate s;
-				
+
 				const char *lstart = 0;
-				for (size_t i=0;i!=sz;i++)
+				for (size_t i=0; i!=sz; i++)
 				{
 					if (txt[i] == 0xD || txt[i] == 0xA)
 					{
@@ -81,18 +83,20 @@ namespace putki
 							lstart = 0;
 						}
 					}
-					else if (!lstart)
+					else if (!lstart) {
 						lstart = &txt[i];
+					}
 				}
 
-				if (lstart)
+				if (lstart) {
 					parse_row(d, &s, lstart, txt+sz-lstart);
+				}
 			}
 		}
 
 		data* load(const char *filename)
 		{
-			data *d = new data();						
+			data *d = new data();
 
 			std::ifstream f(filename);
 			std::string row;
@@ -100,15 +104,15 @@ namespace putki
 			while (getline(f, row))
 			{
 				parse_row(d, &s, row.c_str(), row.size());
-			}			
+			}
 			return d;
 		}
 
 		data* merge(data *first, data *second)
 		{
-			data *d = new data();			
+			data *d = new data();
 
-			for (int f=0;f<2;f++)
+			for (int f=0; f<2; f++)
 			{
 				data *r = !f ? first : second;
 
@@ -130,8 +134,7 @@ namespace putki
 
 		void free(data *d)
 		{
-			if (d)
-			{
+			if (d) {
 				delete d;
 			}
 		}
@@ -139,27 +142,31 @@ namespace putki
 		int get_int(data *d, const char *section, const char *key, int def)
 		{
 			const char *s = get_string(d, section, key, 0);
-			if (!s)
+			if (!s) {
 				return def;
-			else
+			}
+			else{
 				return atoi(s);
+			}
 		}
 
 		float get_float(data *d, const char *section, const char *key, float def)
 		{
 			const char *s = get_string(d, section, key, 0);
-			if (!s)
+			if (!s) {
 				return def;
-			else
+			}
+			else{
 				return (float)atof(s);
+			}
 		}
 
 		const char* get_string(data *d, const char *section, const char *key, const char *def)
 		{
 			SMap::const_iterator i = d->s.find(section);
-			if (i == d->s.end()) return def;
+			if (i == d->s.end()) {return def; }
 			CMap::const_iterator j = i->second.find(key);
-			if (j == i->second.end()) return def;
+			if (j == i->second.end()) {return def; }
 
 			return j->second.c_str();
 		}

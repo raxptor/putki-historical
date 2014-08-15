@@ -40,13 +40,13 @@ namespace putki
 			};
 
 			std::vector<entry> entries;
-			
+
 			bool pointer_pre(instance_t *ptr)
 			{
 				entry e;
 				e.ptr = ptr;
 				e.index = *((unsigned short *)ptr);
-				
+
 				entries.push_back(e);
 
 				// don't traverse at all.
@@ -83,7 +83,7 @@ namespace putki
 		int resolve_pointers_with(loaded_package *target, resolve_status *s, loaded_package *aux)
 		{
 			int resolved = 0, unresolved = 0;
-			for (unsigned int i=0;i<s->ptrs.entries.size();i++)
+			for (unsigned int i=0; i<s->ptrs.entries.size(); i++)
 			{
 				pkg_ptrs::entry &e = s->ptrs.entries[i];
 
@@ -98,8 +98,9 @@ namespace putki
 					}
 				}
 
-				if (e.index < 0 && !*e.ptr)
+				if (e.index < 0 && !*e.ptr) {
 					unresolved++;
+				}
 			}
 
 			return unresolved;
@@ -125,7 +126,7 @@ namespace putki
 			pkg_ptrs _out_internal;
 			pkg_ptrs &ptrs = out ? out->ptrs : _out_internal;
 
-			for (unsigned int i=0;i!=lp->slots_size;i++)
+			for (unsigned int i=0; i!=lp->slots_size; i++)
 			{
 				const u32 has_path_flag = 1 << 31;
 				const u32 type_id = (*((u32 *)ptr)) & (~has_path_flag);
@@ -148,7 +149,7 @@ namespace putki
 				lp->slots[i].type_id = type_id;
 
 				// std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
-				
+
 				char *next = post_load_by_type(type_id, &ptrs, ptr, end);
 				if (!next)
 				{
@@ -163,7 +164,7 @@ namespace putki
 			lp->unresolved_size = (*((u32 *)ptr));
 			lp->unresolved = new const char * [lp->unresolved_size];
 			ptr += 4;
-			for (unsigned int i=0;i!=lp->unresolved_size && ptr < end;i++)
+			for (unsigned int i=0; i!=lp->unresolved_size && ptr < end; i++)
 			{
 				const unsigned short pathlen = *((unsigned short *)ptr);
 				lp->unresolved[i] = ptr + 2;
@@ -173,7 +174,7 @@ namespace putki
 			if (end == ptr)
 			{
 				int resolved = 0, unresolved = 0;
-				for (unsigned int i=0;i<ptrs.entries.size();i++)
+				for (unsigned int i=0; i<ptrs.entries.size(); i++)
 				{
 					if (ptrs.entries[i].index > 0 && ptrs.entries[i].index <= (int)lp->slots_size)
 					{
@@ -185,15 +186,16 @@ namespace putki
 						*(ptrs.entries[i].ptr) = 0;
 						if (ptrs.entries[i].index != 0)
 						{
-							
+
 							std::cout << "Unresolved to " << lp->unresolved[(-ptrs.entries[i].index) - 1] << std::endl;
 							unresolved++;
 						}
 					}
 				}
 
-				if (unresolved)
+				if (unresolved) {
 					std::cerr << " => Package loaded with unresolved ptrs! Count:" << unresolved << std::endl;
+				}
 			}
 			else
 			{
@@ -208,17 +210,19 @@ namespace putki
 			// maybe check here that there is nothing unresolved left. or we might start pointing into junk when stuff
 			// start pointing into this.
 
-			for (unsigned int i=0;i!=lp->slots_size;i++)
+			for (unsigned int i=0; i!=lp->slots_size; i++)
 			{
-				if (lp->slots[i].path)
+				if (lp->slots[i].path) {
 					putki::liveupdate::hookup_object(lp->slots[i].obj, lp->slots[i].path);
+				}
 			}
 		}
 
 		void release(loaded_package *lp)
 		{
-			if (lp->should_free)
+			if (lp->should_free) {
 				delete [] lp->beg;
+			}
 
 			delete [] lp->unresolved;
 			delete [] lp->slots;
@@ -228,25 +232,28 @@ namespace putki
 		// -
 		instance_t resolve(loaded_package *p, const char *path)
 		{
-			for (unsigned int i=0;i<p->slots_size;i++)
+			for (unsigned int i=0; i<p->slots_size; i++)
 			{
-				if (p->slots[i].path && !strcmp(p->slots[i].path, path))
+				if (p->slots[i].path && !strcmp(p->slots[i].path, path)) {
 					return p->slots[i].obj;
+				}
 			}
 			return 0;
 		}
 
 		const char *path_in_package_slot(loaded_package *pkg, unsigned int slot)
 		{
-			if (slot < pkg->slots_size)
+			if (slot < pkg->slots_size) {
 				return pkg->slots[slot].path;
+			}
 			return 0;
 		}
 
 		const char *unresolved_reference(loaded_package *pkg, unsigned int index)
 		{
-			if (index < pkg->unresolved_size)
+			if (index < pkg->unresolved_size) {
 				return pkg->unresolved[index];
+			}
 			return 0;
 		}
 	}

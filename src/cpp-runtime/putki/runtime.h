@@ -6,17 +6,17 @@ namespace putki
 		inline const char *desc_str()
 		{
 			#if defined(_WIN32)
-				if (sizeof(void*) == 4)
-					return "win32";
-				else
-					return "win64";
+			if (sizeof(void*) == 4)
+				return "win32";
+			else
+				return "win64";
 			#elif defined(__APPLE__)
-				if (sizeof(void*) == 4)
-					return "macosx32";
-				else
-					return "macosx64";
+			if (sizeof(void*) == 4)
+				return "macosx32";
+			else
+				return "macosx64";
 			#else
-				return "unknown";
+			return "unknown";
 			#endif
 		}
 	}

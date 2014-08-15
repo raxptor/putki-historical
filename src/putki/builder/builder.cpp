@@ -19,14 +19,14 @@ namespace putki
 			int obj_phase_mask;
 			handler_i *handler;
 		};
-		
+
 		struct type_entry
 		{
 			std::vector<builder_entry> handlers;
 		};
-		
+
 		typedef std::map<std::string, type_entry> BuildersMap;
-		
+
 		struct data
 		{
 			BuildersMap handlers;
@@ -53,10 +53,11 @@ namespace putki
 
 		void invoke_packager(db::data *out, build::packaging_config *pconf)
 		{
-			if (s_packaging_fn)
+			if (s_packaging_fn) {
 				s_packaging_fn(out, pconf);
+			}
 		}
-		
+
 		data* create(runtime::descptr rt, const char *path, bool reset_build_db)
 		{
 			data *d = new data();
@@ -80,8 +81,9 @@ namespace putki
 			d->built_obj_path.append("/.dbg");
 
 			// app specific configurators
-			if (s_init_fn)
+			if (s_init_fn) {
 				s_init_fn(d);
+			}
 
 			std::string build_db_path = path;
 			build_db_path.append("/out/");
@@ -90,12 +92,12 @@ namespace putki
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
 			return d;
 		}
-		
+
 		build_db::data *get_build_db(builder::data *d)
 		{
 			return d->build_db;
 		}
-		
+
 
 		const char *obj_path(data *d)
 		{
@@ -111,7 +113,7 @@ namespace putki
 		{
 			return d->out_path.c_str();
 		}
-		
+
 		const char *tmp_path(data *d)
 		{
 			return d->tmp_path.c_str();
@@ -132,7 +134,7 @@ namespace putki
 			build_db::release(builder->build_db);
 			delete builder;
 		}
-		
+
 		void add_data_builder(builder::data *builder, type_t type, int obj_phase_mask, handler_i *handler)
 		{
 			BuildersMap::iterator i = builder->handlers.find(type);
@@ -143,13 +145,13 @@ namespace putki
 				add_data_builder(builder, type, obj_phase_mask, handler);
 				return;
 			}
-			
+
 			builder_entry b;
 			b.obj_phase_mask = obj_phase_mask;
 			b.handler = handler;
 			i->second.handlers.push_back(b);
 		}
-		
+
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
 		const char* fetch_cached_build(data *builder, build_db::record * newrecord, builder::handler_i *handler, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
@@ -159,72 +161,76 @@ namespace putki
 			if (dlist)
 			{
 				int matches = 0;
-				
-				for (int i=0;;i++)
+
+				for (int i=0;; i++)
 				{
 					const char *entrypath = build_db::deplist_path(dlist, i);
-					if (!entrypath)
+					if (!entrypath) {
 						break;
-					
+					}
+
 					const char *signature = build_db::deplist_signature(dlist, i);
-					
+
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
 						const char *builder = build_db::deplist_builder(dlist, i);
 						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
-						
+
 						// std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
-						
+
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
-						if (sigmatch && buildermatch)
+						if (sigmatch && buildermatch) {
 							matches++;
+						}
 						else
 						{
-							if (!buildermatch)
+							if (!buildermatch) {
 								return "builder version is different";
-							else
+							}
+							else{
 								std::cout << " -> Detected modification in [" << entrypath << "]" << std::endl;
-							
+							}
+
 							return "input or builder has been modified";
 						}
 					}
 					else
 					{
-						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
-						{
+						if (strcmp(resource::signature(builder, entrypath).c_str(), signature)) {
 							return "external source data has been modified";
 						}
-						else
-						{
+						else{
 							matches++;
 						}
 					}
 				}
-				
+
 				if (matches)
 				{
 					// replace the build record from the cache.
 					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
-				
-					for (int j=0;;j++)
+
+					for (int j=0;; j++)
 					{
 						const char *path = build_db::enum_outputs(newrecord, j);
-						if (!path)
+						if (!path) {
 							break;
-						
+						}
+
 						// load the file and resolve unresolved pointers to the input database (which is how they would be
 						// right after having been built anyway!)
-						
+
 						// (we check first so we don't re-load any objects which might already have been pulled in
 						// it would be bad as it would create new pointer to the object and invalidate the previous one.
 						// oh the fun of single file loading.
-						if (!db::fetch(output, path, &th, &obj))
+						if (!db::fetch(output, path, &th, &obj)) {
 							load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
-						
+						}
+
 						// todo, verify signature here too maybe?
 					}
-					
+
 					// Now we hope for the best since these files came from disk and should be OK unless the user
 					// has touched them.
 					return 0;
@@ -233,21 +239,20 @@ namespace putki
 				{
 					return "0 entries found to compare";
 				}
-				
+
 				build_db::deplist_free(dlist);
 			}
-			
+
 			return "no previous build records";
 		}
-		
+
 		// return true if was built, false if cached.
 		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
-			if (i != builder->handlers.end())
-			{
-				for (std::vector<builder_entry>::size_type j=0;j!=i->second.handlers.size();j++)
+			if (i != builder->handlers.end()) {
+				for (std::vector<builder_entry>::size_type j=0; j!=i->second.handlers.size(); j++)
 				{
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
@@ -261,23 +266,22 @@ namespace putki
 						else
 						{
 							// std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
-							
+
 							// build record has been rewritten from cache, can't go modify it more now.
 							return false;
 						}
-						
+
 						// TODO: Clean up return values. Now always assume they are handled
 						//       if we actually call in here.
 						handled = true;
-						
+
 						build_db::set_builder(record, e->handler->version());
 						break;
 					}
 				}
 			}
-			
-			if (!handled)
-			{
+
+			if (!handled) {
 				// std::cout << " => Copied [" << path << "] into output (no registered builder)" << std::endl;
 				build_db::set_builder(record, "pukti-generic");
 			}
@@ -298,7 +302,7 @@ namespace putki
 				// always here output.
 				db::insert(output, path, th, obj);
 			}
-			
+
 			build_db::add_output(record, path, "putki-generic");
 			return true;
 		}
@@ -307,17 +311,18 @@ namespace putki
 		{
 			type_handler_i *th;
 			instance_t obj;
-			if (!db::fetch(input, path, &th, &obj))
+			if (!db::fetch(input, path, &th, &obj)) {
 				return;
-				
+			}
+
 			// first try to create a new one by cloning what's already in there.
 			build_db::record * br = build_db::create_record(path, db::signature(input, path));
 			build_db::add_input_dependency(br, path);
-			
+
 			// since we are reading from the actual input here, clone the object so we can conveniently modify the contents.
 			// this also means a pointer update needs to be done after this step.
 			instance_t clone = th->clone(obj);
-			
+
 			putki::db::data *tmp_output = putki::db::create();
 
 			if (build_source_object(builder, br, PHASE_INDIVIDUAL, input, path, clone, th, tmp_output))
@@ -340,7 +345,7 @@ namespace putki
 					// => This build step uses input as input still, and a tmp db for output.
 					//
 					//    Since these objects were generated by the previous build we do not need to clone them; they will not ruin any original input data
-					// 
+					//
 					{
 						// note these are in the output
 						type_handler_i *th;
@@ -350,33 +355,36 @@ namespace putki
 						{
 							build_db::record *suboutput = build_db::create_record(cr_path.c_str(), db::signature(tmp_output, cr_path.c_str()));
 							build_db::copy_input_dependencies(suboutput, br);
-							
+
 							build_source_object(builder, suboutput, PHASE_INDIVIDUAL, input, cr_path.c_str(), obj, th, tmp_output);
-							
+
 							build_db::append_extra_outputs(br, suboutput);
 							build_db::commit_record(builder->build_db, suboutput);
-							
+
 							// push up sources dependencies that are in the input, this is convenience for not having to add
 							// manually all the way up.
 							build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), cr_path.c_str(), true);
 							if (dlist)
 							{
 								// Note: this dlist is a dep list wih paths only, don't try reading signatures or such.
-								for (int i=0;;i++)
+								for (int i=0;; i++)
 								{
 									const char *entrypath = build_db::deplist_path(dlist, i);
-									if (!entrypath)
+									if (!entrypath) {
 										break;
-									if (build_db::deplist_is_external_resource(dlist, i))
+									}
+									if (build_db::deplist_is_external_resource(dlist, i)) {
 										continue;
-									
+									}
+
 									// Add if exists in input domain. THis is to avoid adding tmp paths
 									// to the input list.
-									if (db::fetch(input, entrypath, &th, &obj))
+									if (db::fetch(input, entrypath, &th, &obj)) {
 										build_db::add_input_dependency(br, entrypath);
+									}
 								}
 								build_db::deplist_free(dlist);
-							}							
+							}
 						}
 						else
 						{
@@ -401,12 +409,12 @@ namespace putki
 			db::data *input, *output;
 			int phase;
 
-			virtual void record(const char *path, type_handler_i *th, instance_t i) 
+			virtual void record(const char *path, type_handler_i *th, instance_t i)
 			{
 				/*
-				buildrecord::data br;
-				build_source_object(builder, &br, phase, input, path, i, th, output);
-				*/
+				   buildrecord::data br;
+				   build_source_object(builder, &br, phase, input, path, i, th, output);
+				 */
 			}
 		};
 
@@ -421,17 +429,17 @@ namespace putki
 			db::read_all(input, &gb);
 			std::cout << "==> Global build pass done." << std::endl;
 		}
-		
+
 		void write_build_db(builder::data *d)
 		{
 			build_db::store(d->build_db);
 		}
-		
+
 		void build_error(data *builder, const char *str)
 		{
 			std::cout << "!!! BUILD ERROR: " << str << std::endl;
 		}
-		
+
 	}
 
 }

@@ -26,8 +26,9 @@ namespace putki
 		void search_tree_internal(const char *root_directory, file_enum_t callback, int cut_length)
 		{
 			std::string root(root_directory);
-			if (root.empty())
+			if (root.empty()) {
 				root = ".";
+			}
 
 			std::string files_in_path = root + "/*.*";
 
@@ -39,8 +40,9 @@ namespace putki
 			{
 				if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				{
-					if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, ".."))
+					if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")) {
 						dirs.push_back(root + "/" + fd.cFileName);
+					}
 				}
 				else
 				{
@@ -52,8 +54,9 @@ namespace putki
 					callback(full_name.c_str(), nice_name.c_str());
 				}
 
-				if (!FindNextFileA(f, &fd))
+				if (!FindNextFileA(f, &fd)) {
 					break;
+				}
 			}
 
 			FindClose(f);
@@ -71,23 +74,24 @@ namespace putki
 		}
 
 
-       void mk_dir_for_path(const char *path)
-        {
-            std::string p(path);
-            
-            std::string::size_type i = 0;
-            while (true)
-            {
-                i = p.find_first_of("/", i);
-                if (i == std::string::npos)
-                    break;
-                
-                std::string fp = p.substr(0,i);
-                
-                _mkdir(fp.c_str());
-                i++;
-            }
-        }
+		void mk_dir_for_path(const char *path)
+		{
+			std::string p(path);
+
+			std::string::size_type i = 0;
+			while (true)
+			{
+				i = p.find_first_of("/", i);
+				if (i == std::string::npos) {
+					break;
+				}
+
+				std::string fp = p.substr(0,i);
+
+				_mkdir(fp.c_str());
+				i++;
+			}
+		}
 	}
 }
 

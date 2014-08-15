@@ -30,10 +30,12 @@ namespace putki
 					break;
 			}
 
-			if (rt->ptrsize == 8)
+			if (rt->ptrsize == 8) {
 				strcat(buf, "64");
-			else 
+			}
+			else{
 				strcat(buf, "32");
+			}
 
 			return buf;
 		}
@@ -43,17 +45,18 @@ namespace putki
 			// if you change this table, re-build the compiler and re-compile everything too.
 			static const int count = 7;
 			static const desc rtd[count] = {
-				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, 1, true},
-				{PLATFORM_MACOSX, LANGUAGE_CPP, 4, 1, true},
-				{PLATFORM_LINUX, LANGUAGE_CPP, 8, 1, true},
-				{PLATFORM_LINUX, LANGUAGE_CPP, 4, 1, true},
-				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, 1, true},
-				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, 1, true},
-				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, 1, true}
+				{PLATFORM_MACOSX,  LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_MACOSX,  LANGUAGE_CPP,     4,     1,     true       },
+				{PLATFORM_LINUX,   LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_LINUX,   LANGUAGE_CPP,     4,     1,     true       },
+				{PLATFORM_WINDOWS, LANGUAGE_CPP,     4,     1,     true       },
+				{PLATFORM_WINDOWS, LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  4,     1,     true       }
 			};
 
-			if (index < count)
+			if (index < count) {
 				return &rtd[index];
+			}
 			return 0;
 		}
 

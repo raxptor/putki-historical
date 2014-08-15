@@ -3,7 +3,7 @@
 #include "types.h"
 
 namespace putki
-{	
+{
 	namespace pkgmgr
 	{
 		struct loaded_package;

@@ -7,7 +7,7 @@ namespace putki
 	char* post_blob_load_string(const char **string, char *aux_beg, char *aux_end);
 	void prep_int16_field(char *where);
 	void prep_int32_field(char *where);
-	
+
 	// register app-type blob loaders.
 	typedef char* (post_blob_load_t)(int type, putki::depwalker_i *, char *begin, char *end);
 	void add_blob_loader(post_blob_load_t func);

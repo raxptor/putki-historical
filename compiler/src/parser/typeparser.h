@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace putki
-{	
+{
 	struct parsed_field
 	{
 		parsed_field()
@@ -21,7 +21,7 @@ namespace putki
 		bool is_array;
 		bool is_aux_ptr;
 		bool show_in_editor;
-		
+
 		std::string name;
 		std::string ref_type;
 		std::string def_value;

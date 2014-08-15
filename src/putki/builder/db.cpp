@@ -48,20 +48,20 @@ namespace putki
 
 		void free_and_destroy_objs(data *d)
 		{
-			for (std::map<std::string, entry>::iterator i=d->objs.begin();i!=d->objs.end();i++)
+			for (std::map<std::string, entry>::iterator i=d->objs.begin(); i!=d->objs.end(); i++)
 				i->second.th->free(i->second.obj);
 			db::free(d);
 		}
-		
+
 		void free(data *d)
 		{
 			// all the strdup:ed strings
-			for (std::set<const char*>::iterator i = d->unresolved.begin();i!=d->unresolved.end();i++)
+			for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
 				::free(const_cast<char*>(*i));
-						
+
 			delete d;
 		}
-	
+
 		void split_aux_path(std::string path, std::string * base, std::string * ref)
 		{
 			int p = path.find_last_of('#');
@@ -79,9 +79,10 @@ namespace putki
 
 		bool base_asset_path(const char *path, char *result, unsigned int bufsize)
 		{
-			if (!is_aux_path(path))
+			if (!is_aux_path(path)) {
 				return false;
-			
+			}
+
 			std::string base, ref;
 			split_aux_path(path, &base, &ref);
 			if (base.size() < bufsize)
@@ -96,23 +97,25 @@ namespace putki
 		{
 			return strchr(path, '#') != 0;
 		}
-		
+
 		const char *pathof(data *d, instance_t obj)
 		{
 			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);
-			if (i != d->paths.end())
+			if (i != d->paths.end()) {
 				return i->second.c_str();
+			}
 			return 0;
 		}
 
 		const char *pathof_including_unresolved(data *d, instance_t obj)
 		{
 			const char *unres = is_unresolved_pointer(d, obj);
-			if (unres)
+			if (unres) {
 				return unres;
+			}
 			return pathof(d, obj);
 		}
-		
+
 		const char *signature(data *d, const char *path)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
@@ -120,7 +123,7 @@ namespace putki
 			{
 				std::stringstream ss;
 				write::write_object_into_stream(ss, d, i->second.th, i->second.obj);
-				
+
 				char signature[16];
 				static char signature_string[64];
 
@@ -128,11 +131,11 @@ namespace putki
 				md5_sig_to_string(signature, signature_string, 64);
 
 				return signature_string;
-				
+
 			}
 			return "NO-SIG";
 		}
-				
+
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			// std::cout << " db insert on path [" << path << "]" << std::endl;
@@ -148,8 +151,7 @@ namespace putki
 				std::string base, ref;
 				split_aux_path(path, &base, &ref);
 				std::map<std::string, entry>::iterator i = d->objs.find(base);
-				if (i != d->objs.end())
-				{
+				if (i != d->objs.end()) {
 					i->second.auxrefs.push_back(ref);
 				}
 			}
@@ -193,8 +195,9 @@ namespace putki
 		instance_t ptr_to_allow_unresolved(data *d, const char *path)
 		{
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
-			if (i != d->objs.end())
+			if (i != d->objs.end()) {
 				return i->second.obj;
+			}
 			return create_unresolved_pointer(d, path);
 		}
 
@@ -216,13 +219,12 @@ namespace putki
 		instance_t create_unresolved_pointer(data *d, const char *path)
 		{
 			std::map<std::string, const char *>::iterator i = d->strpool.find(path);
-			if (i != d->strpool.end())
-			{
+			if (i != d->strpool.end()) {
 				return (instance_t) i->second;
 			}
 
 			char *str = strdup(path);
-			
+
 			d->unresolved.insert(str);
 			d->strpool[path] = str;
 			return (instance_t) str;
@@ -230,13 +232,15 @@ namespace putki
 
 		const char *is_unresolved_pointer(data *d, void *p)
 		{
-			if (d->unresolved.count((const char*)p) != 0)
+			if (d->unresolved.count((const char*)p) != 0) {
 				return (const char*) p;
-			else
+			}
+			else{
 				return 0;
+			}
 		}
 
-		
+
 	}
 }
 

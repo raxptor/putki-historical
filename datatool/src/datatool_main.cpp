@@ -28,15 +28,14 @@ void make_data(const char *name)
 
 int run_putki_datatool(int argc, char **argv)
 {
-	for (int i=1;i<argc;i++) {
+	for (int i=1; i<argc; i++) {
 		if (!strcmp(argv[i], "make")) {
-			if (i+1 < argc) {
+			if (i+1 < argc)
 				make_data(argv[i+1]);
-			} else {
+			else
 				std::cerr << "Syntax: make <type>" << std::endl;
-			}
 		} else if (!strcmp(argv[i], "list-types")) {
-			for (unsigned int i=0;true;i++) {
+			for (unsigned int i=0; true; i++) {
 				putki::type_handler_i *type = putki::typereg_get_handler_by_index(i);
 				if (!type) {
 					std::cout << "Total: " << i << " types." << std::endl;

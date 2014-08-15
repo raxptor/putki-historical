@@ -14,13 +14,13 @@ namespace putki
 	void write_runtime_impl(putki::parsed_file *file, runtime::descptr rt, putki::indentedwriter out);
 
 	void write_runtime_blob_load_cases(putki::parsed_file *file, putki::indentedwriter out);
-	
+
 	void write_runtime_blob_load_cases(putki::parsed_file *file, putki::indentedwriter out);
 	void write_runtime_blob_load_decl(const char *hpath, putki::indentedwriter out);
-	
+
 	void write_putki_header(putki::parsed_file *file, putki::indentedwriter out);
 	void write_putki_impl(putki::parsed_file *file, putki::indentedwriter out);
- 
+
 	void write_bind_decl(putki::parsed_file *file, putki::indentedwriter out);
 	void write_bind_calls(putki::parsed_file *file, putki::indentedwriter out);
 

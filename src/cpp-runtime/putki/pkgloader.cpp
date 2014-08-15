@@ -28,7 +28,7 @@ namespace putki
 			in.seekg(0, std::ios_base::beg);
 			in.read(buffer, size);
 			in.close();
-			
+
 			// std::cout << "Read " << size << " bytes from [" << file << "]" << std::endl;
 
 			pkgmgr::loaded_package *p = pkgmgr::parse(buffer, buffer + size, 0);

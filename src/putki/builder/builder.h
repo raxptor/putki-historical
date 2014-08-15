@@ -18,19 +18,21 @@ namespace putki
 			PHASE_INDIVIDUAL = 1,
 			PHASE_GLOBAL     = 2,   // build for things that need global scans, cannot produce new outputs.
 		};
-		
+
 		struct data;
 		struct record_data;
 
 		struct handler_i
 		{
-			virtual const char *version() { return "unknown-builder"; };
+			virtual const char *version() {
+				return "unknown-builder";
+			};
 			virtual bool handle(data *builder, build_db::record *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
-	
+
 		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db);
 		void free(data *builder);
-		
+
 		runtime::descptr runtime(builder::data *data);
 		void add_data_builder(builder::data *builder, type_t type, int obj_phase, handler_i *handler);
 
@@ -49,7 +51,7 @@ namespace putki
 		void invoke_packager(putki::db::data *out, putki::build::packaging_config *pconf);
 
 		void build_error(builder::data *data, const char *error);
-		
+
 		void write_build_db(builder::data *);
 		build_db::data *get_build_db(builder::data *);
 

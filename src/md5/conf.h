@@ -11,7 +11,7 @@
  * in all copies, and that the name of Gray Watson not be used in
  * advertising or publicity pertaining to distribution of the document
  * or software without specific, written prior permission.
- * 
+ *
  * Gray Watson makes no representations about the suitability of the
  * software described herein for any purpose.  It is provided "as is"
  * without express or implied warranty.

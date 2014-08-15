@@ -3,12 +3,12 @@
 
 #include <putki/types.h>
 
-#define LIVEUPDATE_ENABLE 
+#define LIVEUPDATE_ENABLE
 
 
 #if defined(LIVEUPDATE_ENABLE)
-	// This macro can be used for checks that should be compiled away when
-	// live editing is not enabled.
+// This macro can be used for checks that should be compiled away when
+// live editing is not enabled.
 	#define LIVEUPDATE_ISNULL(x) ((void*)x == 0)
 #else
 	#define LIVEUPDATE_ISNULL(x) false
@@ -21,13 +21,23 @@ namespace putki
 		struct data;
 
 #if !defined(LIVEUPDATE_ENABLE)
-		inline void init() { }
-		inline data* connect() { return 0; }
-		inline void disconnect(data *d) { }
-		inline bool update(instance_t *ptr) { return false; }
-		inline bool connected(data *d) { return false; }
-		inline void update(data *d) { }
-		inline void hookup_object(instance_t ptr, const char *path) { }
+		inline void init() {
+		}
+		inline data* connect() {
+			return 0;
+		}
+		inline void disconnect(data *d) {
+		}
+		inline bool update(instance_t *ptr) {
+			return false;
+		}
+		inline bool connected(data *d) {
+			return false;
+		}
+		inline void update(data *d) {
+		}
+		inline void hookup_object(instance_t ptr, const char *path) {
+		}
 #else
 
 		void init();
@@ -40,7 +50,7 @@ namespace putki
 		// returns true if updated, then pointer for new asset.
 		bool update_ptr(instance_t *ptr);
 
-		
+
 #endif
 
 		#define LIVE_UPDATE(x) putki::liveupdate::update_ptr((putki::instance_t*) x)

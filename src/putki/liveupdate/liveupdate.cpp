@@ -40,17 +40,17 @@ namespace putki
 			std::vector<std::string> _assets_updates;
 			db::data *source_db;
 		};
-		
+
 		data* start_server(db::data *use_this_db)
 		{
 			data *d = new data();
-			
+
 			sockaddr_in addrLocal = {};
-			
+
 			addrLocal.sin_family = AF_INET;
 			addrLocal.sin_port = htons(6788);
 			addrLocal.sin_addr.s_addr = htonl(0x7f000001);
-			
+
 			d->socket = socket(AF_INET, SOCK_STREAM, 0);
 			if (bind(d->socket, (sockaddr*)&addrLocal, sizeof(addrLocal)) < 0)
 			{
@@ -106,7 +106,7 @@ namespace putki
 			std::vector<std::string> _assets_updates;
 			db::data *source_db;
 		};
-		
+
 		data* start_server(db::data *use_this_db)
 		{
 			int s = socket(AF_INET, SOCK_STREAM, 0);
@@ -115,10 +115,10 @@ namespace putki
 				std::cerr << "Could not open listening socket" << std::endl;
 				return 0;
 			}
-			
+
 			int optval = 1;
 			setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-			
+
 			sockaddr_in srv;
 			srv.sin_family = AF_INET;
 			srv.sin_addr.s_addr = INADDR_ANY;
@@ -129,9 +129,9 @@ namespace putki
 				close(s);
 				return 0;
 			}
-			
+
 			listen(s, 10);
-			
+
 			data* d = new data();
 			d->socket = s;
 			d->source_db = use_this_db ? use_this_db : db::create();
@@ -150,24 +150,25 @@ namespace putki
 		{
 			pthread_mutex_unlock(&d->mtx);
 		}
-		
+
 		int accept(data *d)
 		{
 			sockaddr_in client;
-			socklen_t sz = sizeof(client);			
+			socklen_t sz = sizeof(client);
 			return accept(d->socket, (sockaddr*)&client, &sz);
 		}
-		
+
 		void stop_server(data *d)
 		{
 			close(d->socket);
 			delete d;
 		}
-		
-		void send_update(data *lu, db::data *data, const char *path) { }
+
+		void send_update(data *lu, db::data *data, const char *path) {
+		}
 #endif
 
-		struct db_merge : public db::enum_i 
+		struct db_merge : public db::enum_i
 		{
 			db::data *_output;
 			void record(const char *path, type_handler_i *th, instance_t i)
@@ -175,11 +176,11 @@ namespace putki
 				db::insert(_output, path, th, i);
 			}
 		};
-		
+
 		void send_update(data *lu, const char *path)
 		{
 			std::cout << "Registered update on " << path << "!" << std::endl;
-			enter_lock(lu);			
+			enter_lock(lu);
 			lu->_assets_updates.push_back(path);
 			leave_lock(lu);
 		}
@@ -191,16 +192,16 @@ namespace putki
 			char buf[256];
 			int bytes;
 			int parse = 0;
-			
+
 			std::queue<std::string> lines;
 			int accepted_updates = 0;
 
 			builder::data *builder = 0;
 			runtime::descptr rt;
-			
+
 			db::data *input = db::create();
-			
-			
+
+
 			while ((bytes = recv(skt, buf, sizeof(buf), 0)) > 0)
 			{
 				if (bytes + parse > sizeof(parsebuf)-1)
@@ -211,56 +212,58 @@ namespace putki
 				}
 				memcpy(&parsebuf[parse], buf, bytes);
 				parse += bytes;
-				
-				for (int i=0;i<parse;i++)
+
+				for (int i=0; i<parse; i++)
 				{
 					if (parsebuf[i] == 0xD || parsebuf[i] == 0xA)
 					{
 						parsebuf[i] = 0;
-						if (i > 0)
+						if (i > 0) {
 							lines.push(parsebuf);
-						
+						}
+
 						const int count = i+1;
-						for (int j=0;j<(parse-count);j++)
+						for (int j=0; j<(parse-count); j++)
 							parsebuf[j] = parsebuf[j+count];
-							
+
 						parse -= count;
 						i = -1;
 						continue;
 					}
 				}
-				
+
 				while (!lines.empty())
 				{
 					std::string cmd = lines.front();
 					std::string arg0;
-					
+
 					int del = cmd.find_first_of(' ');
 					if (del != std::string::npos)
 					{
 						arg0 = cmd.substr(del+1, cmd.size() - del);
 						cmd = cmd.substr(0, del);
 					}
-					
+
 //					std::cout << "client [" << cmd << "] arg0 [" << arg0 << "]" << std::endl;
 					if (cmd == "init")
 					{
 						// see what runtime it is.
-						for (int i=0;;i++)
+						for (int i=0;; i++)
 						{
 							runtime::descptr p = runtime::get(i);
-							if (!p)
+							if (!p) {
 								break;
-							if (!strcmp(arg0.c_str(), runtime::desc_str(p)))
+							}
+							if (!strcmp(arg0.c_str(), runtime::desc_str(p))) {
 								rt = p;
+							}
 						}
 
 						if (!builder)
 						{
 							builder = builder::create(rt, sourcepath, false);
 
-							if (builder)
-							{
+							if (builder) {
 								std::cout << "Created builder for client." << std::endl;
 							}
 						}
@@ -276,14 +279,15 @@ namespace putki
 						{
 							const char *orgpath = lu->_assets_updates[accepted_updates++].c_str();
 							std::cout << "Client gets [" << orgpath << "] accepted_updates = " << accepted_updates << std::endl;
-							
+
 							build_db::data *bdb = builder::get_build_db(builder);
 							build_db::deplist *dl = build_db::deplist_get(bdb, orgpath);
-							for (unsigned int i=0;;i++)
+							for (unsigned int i=0;; i++)
 							{
 								const char *path = build_db::deplist_entry(dl, i);
-								if (!path)
+								if (!path) {
 									break;
+								}
 
 								std::cout << " -> Adding object from deplist [" << path << "]" << std::endl;
 								if (!already.count(path))
@@ -298,8 +302,7 @@ namespace putki
 						leave_lock(lu);
 					}
 
-					if (cmd == "build")
-					{
+					if (cmd == "build") {
 						buildforclient.push_back(arg0);
 					}
 
@@ -321,7 +324,7 @@ namespace putki
 
 						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
 						{
-							// 
+							//
 							std::cout << "Failed to resolve path." << std::endl;
 							leave_lock(lu);
 							buildforclient.erase(buildforclient.begin());
@@ -331,26 +334,26 @@ namespace putki
 						db::data *output = db::create();
 
 						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
-							
+
 						builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
-							
+
 						build::post_build_ptr_update(lu->source_db, output);
 
 						// should be done with this now.
 						leave_lock(lu);
-							
+
 						package::data *pkg = package::create(output);
 						package::add(pkg, tobuild.c_str(), true);
-							
+
 						const unsigned int sz = 10*1024*1024;
 						char *buf = new char[sz];
 						long bytes = package::write(pkg, rt, buf, sz);
-							
+
 						std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
-							
+
 						char pkttype = 1;
 						send(skt, &pkttype, 1, 0);
-						for (int i=0;i<4;i++)
+						for (int i=0; i<4; i++)
 						{
 							char sz = (bytes >> (i*8)) & 0xff;
 							send(skt, &sz, 1, 0);
@@ -362,14 +365,15 @@ namespace putki
 
 						buildforclient.erase(buildforclient.begin());
 					}
-					
+
 					lines.pop();
 				}
 			}
-			
-			if (builder)
+
+			if (builder) {
 				builder::free(builder);
-				
+			}
+
 			db::free(input);
 		}
 

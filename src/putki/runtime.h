@@ -33,27 +33,31 @@ namespace putki
 		typedef const desc * descptr;
 
 		const char *desc_str(desc const *rt);
-	
+
 		// enumerate
 		const desc* get(unsigned int index);
 
 		// current runtime
 		const desc * running();
 
-		inline int ptr_size(const desc *r) { return r->ptrsize; }
-		inline bool has_low_byte_first(const desc *r) { return r->low_byte_first; }
+		inline int ptr_size(const desc *r) {
+			return r->ptrsize;
+		}
+		inline bool has_low_byte_first(const desc *r) {
+			return r->low_byte_first;
+		}
 
 		inline platform_t platform()
 		{
 			#if defined(_WIN32)
-					return PLATFORM_WINDOWS;
+			return PLATFORM_WINDOWS;
 			#elif defined(__APPLE__)
-					return PLATFORM_MACOSX;
+			return PLATFORM_MACOSX;
 			#elif defined(linux)
-					return PLATFORM_LINUX;
+			return PLATFORM_LINUX;
 			#else
 					#error Add runtime definition for your platform, or fix the ifdefs here!
-					return PLATFORM_UNKNOWN;
+			return PLATFORM_UNKNOWN;
 			#endif
 		}
 	}

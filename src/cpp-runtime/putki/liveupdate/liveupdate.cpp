@@ -64,31 +64,31 @@ namespace putki
 			std::vector<pkg_e> pending;
 			std::vector<pkg_e> stash;
 			std::vector<pkg_e> endoftheline; // replaced stashes we won't use for resolving any more.
-			
+
 			std::set<std::string> askedfor;
 		};
 
 		void init()
 		{
 			#if defined(_WIN32)
-				WSADATA wsaData;
-				if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) 
-				{
-					std::cerr << "WSA init failure" << std::endl;
-					return;
-				}
+			WSADATA wsaData;
+			if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
+			{
+				std::cerr << "WSA init failure" << std::endl;
+				return;
+			}
 			#endif
 		}
 
 		void hookup_object(instance_t ptr, const char *path)
 		{
-			if (!strcmp(path, "N/A"))
+			if (!strcmp(path, "N/A")) {
 				return;
-				
+			}
+
 			// redirect the old if such exists.
 			PathMap::iterator i = s_path2ptr.find(path);
-			if (i != s_path2ptr.end())
-			{
+			if (i != s_path2ptr.end()) {
 				s_rewrite[i->second] = ptr;
 			}
 
@@ -116,7 +116,7 @@ namespace putki
 		data* connect()
 		{
 			data *d = new data();
-			
+
 			sockaddr_in addrLocal = {};
 			addrLocal.sin_family = AF_INET;
 			addrLocal.sin_port = htons(6788);
@@ -171,26 +171,29 @@ namespace putki
 			pkgmgr::free_resolve_status(p->rs);
 			p->rs = 0;
 
-			for (unsigned int i=0;;i++)
+			for (unsigned int i=0;; i++)
 			{
 				const char *objpath = pkgmgr::path_in_package_slot(p->pkg, i);
-				if (objpath)
+				if (objpath) {
 					std::cout << "Object [" << objpath << "] live-updated." << std::endl;
-				else
+				}
+				else{
 					break;
+				}
 			}
 			pkgmgr::register_for_liveupdate(p->pkg);
 		}
 
 		void process_pending(data *d)
 		{
-			if (d->pending.empty())
-				return;	
+			if (d->pending.empty()) {
+				return;
+			}
 
 			// this function tail-recurses whenever it made some progress.
 
 			// attempt cross-resolve.
-			for(unsigned int i=0;i<d->pending.size();i++)
+			for(unsigned int i=0; i<d->pending.size(); i++)
 			{
 				std::cout << "Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0) << std::endl;
 
@@ -202,12 +205,10 @@ namespace putki
 					continue;
 				}
 
-				for(unsigned int j=0;j<d->pending.size();j++)
+				for(unsigned int j=0; j<d->pending.size(); j++)
 				{
-					if (i != j)
-					{
-						if (d->pending[j].resolved)
-						{
+					if (i != j) {
+						if (d->pending[j].resolved) {
 							if (attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]))
 							{
 								d->pending[i].resolved = true;
@@ -218,7 +219,7 @@ namespace putki
 				}
 
 				// try with stash
-				for(unsigned int j=0;j<d->stash.size();j++)
+				for(unsigned int j=0; j<d->stash.size(); j++)
 				{
 					if (attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]))
 					{
@@ -226,15 +227,16 @@ namespace putki
 						d->pending[i].resolved = true;
 					}
 				}
-				
-				if (d->pending[i].resolved)
+
+				if (d->pending[i].resolved) {
 					std::cout << " -> It is now resolved." << std::endl;
+				}
 			}
 
 			// see if any packets are ready
 			bool made_progress = false;
-			
-			for (int i=0;i<(int)d->pending.size();i++)
+
+			for (int i=0; i<(int)d->pending.size(); i++)
 			{
 				if (d->pending[i].resolved)
 				{
@@ -243,7 +245,7 @@ namespace putki
 
 					// clean out stashed with same base object as this, move them to
 					// the end of the line
-					for (unsigned int k=0;k<d->stash.size();k++)
+					for (unsigned int k=0; k<d->stash.size(); k++)
 					{
 						if (same_root(d->pending[i].pkg, d->stash[k].pkg))
 						{
@@ -266,11 +268,12 @@ namespace putki
 				else
 				{
 					// make requests for all unresolved assets.
-					for (unsigned int j=0;;j++)
+					for (unsigned int j=0;; j++)
 					{
 						const char *ref = pkgmgr::unresolved_reference(d->pending[i].pkg, j);
-						if (!ref)
+						if (!ref) {
 							break;
+						}
 
 						if (!d->askedfor.count(ref))
 						{
@@ -282,20 +285,22 @@ namespace putki
 					}
 				}
 			}
-			
-			if (made_progress)
+
+			if (made_progress) {
 				process_pending(d);
+			}
 		}
 
 		void on_recv(data *d)
 		{
 			// need at least this.
-			if (d->readpos < 5)
+			if (d->readpos < 5) {
 				return;
-			
+			}
+
 			unsigned long sz = 0;
 
-			for (int i=0;i<4;i++)
+			for (int i=0; i<4; i++)
 				sz |= (((unsigned char)d->readbuf[i+1]) << 8*i);
 
 			if (d->readpos >= (sz + 5))
@@ -317,17 +322,18 @@ namespace putki
 				}
 				else
 				{
-				
-					for (unsigned int i=0;;i++)
+
+					for (unsigned int i=0;; i++)
 					{
 						const char *objpath = pkgmgr::path_in_package_slot(pe.pkg, i);
-						if (!objpath)
+						if (!objpath) {
 							break;
+						}
 						std::cout << " slot[" << i << "] is [" << objpath << "]" << std::endl;
 					}
-	
+
 					bool replaced = false;
-					for (unsigned int i=0;i<d->pending.size();i++)
+					for (unsigned int i=0; i<d->pending.size(); i++)
 					{
 						if (same_root(d->pending[i].pkg, pe.pkg))
 						{
@@ -339,15 +345,16 @@ namespace putki
 						}
 					}
 
-					if (!replaced)
+					if (!replaced) {
 						d->pending.push_back(pe);
+					}
 
 					process_pending(d);
 				}
 
 				// peel off this package.
 				unsigned long peel = sz + 5;
-				for (unsigned long bk=0;bk<(d->readpos-peel);bk++)
+				for (unsigned long bk=0; bk<(d->readpos-peel); bk++)
 					d->readbuf[bk] = d->readbuf[bk + peel];
 				d->readpos -= peel;
 
@@ -357,8 +364,9 @@ namespace putki
 
 		void update(data *d)
 		{
-			if (!d->connected)
+			if (!d->connected) {
 				return;
+			}
 
 			command(d, "poll");
 

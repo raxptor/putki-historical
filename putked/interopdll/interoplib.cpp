@@ -5,12 +5,12 @@
 #include <windows.h>
 #endif
 
-// SIMPLIFIED INTERFACE FOR MONO ED 
+// SIMPLIFIED INTERFACE FOR MONO ED
 #ifdef _WIN32
 #define DSPEC __declspec(dllexport)
 #else
 #define DSPEC __cdecl
-#include<dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 putki::data_dll_i * g_loaded_dll = 0;
@@ -30,13 +30,9 @@ extern "C"
 		{
 			CreateF *f = (CreateF*) GetProcAddress(module, "load_data_dll");
 			if (f)
-			{
 				g_loaded_dll = f(dataPath);
-			}
 			else
-			{
 				std::cout << "MED_Initialize: Failed loading entry point." << std::endl;
-			}
 		}
 		else
 		{

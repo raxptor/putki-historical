@@ -3,7 +3,7 @@
 
 namespace putki
 {
-	void 
+	void
 
 }
 

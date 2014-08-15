@@ -42,7 +42,7 @@ namespace putki
 	void liveupdate_thread_real(int socket)
 	{
 		std::cout << "Hello from the thread, socket=" << socket << std::endl;
-		putki::liveupdate::service_client(s_live_update , _lu_path, socket);
+		putki::liveupdate::service_client(s_live_update, _lu_path, socket);
 		std::cout << "Client exiting" << std::endl;
 	}
 
@@ -104,12 +104,12 @@ namespace putki
 #ifdef _WIN32
 
 			#if defined(_WIN32)
-				WSADATA wsaData;
-				if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) 
-				{
-					std::cerr << "WSA init failure" << std::endl;
-					return;
-				}
+			WSADATA wsaData;
+			if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
+			{
+				std::cerr << "WSA init failure" << std::endl;
+				return;
+			}
 			#endif
 
 			_lu = putki::liveupdate::start_server(_db);
@@ -119,10 +119,10 @@ namespace putki
 
 			std::cout << "live update (" << _lu << ") " << std::endl;
 
-			if (_lu)
-			{
+			if (_lu) {
 				CreateThread(0, 0, &accept_thread, (void*)_lu, 0, 0);
 			}
+
 #else
 			_lu = putki::liveupdate::start_server(_db);
 			_lu_path = strdup(path);
@@ -138,8 +138,9 @@ namespace putki
 
 		~data_dll()
 		{
-			if (_lu)
+			if (_lu) {
 				liveupdate::stop_server(_lu);
+			}
 
 			db::free(_db);
 		}
@@ -166,14 +167,15 @@ namespace putki
 			delete mi;
 		}
 
-		mem_instance* disk_load(const char *path, bool enable_read_cache = true) 
+		mem_instance* disk_load(const char *path, bool enable_read_cache = true)
 		{
-			if (!enable_read_cache)
+			if (!enable_read_cache) {
 				load_file_into_db(_path.c_str(), path, _db, false);
+			}
 
 			type_handler_i *th;
 			instance_t obj;
-			
+
 			if (db::fetch(_db, path, &th, &obj))
 			{
 				mem_instance_real *mi = new mem_instance_real();
@@ -197,7 +199,7 @@ namespace putki
 					return disk_load(path, false);
 				}
 			}
-			
+
 			return 0;
 		}
 
@@ -210,20 +212,22 @@ namespace putki
 			std::string outpath = (_path + "/" + mi->path) + ".json";
 
 #ifdef _WIN32
-			for (unsigned int i=0;i<outpath.size();i++)
-				if (outpath[i] == '\\')
+			for (unsigned int i=0; i<outpath.size(); i++)
+				if (outpath[i] == '\\') {
 					outpath[i] = '/';
+				}
 #else
-			for (unsigned int i=0;i<outpath.size();i++)
-				if (outpath[i] == '\\')
+			for (unsigned int i=0; i<outpath.size(); i++)
+				if (outpath[i] == '\\') {
 					outpath[i] = '/';
+				}
 #endif
 
 			sys::mk_dir_for_path(outpath.c_str());
 
 			std::ofstream f(outpath.c_str());
 			f << tmp.str();
-			
+
 			putki::db::insert(_db, mi->path, mi->th, mi->inst);
 			return;
 		}
@@ -246,30 +250,31 @@ namespace putki
 		void mem_build_asset(const char *path, ext_build_result *res)
 		{
 			/*
-			putki::builder::data* builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
+			   putki::builder::data* builder = putki::builder::create(putki::RUNTIME_CPP_WIN32);
 
-			putki::db::data *output = putki::db::create();
-			putki::builder::build_source_object(builder, _db, path, output);
-			putki::builder::free(builder);
+			   putki::db::data *output = putki::db::create();
+			   putki::builder::build_source_object(builder, _db, path, output);
+			   putki::builder::free(builder);
 
-			if (s_live_update)
-				putki::liveupdate::send_update(s_live_update, path);
-			*/
+			   if (s_live_update)
+			        putki::liveupdate::send_update(s_live_update, path);
+			 */
 		}
 
 		mem_instance* create_aux_instance(mem_instance *onto, ext_type_handler_i *eth)
 		{
 			mem_instance_real *org = (mem_instance_real*) onto;
 			type_handler_i *th = putki::typereg_get_handler(eth->name());
-			
+
 			instance_t aux_parent = org->inst;
 			if (org->is_struct_instance)
 			{
 				// struct instances have correct path so use that to look up the struct parent.
 				type_handler_i *xth;
 				instance_t p;
-				if (db::fetch(_db, org->path, &xth, &p))
+				if (db::fetch(_db, org->path, &xth, &p)) {
 					aux_parent = p;
+				}
 			}
 
 			mem_instance_real *mi = new mem_instance_real;
@@ -285,8 +290,9 @@ namespace putki
 
 		virtual void on_object_modified(const char *path)
 		{
-			if (s_live_update)
+			if (s_live_update) {
 				putki::liveupdate::send_update(s_live_update, path);
+			}
 		}
 
 		const char *path_of(mem_instance *mi)

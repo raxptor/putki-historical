@@ -21,7 +21,7 @@ void liveupdate_thread_real(int socket)
 {
 	std::cout << "Hello from the thread, socket=" << socket << std::endl;
 	putki::liveupdate::service_client(s_live_update, "data/", socket);
-	
+
 	std::cout << "Client exiting" << std::endl;
 }
 
@@ -48,7 +48,7 @@ int run_putki_builder(int argc, char **argv)
 {
 #if defined(USE_WINSOCK)
 	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) 
+	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
 	{
 		std::cerr << "WSA init failure" << std::endl;
 		return 1;
@@ -58,11 +58,11 @@ int run_putki_builder(int argc, char **argv)
 	// configure builder with app handlers.
 
 	putki::runtime::descptr rt = putki::runtime::running();
-	
+
 	const char *single_asset = 0;
 	bool incremental = false;
 
-	for (int i=1;i<argc;i++)
+	for (int i=1; i<argc; i++)
 	{
 		if (!strcmp(argv[i], "--csharp"))
 		{
@@ -83,7 +83,7 @@ int run_putki_builder(int argc, char **argv)
 			incremental = true;
 		}
 	}
-	
+
 	// reload build database if incremental build
 	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental);
 
@@ -99,16 +99,16 @@ int run_putki_builder(int argc, char **argv)
 		putki::build::full_build(builder);
 		putki::builder::write_build_db(builder);
 	}
-	
+
 	putki::builder::free(builder);
-	
+
 	if (argc > 1 && !strcmp(argv[1], "--liveupdate"))
 	{
 		s_live_update = putki::liveupdate::start_server(0);
 		while (true)
 		{
 			int s = putki::liveupdate::accept(s_live_update);
-			
+
 			intptr_t skt = s;
 
 #if defined(USE_WINSOCK)
@@ -119,8 +119,8 @@ int run_putki_builder(int argc, char **argv)
 #endif
 		}
 		putki::liveupdate::stop_server(s_live_update);
-	
+
 	}
-	
+
 	return 0;
 }

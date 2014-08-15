@@ -23,7 +23,7 @@ namespace putki
 	}
 
 	void* make_unresolved(char *src)
-	{				
+	{
 		char *next = _::name_buffer_cur;
 		char *cur  = _::name_buffer_cur;;
 
@@ -34,7 +34,7 @@ namespace putki
 			_::name_buffer_cur = next;
 			return cur;
 		}
-		
+
 		return 0;
 	}
 }

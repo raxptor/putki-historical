@@ -23,13 +23,13 @@ namespace putki
 			{
 				*ptr = (instance_t) db::create_unresolved_pointer(db, path);
 			}
-		};	
+		};
 
 		struct enum_db_entries_resolve : public db::enum_i
 		{
 			db::data *db;
 			db::data *extra_resolve_db;
-			
+
 			bool add_to_load;
 			std::vector<std::string> to_load;
 
@@ -45,17 +45,19 @@ namespace putki
 
 				bool pointer_pre(instance_t *on)
 				{
-					if (!*on)
+					if (!*on) {
 						return true;
-						
+					}
+
 					// see if it is an unresolved pointer.
 					const char *path = db::is_unresolved_pointer(parent->db, *on);
-					if (!path)
+					if (!path) {
 						return true;
-					
+					}
+
 					type_handler_i *th;
 					instance_t obj;
-					
+
 					if (db::fetch(parent->db, path, &th, &obj))
 					{
 						*on = obj;
@@ -71,7 +73,7 @@ namespace putki
 							parent->to_load.push_back(path);
 							return true;
 						}
-						
+
 						std::cout << "Unresolved reference to [" << path << "]!" << std::endl;
 						*on = 0;
 					}
@@ -101,12 +103,14 @@ namespace putki
 		//
 		std::string asset_name(name);
 		int p = asset_name.find_last_of('.');
-		if (p == std::string::npos)
+		if (p == std::string::npos) {
 			return;
+		}
 
 		std::string ending = asset_name.substr(p, asset_name.size() - p);
-		if (ending != ".json")
+		if (ending != ".json") {
 			return;
+		}
 
 		asset_name = asset_name.substr(0, p);
 
@@ -116,7 +120,7 @@ namespace putki
 
 			parse::node *root = parse::get_root(pd);
 			std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
-				
+
 			type_handler_i *h = typereg_get_handler(objtype.c_str());
 			if (h)
 			{
@@ -135,13 +139,13 @@ namespace putki
 
 			// go grab all the auxs
 			parse::node *aux = parse::get_object_item(root, "aux");
-			if (aux)
-			{
-				for (int i=0;;i++)
+			if (aux) {
+				for (int i=0;; i++)
 				{
 					parse::node *aux_obj = parse::get_array_item(aux, i);
-					if (!aux_obj)
+					if (!aux_obj) {
 						break;
+					}
 
 					std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
 					std::string refpath = asset_name + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
@@ -162,7 +166,7 @@ namespace putki
 
 
 
-			putki::parse::free(pd);		
+			putki::parse::free(pd);
 		}
 		else
 		{
@@ -178,7 +182,7 @@ namespace putki
 			load_into_db(_db, fullpath, name);
 		}
 	}
-	
+
 	void load_tree_into_db(const char *sourcepath, db::data *d)
 	{
 		_db = d;
@@ -193,15 +197,15 @@ namespace putki
 
 		// and hopefully here there are no unresolved pointers!
 	}
-	
+
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)
-	{		
+	{
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(sourcepath) + "/" + fpath;
 		load_into_db(d, fullpath.c_str(), fpath.c_str());
-		
+
 		std::set<std::string> loaded;
-		
+
 		while (true)
 		{
 			// resolve
@@ -210,9 +214,9 @@ namespace putki
 			resolver.db = d;
 			resolver.extra_resolve_db = resolve_db;
 			db::read_all(d, &resolver);
-			
+
 			unsigned int ld = 0;
-			for (unsigned int i=0;i<resolver.to_load.size();i++)
+			for (unsigned int i=0; i<resolver.to_load.size(); i++)
 			{
 				std::string file = resolver.to_load[i] + ".json";
 				if (loaded.count(file) == 0)
@@ -225,11 +229,12 @@ namespace putki
 					loaded.insert(file);
 				}
 			}
-			
-			if (!ld)
+
+			if (!ld) {
 				break;
+			}
 		}
-	
+
 	}
 
 }

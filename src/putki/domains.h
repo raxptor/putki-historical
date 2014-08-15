@@ -3,7 +3,7 @@
 
 namespace putki
 {
-	enum 
+	enum
 	{
 		DOMAIN_INPUT     = 1,
 		DOMAIN_RUNTIME   = 2
