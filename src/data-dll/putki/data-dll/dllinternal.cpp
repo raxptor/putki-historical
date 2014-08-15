@@ -35,5 +35,4 @@ namespace putki
 			return i->second;
 		return 0;
 	}
-
 }

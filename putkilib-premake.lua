@@ -29,6 +29,7 @@
 		files { "src/**.cpp", "src/**.h" }
 		files { "src/**.cpp", "src/**.h" }	
 		files { "builder/src/*.cpp" }
+		files { "datatool/src/*.cpp" }
 		files { "src/md5/*.*" }
 		
 		excludes { "src/cpp-runtime/**" }
