@@ -831,9 +831,20 @@ namespace putki
 	{
 		out.line() << s->name << " * input = (" << s->name << " *)source;";
 
-		for (size_t j=0;j<s->fields.size();j++)
+		// copy and massage a little.
+		std::vector<putki::parsed_field> copy = s->fields;
+		for (size_t i=0;i<copy.size();i++) {
+			// this is internal and should not be written
+			if (!strcmp(copy[i].name.c_str(), "_rtti_type")) {
+				copy.erase(copy.begin() + i);
+				--i;
+			}
+		}
+
+		for (size_t j=0;j<copy.size();j++)
 		{
-			putki::parsed_field & fd = s->fields[j];
+			putki::parsed_field & fd = copy[j];
+
 
 			out.line();
 			out.line() << "// field " << fd.name;
