@@ -149,13 +149,13 @@ namespace parse
 		jsmn_parser p;
 		jsmn_init(&p);
 
-		const unsigned int maxtok = 1024*1024;
+		const unsigned int maxtok = 32*1024*1024;
 		static jsmntok_t tok[maxtok];
 		jsmnerr_t err = jsmn_parse(&p, tmp, tok, maxtok);
 		if (err != JSMN_SUCCESS)
 		{
 			delete [] tmp;
-			std::cout << "Parse failure!" << std::endl;
+			std::cout << "Parse failure! Maybe [" << full_path << "] contains more than " << maxtok << " tokens?" << std::endl;
 			return 0;
 		}
 
