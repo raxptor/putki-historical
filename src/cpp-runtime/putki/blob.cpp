@@ -20,8 +20,6 @@ namespace putki
 	{
 		if (modules < max_modules)
 			pbl[modules++] = func;
-			
-		std::cout << "Got " << modules << " post loaders" << std::endl;
 	}
 	
 	char* post_load_by_type(int type, depwalker_i *ptrwalker, char *begin, char *end)
@@ -93,6 +91,6 @@ namespace putki
 		}
 		return aux_beg;
 	}
-	
 }
+
   
