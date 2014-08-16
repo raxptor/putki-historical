@@ -11,7 +11,7 @@ namespace putki
 			PLATFORM_WINDOWS = 0,
 			PLATFORM_MACOSX = 1,
 			PLATFORM_CSHARP = 2,
-			PLATFORM_LINUX = 3,
+			PLATFORM_UNIXY = 3,
 			PLATFORM_UNKNOWN,
 		};
 
@@ -52,9 +52,15 @@ namespace putki
 			#if defined(_WIN32)
 			return PLATFORM_WINDOWS;
 			#elif defined(__APPLE__)
+<<<<<<< HEAD
 			return PLATFORM_MACOSX;
 			#elif defined(linux)
 			return PLATFORM_LINUX;
+=======
+					return PLATFORM_MACOSX;
+			#elif defined(linux) || defined(BSD) || defined(__FreeBSD__)
+					return PLATFORM_UNIXY;
+>>>>>>> 7182c4a... - Merged platforms to UNIXY (for freebsd,linux now)
 			#else
 					#error Add runtime definition for your platform, or fix the ifdefs here!
 			return PLATFORM_UNKNOWN;

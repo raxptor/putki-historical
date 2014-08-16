@@ -22,8 +22,8 @@ namespace putki
 				case PLATFORM_CSHARP:
 					strcpy(buf, "csharp");
 					break;
-				case PLATFORM_LINUX:
-					strcpy(buf, "linux");
+				case PLATFORM_UNIXY:
+					strcpy(buf, "unixy");
 					break;
 				default:
 					strcpy(buf, "unknown");
@@ -45,6 +45,7 @@ namespace putki
 			// if you change this table, re-build the compiler and re-compile everything too.
 			static const int count = 7;
 			static const desc rtd[count] = {
+<<<<<<< HEAD
 				{PLATFORM_MACOSX,  LANGUAGE_CPP,     8,     1,     true       },
 				{PLATFORM_MACOSX,  LANGUAGE_CPP,     4,     1,     true       },
 				{PLATFORM_LINUX,   LANGUAGE_CPP,     8,     1,     true       },
@@ -52,6 +53,15 @@ namespace putki
 				{PLATFORM_WINDOWS, LANGUAGE_CPP,     4,     1,     true       },
 				{PLATFORM_WINDOWS, LANGUAGE_CPP,     8,     1,     true       },
 				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  4,     1,     true       }
+=======
+				{PLATFORM_MACOSX, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_MACOSX, LANGUAGE_CPP, 4, 1, true},
+				{PLATFORM_UNIXY, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_UNIXY, LANGUAGE_CPP, 4, 1, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 4, 1, true},
+				{PLATFORM_WINDOWS, LANGUAGE_CPP, 8, 1, true},
+				{PLATFORM_CSHARP, LANGUAGE_CSHARP, 4, 1, true}
+>>>>>>> 7182c4a... - Merged platforms to UNIXY (for freebsd,linux now)
 			};
 
 			if (index < count) {
