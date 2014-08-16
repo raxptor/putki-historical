@@ -9,6 +9,10 @@
 
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
+		
+	if os.get() == "bsd" or os.get() == "linux" then
+		table.insert(PUTKI_LIB_LINKS, "pthread")
+	end
 
 	dofile "external/libz/premake.lua"
 	
