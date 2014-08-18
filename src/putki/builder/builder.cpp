@@ -237,7 +237,7 @@ namespace putki
 				}
 				else
 				{
-					return "0 entries found to compare";
+					return "resource has not been built";
 				}
 
 				build_db::deplist_free(dlist);
