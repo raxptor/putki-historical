@@ -41,6 +41,13 @@ namespace putki
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
 		void build_global_pass(data *builder, db::data *input, db::data *output);
 		void build_final_pass(data *builder, db::data *input, db::data *output);
+		
+		// new api
+		struct build_context;
+		build_context *create_context(data *builder, db::data *input, db::data *output);
+		void context_add_to_build(build_context *context, const char *path);
+		void context_finalize(build_context *context);
+		void context_destroy(build_context *context);
 
 		// App specific callbacks for setting up & packaging.
 		typedef void (*builder_setup_fn)(builder::data *builder);

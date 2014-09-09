@@ -84,8 +84,7 @@ namespace
 		}
 	};
 
-
-	struct build_record_handle : public putki::db::enum_i
+	struct db_record_inserter : public putki::db::enum_i
 	{
 		putki::db::data *input;
 		putki::db::data *output;
@@ -100,20 +99,19 @@ namespace
 
 	struct build_source_file : public putki::db::enum_i
 	{
-		putki::db::data *input, *output;
-		putki::builder::data *builder;
+		putki::builder::build_context *context;
 
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			// std::cout << "=> Building source file [" << path << "]..." << std::endl;
-
+			putki::builder::context_add_to_build(context, path);
+		}
+		/*
 			putki::db::data *tmp_db = putki::db::create();
 			putki::builder::build_source_object(builder, input, path, tmp_db);
-
 			putki::build::post_build_merge_database(tmp_db, output);
-
 			putki::db::free(tmp_db);
 		}
+		*/
 	};
 
 	struct read_output : public putki::db::enum_i
@@ -187,12 +185,11 @@ namespace putki
 		// merges objects from source into target.
 		void post_build_merge_database(putki::db::data *source, db::data *target)
 		{
-			build_record_handle brp;
-			brp.input = source;
-			brp.output = target;
-			putki::db::read_all(source, &brp);
+			db_record_inserter ri;
+			ri.input = source;
+			ri.output = target;
+			putki::db::read_all(source, &ri);
 		}
-
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
 		{
@@ -208,21 +205,22 @@ namespace putki
 
 			std::cout << "=> Loaded DB, building source files" << std::endl;
 
-			// INDIVIDUAL PHASE
-			build_source_file bsf;
-			bsf.input = input;
-			bsf.output = db::create();
-			bsf.builder = builder;
+			db::data *output = putki::db::create();
+			builder::build_context *ctx = builder::create_context(builder, input, output);
 
-			// go!
+			// insert all source files into the build context's records.
+			build_source_file bsf;
+			bsf.context = ctx;
 			if (single_asset)
 			{
 				type_handler_i *th;
 				instance_t obj;
-				if (db::fetch(input, single_asset, &th, &obj)) {
+				if (db::fetch(input, single_asset, &th, &obj)) 
+				{
 					bsf.record(single_asset, th, obj);
 				}
-				else{
+				else
+				{
 					std::cout << "Unable to resolve [" << single_asset << "]!" << std::endl;
 				}
 			}
@@ -231,6 +229,10 @@ namespace putki
 				db::read_all(input, &bsf);
 			}
 
+			builder::context_finalize(ctx);
+			builder::context_destroy(ctx);
+
+			/*
 			post_build_ptr_update(input, bsf.output);
 
 			// GLOBAL PASS
@@ -269,6 +271,7 @@ namespace putki
 			// there should be no objects outside these database now.
 			db::free_and_destroy_objs(bsf.input);
 			db::free_and_destroy_objs(bsf.output);
+			*/
 		}
 
 		void full_build(putki::builder::data *builder)
