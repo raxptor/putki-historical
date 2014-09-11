@@ -318,7 +318,7 @@ namespace putki
 		{
 			db::data *input;
 			db::data *output;
-			const char *path;
+			std::string path;
 			work_item *parent;
 			int num_children;
 			build_db::record *br;
@@ -332,10 +332,10 @@ namespace putki
 			std::vector<work_item*> items;
 		};
 
-		build_context *create_context(builder::data *builder db::data *input, db::data *output)
+		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
 		{
 			build_context *ctx = new build_context();
-			cxt->builder = builder;
+			ctx->builder = builder;
 			ctx->input = input;
 			ctx->output = output;
 			return ctx;
@@ -353,24 +353,75 @@ namespace putki
 			context->items.push_back(wi);
 		}
 
+		void post_process_item(build_context *context, work_item *item)
+		{
+			if (!item->parent && !item->num_children)
+			{
+				std::cout << "     => committing [" << item->path << "] into world output" << std::endl;
+				build_db::commit_record(context->builder->build_db, item->br);
+				build::post_build_merge_database(item->output, context->output);
+				db::free(item->output);
+			}
+			if (item->parent)
+			{
+				if (!--item->parent->num_children)
+				{
+					post_process_item(context, item->parent);
+				}
+			}
+		}
+
 		void context_process_record(build_context *context, work_item *item)
 		{
 			type_handler_i *th;
 			instance_t obj;
-			if (!db::fetch(input, item->path, &th, &obj)) {
+
+			if (!item->parent && !db::fetch(item->input, item->path.c_str(), &th, &obj))
+			{
+				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
+				return;
+			}
+			// with a parent we pick from the alternate reality output.
+			if (item->parent && !db::fetch(item->output, item->path.c_str(), &th, &obj))
+			{
+				std::cerr << "ERROR2 WITH ITEM " << item->path << std::endl;
 				return;
 			}
 
 			// first try to create a new one by cloning what's already in there.
-			item->br = build_db::create_record(path, db::signature(input, path));
+			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
 
 			if (item->parent) 
 			{	
 				// inherit parent dependencies
 				build_db::copy_input_dependencies(item->br, item->parent->br);
+				build_db::append_extra_outputs(item->parent->br, item->br);
+
+				build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(context->builder), item->path.c_str(), true); 
+				if (dlist) 
+				{
+					for (int i=0;;i++)
+					{ 
+						const char *entrypath = build_db::deplist_path(dlist, i);
+						if (!entrypath) 
+							break;
+
+						if (build_db::deplist_is_external_resource(dlist, i))
+							continue; 
+
+						// Add if exists in input domain. THis is to avoid adding
+						// tmp paths to the input list.
+						if (db::fetch(item->input, entrypath, &th, &obj)) 
+						{
+							std::cout << "    adding input dependecies [" << entrypath << "]" << std::endl;
+							build_db::add_input_dependency(item->parent->br, entrypath); 
+						} 
+					}
+					build_db::deplist_free(dlist); 
+				}
 			}
 
-			build_db::add_input_dependency(item->br, path);
+			build_db::add_input_dependency(item->br, item->path.c_str());
 
 			// since we are reading from the actual input here, clone the object so we can conveniently modify the contents.
 			// this also means a pointer update needs to be done after this step.
@@ -379,85 +430,51 @@ namespace putki
 			putki::db::data *output = item->output;
 			if (!output)
 			{
-				output = putki::db::create();
+				output = item->output = putki::db::create();
 			}
 
-			if (build_source_object(builder, br, PHASE_INDIVIDUAL, item->input, path, clone, th, output))
+			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, output))
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
 
-				while (const char *cr_path_ptr = build_db::enum_outputs(br, outpos))
+				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
 				{
 					// ignore what we just built.
-					if (!strcmp(cr_path_ptr, path))
+					if (!strcmp(cr_path_ptr, item->path.c_str()))
 					{
 						outpos++;
 						continue;
 					}
 
 					work_item *wi = new work_item();
-					wi->path = cr_path;
-					wi->input = input;
+					wi->path = cr_path_ptr;
+					wi->input = item->input;
 					wi->output = output;
 					wi->num_children = 0;
 					wi->parent = item;
 					wi->br = 0;
+					context->items.push_back(wi);
 
 					item->num_children++;
 
 					std::string cr_path = cr_path_ptr;
 					std::cout << "      ==> Adding subly created input [" << outpos << "] which is [" << cr_path << "]" << std::endl;
-					
-					build_db::append_extra_outputs(item->br, suboutput);
 
-/*							// push up sources dependencies that are in the input, this is convenience for not having to add
-							// manually all the way up.
-							build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), cr_path.c_str(), true);
-							if (dlist)
-							{
-								// Note: this dlist is a dep list wih paths only, don't try reading signatures or such.
-								for (int i=0;; i++)
-								{
-									const char *entrypath = build_db::deplist_path(dlist, i);
-									if (!entrypath) {
-										break;
-									}
-									if (build_db::deplist_is_external_resource(dlist, i)) {
-										continue;
-									}
-
-									// Add if exists in input domain. THis is to avoid adding tmp paths
-									// to the input list.
-									if (db::fetch(input, entrypath, &th, &obj)) {
-										build_db::add_input_dependency(br, entrypath);
-									}
-								}
-								build_db::deplist_free(dlist);
-							}
-						}
-						else
-						{
-							std::cout << " **** BUILD OUTPUT REPORTED ADDED OBJECT WHICH WAS NOT FOUND " << std::endl;
-						}
-*/
-						outpos++;
-					}
+					outpos++;
 				}
 			} // end if was built.
 
-			build_db::commit_record(builder->build_db, br);
-
-			// merge into the real output.
-			build::post_build_merge_database(tmp_output, output);
-			db::free(tmp_output);
-
-				
+			post_process_item(context, item);
 		}
 
 		void context_finalize(build_context *context)
 		{
 			std::cout << "context_finalize - i got " << context->items.size() << " items in here" << std::endl;
+			for (int i=0;i<context->items.size();i++)
+			{
+				context_process_record(context, context->items[i]);
+			}
 		}
 
 		void context_destroy(build_context *context)
@@ -466,7 +483,6 @@ namespace putki
 				delete context->items[i];
 			delete context;
 		}
-
 
 		struct global_pass_builder : public db::enum_i
 		{
