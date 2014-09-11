@@ -364,6 +364,7 @@ namespace putki
 			}
 			if (item->parent)
 			{
+				build_db::commit_record(context->builder->build_db, item->br);
 				if (!--item->parent->num_children)
 				{
 					post_process_item(context, item->parent);
@@ -376,20 +377,16 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
-			if (!item->parent && !db::fetch(item->input, item->path.c_str(), &th, &obj))
+			db::data *item_source = item->parent ? item->output : item->input;
+			if (!db::fetch(item_source, item->path.c_str(), &th, &obj))
 			{
 				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
 				return;
 			}
-			// with a parent we pick from the alternate reality output.
-			if (item->parent && !db::fetch(item->output, item->path.c_str(), &th, &obj))
-			{
-				std::cerr << "ERROR2 WITH ITEM " << item->path << std::endl;
-				return;
-			}
 
 			// first try to create a new one by cloning what's already in there.
-			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
+			item->br = build_db::create_record(item->path.c_str(), db::signature(item_source, item->path.c_str()));
+
 
 			if (item->parent) 
 			{	
@@ -409,9 +406,9 @@ namespace putki
 						if (build_db::deplist_is_external_resource(dlist, i))
 							continue; 
 
-						// Add if exists in input domain. THis is to avoid adding
+						// Add if exists in input domain. This is to avoid adding
 						// tmp paths to the input list.
-						if (db::fetch(item->input, entrypath, &th, &obj)) 
+						if (db::fetch(item_source, entrypath, &th, &obj)) 
 						{
 							std::cout << "    adding input dependecies [" << entrypath << "]" << std::endl;
 							build_db::add_input_dependency(item->parent->br, entrypath); 
