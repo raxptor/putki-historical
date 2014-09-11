@@ -15,6 +15,7 @@
 #include <putki/builder/package.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/write.h>
+#include <putki/builder/build-db.h>
 
 #include <putki/sys/files.h>
 
@@ -230,7 +231,6 @@ namespace putki
 			}
 
 			builder::context_finalize(ctx);
-			builder::context_destroy(ctx);
 
 			post_build_ptr_update(input, output);
 
@@ -243,6 +243,20 @@ namespace putki
 			}
 
 			post_build_ptr_update(input, output);
+
+			//
+			std::cout << "=> Updating metadata on built items" << std::endl;
+			for (unsigned int i=0;;i++)
+			{
+				const char *path = context_get_built_object(ctx, i);
+				if (!path)
+					break;
+
+				build_db::insert_metadata(builder::get_build_db(builder), output, path);
+			}
+
+			builder::context_destroy(ctx);
+
 
 			std::cout << "=> Writing final .json objects for cache." << std::endl;
 			write_cache_json js;

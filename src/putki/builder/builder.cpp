@@ -496,6 +496,13 @@ namespace putki
 			}
 		}
 
+		const char* context_get_built_object(build_context *context, unsigned int i)
+		{
+			if (i < context->items.size())
+				return context->items[i]->path.c_str();
+			return 0;
+		}
+
 		void context_destroy(build_context *context)
 		{
 			for (unsigned int i=0;i<context->items.size();i++)

@@ -6,11 +6,20 @@
 #include <map>
 #include <fstream>
 #include <cstring>
+#include <putki/builder/db.h>
 
 namespace putki
 {
 	namespace build_db
 	{
+		// metadata for -built- objects
+		struct metadata
+		{
+			std::string type;
+			std::string signature;
+			std::vector<std::string> pointers;
+		};
+
 		struct record
 		{
 			struct external_dep
@@ -26,6 +35,7 @@ namespace putki
 			std::vector<external_dep> external_dependencies;
 			std::vector<std::string> outputs;
 			std::vector<std::string> builders;
+			metadata md;
 		};
 
 		typedef std::map<std::string, record> RM;
@@ -96,6 +106,9 @@ namespace putki
 						{
 							add_external_resource_dependency(cur, path, extra.c_str());
 						}
+						else if (line[0] == 'p')
+						{
+						}
 					}
 
 					if (cur) {
@@ -125,6 +138,12 @@ namespace putki
 					dbtxt << "f:" << r.external_dependencies[k].path << "@" << r.external_dependencies[k].signature << std::endl;
 				for (unsigned int j=0; j!=r.outputs.size(); j++)
 					dbtxt << "o:" << r.outputs[j] << "@" << r.builders[j] << "\n";
+
+				dbtxt << "t:" << r.md.type << "\n";
+				dbtxt << "s:" << r.md.signature << "\n";				
+
+				for (unsigned int i=0;i!=r.md.pointers.size();i++)
+					dbtxt << "p:" << r.md.pointers[i] << "\n";
 			}
 
 			if (!dbtxt.good()) {
@@ -277,6 +296,70 @@ namespace putki
 
 			d->records.insert(std::make_pair(r->source_path, *r));
 			delete r;
+		}
+
+		struct depwalker : putki::depwalker_i
+		{
+			db::data *db;
+			metadata *out;
+
+			virtual bool pointer_pre(instance_t * on)
+			{
+				if (!*on) {
+					return true;
+				}
+
+				const char *path = db::pathof_including_unresolved(db, *on);
+				if (!path)
+				{
+					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
+					return true;
+				}
+
+				if (db::is_unresolved_pointer(db, *on))
+				{
+					std::cout << "Ignoring unresolved asset with path [" << path << "]" << std::endl;
+					// don't traverse.
+					return false;
+				}
+
+				out->pointers.push_back(path);
+				return true;
+			}
+
+			void pointer_post(instance_t *on)
+			{
+
+			}
+		};
+
+		void insert_metadata(data *data, db::data *db, const char *path)
+		{
+			RM::iterator rec = data->records.find(path);
+			if (rec == data->records.end())
+			{
+				std::cout << "No build record for " << path << ", fail to add metadata" << std::endl;
+				return;
+			}
+
+			type_handler_i *th;
+			instance_t obj;
+			std::cout << data << " ! " << db << " ! " << path << std::endl;
+			if (db::fetch(db, path, &th, &obj))
+			{
+				rec->second.md.type = th->name();
+				rec->second.md.signature = db::signature(db, path);
+				rec->second.md.pointers.clear();
+				depwalker dw;
+				dw.db = db;
+				dw.out = &rec->second.md;
+				th->walk_dependencies(obj, &dw, false);
+			}
+			else
+			{
+				std::cout << " failed to fetch object for meta data insertion" << std::endl;
+			}
+
 		}
 
 		struct deplist

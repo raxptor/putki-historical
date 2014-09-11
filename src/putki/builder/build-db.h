@@ -2,6 +2,11 @@
 
 namespace putki
 {
+	namespace db
+	{
+		struct data;
+	}
+	
 	namespace build_db
 	{
 		struct data;
@@ -21,6 +26,7 @@ namespace putki
 		void add_output(record *r, const char *output_path, const char *builder);
 		void add_input_dependency(record *r, const char *dependency);
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature);
+		void insert_metadata(data *data, db::data *db, const char *path);
 		void commit_record(data *d, record *r);
 
 		void copy_input_dependencies(record *copy_to, record *copy_from);

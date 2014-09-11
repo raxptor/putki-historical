@@ -48,6 +48,7 @@ namespace putki
 		void context_add_to_build(build_context *context, const char *path);
 		void context_finalize(build_context *context);
 		void context_destroy(build_context *context);
+		const char* context_get_built_object(build_context *context, unsigned int i);
 
 		// App specific callbacks for setting up & packaging.
 		typedef void (*builder_setup_fn)(builder::data *builder);
