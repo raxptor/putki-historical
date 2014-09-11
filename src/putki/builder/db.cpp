@@ -37,6 +37,7 @@ namespace putki
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
+			std::map<std::string, delayed_load_func> delayed;
 
 			char auxpathbuf[256];
 		};
@@ -136,6 +137,12 @@ namespace putki
 			return "NO-SIG";
 		}
 
+		void insert_delayed(data *d, const char *path, delayed_load_func func)
+		{
+			std::cout << " registering delayed load for " << path << std::endl;
+			d->delayed[path] = func;
+		}
+
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			// std::cout << " db insert on path [" << path << "]" << std::endl;
@@ -182,6 +189,14 @@ namespace putki
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)
 		{
+			std::map<std::string, delayed_load_func>::iterator dl = d->delayed.find(path);
+			if (dl != d->delayed.end())
+			{
+				std::cout << " performing delayed load function for [" << path << "]" << std::endl;
+				dl->second(d, path);
+				d->delayed.erase(dl);
+			}
+
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{

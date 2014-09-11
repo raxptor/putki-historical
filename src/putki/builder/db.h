@@ -12,12 +12,15 @@ namespace putki
 		{
 			virtual void record(const char *path, type_handler_i *th, instance_t i) = 0;
 		};
+		
+		typedef int (*delayed_load_func)(db::data *target, const char *path);
 
 		data * create();
 
 		void free_and_destroy_objs(data *d);
 		void free(data *);
 
+		void insert_delayed(data *d, const char *path, delayed_load_func func);
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj);
 		const char *pathof(data *d, instance_t obj);

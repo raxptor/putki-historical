@@ -166,6 +166,16 @@ namespace putki
 
 		};
 
+		long write_meta(data *data, runtime::descptr rt, char *buffer, long available)
+		{
+			blobmap_t::const_iterator i = data->blobs.begin();
+			while (i != data->blobs.end())
+			{
+				std::cout << "Meta table [" << i->first << std::endl;
+				++i;
+			}
+		}
+
 		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
 			std::cout << "Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs." << std::endl;
