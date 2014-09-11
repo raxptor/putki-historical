@@ -57,7 +57,7 @@ namespace
 				{
 					// this would mean the object exists neither in the input nor output domain.
 					if (!putki::db::pathof_including_unresolved(parent->output, *on)) {
-						std::cout << "!!! A wild object appears!" << std::endl;
+						std::cout << "!!! A wild object appears! [" << *on << "]" << std::endl;
 					}
 					return;
 				}
@@ -232,25 +232,26 @@ namespace putki
 			builder::context_finalize(ctx);
 			builder::context_destroy(ctx);
 
-			/*
-			post_build_ptr_update(input, bsf.output);
+			post_build_ptr_update(input, output);
 
 			// GLOBAL PASS
+			/*
 			{
 				db::data *global_out = db::create();
 				builder::build_global_pass(builder, bsf.output, global_out);
 				build::post_build_merge_database(global_out, bsf.output);
 				db::free(global_out);
 			}
+			*/
 
-			post_build_ptr_update(input, bsf.output);
+			post_build_ptr_update(input, output);
 
 			std::cout << "=> Writing final .json objects for cache." << std::endl;
 			write_cache_json js;
 			js.path_base = builder::built_obj_path(builder);
-			js.db = bsf.output;
+			js.db = output;
 			js.builder = builder;
-			db::read_all(bsf.output, &js);
+			db::read_all(output, &js);
 
 			if (single_asset)
 			{
@@ -266,12 +267,11 @@ namespace putki
 			packaging_config pconf;
 			pconf.package_path = pkg_path;
 			pconf.rt = builder::runtime(builder);
-			putki::builder::invoke_packager(bsf.output, &pconf);
+			putki::builder::invoke_packager(output, &pconf);
 
 			// there should be no objects outside these database now.
-			db::free_and_destroy_objs(bsf.input);
-			db::free_and_destroy_objs(bsf.output);
-			*/
+			db::free_and_destroy_objs(input);
+			db::free_and_destroy_objs(output);
 		}
 
 		void full_build(putki::builder::data *builder)

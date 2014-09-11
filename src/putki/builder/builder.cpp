@@ -365,6 +365,9 @@ namespace putki
 			if (item->parent)
 			{
 				build_db::commit_record(context->builder->build_db, item->br);
+				build::post_build_merge_database(item->output, item->parent->output);
+				db::free(item->output);
+
 				if (!--item->parent->num_children)
 				{
 					post_process_item(context, item->parent);
@@ -377,16 +380,14 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
-			db::data *item_source = item->parent ? item->output : item->input;
-			if (!db::fetch(item_source, item->path.c_str(), &th, &obj))
+			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
 				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
 				return;
 			}
 
 			// first try to create a new one by cloning what's already in there.
-			item->br = build_db::create_record(item->path.c_str(), db::signature(item_source, item->path.c_str()));
-
+			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
 
 			if (item->parent) 
 			{	
@@ -408,7 +409,7 @@ namespace putki
 
 						// Add if exists in input domain. This is to avoid adding
 						// tmp paths to the input list.
-						if (db::fetch(item_source, entrypath, &th, &obj)) 
+						if (db::fetch(context->input, entrypath, &th, &obj)) 
 						{
 							std::cout << "    adding input dependecies [" << entrypath << "]" << std::endl;
 							build_db::add_input_dependency(item->parent->br, entrypath); 
@@ -420,17 +421,16 @@ namespace putki
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
-			// since we are reading from the actual input here, clone the object so we can conveniently modify the contents.
-			// this also means a pointer update needs to be done after this step.
-			instance_t clone = th->clone(obj);
+			// If we read from the actual grand input, which is read-only, we must clone the object.
+			// When building sub-assets, then not as concerned as it will not affect the build of other 
+			// objects, and we save pointer updates and confusion
+			instance_t clone = obj;
+			if (item->input == context->input)
+				clone = th->clone(obj);
 
-			putki::db::data *output = item->output;
-			if (!output)
-			{
-				output = item->output = putki::db::create();
-			}
+			item->output = putki::db::create();
 
-			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, output))
+			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output))
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -446,8 +446,8 @@ namespace putki
 
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
-					wi->input = item->input;
-					wi->output = output;
+					wi->input = item->output; // where the object is
+					wi->output = 0;
 					wi->num_children = 0;
 					wi->parent = item;
 					wi->br = 0;
