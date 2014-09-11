@@ -176,7 +176,7 @@ namespace putki
 						const char *builder = build_db::deplist_builder(dlist, i);
 						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
 
-						// std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
+						//std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
 
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
@@ -209,6 +209,7 @@ namespace putki
 				if (matches)
 				{
 					// replace the build record from the cache.
+					// std::cout << "Loading cached object " << path << std::endl;
 					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
 
 					for (int j=0;; j++)
@@ -246,8 +247,6 @@ namespace putki
 			return "no previous build records";
 		}
 
-
-
 		// return true if was built, false if cached.
 		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
@@ -284,8 +283,8 @@ namespace putki
 			}
 
 			if (!handled) {
-				// std::cout << " => Copied [" << path << "] into output (no registered builder)" << std::endl;
-				build_db::set_builder(record, "pukti-generic");
+				// Just moving into output
+				build_db::set_builder(record, "putki-generic");
 			}
 
 			type_handler_i *_th;
@@ -297,7 +296,7 @@ namespace putki
 				// they will be built into the same database as where they came from, so will always generate this case.
 				// But it means it doesn't need to be added.
 				//
-				// std::cout << "==> Builder already added object! [" << path << "]" << std::endl;
+				std::cout << "==> Builder already added object! [" << path << "] obj=" << obj << std::endl;
 			}
 			else
 			{
@@ -322,6 +321,7 @@ namespace putki
 			work_item *parent;
 			int num_children;
 			build_db::record *br;
+			bool commit;
 		};
 
 		struct build_context
@@ -350,6 +350,7 @@ namespace putki
 			wi->num_children = 0;
 			wi->parent = 0;
 			wi->br = 0;
+			wi->commit = false;
 			context->items.push_back(wi);
 		}
 
@@ -357,16 +358,16 @@ namespace putki
 		{
 			if (!item->parent && !item->num_children)
 			{
-				std::cout << "     => committing [" << item->path << "] into world output" << std::endl;
-				build_db::commit_record(context->builder->build_db, item->br);
+				std::cout << "     => inserting [" << item->path << "] into world output" << std::endl;
 				build::post_build_merge_database(item->output, context->output);
 				db::free(item->output);
+				item->commit = true;
 			}
 			if (item->parent)
 			{
-				build_db::commit_record(context->builder->build_db, item->br);
 				build::post_build_merge_database(item->output, item->parent->output);
 				db::free(item->output);
+				item->commit = true;
 
 				if (!--item->parent->num_children)
 				{
@@ -374,6 +375,7 @@ namespace putki
 				}
 			}
 		}
+
 
 		void context_process_record(build_context *context, work_item *item)
 		{
@@ -385,6 +387,8 @@ namespace putki
 				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
 				return;
 			}
+
+			// std::cout << "PROCESS RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
 
 			// first try to create a new one by cloning what's already in there.
 			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
@@ -409,7 +413,10 @@ namespace putki
 
 						// Add if exists in input domain. This is to avoid adding
 						// tmp paths to the input list.
-						if (db::fetch(context->input, entrypath, &th, &obj)) 
+
+						type_handler_i *_th;
+						instance_t _obj;
+						if (db::fetch(context->input, entrypath, &_th, &_obj)) 
 						{
 							std::cout << "    adding input dependecies [" << entrypath << "]" << std::endl;
 							build_db::add_input_dependency(item->parent->br, entrypath); 
@@ -430,7 +437,7 @@ namespace putki
 
 			item->output = putki::db::create();
 
-			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output))
+			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, context->input, item->path.c_str(), clone, th, item->output))
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -451,6 +458,7 @@ namespace putki
 					wi->num_children = 0;
 					wi->parent = item;
 					wi->br = 0;
+					wi->commit = false;
 					context->items.push_back(wi);
 
 					item->num_children++;
@@ -467,10 +475,24 @@ namespace putki
 
 		void context_finalize(build_context *context)
 		{
-			std::cout << "context_finalize - i got " << context->items.size() << " items in here" << std::endl;
+			//std::cout << "context_finalize - i got " << context->items.size() << " items in here" << std::endl;
+			//std::cout << "CONTEXT INPUT=" << context->input << " OUTPUT=" << context->output << std::endl;
+			std::cout << "Starting build with " << context->items.size() << " items in the list." << std::endl;
 			for (int i=0;i<context->items.size();i++)
 			{
 				context_process_record(context, context->items[i]);
+			}
+
+			std::cout << "Finished build with " << context->items.size() << " build records to commit" << std::endl;
+			for (int i=0;i<context->items.size();i++)
+			{
+				if (!context->items[i]->commit) 
+				{
+					std::cout << " item[" << i << "] path=" << context->items[i]->path << " not flagged for commit?!" << std::endl;
+					continue;
+				}
+
+				build_db::commit_record(context->builder->build_db, context->items[i]->br);
 			}
 		}
 

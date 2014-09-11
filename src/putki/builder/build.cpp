@@ -235,14 +235,12 @@ namespace putki
 			post_build_ptr_update(input, output);
 
 			// GLOBAL PASS
-			/*
 			{
 				db::data *global_out = db::create();
-				builder::build_global_pass(builder, bsf.output, global_out);
-				build::post_build_merge_database(global_out, bsf.output);
+				builder::build_global_pass(builder, output, global_out);
+				build::post_build_merge_database(global_out, output);
 				db::free(global_out);
 			}
-			*/
 
 			post_build_ptr_update(input, output);
 
