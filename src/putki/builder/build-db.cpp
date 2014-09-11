@@ -108,6 +108,19 @@ namespace putki
 						}
 						else if (line[0] == 'p')
 						{
+							cur->md.pointers.push_back(extra.c_str());
+						}
+						else if (line[0] == 's')
+						{
+							cur->md.signature = path;
+						}
+						else if (line[0] == 't')
+						{
+							cur->md.type = path;
+						}
+						else
+						{
+							std::cout << "UNPARSED " << line << std::endl;
 						}
 					}
 
