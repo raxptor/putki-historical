@@ -172,6 +172,7 @@ namespace putki
 		{
 			std::string package_path;
 			runtime::descptr rt;
+			build_db::data *bdb;
 		};
 
 		void post_build_ptr_update(db::data *input, db::data *output)
@@ -279,6 +280,7 @@ namespace putki
 			packaging_config pconf;
 			pconf.package_path = pkg_path;
 			pconf.rt = builder::runtime(builder);
+			pconf.bdb = builder::get_build_db(builder);
 			putki::builder::invoke_packager(output, &pconf);
 
 			// there should be no objects outside these database now.
@@ -303,6 +305,8 @@ namespace putki
 
 			long bytes_written = putki::package::write(package, packaging->rt, xbuf, xbufSize);
 			std::cout << "Wrote " << bytes_written << " bytes" << std::endl;
+
+			putki::package::debug(package, packaging->bdb);
 
 			putki::sys::mk_dir_for_path(final_path.c_str());
 

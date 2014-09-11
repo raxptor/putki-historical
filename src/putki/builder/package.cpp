@@ -2,8 +2,10 @@
 
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
+#include <putki/builder/build-db.h>
 #include <putki/blob.h>
 
+#include <set>
 #include <map>
 #include <string>
 #include <vector>
@@ -75,6 +77,54 @@ namespace putki
 		void free(data *package)
 		{
 			delete package;
+		}
+
+		void debug(package::data *data, build_db::data *bdb)
+		{
+			blobmap_t::iterator i = data->blobs.begin();
+			std::cout << " *** package contents ***" << std::endl;
+			std::set<std::string> included;
+			std::vector<std::string> queue;
+
+			while (i != data->blobs.end())
+			{
+				if (included.count(i->first))
+				{
+					++i;
+					continue;
+				}
+				queue.push_back(i->first);
+				included.insert(i->first);
+				++i;
+			}
+				
+			unsigned int pos = 0;
+			while (pos < queue.size())
+			{
+				build_db::record *r = build_db::find(bdb, queue[pos].c_str());
+				if (!r)
+				{
+						std::cout << " pointer to non built object!!!" << std::endl;
+						pos++;
+						continue;
+				}
+
+				std::cout << " entry:" << queue[pos] << " [" << build_db::get_type(r) << "] built_sig=" << build_db::get_signature(r) << std::endl;
+
+				for (int j=0;;j++)
+				{
+					const char *ptr = build_db::get_pointer(r, j);
+					if (!ptr)
+						break;
+					if (included.count(ptr))
+						continue;
+					std::cout << "    pointer to [" << ptr << "]" << std::endl;
+					queue.push_back(ptr);
+					included.insert(ptr);
+				}
+
+				pos++;
+			}
 		}
 
 		void add(package::data *data, const char *path, bool storepath, bool scandep)

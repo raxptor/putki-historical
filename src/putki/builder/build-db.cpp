@@ -156,6 +156,31 @@ namespace putki
 			delete d;
 		}
 
+		record *find(data *d, const char *output_path)
+		{
+			RM::iterator q = d->records.find(output_path);
+			if (q != d->records.end())
+				return &q->second;
+			return 0;
+		}
+
+		const char *get_pointer(record *r, unsigned int index)
+		{
+			if (index < r->md.pointers.size())
+				return r->md.pointers[index].c_str();
+			return 0;
+		}
+
+		const char *get_type(record *r)
+		{
+			return r->md.type.c_str();
+		}
+
+		const char *get_signature(record *r)
+		{
+			return r->md.signature.c_str();
+		}
+
 		record *create_record(const char *input_path, const char *input_signature, const char *builder)
 		{
 			record *r = new record();

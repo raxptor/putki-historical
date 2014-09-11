@@ -19,6 +19,11 @@ namespace putki
 		void release(data *d);
 
 		record *create_record(const char *input_path, const char *input_sig, const char *builder = 0);
+		
+		record *find(data *d, const char *output_path);
+		const char *get_pointer(record *r, unsigned int index);
+		const char *get_type(record *r);
+		const char *get_signature(record *r);
 
 		bool copy_existing(data *d, record *target, const char *path);
 
