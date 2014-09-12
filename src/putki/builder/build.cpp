@@ -232,6 +232,7 @@ namespace putki
 			}
 
 			builder::context_finalize(ctx);
+			builder::context_build(ctx);
 
 			post_build_ptr_update(input, output);
 

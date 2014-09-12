@@ -382,7 +382,6 @@ namespace putki
 
 			type_handler_i *th;
 			instance_t obj;
-			std::cout << data << " ! " << db << " ! " << path << std::endl;
 			if (db::fetch(db, path, &th, &obj))
 			{
 				rec->second.md.type = th->name();

@@ -28,7 +28,7 @@ namespace putki
 			virtual const char *version() {
 				return "unknown-builder";
 			};
-			virtual void deps(data *builder, prebuild_info *info);
+			virtual void deps(data *builder, prebuild_info *info) { }
 			virtual bool handle(data *builder, build_db::record *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 
@@ -49,6 +49,7 @@ namespace putki
 		build_context *create_context(data *builder, db::data *input, db::data *output);
 		void context_add_to_build(build_context *context, const char *path);
 		void context_finalize(build_context *context);
+		void context_build(build_context *context);
 		void context_destroy(build_context *context);
 		const char* context_get_built_object(build_context *context, unsigned int i);
 

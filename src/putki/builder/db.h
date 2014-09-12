@@ -20,6 +20,7 @@ namespace putki
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj);
+		const char *auxref(data *d, const char *path, unsigned int index);
 		const char *pathof(data *d, instance_t obj);
 		const char *pathof_including_unresolved(data *d, instance_t obj);
 		const char *signature(data *d, const char *path);

@@ -88,7 +88,7 @@ namespace putki
 
 			d->built_obj_path.append("/out/");
 			d->built_obj_path.append(runtime::desc_str(rt));
-			d->built_obj_path.append("/.dbg");
+			d->built_obj_path.append("/.built");
 
 			// app specific configurators
 			if (s_init_fn) {
@@ -171,7 +171,7 @@ namespace putki
 			if (dlist)
 			{
 				int matches = 0;
-
+				std::cout << "        => Examining rebuild need for " << path << std::endl;
 				for (int i=0;; i++)
 				{
 					const char *entrypath = build_db::deplist_path(dlist, i);
@@ -180,14 +180,11 @@ namespace putki
 					}
 
 					const char *signature = build_db::deplist_signature(dlist, i);
-
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
 						const char *builder = build_db::deplist_builder(dlist, i);
 						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
-
-						//std::cout << path << " i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
-
+						std::cout << "        i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
 						if (sigmatch && buildermatch) {
@@ -199,7 +196,7 @@ namespace putki
 								return "builder version is different";
 							}
 							else{
-								std::cout << " -> Detected modification in [" << entrypath << "]" << std::endl;
+								std::cout << "        *** Detected modification in [" << entrypath << "]" << std::endl;
 							}
 
 							return "input or builder has been modified";
@@ -207,10 +204,11 @@ namespace putki
 					}
 					else
 					{
+						std::cout << path << " ext:" << entrypath << std::endl;
 						if (strcmp(resource::signature(builder, entrypath).c_str(), signature)) {
 							return "external source data has been modified";
 						}
-						else{
+						else {
 							matches++;
 						}
 					}
@@ -219,7 +217,7 @@ namespace putki
 				if (matches)
 				{
 					// replace the build record from the cache.
-					// std::cout << "Loading cached object " << path << std::endl;
+					std::cout << "         *** Loading cached object " << path << std::endl;
 					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
 
 					for (int j=0;; j++)
@@ -238,7 +236,6 @@ namespace putki
 						if (!db::fetch(output, path, &th, &obj)) {
 							load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
 						}
-
 						// todo, verify signature here too maybe?
 					}
 
@@ -276,7 +273,7 @@ namespace putki
 						}
 						else
 						{
-							// std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
+							std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
 
 							// build record has been rewritten from cache, can't go modify it more now.
 							return false;
@@ -364,7 +361,7 @@ namespace putki
 		{
 			if (!item->parent && !item->num_children)
 			{
-				std::cout << "     => inserting [" << item->path << "] into world output" << std::endl;
+				std::cout << "     => inserting [" << item->path << "] into world output [record " << item->path << "]" << std::endl;
 				build::post_build_merge_database(item->output, context->output);
 				db::free(item->output);
 				item->commit = true;
@@ -382,6 +379,11 @@ namespace putki
 			}
 		}
 
+		struct aux_ptr_add
+		{		
+			
+		};
+
 
 		void context_process_record(build_context *context, work_item *item)
 		{
@@ -394,46 +396,11 @@ namespace putki
 				return;
 			}
 
-			// std::cout << "PROCESS RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
-
-			// first try to create a new one by cloning what's already in there.
+			std::cout << "RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
 			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
 
-			if (item->parent) 
-			{	
-				// inherit parent dependencies
-				build_db::copy_input_dependencies(item->br, item->parent->br);
-				build_db::append_extra_outputs(item->parent->br, item->br);
-
-				build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(context->builder), item->path.c_str(), true); 
-				if (dlist) 
-				{
-					for (int i=0;;i++)
-					{ 
-						const char *entrypath = build_db::deplist_path(dlist, i);
-						if (!entrypath) 
-							break;
-
-						if (build_db::deplist_is_external_resource(dlist, i))
-							continue; 
-
-						// Add if exists in input domain. This is to avoid adding
-						// tmp paths to the input list.
-
-						type_handler_i *_th;
-						instance_t _obj;
-						if (db::fetch(context->input, entrypath, &_th, &_obj)) 
-						{
-							std::cout << "    adding input dependecies [" << entrypath << "]" << std::endl;
-							build_db::add_input_dependency(item->parent->br, entrypath); 
-						} 
-					}
-					build_db::deplist_free(dlist); 
-				}
-			}
-
 			build_db::add_input_dependency(item->br, item->path.c_str());
-
+			
 			// If we read from the actual grand input, which is read-only, we must clone the object.
 			// When building sub-assets, then not as concerned as it will not affect the build of other 
 			// objects, and we save pointer updates and confusion
@@ -481,25 +448,48 @@ namespace putki
 
 		void context_finalize(build_context *context)
 		{
-			//std::cout << "context_finalize - i got " << context->items.size() << " items in here" << std::endl;
-			//std::cout << "CONTEXT INPUT=" << context->input << " OUTPUT=" << context->output << std::endl;
-			std::cout << "Starting build with " << context->items.size() << " items in the list." << std::endl;
+			std::cout << "Finalizing build context with " << context->items.size() << " records." << std::endl;
+		}
+
+		void context_build(build_context *context)
+		{
+			std::cout << "Starting build..." << std::endl;
 			for (int i=0;i<context->items.size();i++)
 			{
 				context_process_record(context, context->items[i]);
 			}
 
 			std::cout << "Finished build with " << context->items.size() << " build records to commit" << std::endl;
-			for (int i=0;i<context->items.size();i++)
+
+			// All records are such that the parent will come first, so we go back wards.
+			for (int i=context->items.size()-1;i>=0;i--)
 			{
-				if (!context->items[i]->commit) 
+				work_item *item = context->items[i];
+				if (!item->commit) 
 				{
-					std::cout << " item[" << i << "] path=" << context->items[i]->path << " not flagged for commit?!" << std::endl;
+					std::cout << " item[" << i << "] path=" << item->path << " not flagged for commit?!" << std::endl;
 					continue;
 				}
 
-				build_db::commit_record(context->builder->build_db, context->items[i]->br);
+				// done.
+				if (item->parent) 
+				{
+					// push up results & input deps.	
+					build_db::copy_input_dependencies(item->br, item->parent->br);
+					build_db::append_extra_outputs(item->parent->br, item->br);
+				}
+
+				build_db::commit_record(context->builder->build_db, item->br);
 			}
+		}
+
+		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
+		{
+			build_context *ctx = create_context(builder, input, output);
+			context_add_to_build(ctx, path);
+			context_finalize(ctx);
+			context_build(ctx);
+			context_destroy(ctx);
 		}
 
 		const char* context_get_built_object(build_context *context, unsigned int i)

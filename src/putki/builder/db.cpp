@@ -98,6 +98,17 @@ namespace putki
 			return strchr(path, '#') != 0;
 		}
 
+		const char *auxref(data *d, const char *path, unsigned int index)
+		{
+			std::map<std::string, entry>::iterator i = d->objs.find(path);
+			if (i != d->objs.end())
+			{
+				if (index < i->second.auxrefs.size())
+					return i->second.auxrefs[index].c_str();
+			}
+			return 0;
+		}
+
 		const char *pathof(data *d, instance_t obj)
 		{
 			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);
