@@ -35,6 +35,11 @@ namespace putki
 			build_db::data *build_db;
 		};
 
+		struct prebuild_info
+		{
+			std::vector<std::string> require_outputs;
+		};
+
 		namespace
 		{
 			builder_setup_fn s_init_fn = 0;
@@ -56,6 +61,11 @@ namespace putki
 			if (s_packaging_fn) {
 				s_packaging_fn(out, pconf);
 			}
+		}
+
+		void prebuild_add_output_dep(prebuild_info *info, const char *path)
+		{
+			info->require_outputs.push_back(path);
 		}
 
 		data* create(runtime::descptr rt, const char *path, bool reset_build_db)
@@ -308,11 +318,6 @@ namespace putki
 			return true;
 		}
 
-		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
-		{
-		}
-
-
 		struct work_item
 		{
 			db::data *input;
@@ -322,6 +327,7 @@ namespace putki
 			int num_children;
 			build_db::record *br;
 			bool commit;
+			prebuild_info prebuild;
 		};
 
 		struct build_context
