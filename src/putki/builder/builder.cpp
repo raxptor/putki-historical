@@ -408,9 +408,9 @@ namespace putki
 			if (item->input == context->input)
 				clone = th->clone(obj);
 
-			item->output = putki::db::create();
+			item->output = putki::db::create(item->input);
 
-			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, context->input, item->path.c_str(), clone, th, item->output))
+			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output))
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;

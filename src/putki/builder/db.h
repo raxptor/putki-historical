@@ -13,7 +13,8 @@ namespace putki
 			virtual void record(const char *path, type_handler_i *th, instance_t i) = 0;
 		};
 
-		data * create();
+		// parent db will be used for forwarding path lookups
+		data * create(data *parent=0);
 
 		void free_and_destroy_objs(data *d);
 		void free(data *);

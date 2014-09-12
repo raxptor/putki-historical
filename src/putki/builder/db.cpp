@@ -37,13 +37,15 @@ namespace putki
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
-
 			char auxpathbuf[256];
+			data *parent;
 		};
 
-		db::data * create()
+		db::data * create(data *parent)
 		{
-			return new data();
+			data *d = new data();
+			d->parent = parent;
+			return d;
 		}
 
 		void free_and_destroy_objs(data *d)
@@ -115,6 +117,10 @@ namespace putki
 			if (i != d->paths.end()) {
 				return i->second.c_str();
 			}
+
+			if (d->parent)
+				return pathof(d->parent, obj);
+
 			return 0;
 		}
 
