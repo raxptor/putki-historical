@@ -359,7 +359,10 @@ namespace putki
 
 		void post_process_item(build_context *context, work_item *item)
 		{
-			if (!item->parent && !item->num_children)
+			if (item->num_children)
+				return;
+
+			if (!item->parent)
 			{
 				std::cout << "     => inserting [" << item->path << "] into world output [record " << item->path << "]" << std::endl;
 				build::post_build_merge_database(item->output, context->output);
