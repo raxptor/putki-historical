@@ -291,6 +291,8 @@ namespace putki
 
 			d->unresolved.insert(str);
 			d->strpool[path] = str;
+			
+			std::cout << "created unresolved ptr[" << path << "] it is " << (void*)str << std::endl;
 			return (instance_t) str;
 		}
 

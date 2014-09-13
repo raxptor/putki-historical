@@ -792,6 +792,7 @@ namespace putki
 				if (!runtime)
 					out.cont() << ", traverseChildren, true";
 				out.cont() << ");";
+				out.line(1) << "return;";
 				out.line() << "}";
 			}
 			
@@ -835,7 +836,7 @@ namespace putki
 				{
 					// structs are not considered chlidren
 					out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker";
-					out.cont() << rttiDispatchArg << traverseArgs << ");";
+					out.cont() << traverseArgs << rttiDispatchArg << ");";
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
