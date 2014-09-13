@@ -270,7 +270,10 @@ namespace putki
 				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
 				if (!ptr)
 				{
-					std::cout << "HELP! Buffer too small after packing " << i << " objects!" << std::endl;
+					std::cout << "HELP! Wrote 0 bytes after packing " << i << " objects!" << std::endl;
+					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
+					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
+					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
 				}
 				else
 				{
