@@ -42,8 +42,8 @@ namespace putki
 			// if you change this table, re-build the compiler and re-compile everything too.
 			static const int count = 3;
 			static const desc rtd[count] = {
-				{PLATFORM_32BIT,   LANGUAGE_CPP,     8,     1,     true       },
-				{PLATFORM_64BIT,   LANGUAGE_CPP,     4,     1,     true       },
+				{PLATFORM_64BIT,   LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_32BIT,   LANGUAGE_CPP,     4,     1,     true       },
 				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  4,     1,     true       }
 			};
 
