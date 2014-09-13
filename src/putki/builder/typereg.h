@@ -51,7 +51,7 @@ namespace putki
 		virtual char* write_into_buffer(runtime::descptr rt, instance_t source, char *beg, char *end) = 0;
 
 		// recurse down and report all pointers
-		virtual void walk_dependencies(instance_t source, depwalker_i *walker, bool traverseChildren) = 0;
+		virtual void walk_dependencies(instance_t source, depwalker_i *walker, bool traverseChildren, bool rttiDispatch = false) = 0;
 	};
 
 	// used by dll interface, forward decl here for getters.
