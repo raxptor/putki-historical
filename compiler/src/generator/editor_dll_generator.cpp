@@ -51,6 +51,9 @@ namespace putki
 	{
 		for (size_t j=0; j!=s->fields.size(); j++)
 		{
+			if (s->fields[j].is_build_config)
+				continue;
+			
 			out.line() << "//////////////////////////////////////////////////////////////";
 			out.line() << "// Field handler for " << s->name << "." << s->fields[j].name;
 			out.line() << "struct ed_field_handler_" << s->name << "_" << s->fields[j].name << " : public putki::ext_field_handler_i";
@@ -302,6 +305,9 @@ namespace putki
 			int idx = 0;
 			for (size_t j=0; j!=s->fields.size(); j++)
 			{
+				if (s->fields[j].is_build_config)
+					continue;
+				
 				if (s->fields[j].name != "_rtti_type")
 				{
 					s->fields[j]._WROTE_DLL_FIELD_INDEX = idx;

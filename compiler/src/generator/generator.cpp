@@ -500,6 +500,8 @@ namespace putki
 			{
 				if (s->fields[j].is_array)
 					continue;
+				if (s->fields[j].is_build_config)
+					continue;
 
 				if (!s->fields[j].def_value.empty())
 					out.line() << s->fields[j].name << " = " << s->fields[j].def_value << ";";
@@ -533,15 +535,43 @@ namespace putki
 					out.line();
 
 				out.line() << "// field " << s->fields[j].name;
+				
+				std::string cont = s->fields[j].name + ";";
+				if (s->fields[j].is_build_config)
+				{
+					cont = "& " + s->fields[j].name + "(const char *build_config) {";
+				}
 
 				if (s->fields[j].is_array)
 				{
 					std::string r_type_name = putki_field_type(&s->fields[j]);
-					out.line() << "std::vector<" << r_type_name << "> " << s->fields[j].name << ";";
+					out.line() << "std::vector<" << r_type_name << "> " << cont;
 				}
 				else
 				{
-					out.line() << putki_field_type(&s->fields[j]) << " " << s->fields[j].name << ";";
+					out.line() << putki_field_type(&s->fields[j]) << " " << cont;
+				}
+				
+				if (s->fields[j].is_build_config)
+				{
+					for (unsigned i=1;;i++)
+					{
+						// swap last and first
+						const char *test = get_build_config(i);
+						const char *real = test;
+						if (!test)
+						{
+							real = get_build_config(0);
+						}
+						else
+						{
+							out.line(1) << "if (!strcmp(build_config, \"" << real << "\"))";
+						}
+						out.line(test ? 2 : 1) << "return " << s->fields[j].name << real << ";";
+						if (!test)
+							break;
+					}
+					out.line(0) << "}";
 				}
 			}
 
@@ -692,6 +722,9 @@ namespace putki
 			// field parsing.
 			for (unsigned int j=0; j<s->fields.size(); j++)
 			{
+				if (s->fields[j].is_build_config)
+					continue;
+				
 				out.line();
 
 				if (s->fields[j].name != "_rtti_type")
@@ -756,6 +789,8 @@ namespace putki
 			for (size_t j=0; j<s->fields.size(); j++)
 			{
 				putki::parsed_field & fd = s->fields[j];
+				if (fd.is_build_config)
+					continue;
 
 				if (runtime)
 					if (!(fd.domains & putki::DOMAIN_RUNTIME))
@@ -832,7 +867,8 @@ namespace putki
 		for (size_t j=0; j<copy.size(); j++)
 		{
 			putki::parsed_field & fd = copy[j];
-
+			if (fd.is_build_config)
+				continue;
 
 			out.line();
 			out.line() << "// field " << fd.name;

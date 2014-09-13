@@ -2,6 +2,7 @@
 #include <generator/generator.h>
 #include <generator/indentedwriter.h>
 #include <putki/sys/files.h>
+#include <buildconfigs.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -350,6 +351,9 @@ int main (int argc, char *argv[])
 		if (!strcmp(argv[i], "--ignore-config-typeid"))
 			g_ignore_config_typeid = true;
 	}
+	
+	add_build_config("Gurka");
+	add_build_config("Tomat");
 
 	while (true)
 	{
