@@ -257,15 +257,35 @@ namespace putki
 				build_db::insert_metadata(builder::get_build_db(builder), output, path);
 			}
 
-			builder::context_destroy(ctx);
-
 
 			std::cout << "=> Writing final .json objects for cache." << std::endl;
 			write_cache_json js;
 			js.path_base = builder::built_obj_path(builder);
 			js.db = output;
 			js.builder = builder;
-			db::read_all(output, &js);
+			for (unsigned int i=0;;i++)
+			{
+				const char *path = context_get_built_object(ctx, i);
+				if (!path)
+					break;
+					
+				if (context_was_read_from_cache(ctx, i))
+					continue;
+					
+				type_handler_i *th;
+				instance_t obj;
+				if (db::fetch(output, path, &th, &obj)) 
+				{
+					std::cout << "  writing [" << path << "]" << std::endl;
+					js.record(path, th, obj);
+				}
+				else
+				{
+					std::cout << "Unable to resolve [" << path << "]!" << std::endl;
+				}
+			}
+			
+			builder::context_destroy(ctx);
 
 			if (single_asset)
 			{

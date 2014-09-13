@@ -52,7 +52,10 @@ namespace putki
 		void context_finalize(build_context *context);
 		void context_build(build_context *context);
 		void context_destroy(build_context *context);
+
+		// enumerating items in the build list after _build
 		const char* context_get_built_object(build_context *context, unsigned int i);
+		bool context_was_read_from_cache(build_context *context, unsigned int i);
 
 		// App specific callbacks for setting up & packaging.
 		typedef void (*builder_setup_fn)(builder::data *builder);

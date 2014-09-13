@@ -180,7 +180,7 @@ namespace putki
 
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
-		const char* fetch_cached_build(data *builder, build_db::record * newrecord, builder::handler_i *handler, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			// Time to hunt for cached object.
 			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path, false);
@@ -202,7 +202,7 @@ namespace putki
 						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
 						std::cout << "        i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
 						// only care for builder match when the input is going to be built with this builder
-						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler->version());
+						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler_name);
 						if (sigmatch && buildermatch) {
 							matches++;
 						}
@@ -274,6 +274,7 @@ namespace putki
 		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
+			bool built_by_any = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
 			if (i != builder->handlers.end()) {
 				for (std::vector<builder_entry>::size_type j=0; j!=i->second.handlers.size(); j++)
@@ -281,33 +282,38 @@ namespace putki
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
 					{
-						const char *reason = fetch_cached_build(builder, record, e->handler, input, path, obj, th, output);
+						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
 							std::cout << " => Building [" << path << "] because " << reason << std::endl;
 							e->handler->handle(builder, record, input, path, obj, output, phase);
+							built_by_any = true;
 						}
 						else
 						{
-							std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
-
 							// build record has been rewritten from cache, can't go modify it more now.
+							std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
 							return false;
 						}
-
-						// TODO: Clean up return values. Now always assume they are handled
-						//       if we actually call in here.
+						
+						// we only support one builder per object
 						handled = true;
-
 						build_db::set_builder(record, e->handler->version());
 						break;
 					}
 				}
 			}
+			
+			const char *default_name = "default";
 
 			if (!handled) {
 				// Just moving into output
-				build_db::set_builder(record, "putki-generic");
+				build_db::set_builder(record, default_name);
+				
+				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
+				// only actually to see if it needs to be rewritten
+				if (!fetch_cached_build(builder, record, default_name, input, path, obj, th, output))
+					return false;
 			}
 
 			type_handler_i *_th;
@@ -327,7 +333,7 @@ namespace putki
 				db::insert(output, path, th, obj);
 			}
 
-			build_db::add_output(record, path, "putki-generic");
+			build_db::add_output(record, path, default_name);
 			return true;
 		}
 
@@ -340,6 +346,7 @@ namespace putki
 			int num_children;
 			build_db::record *br;
 			bool commit;
+			bool from_cache;
 			prebuild_info prebuild;
 		};
 
@@ -370,6 +377,7 @@ namespace putki
 			wi->parent = 0;
 			wi->br = 0;
 			wi->commit = false;
+			wi->from_cache = false;
 			context->items.push_back(wi);
 		}
 
@@ -451,6 +459,7 @@ namespace putki
 					wi->parent = item;
 					wi->br = 0;
 					wi->commit = false;
+					wi->from_cache = false;
 					context->items.push_back(wi);
 
 					item->num_children++;
@@ -460,7 +469,12 @@ namespace putki
 
 					outpos++;
 				}
-			} // end if was built.
+			}
+			else
+			{
+				// picked up built result from cache...
+				item->from_cache = true;
+			}
 
 			post_process_item(context, item);
 		}
@@ -510,6 +524,7 @@ namespace putki
 			context_build(ctx);
 			context_destroy(ctx);
 		}
+		
 
 		const char* context_get_built_object(build_context *context, unsigned int i)
 		{
@@ -518,6 +533,13 @@ namespace putki
 			return 0;
 		}
 
+		bool context_was_read_from_cache(build_context *context, unsigned int i)
+		{
+			if (i < context->items.size())
+				return context->items[i]->from_cache;
+			return false;
+		}
+		
 		void context_destroy(build_context *context)
 		{
 			for (unsigned int i=0;i<context->items.size();i++)
