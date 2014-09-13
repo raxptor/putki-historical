@@ -1,7 +1,6 @@
 #include "pkgloader.h"
 
-#include <putki/runtime.h>
-
+#include <putki/config.h>
 #include <fstream>
 #include <iostream>
 
@@ -12,7 +11,7 @@ namespace putki
 		pkgmgr::loaded_package * from_file(const char *file)
 		{
 			char buf[1024];
-			sprintf(buf, "out/%s/packages/%s", runtime::desc_str(), file);
+			putki::format_package_path(file, buf);
 
 			std::ifstream in(buf, std::ios::binary);
 			if (!in.good())
