@@ -66,20 +66,30 @@ namespace putki
 			d->config = build_config;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->built_obj_path = path;
+			
+			std::string desc_path = runtime::desc_str(rt);
+			if (build_config)
+			{
+				desc_path.append("-");
+				desc_path.append(build_config);
+			}
+			
+			for (unsigned int i=0;i<desc_path.size();i++)
+				desc_path[i] = ::tolower(desc_path[i]);
 
 			d->obj_path.append("/data/objs");
 			d->res_path.append("/data/res");
 
 			d->out_path.append("/out/");
-			d->out_path.append(runtime::desc_str(rt));
+			d->out_path.append(desc_path);
 			d->out_path.append("");
 
 			d->tmp_path.append("/out/");
-			d->tmp_path.append(runtime::desc_str(rt));
+			d->tmp_path.append(desc_path);
 			d->tmp_path.append("/.tmp");
 
 			d->built_obj_path.append("/out/");
-			d->built_obj_path.append(runtime::desc_str(rt));
+			d->built_obj_path.append(desc_path);
 			d->built_obj_path.append("/.dbg");
 
 			// app specific configurators
@@ -89,7 +99,7 @@ namespace putki
 
 			std::string build_db_path = path;
 			build_db_path.append("/out/");
-			build_db_path.append(runtime::desc_str(rt));
+			build_db_path.append(desc_path);
 			build_db_path.append(".build-db");
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
 			return d;

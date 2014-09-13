@@ -13,17 +13,14 @@ namespace putki
 			static char buf[256];
 			switch (rt->platform)
 			{
-				case PLATFORM_MACOSX:
-					strcpy(buf, "macosx");
+				case PLATFORM_32BIT:
+					strcpy(buf, "x");
 					break;
-				case PLATFORM_WINDOWS:
-					strcpy(buf, "win");
+				case PLATFORM_64BIT:
+					strcpy(buf, "x");
 					break;
 				case PLATFORM_CSHARP:
 					strcpy(buf, "csharp");
-					break;
-				case PLATFORM_UNIXY:
-					strcpy(buf, "unixy");
 					break;
 				default:
 					strcpy(buf, "unknown");
@@ -43,14 +40,10 @@ namespace putki
 		const desc * get(unsigned int index)
 		{
 			// if you change this table, re-build the compiler and re-compile everything too.
-			static const int count = 7;
+			static const int count = 3;
 			static const desc rtd[count] = {
-				{PLATFORM_MACOSX,  LANGUAGE_CPP,     8,     1,     true       },
-				{PLATFORM_MACOSX,  LANGUAGE_CPP,     4,     1,     true       },
-				{PLATFORM_UNIXY,   LANGUAGE_CPP,     8,     1,     true       },
-				{PLATFORM_UNIXY,   LANGUAGE_CPP,     4,     1,     true       },
-				{PLATFORM_WINDOWS, LANGUAGE_CPP,     4,     1,     true       },
-				{PLATFORM_WINDOWS, LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_32BIT,   LANGUAGE_CPP,     8,     1,     true       },
+				{PLATFORM_64BIT,   LANGUAGE_CPP,     4,     1,     true       },
 				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  4,     1,     true       }
 			};
 

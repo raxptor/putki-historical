@@ -8,11 +8,10 @@ namespace putki
 
 		enum platform_t
 		{
-			PLATFORM_WINDOWS = 0,
-			PLATFORM_MACOSX = 1,
-			PLATFORM_CSHARP = 2,
-			PLATFORM_UNIXY = 3,
-			PLATFORM_UNKNOWN,
+			PLATFORM_32BIT   = 0,
+			PLATFORM_64BIT   = 1,
+			PLATFORM_CSHARP  = 2,
+			PLATFORM_UNKNOWN = 3
 		};
 
 		enum language_t
@@ -49,16 +48,11 @@ namespace putki
 
 		inline platform_t platform()
 		{
-			#if defined(_WIN32)
-			return PLATFORM_WINDOWS;
-			#elif defined(__APPLE__)
-			return PLATFORM_MACOSX;
-			#elif defined(linux) || defined(BSD) || defined(__FreeBSD__)
-			return PLATFORM_UNIXY;
-			#else
-			#error Add runtime definition for your platform, or fix the ifdefs here!
+			if (sizeof(void*) == 4)
+				return PLATFORM_32BIT;
+			if (sizeof(void*) == 8)
+				return PLATFORM_64BIT;
 			return PLATFORM_UNKNOWN;
-			#endif
 		}
 	}
 }
