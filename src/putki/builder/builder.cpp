@@ -285,7 +285,7 @@ namespace putki
 						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
-							std::cout << " => Building [" << path << "] because " << reason << std::endl;
+							std::cout << " => Building [" << path << "] with [" << e->handler->version() << "] because " << reason << std::endl;
 							e->handler->handle(builder, record, input, path, obj, output, phase);
 							built_by_any = true;
 						}

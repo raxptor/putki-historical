@@ -7,6 +7,8 @@ namespace putki
 	namespace db
 	{
 		struct data;
+		
+		typedef bool (*deferred_load_fn)(data *db, const char *path, type_handler_i **th, instance_t *obj, void *userptr);
 
 		struct enum_i
 		{
@@ -19,8 +21,15 @@ namespace putki
 		void free_and_destroy_objs(data *d);
 		void free(data *);
 
+		void insert_deferred(data *d, const char *path, deferred_load_fn, void *userptr);
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
+		
+		// includes deferred loads
+		bool exists(data *d, const char *path);
+		
+		// will trigger deferred load to execute if not loaded
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj);
+		
 		const char *auxref(data *d, const char *path, unsigned int index);
 		const char *pathof(data *d, instance_t obj);
 		const char *pathof_including_unresolved(data *d, instance_t obj);

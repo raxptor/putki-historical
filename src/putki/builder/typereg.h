@@ -61,5 +61,6 @@ namespace putki
 	void typereg_init();
 	void typereg_register(type_t, type_handler_i *dt);
 	type_handler_i *typereg_get_handler(type_t);
+	type_handler_i *typereg_get_handler(int type_id);
 	type_handler_i *typereg_get_handler_by_index(unsigned int idx);
 }

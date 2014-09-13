@@ -39,14 +39,21 @@ namespace putki
 		{
 			db::data *db;
 			db::data *extra_resolve_db;
+			instance_t obj;
 
+			bool traverse_children;
 			bool add_to_load;
 			std::vector<std::string> to_load;
+			std::vector<std::string> auxes_touched;
+			int unresolved;
 
 			enum_db_entries_resolve()
 			{
+				traverse_children = false;
 				db = extra_resolve_db = 0;
+				unresolved = 0;
 				add_to_load = false;
+				obj = 0;
 			}
 
 			struct process_ptr : public putki::depwalker_i
@@ -64,7 +71,9 @@ namespace putki
 					if (!path) {
 						return true;
 					}
-
+					
+					std::cout << " do pointer [" << path << "]" << std::endl;
+					
 					type_handler_i *th;
 					instance_t obj;
 
@@ -85,8 +94,15 @@ namespace putki
 						}
 
 						std::cout << "Unresolved reference to [" << path << "]!" << std::endl;
+						parent->unresolved++;
 						*on = 0;
 					}
+					
+					if (obj && parent->obj && db::is_aux_path_of(parent->db, parent->obj, path))
+					{
+						parent->auxes_touched.push_back(path);
+					}
+
 
 					return true;
 				}
@@ -102,13 +118,13 @@ namespace putki
 				// only go for the pointers directly stored here.
 				process_ptr p;
 				p.parent = this;
-				th->walk_dependencies(i, &p, false);
+				th->walk_dependencies(i, &p, traverse_children);
 			}
 		};
 	}
 
 	// adds unresolved pointer to the db through resolve_pointer.
-	void load_into_db(db::data *db, const char *fullpath, const char *name)
+	void load_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0)
 	{
 		//
 		std::string asset_name(name);
@@ -123,6 +139,14 @@ namespace putki
 		}
 
 		asset_name = asset_name.substr(0, p);
+		
+		if (loader)
+		{
+			std::cout << "   load_into_db doing deferred load on [" << asset_name << "]" << std::endl;
+			load_file_deferred(loader, db, asset_name.c_str());
+			return;
+		}
+		
 
 		parse::data *pd = parse::parse(fullpath);
 		if (pd)
@@ -141,6 +165,7 @@ namespace putki
 				d.db = db;
 				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
+				std::cout << " inserting " << asset_name << " with ptr " << obj << std::endl;
 				db::insert(db, asset_name.c_str(), h, obj);
 			}
 			else
@@ -175,9 +200,6 @@ namespace putki
 					}
 				}
 			}
-
-
-
 			putki::parse::free(pd);
 		}
 		else
@@ -185,29 +207,96 @@ namespace putki
 			std::cout << "[failed to load into db <" << fullpath << "> <" << name << ">" << std::endl;
 		}
 	}
+	
+	struct deferred_loader
+	{
+		std::string sourcepath;
+		int refcount;
+	};
+	
+	deferred_loader *create_loader(const char *sourcepath)
+	{
+		deferred_loader *n = new deferred_loader();
+		n->sourcepath = sourcepath;
+		n->refcount = 1;
+		return n;
+	}
 
+	void loader_incref(deferred_loader *loader)
+	{
+		loader->refcount++;
+	}
+	
+	void loader_decref(deferred_loader *loader)
+	{
+		if (!loader->refcount--)
+		{
+			delete loader;
+		}
+	}
+	
+	bool do_deferred_load(db::data *db, const char *path, type_handler_i **th, instance_t *obj, void *userptr)
+	{
+		deferred_loader *loader = (deferred_loader *)userptr;
+		std::cout << "   got load request on [" << path << "]" << std::endl;
+		
+		// 1. Load the json file raw into the database. 
+		
+		std::string fpath = std::string(path) + ".json";
+		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
+		load_into_db(db, fullpath.c_str(), fpath.c_str());
+		
+		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
+		//  target database itself.
+		enum_db_entries_resolve resolver;
+		resolver.add_to_load = true;
+		resolver.db = db;
+		resolver.extra_resolve_db = 0;
+		resolver.traverse_children = true;
+		
+		if (!db::fetch(db, path, th, obj))
+		{
+			std::cerr << "*** do_deferred_load could not fetch itself!" << std::endl;
+			return false;
+		}
+		
+		// resolve pointers - what 
+		resolver.obj = *obj; // to get the auxes
+		resolver.record(path, *th, *obj);
+		if (resolver.unresolved)
+		{
+			std::cerr << "*** there are unresolved pointers after the deferred load!" << std::endl;
+			return false;
+		}
+		else
+		{
+			std::cout << "   finished delayed load on [" << path << "]" << std::endl;
+		}
+		
+		return true;
+	}
+	
+	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path)
+	{
+		db::insert_deferred(target, path, &do_deferred_load, loader);
+	}
+	
 	namespace
 	{
 		db::data *_db;
+		deferred_loader *_loader;
 		void add_file(const char *fullpath, const char *name)
 		{
-			load_into_db(_db, fullpath, name);
+			load_into_db(_db, fullpath, name, _loader);
 		}
 	}
 
 	void load_tree_into_db(const char *sourcepath, db::data *d)
 	{
-		_db = d;
+		_db = d;	
+		_loader = create_loader(sourcepath);
 		putki::sys::search_tree(sourcepath, add_file);
-		std::cout << "Loaded " << db::size(_db) << " records." << std::endl;
-
-		// might have unresolved.
-		enum_db_entries_resolve resolver;
-		resolver.db = d;
-
-		db::read_all(d, &resolver);
-
-		// and hopefully here there are no unresolved pointers!
+		std::cout << "Inserted " << db::size(_db) << " records with deferred loads" << std::endl;
 	}
 
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)

@@ -31,12 +31,19 @@ namespace putki
 			std::string signature;
 		};
 
+		struct deferred
+		{
+			deferred_load_fn fn;
+			void *userptr;
+		};
+
 		struct data
 		{
 			std::map<std::string, entry> objs;
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
+			std::map<std::string, deferred> deferred;
 			char auxpathbuf[256];
 			data *parent;
 		};
@@ -119,7 +126,9 @@ namespace putki
 			}
 
 			if (d->parent)
+			{
 				return pathof(d->parent, obj);
+			}
 
 			return 0;
 		}
@@ -151,6 +160,14 @@ namespace putki
 
 			}
 			return "NO-SIG";
+		}
+		
+		void insert_deferred(data *data, const char *path, deferred_load_fn fn, void *userptr)
+		{
+			deferred d;
+			d.fn = fn;
+			d.userptr = userptr;
+			data->deferred[path] = d;
 		}
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
@@ -198,7 +215,7 @@ namespace putki
 		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)
-		{
+		{		
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
@@ -206,6 +223,23 @@ namespace putki
 				*obj = i->second.obj;
 				return true;
 			}
+			
+			std::map<std::string, deferred>::iterator j = d->deferred.find(path);
+			if (j != d->deferred.end())
+			{
+				std::cout << "ATTEMPTING DEFERRED LOAD OF " << path << std::endl;
+	
+				bool succ = j->second.fn(d, path, th, obj, j->second.userptr);
+				d->deferred.erase(j);
+				
+				if (!succ)
+				{
+					std::cout << "DEFERRED LOAD OF " << path << " FAILED!" << std::endl;
+				}
+				
+				return succ;
+			}
+		
 			return false;
 		}
 
@@ -220,6 +254,19 @@ namespace putki
 
 		void read_all(data *d, enum_i *eobj)
 		{
+			if (!d->deferred.empty())
+			{
+				std::cout << "db::read_all forced to realize reads! (" << d->deferred.size() << " entries)" << std::endl;
+				while (!d->deferred.empty())
+				{
+					std::string name = d->deferred.begin()->first.c_str();
+					type_handler_i *th;
+					instance_t obj;
+					// this will erase from the map
+					db::fetch(d, name.c_str(), &th, &obj);
+				}
+			}
+		
 			std::map<std::string, entry>::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{

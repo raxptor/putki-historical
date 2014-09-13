@@ -591,7 +591,7 @@ namespace putki
 				out.line() << "char *write_" << s->name << "_into_blob(inki::" << s->name << " *in, char *out_beg, char *out_end);";
 			}
 
-			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren = true);";
+			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool upcall, bool traverseChildren = true);";
 		}
 
 		out.line();
@@ -774,15 +774,27 @@ namespace putki
 		for (int i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
-
+			
 			if (runtime)
 				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker)";
 			else
-				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren)";
-
+				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool upcall, bool traverseChildren)";
+					
 			out.line() << "{";
 			out.indent(1);
-
+		
+			if (s->is_type_root && !runtime)
+			{
+				// here we detect the actual type and call into the right one... in the runtime we never end up walking dependencies
+				// and calling into the root type in a chain, but we might when loading unknown data.
+				out.line() << "if (!upcall) {";
+				out.line(1) << "putki::typereg_get_handler(input->_rtti_type)->walk_dependencies(input, walker";
+				if (!runtime)
+					out.cont() << ", traverseChildren";
+				out.cont() << ");";
+				out.line() << "}";
+			}
+			
 			const char *levelCheck = runtime ? "" : "if (traverseChildren) ";
 			const char *traverseArgs  = runtime ? "" : ", traverseChildren";
 
@@ -812,17 +824,24 @@ namespace putki
 					}
 					out.indent(1);
 				}
-
+				
+				std::string upcallArg;
+				if (!runtime)
+				{
+					upcallArg = (fd.name == "parent") ? ", true" : ", false";
+				}
+				
 				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
 				{
 					// structs are not considered chlidren
-					out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker" << traverseArgs << ");";
+					out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker";
+					out.cont() << upcallArg << traverseArgs << ");";
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
 					out.line() << "if (walker->pointer_pre((putki::instance_t *)&" << ref << "))";
 					out.line() << "{";
-					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker); }";
+					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker" << upcallArg << "); }";
 					out.line() << "}";
 					out.line() << "walker->pointer_post((putki::instance_t *)&" << ref << ");";
 				}
@@ -979,7 +998,7 @@ namespace putki
 			out.line();
 			out.line() << "// deps";
 			out.line() << "void walk_dependencies(putki::instance_t source, putki::depwalker_i *walker, bool traverseChildren) {";
-			out.line(1) << "walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker, traverseChildren);";
+			out.line(1) << "walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker, false, traverseChildren);";
 			out.line() << "}";
 			out.line();
 			out.line() << "// json writer";

@@ -9,6 +9,7 @@ namespace putki
 	struct registry
 	{
 		std::map<std::string, type_handler_i*> handlers;
+		std::map<int, type_handler_i*> by_number;
 		std::vector<type_handler_i*> list;
 	};
 
@@ -29,7 +30,13 @@ namespace putki
 	void typereg_register(const char *type, type_handler_i *dt)
 	{
 		g_reg()->handlers[type] = dt;
+		g_reg()->by_number[dt->id()] = dt;
 		g_reg()->list.push_back(dt);
+	}
+
+	type_handler_i *typereg_get_handler(int type_id)
+	{
+		return g_reg()->by_number[type_id];
 	}
 
 	type_handler_i *typereg_get_handler_by_index(unsigned int idx)
