@@ -4,6 +4,7 @@
 
 #include <putki/runtime.h>
 #include <putki/pkgmgr.h>
+#include <putki/config.h>
 
 #include <map>
 #include <iostream>
@@ -136,7 +137,7 @@ namespace putki
 			std::cout << "Connected to live update on socket " << d->socket << "!" << std::endl;
 
 			char tmp[256];
-			sprintf(tmp, "init %s", runtime::desc_str());
+			sprintf(tmp, "init %s %s", runtime::desc_str(), get_build_config());
 			command(d, tmp);
 
 			command(d, "build haspointer");

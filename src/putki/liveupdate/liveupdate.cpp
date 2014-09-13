@@ -264,7 +264,9 @@ namespace putki
 
 						if (!builder)
 						{
-							builder = builder::create(rt, sourcepath, false);
+							// TODO: Fix this!! Client should detect (from built data maybe) and
+							//       report what it wants.
+							builder = builder::create(rt, sourcepath, false, "Default");
 
 							if (builder) {
 								std::cout << "Created builder for client." << std::endl;

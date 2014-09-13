@@ -2,6 +2,7 @@
 #define __PUTKI_PARSE_H__
 
 #include <putki/fieldtypes.h>
+#include "buildconfigs.h"
 
 #include <sstream>
 #include <vector>
@@ -20,6 +21,8 @@ namespace putki
 		putki::field_type type;
 		bool is_array;
 		bool is_aux_ptr;
+		bool is_build_config;
+		
 		bool show_in_editor;
 
 		std::string name;

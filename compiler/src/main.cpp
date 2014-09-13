@@ -2,6 +2,7 @@
 #include <generator/generator.h>
 #include <generator/indentedwriter.h>
 #include <putki/sys/files.h>
+#include <buildconfigs.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -209,6 +210,7 @@ struct compile_context
 
 		std::string add;
 		std::string dep_pfx("dep:");
+		std::string config_pfx("config:");
 		while (getline(config, add))
 		{
 			if (add.size() > dep_pfx.size() && add.substr(0, dep_pfx.size()) == dep_pfx)
@@ -216,7 +218,11 @@ struct compile_context
 				std::string path = add.substr(dep_pfx.size(), add.size() - dep_pfx.size());
 				s_additional_paths.push_back(path);
 			}
-
+			if (add.size() > config_pfx.size() && add.substr(0, config_pfx.size()) == config_pfx)
+			{
+				std::string config = add.substr(config_pfx.size(), add.size() - config_pfx.size());
+				add_build_config(config.c_str());
+			}
 		}
 
 		if (g_loader_name.empty() || g_unique_id_counter == 0)
@@ -350,7 +356,7 @@ int main (int argc, char *argv[])
 		if (!strcmp(argv[i], "--ignore-config-typeid"))
 			g_ignore_config_typeid = true;
 	}
-
+	
 	while (true)
 	{
 		compile_context ctx;

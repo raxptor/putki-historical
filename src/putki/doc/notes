@@ -1,0 +1,25 @@
+=> Parallelization
+
+GOAL:
+	- Being able to run builds in parallell
+	- After build refactoring is done, investigate this.
+
+=> Delayed loads
+
+
+GOAL:
+	
+	- Being able to output 1Gb of data from a pipeline and then do an incremental build that changes some
+	  unrelated data, and not having to read the 1Gb data from disk just to go through packaging step.
+
+
+TO ACHIEVE:
+	- Need to be able to add pending loads into the database
+	- Need to be able to read meta-data from previous/cached builds
+		- To walk dependencies (for packaging)
+		- Check if exists (for building/etc)
+
+	- Replace packaging walk_dependencies with reads from meta-data,
+	  possibly from build-db.	
+
+

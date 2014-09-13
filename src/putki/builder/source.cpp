@@ -18,10 +18,20 @@ namespace putki
 		struct load_resolver_store_db_ref : public load_resolver_i
 		{
 			db::data *db;
+			std::string objpath;
 
 			void resolve_pointer(instance_t *ptr, const char *path)
 			{
-				*ptr = (instance_t) db::create_unresolved_pointer(db, path);
+				if (path[0] == '#')
+				{
+					// parse out aux directly
+					std::string tmp = objpath + path;
+					*ptr = (instance_t) db::create_unresolved_pointer(db, tmp.c_str());
+				}
+				else
+				{
+					*ptr = (instance_t) db::create_unresolved_pointer(db, path);
+				}
 			}
 		};
 
@@ -127,6 +137,7 @@ namespace putki
 				instance_t obj = h->alloc();
 
 				load_resolver_store_db_ref d;
+				d.objpath = asset_name;
 				d.db = db;
 				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
@@ -156,6 +167,7 @@ namespace putki
 						instance_t obj = h->alloc();
 
 						load_resolver_store_db_ref d;
+						d.objpath = asset_name;
 						d.db = db;
 						h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
 

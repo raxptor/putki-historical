@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include <buildconfigs.h>
 #include <parser/typeparser.h>
 #include <parser/crc32.h>
 #include <putki/domains.h>
@@ -89,6 +90,7 @@ namespace putki
 		out->is_aux_ptr = false;
 		out->show_in_editor = true;
 		out->def_value = "";
+		out->is_build_config = false;
 
 		bool read_type = true;
 		bool read_ref_type = false;
@@ -108,6 +110,12 @@ namespace putki
 			}
 			else if (!strcmp(tok, "[hidden]"))
 			{
+				out->show_in_editor = false;
+			}
+			else if (!strcmp(tok, "[build-config]"))
+			{
+				out->is_build_config = true;
+				out->domains = putki::DOMAIN_INPUT;
 				out->show_in_editor = false;
 			}
 			else
@@ -195,6 +203,32 @@ namespace putki
 		}
 
 		free(dup);
+	}
+	
+	void post_parse_struct(parsed_struct *tmp)
+	{
+		for (unsigned int i=0;i<tmp->fields.size();i++)
+		{
+			if (tmp->fields[i].is_build_config)
+			{
+				unsigned int inserted = 0;
+				for (int j=0;;j++)
+				{
+					const char *name = get_build_config(j);
+					if (!name)
+					{
+						break;
+					}
+					parsed_field pf = tmp->fields[i];
+					pf.name = pf.name + name;
+					pf.is_build_config = false;
+					pf.show_in_editor = true;
+					tmp->fields.insert(tmp->fields.begin()+i+1, pf);
+					inserted++;
+				}
+				i += inserted;
+			}	
+		}
 	}
 
 	void parse(const char *in_path, const char *name, int * type_id_counter, parsed_file *out)
@@ -306,6 +340,7 @@ namespace putki
 								pf.is_aux_ptr = false;
 								pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 								pf.show_in_editor = true;
+								pf.is_build_config = false;
 								datastruct.fields.insert(datastruct.fields.begin(), pf);
 							}
 							else if (datastruct.is_type_root)
@@ -317,9 +352,11 @@ namespace putki
 								pf.is_aux_ptr = false;
 								pf.domains = putki::DOMAIN_RUNTIME | putki::DOMAIN_INPUT;
 								pf.show_in_editor = false;
+								pf.is_build_config = false;
 								datastruct.fields.insert(datastruct.fields.begin(), pf);
 							}
-
+							
+							post_parse_struct(&datastruct);
 							out->structs.push_back(datastruct);
 
 							putki::parsed_struct tmp;
