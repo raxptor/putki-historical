@@ -31,6 +31,7 @@ namespace putki
 		{
 			BuildersMap handlers;
 			runtime::descptr runtime;
+			std::string config;
 			std::string obj_path, res_path, out_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 		};
@@ -58,10 +59,11 @@ namespace putki
 			}
 		}
 
-		data* create(runtime::descptr rt, const char *path, bool reset_build_db)
+		data* create(runtime::descptr rt, const char *path, bool reset_build_db, const char *build_config)
 		{
 			data *d = new data();
 			d->runtime = rt;
+			d->config = build_config;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->built_obj_path = path;
 
@@ -97,7 +99,11 @@ namespace putki
 		{
 			return d->build_db;
 		}
-
+		
+		const char *config(builder::data *d)
+		{
+			return d->config.c_str();
+		}
 
 		const char *obj_path(data *d)
 		{

@@ -60,6 +60,7 @@ int run_putki_builder(int argc, char **argv)
 	putki::runtime::descptr rt = putki::runtime::running();
 
 	const char *single_asset = 0;
+	const char *build_config = "Default";
 	bool incremental = false;
 
 	for (int i=1; i<argc; i++)
@@ -78,6 +79,11 @@ int run_putki_builder(int argc, char **argv)
 			if (i+1 < argc)
 				single_asset = argv[++i];
 		}
+		else if (!strcmp(argv[i], "--config"))
+		{
+			if (i+1 < argc)
+				build_config = argv[++i];
+		}
 		else if (!strcmp(argv[i], "--incremental"))
 		{
 			incremental = true;
@@ -85,7 +91,7 @@ int run_putki_builder(int argc, char **argv)
 	}
 
 	// reload build database if incremental build
-	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental);
+	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental, build_config);
 
 	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
 
