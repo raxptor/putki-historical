@@ -790,7 +790,7 @@ namespace putki
 				out.line() << "if (!upcall) {";
 				out.line(1) << "putki::typereg_get_handler(input->_rtti_type)->walk_dependencies(input, walker";
 				if (!runtime)
-					out.cont() << ", traverseChildren";
+					out.cont() << ", true, traverseChildren";
 				out.cont() << ");";
 				out.line() << "}";
 			}
