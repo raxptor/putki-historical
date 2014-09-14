@@ -72,8 +72,6 @@ namespace putki
 						return true;
 					}
 					
-					std::cout << " do pointer [" << path << "]" << std::endl;
-					
 					type_handler_i *th;
 					instance_t obj;
 
@@ -142,7 +140,6 @@ namespace putki
 		
 		if (loader)
 		{
-			std::cout << "   load_into_db doing deferred load on [" << asset_name << "]" << std::endl;
 			load_file_deferred(loader, db, asset_name.c_str());
 			return;
 		}
@@ -165,7 +162,6 @@ namespace putki
 				d.db = db;
 				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
-				std::cout << " inserting " << asset_name << " with ptr " << obj << std::endl;
 				db::insert(db, asset_name.c_str(), h, obj);
 			}
 			else
@@ -238,7 +234,6 @@ namespace putki
 	bool do_deferred_load(db::data *db, const char *path, type_handler_i **th, instance_t *obj, void *userptr)
 	{
 		deferred_loader *loader = (deferred_loader *)userptr;
-		std::cout << "   got load request on [" << path << "]" << std::endl;
 		
 		// 1. Load the json file raw into the database. 
 		
@@ -268,10 +263,6 @@ namespace putki
 			std::cerr << "*** there are unresolved pointers after the deferred load!" << std::endl;
 			return false;
 		}
-		else
-		{
-			std::cout << "   finished delayed load on [" << path << "]" << std::endl;
-		}
 		
 		return true;
 	}
@@ -285,8 +276,10 @@ namespace putki
 	{
 		db::data *_db;
 		deferred_loader *_loader;
+		unsigned int _count = 0;
 		void add_file(const char *fullpath, const char *name)
 		{
+			_count++;
 			load_into_db(_db, fullpath, name, _loader);
 		}
 	}
@@ -295,8 +288,9 @@ namespace putki
 	{
 		_db = d;	
 		_loader = create_loader(sourcepath);
+		_count++;
 		putki::sys::search_tree(sourcepath, add_file);
-		std::cout << "Inserted " << db::size(_db) << " records with deferred loads" << std::endl;
+		std::cout << "Inserted " << _count << " objects with deferred loads" << std::endl;
 	}
 
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)

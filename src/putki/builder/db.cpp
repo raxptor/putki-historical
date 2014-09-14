@@ -213,6 +213,11 @@ namespace putki
 			}
 			return "<INVALID-AUX-PATH>";
 		}
+		
+		bool exists(data *d, const char *path)
+		{
+			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
+		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)
 		{		
@@ -227,8 +232,6 @@ namespace putki
 			std::map<std::string, deferred>::iterator j = d->deferred.find(path);
 			if (j != d->deferred.end())
 			{
-				std::cout << "ATTEMPTING DEFERRED LOAD OF " << path << std::endl;
-	
 				bool succ = j->second.fn(d, path, th, obj, j->second.userptr);
 				d->deferred.erase(j);
 				
@@ -250,6 +253,25 @@ namespace putki
 				return i->second.obj;
 			}
 			return create_unresolved_pointer(d, path);
+		}
+
+		void read_all_no_fetch(data *d, enum_i *eobj)
+		{
+			// actually loaded
+			std::map<std::string, entry>::iterator i = d->objs.begin();
+			while (i != d->objs.end())
+			{
+				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
+				++i;
+			}
+			
+			// deferred
+			std::map<std::string, deferred>::iterator j = d->deferred.begin();
+			while (j != d->deferred.end())
+			{
+				eobj->record(j->first.c_str(), 0, 0);
+				++j;
+			}
 		}
 
 		void read_all(data *d, enum_i *eobj)
@@ -291,8 +313,6 @@ namespace putki
 
 			d->unresolved.insert(str);
 			d->strpool[path] = str;
-			
-			std::cout << "created unresolved ptr[" << path << "] it is " << (void*)str << std::endl;
 			return (instance_t) str;
 		}
 

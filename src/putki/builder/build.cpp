@@ -67,6 +67,7 @@ namespace
 				{
 					obj = putki::db::create_unresolved_pointer(parent->output, path);
 					std::cout << "=> Adding unresolved pointer for output for path [" << path << "]" << std::endl;
+					std::cout << "  object was " << obj << std::endl;
 				}
 
 				// std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
@@ -97,22 +98,17 @@ namespace
 			putki::db::insert(output, path, th, obj);
 		}
 	};
-
+	
+	// TODO TODO - Read this from external manifest instead / subsystem which can track
+	//             a database of input files, particularly along with their aux refs.
 	struct build_source_file : public putki::db::enum_i
 	{
 		putki::builder::build_context *context;
-
+		putki::db::data *input;
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
 			putki::builder::context_add_to_build(context, path);
 		}
-		/*
-			putki::db::data *tmp_db = putki::db::create();
-			putki::builder::build_source_object(builder, input, path, tmp_db);
-			putki::build::post_build_merge_database(tmp_db, output);
-			putki::db::free(tmp_db);
-		}
-		*/
 	};
 
 	struct read_output : public putki::db::enum_i
@@ -213,6 +209,7 @@ namespace putki
 			// insert all source files into the build context's records.
 			build_source_file bsf;
 			bsf.context = ctx;
+			bsf.input = input;
 			if (single_asset)
 			{
 				type_handler_i *th;

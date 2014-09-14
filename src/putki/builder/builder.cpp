@@ -315,24 +315,13 @@ namespace putki
 				if (!fetch_cached_build(builder, record, default_name, input, path, obj, th, output))
 					return false;
 			}
-
-			type_handler_i *_th;
-			instance_t _obj;
-			if (db::fetch(output, path, &_th, &_obj) && _th == th && _obj == obj)
+			
+			// go through this object and all the aux and add them to the output if they aren't already
+			if (!db::exists(output, path))
 			{
-				// Not sure if anything needs to be done, or if this check is at all necessary
-				// When builders produce extra outputs, and they are built,
-				// they will be built into the same database as where they came from, so will always generate this case.
-				// But it means it doesn't need to be added.
-				//
-				std::cout << "==> Builder already added object! [" << path << "] obj=" << obj << std::endl;
-			}
-			else
-			{
-				// always here output.
 				db::insert(output, path, th, obj);
 			}
-
+			
 			build_db::add_output(record, path, default_name);
 			return true;
 		}
