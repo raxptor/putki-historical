@@ -176,18 +176,17 @@ namespace putki
 
 	namespace
 	{
-		db::data *_db;
-		void add_file(const char *fullpath, const char *name)
+		void add_file(const char *fullpath, const char *name, void *userptr)
 		{
-			load_into_db(_db, fullpath, name);
+			db::data *db = (db::data *) userptr;
+			load_into_db(db, fullpath, name);
 		}
 	}
 
 	void load_tree_into_db(const char *sourcepath, db::data *d)
 	{
-		_db = d;
-		putki::sys::search_tree(sourcepath, add_file);
-		std::cout << "Loaded " << db::size(_db) << " records." << std::endl;
+		putki::sys::search_tree(sourcepath, add_file, d);
+		std::cout << "Loaded " << db::size(d) << " records." << std::endl;
 
 		// might have unresolved.
 		enum_db_entries_resolve resolver;

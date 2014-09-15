@@ -23,7 +23,7 @@ namespace putki
 		{
 		}
 
-		void search_tree_internal(const char *root_directory, file_enum_t callback, int cut_length)
+		void search_tree_internal(const char *root_directory, file_enum_t callback, int cut_length, void *userptr)
 		{
 			std::string root(root_directory);
 			if (root.empty()) {
@@ -51,7 +51,7 @@ namespace putki
 
 					nice_name = nice_name.erase(0, cut_length);
 
-					callback(full_name.c_str(), nice_name.c_str());
+					callback(full_name.c_str(), nice_name.c_str(), userptr);
 				}
 
 				if (!FindNextFileA(f, &fd)) {
@@ -68,9 +68,9 @@ namespace putki
 			}
 		}
 
-		void search_tree(const char *root_directory, file_enum_t callback)
+		void search_tree(const char *root_directory, file_enum_t callback, void *userptr)
 		{
-			search_tree_internal(root_directory, callback, strlen(root_directory) + 1);
+			search_tree_internal(root_directory, callback, strlen(root_directory) + 1, userptr);
 		}
 
 
