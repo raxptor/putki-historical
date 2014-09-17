@@ -4,6 +4,7 @@
 #include <putki/builder/build-db.h>
 #include <putki/builder/resource.h>
 #include <putki/builder/source.h>
+#include <putki/builder/inputset.h>
 
 #include <map>
 #include <string>
@@ -34,6 +35,7 @@ namespace putki
 			std::string config;
 			std::string obj_path, res_path, out_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
+			inputset::data *input_set;
 		};
 
 		struct prebuild_info
@@ -111,7 +113,12 @@ namespace putki
 			build_db_path.append("/out/");
 			build_db_path.append(desc_path);
 			build_db_path.append(".build-db");
+
+			std::string input_db_path = path;
+			build_db_path.append("/out/.input_db");
+
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
+			d->input_set = inputset::open(d->obj_path.c_str(), input_db_path.c_str());
 			return d;
 		}
 
@@ -158,6 +165,7 @@ namespace putki
 		void free(data *builder)
 		{
 			build_db::release(builder->build_db);
+			inputset::release(builder->input_set);
 			delete builder;
 		}
 
