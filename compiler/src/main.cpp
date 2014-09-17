@@ -180,7 +180,7 @@ struct compile_context
 
 	}
 
-	void file(const char *fullpath, const char *name)
+	void file(const char *fullpath, const char *name, void *userptr)
 	{
 		const char *ending = ".typedef";
 		const unsigned int len = (unsigned int)strlen(ending);
@@ -243,7 +243,7 @@ struct compile_context
 		s_wrote_anything = false;
 
 		g_cur = this;
-		putki::sys::search_tree(s_inpath, compile_context::s_file);
+		putki::sys::search_tree(s_inpath, compile_context::s_file, 0);
 
 		// only skip this when doing lazy writes because it might not have processed any files
 		// and then we want to write out things.
@@ -339,9 +339,9 @@ struct compile_context
 
 	static compile_context *g_cur;
 
-	static void s_file(const char *fullpath, const char *name)
+	static void s_file(const char *fullpath, const char *name, void *userptr)
 	{
-		g_cur->file(fullpath, name);
+		g_cur->file(fullpath, name, userptr);
 	}
 };
 

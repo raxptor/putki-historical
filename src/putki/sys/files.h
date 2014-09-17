@@ -5,9 +5,9 @@ namespace putki
 {
 	namespace sys
 	{
-		typedef void (*file_enum_t) (const char *fullname, const char *name);
+		typedef void (*file_enum_t) (const char *fullname, const char *name, void *userptr);
 
-		void search_tree(const char *root_directory, file_enum_t callback);
+		void search_tree(const char *root_directory, file_enum_t callback, void *userptr);
 		void mk_dir_for_path(const char *path);
 
 		void chdir_push(const char *path);

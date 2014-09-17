@@ -26,7 +26,7 @@ namespace putki
 			chdir(old_path);
 		}
 
-		void search_tree(const char *root, const char *path_from_root, file_enum_t callback)
+		void search_tree(const char *root, const char *path_from_root, file_enum_t callback, void *userptr)
 		{
 
 			DIR *dp = opendir(root);
@@ -41,19 +41,19 @@ namespace putki
 					}
 
 					if (ep->d_type & DT_DIR) {
-						search_tree(full_name.c_str(), rel_name.c_str(), callback);
+						search_tree(full_name.c_str(), rel_name.c_str(), callback, userptr);
 					}
 					else{
-						callback(full_name.c_str(), rel_name.substr(1).c_str());
+						callback(full_name.c_str(), rel_name.substr(1).c_str(), userptr);
 					}
 				}
 				closedir(dp);
 			}
 		}
 
-		void search_tree(const char *root_directory, file_enum_t callback)
+		void search_tree(const char *root_directory, file_enum_t callback, void *userptr)
 		{
-			search_tree(root_directory, "", callback);
+			search_tree(root_directory, "", callback, userptr);
 		}
 
 		void mk_dir_for_path(const char *path)

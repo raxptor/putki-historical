@@ -277,7 +277,7 @@ namespace putki
 		db::data *_db;
 		deferred_loader *_loader;
 		unsigned int _count = 0;
-		void add_file(const char *fullpath, const char *name)
+		void add_file(const char *fullpath, const char *name, void *userptr)
 		{
 			_count++;
 			load_into_db(_db, fullpath, name, _loader);
@@ -289,7 +289,7 @@ namespace putki
 		_db = d;	
 		_loader = create_loader(sourcepath);
 		_count++;
-		putki::sys::search_tree(sourcepath, add_file);
+		putki::sys::search_tree(sourcepath, add_file, 0);
 		std::cout << "Inserted " << _count << " objects with deferred loads" << std::endl;
 	}
 
