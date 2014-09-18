@@ -235,6 +235,8 @@ namespace putki
 		deferred_loader *loader = (deferred_loader *)userptr;
 		
 		// 1. Load the json file raw into the database. 
+		std::cout << "\033[" << 31 << "m";
+		std::cout << "REALIZING DEFERRED LOAD ON " << path << " from [" << loader->sourcepath << "]\033[39m" << std::endl;
 		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;

@@ -36,6 +36,7 @@ namespace putki
 			std::string obj_path, res_path, out_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 			inputset::data *input_set;
+			deferred_loader *cache_loader;
 		};
 
 		struct prebuild_info
@@ -121,7 +122,17 @@ namespace putki
 
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
 			d->input_set = inputset::open(d->obj_path.c_str(), d->res_path.c_str(), input_db_path.c_str());
+
+			d->cache_loader = create_loader(d->built_obj_path.c_str());
 			return d;
+		}
+
+		void free(data *builder)
+		{
+			build_db::release(builder->build_db);
+			inputset::release(builder->input_set);
+			loader_decref(builder->cache_loader);
+			delete builder;
 		}
 
 		build_db::data *get_build_db(builder::data *d)
@@ -164,12 +175,6 @@ namespace putki
 			return data->runtime;
 		}
 
-		void free(data *builder)
-		{
-			build_db::release(builder->build_db);
-			inputset::release(builder->input_set);
-			delete builder;
-		}
 
 		void add_data_builder(builder::data *builder, type_t type, int obj_phase_mask, handler_i *handler)
 		{
@@ -278,11 +283,12 @@ namespace putki
 						// this time.
 						if (!db::exists(output, path))
 						{
-							load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
+							load_file_deferred(builder->cache_loader, output, path);
+							// load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
 						}
 					}
 
-					if (!db::fetch(output, path, &th, &obj))
+					if (!db::exists(output, path))
 					{
 						std::cerr << "ERROR! Wanted to load cached object [" << path << "] but it did not work!" << std::endl;
 					}
@@ -600,7 +606,6 @@ namespace putki
 					continue;
 				}
 
-
 				if (item->parent)
 				{
 					build_db::append_extra_outputs(item->parent->br, item->br);
@@ -641,7 +646,6 @@ namespace putki
 			context_build(ctx);
 			context_destroy(ctx);
 		}
-
 
 		const char* context_get_built_object(build_context *context, unsigned int i)
 		{
@@ -691,7 +695,7 @@ namespace putki
 			gb.output = output;
 			gb.phase = PHASE_GLOBAL;
 			std::cout << "==> Doing global build pass." << std::endl;
-			db::read_all(input, &gb);
+			db::read_all_no_fetch(input, &gb);
 			std::cout << "==> Global build pass done." << std::endl;
 		}
 

@@ -79,10 +79,14 @@ namespace
 
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			depwalker dp;
-			dp.parent = this;
-			dp.source = obj;
-			th->walk_dependencies(obj, &dp, false);
+			// ignore deferred objects.
+			if (obj && th)
+			{
+				depwalker dp;
+				dp.parent = this;
+				dp.source = obj;
+				th->walk_dependencies(obj, &dp, false);
+			}
 		}
 	};
 
@@ -95,7 +99,7 @@ namespace
 		{
 			// forward all objects directly to the output db. we can't clone them here or all
 			// pointers to them will become wild.
-			putki::db::insert(output, path, th, obj);
+			putki::db::copy_obj(input, output, path);
 		}
 	};
 	
@@ -177,7 +181,7 @@ namespace putki
 			domain_switch dsw;
 			dsw.input = input;
 			dsw.output = output;
-			db::read_all(output, &dsw);
+			db::read_all_no_fetch(output, &dsw);
 		}
 
 		// merges objects from source into target.
@@ -186,7 +190,7 @@ namespace putki
 			db_record_inserter ri;
 			ri.input = source;
 			ri.output = target;
-			putki::db::read_all(source, &ri);
+			putki::db::read_all_no_fetch(source, &ri);
 		}
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
@@ -250,7 +254,8 @@ namespace putki
 				const char *path = context_get_built_object(ctx, i);
 				if (!path)
 					break;
-
+				if (context_was_read_from_cache(ctx, i))
+					break;
 				build_db::insert_metadata(builder::get_build_db(builder), output, path);
 			}
 

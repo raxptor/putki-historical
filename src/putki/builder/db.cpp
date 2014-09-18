@@ -170,6 +170,29 @@ namespace putki
 			data->deferred[path] = d;
 		}
 
+		void copy_obj(data *source, data *dest, const char *path)
+		{
+			std::map<std::string, entry>::iterator i = source->objs.find(path);
+			if (i != source->objs.end())
+			{
+				dest->objs[path] = i->second;
+				return;
+			}
+
+			std::map<std::string, deferred>::iterator j = source->deferred.find(path);
+			if (j != source->deferred.end())
+			{
+				i = dest->objs.find(path);
+				if (i != dest->objs.end())
+					dest->objs.erase(i);
+
+				dest->deferred[path] = j->second;
+				return;
+			}
+
+			std::cout << "DB FAILED TO COPY OBJ " << path << " BECAUSE DID NOT EXIST" << std::endl;
+		}
+
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 //			std::cout << "DB:" << d << " db insert on path [" << path << "] obj " << i << std::endl;
