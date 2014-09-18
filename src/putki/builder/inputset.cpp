@@ -189,14 +189,19 @@ namespace putki
 			delete d;
 		}
 
-		void get_record(unsigned int index, manifest_record *out)
+		const char *get_object_sig(data *d, const char *path)
 		{
+			ObjMap::iterator i = d->objs.find(path);
+			if (i != d->objs.end())
+			{
+				return i->second.content_sig.c_str();
+			}
+			else
+			{
+				std::cout << "I HAVE NO RECORD OF SIGNATURE FOR [" << path << "] !" << std::endl;
+			}
 
-		}
-		
-		bool get_record(const char *path, manifest_record *out)
-		{
-			return false;
+			return 0;
 		}
 	}
 }

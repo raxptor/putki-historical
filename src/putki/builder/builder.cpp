@@ -209,11 +209,19 @@ namespace putki
 					const char *signature = build_db::deplist_signature(dlist, i);
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
-						const char *builder = build_db::deplist_builder(dlist, i);
-						bool sigmatch = !strcmp(db::signature(input, entrypath), signature);
-						std::cout << "        i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
+						const char *builder_name = build_db::deplist_builder(dlist, i);
+						const char *inputsig = inputset::get_object_sig(builder->input_set, entrypath);
+
+						if (!inputsig)
+						{
+							std::cout << "HELP!" << std::endl;
+							inputsig = db::signature(input, entrypath);
+						}
+
+						bool sigmatch = !strcmp(inputsig, signature);
+						std::cout << "        i: " << entrypath << " old:" << signature << " new " << inputsig << std::endl;
 						// only care for builder match when the input is going to be built with this builder
-						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler_name);
+						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder_name, handler_name);
 						if (sigmatch && buildermatch)
 						{
 							matches++;
