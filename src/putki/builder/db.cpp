@@ -176,6 +176,8 @@ namespace putki
 			if (i != source->objs.end())
 			{
 				dest->objs[path] = i->second;
+				dest->paths[i->second.obj] = path;
+//				std::cout << " +++ Copy obj " << path << std::endl;
 				return;
 			}
 
@@ -186,6 +188,7 @@ namespace putki
 				if (i != dest->objs.end())
 					dest->objs.erase(i);
 
+//				std::cout << " +++ Copy deferred " << path << std::endl;
 				dest->deferred[path] = j->second;
 				return;
 			}
@@ -341,10 +344,16 @@ namespace putki
 
 		const char *is_unresolved_pointer(data *d, void *p)
 		{
-			if (d->unresolved.count((const char*)p) != 0) {
+			if (d->unresolved.count((const char*)p) != 0)
+			{
 				return (const char*) p;
 			}
-			else{
+			else
+			{
+				if (d->parent)
+				{
+					return is_unresolved_pointer(d->parent, p);
+				}
 				return 0;
 			}
 		}

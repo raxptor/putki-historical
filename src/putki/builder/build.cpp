@@ -255,10 +255,9 @@ namespace putki
 				if (!path)
 					break;
 				if (context_was_read_from_cache(ctx, i))
-					break;
+					continue;
 				build_db::insert_metadata(builder::get_build_db(builder), output, path);
 			}
-
 
 			std::cout << "=> Writing final .json objects for cache." << std::endl;
 			write_cache_json js;

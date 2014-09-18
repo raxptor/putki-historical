@@ -103,9 +103,9 @@ namespace putki
 			if (sig != record.content_sig && !record.content_sig.empty())
 			{
 				std::cout << "=> New signature on object [" << sig << "], old sig = [" << record.content_sig << "]" << std::endl;
-				record.content_sig = sig;
 			}
 
+			record.content_sig = sig;
 			record.exists = true;
 		}
 
@@ -196,11 +196,6 @@ namespace putki
 			{
 				return i->second.content_sig.c_str();
 			}
-			else
-			{
-				std::cout << "I HAVE NO RECORD OF SIGNATURE FOR [" << path << "] !" << std::endl;
-			}
-
 			return 0;
 		}
 	}

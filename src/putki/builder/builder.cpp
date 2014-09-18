@@ -219,8 +219,11 @@ namespace putki
 
 						if (!inputsig)
 						{
-							std::cout << "HELP!" << std::endl;
-							inputsig = db::signature(input, entrypath);
+							// this is (should be) an object that was generated from previous builds.
+							// we cannot pick up these from cache since there is no tmp objects input domain.
+							// if they were generated they are in output db but are input files. and here we would
+							// kinda rewrite them and lose orginal objects, and lose paths. so always rebuild.
+							return "this is a tmp object";
 						}
 
 						bool sigmatch = !strcmp(inputsig, signature);
@@ -247,7 +250,7 @@ namespace putki
 					}
 					else
 					{
-						std::cout << path << " ext:" << entrypath << std::endl;
+						std::cout << "        ext: " << entrypath << " old:" << signature << std::endl;
 						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
 						{
 							return "external source data has been modified";
@@ -510,7 +513,6 @@ namespace putki
 
 		};
 
-
 		void context_process_record(build_context *context, work_item *item)
 		{
 			type_handler_i *th;
@@ -524,7 +526,14 @@ namespace putki
 				return;
 			}
 
-			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
+			// We use db::signature
+			const char *sig = inputset::get_object_sig(context->builder->input_set, item->path.c_str());
+			if (!sig)
+			{
+				sig = "tmp-obj-sig";
+			}
+
+			item->br = build_db::create_record(item->path.c_str(), sig);
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
