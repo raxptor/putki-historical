@@ -101,10 +101,17 @@ namespace putki
 			unsigned int pos = 0;
 			while (pos < queue.size())
 			{
+				if (db::is_aux_path(queue[pos].c_str()))
+				{
+					std::cout << "      + " << queue[pos] << std::endl;
+					pos++;
+					continue;
+				}
+
 				build_db::record *r = build_db::find(bdb, queue[pos].c_str());
 				if (!r)
 				{
-						std::cout << " pointer to non built object!!!" << std::endl;
+						std::cout << " pointer to non built object, i want to package [" << queue[pos] << "]!!!" << std::endl;
 						pos++;
 						continue;
 				}

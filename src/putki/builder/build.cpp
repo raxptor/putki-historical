@@ -225,7 +225,7 @@ namespace putki
 			}
 			else
 			{
-				db::read_all(input, &bsf);
+				db::read_all_no_fetch(input, &bsf);
 			}
 
 			builder::context_finalize(ctx);

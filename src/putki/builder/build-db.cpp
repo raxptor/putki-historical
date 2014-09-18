@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <set>
 #include <fstream>
 #include <cstring>
 #include <putki/builder/db.h>
@@ -17,7 +18,7 @@ namespace putki
 		{
 			std::string type;
 			std::string signature;
-			std::vector<std::string> pointers;
+			std::set<std::string> pointers;
 		};
 
 		struct record
@@ -108,7 +109,7 @@ namespace putki
 						}
 						else if (line[0] == 'p')
 						{
-							cur->md.pointers.push_back(extra.c_str());
+							cur->md.pointers.insert(path);
 						}
 						else if (line[0] == 's')
 						{
@@ -155,8 +156,9 @@ namespace putki
 				dbtxt << "t:" << r.md.type << "\n";
 				dbtxt << "s:" << r.md.signature << "\n";				
 
-				for (unsigned int i=0;i!=r.md.pointers.size();i++)
-					dbtxt << "p:" << r.md.pointers[i] << "\n";
+				std::set<std::string>::iterator pi = r.md.pointers.begin();
+				while (pi != r.md.pointers.end())
+					dbtxt << "p:" << (*pi++) << "\n";
 			}
 
 			if (!dbtxt.good()) {
@@ -179,9 +181,14 @@ namespace putki
 
 		const char *get_pointer(record *r, unsigned int index)
 		{
-			if (index < r->md.pointers.size())
-				return r->md.pointers[index].c_str();
-			return 0;
+			if (index >= r->md.pointers.size())
+				return 0;
+
+			std::set<std::string>::iterator it = r->md.pointers.begin();
+			for (unsigned int i=1;i<index;i++)
+				it++;
+
+			return (*it).c_str();
 		}
 
 		const char *get_type(record *r)
@@ -354,6 +361,10 @@ namespace putki
 					return true;
 				}
 
+				// ignore aux paths since they are included implicitly.
+				if (db::is_aux_path(path))
+					return true;
+
 				if (db::is_unresolved_pointer(db, *on))
 				{
 					std::cout << "Ignoring unresolved asset with path [" << path << "]" << std::endl;
@@ -361,7 +372,7 @@ namespace putki
 					return false;
 				}
 
-				out->pointers.push_back(path);
+				out->pointers.insert(path);
 				return true;
 			}
 
@@ -423,7 +434,11 @@ namespace putki
 				out->builder = q->second.builder;
 				return true;
 			}
-			std::cout << "OOPS! Could not find [" << path << "] in build record!" << std::endl;
+
+			// these will not have any records, only main objects.
+			if (!db::is_aux_path(path))
+				std::cout << "OOPS! Could not find [" << path << "] in build record!" << std::endl;
+
 			return false;
 		}
 

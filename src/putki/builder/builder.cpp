@@ -61,7 +61,8 @@ namespace putki
 
 		void invoke_packager(db::data *out, build::packaging_config *pconf)
 		{
-			if (s_packaging_fn) {
+			if (s_packaging_fn)
+			{
 				s_packaging_fn(out, pconf);
 			}
 		}
@@ -78,14 +79,14 @@ namespace putki
 			d->config = build_config;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->built_obj_path = path;
-			
+
 			std::string desc_path = runtime::desc_str(rt);
 			if (build_config)
 			{
 				desc_path.append("-");
 				desc_path.append(build_config);
 			}
-			
+
 			for (unsigned int i=0;i<desc_path.size();i++)
 				desc_path[i] = ::tolower(desc_path[i]);
 
@@ -105,7 +106,8 @@ namespace putki
 			d->built_obj_path.append("/.built");
 
 			// app specific configurators
-			if (s_init_fn) {
+			if (s_init_fn)
+			{
 				s_init_fn(d);
 			}
 
@@ -126,7 +128,7 @@ namespace putki
 		{
 			return d->build_db;
 		}
-		
+
 		const char *config(builder::data *d)
 		{
 			return d->config.c_str();
@@ -196,10 +198,11 @@ namespace putki
 			{
 				int matches = 0;
 				std::cout << "        => Examining rebuild need for " << path << std::endl;
-				for (int i=0;; i++)
+				for (int i=0;;i++)
 				{
 					const char *entrypath = build_db::deplist_path(dlist, i);
-					if (!entrypath) {
+					if (!entrypath)
+					{
 						break;
 					}
 
@@ -211,15 +214,18 @@ namespace putki
 						std::cout << "        i: " << entrypath << " old:" << signature << " new " << db::signature(input, entrypath) << std::endl;
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder, handler_name);
-						if (sigmatch && buildermatch) {
+						if (sigmatch && buildermatch)
+						{
 							matches++;
 						}
 						else
 						{
-							if (!buildermatch) {
+							if (!buildermatch)
+							{
 								return "builder version is different";
 							}
-							else{
+							else
+							{
 								std::cout << "        *** Detected modification in [" << entrypath << "]" << std::endl;
 							}
 
@@ -229,10 +235,12 @@ namespace putki
 					else
 					{
 						std::cout << path << " ext:" << entrypath << std::endl;
-						if (strcmp(resource::signature(builder, entrypath).c_str(), signature)) {
+						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
+						{
 							return "external source data has been modified";
 						}
-						else {
+						else
+						{
 							matches++;
 						}
 					}
@@ -240,27 +248,35 @@ namespace putki
 
 				if (matches)
 				{
-					// replace the build record from the cache.
+					// Replace the build record from the cache.
+					//
+					// NOTE: This needs to be an atomic operation as it might pull in dependencies
+					//       that are/will be rebuilt... objects that are pointed to but not registered as
+					//       dependencies might cause that object to be rebuilt, and then we load a cached object here
+					//       which pulls in an 'old' version into the database... no good!
 					std::cout << "         *** Loading cached object " << path << std::endl;
 					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
 
-					for (int j=0;; j++)
+					// first pass is outputs, second is pointer (which need to be loaded!)
+					for (int j=0;;j++)
 					{
 						const char *path = build_db::enum_outputs(newrecord, j);
-						if (!path) {
+						if (!path)
+						{
 							break;
 						}
 
-						// load the file and resolve unresolved pointers to the input database (which is how they would be
-						// right after having been built anyway!)
-
-						// (we check first so we don't re-load any objects which might already have been pulled in
-						// it would be bad as it would create new pointer to the object and invalidate the previous one.
-						// oh the fun of single file loading.
-						if (!db::fetch(output, path, &th, &obj)) {
+						// We want to carefully load these files, and not overwrite any which might have been built
+						// this time.
+						if (!db::exists(output, path))
+						{
 							load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
 						}
-						// todo, verify signature here too maybe?
+					}
+
+					if (!db::fetch(output, path, &th, &obj))
+					{
+						std::cerr << "ERROR! Wanted to load cached object [" << path << "] but it did not work!" << std::endl;
 					}
 
 					// Now we hope for the best since these files came from disk and should be OK unless the user
@@ -278,14 +294,73 @@ namespace putki
 			return "no previous build records";
 		}
 
+		// gets aux pointers to the input, adding to output.
+		struct get_aux_deps : public putki::depwalker_i
+		{
+			std::vector<std::string> objects;
+			db::data *input, *output;
+			build_db::record *record;
+			const char *name;
+
+			bool pointer_pre(putki::instance_t *on)
+			{
+				return true;
+			}
+
+			void pointer_post(putki::instance_t *on)
+			{
+				if (!*on)
+				{
+					return;
+				}
+
+				const char *path = putki::db::pathof(input, *on);
+
+				if (!path)
+				{
+					return;
+				}
+
+				if (!putki::db::is_aux_path(path))
+				{
+					return;
+				}
+
+				putki::type_handler_i *th;
+				putki::instance_t obj = 0;
+
+				if (putki::db::fetch(output, path, &th, &obj))
+				{
+					*on = obj;
+					std::cout << "Updated pointer to aux [" << path << "]" << std::endl;
+				}
+				else
+				{
+					if (!putki::db::fetch(input, path, &th, &obj))
+					{
+						std::cout << "Breakdown of common sense on [" << path << "] CRAZY OBJECT!" << std::endl;
+						return;
+					}
+
+					std::cout << "    => cloning [" << path << "] to output." << std::endl;
+					obj = th->clone(obj);
+					putki::db::insert(output, path, th, obj);
+					*on = obj;
+					/* build_db::add_output(record, path, name); */
+				}
+			}
+		};
+
+
 		// return true if was built, false if cached.
 		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
 			bool built_by_any = false;
 			BuildersMap::iterator i = builder->handlers.find(th->name());
-			if (i != builder->handlers.end()) {
-				for (std::vector<builder_entry>::size_type j=0; j!=i->second.handlers.size(); j++)
+			if (i != builder->handlers.end())
+			{
+				for (std::vector<builder_entry>::size_type j=0;j!=i->second.handlers.size();j++)
 				{
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
@@ -303,7 +378,7 @@ namespace putki
 							std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
 							return false;
 						}
-						
+
 						// we only support one builder per object
 						handled = true;
 						build_db::set_builder(record, e->handler->version());
@@ -311,25 +386,36 @@ namespace putki
 					}
 				}
 			}
-			
+
 			const char *default_name = "default";
 
-			if (!handled) {
+			if (!handled)
+			{
 				// Just moving into output
 				build_db::set_builder(record, default_name);
-				
+
 				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
 				// only actually to see if it needs to be rewritten
 				if (!fetch_cached_build(builder, record, default_name, input, path, obj, th, output))
+				{
 					return false;
+				}
 			}
-			
-			// go through this object and all the aux and add them to the output if they aren't already
+
 			if (!db::exists(output, path))
 			{
 				db::insert(output, path, th, obj);
 			}
-			
+
+			// add aux objects directly pointed by this object.. no children
+			// because other objects need to take care of themselves.
+			get_aux_deps ad;
+			ad.input = input;
+			ad.output = output;
+			ad.record = record;
+			ad.name = default_name;
+			th->walk_dependencies(obj, &ad, false);
+
 			build_db::add_output(record, path, default_name);
 			return true;
 		}
@@ -381,7 +467,9 @@ namespace putki
 		void post_process_item(build_context *context, work_item *item)
 		{
 			if (item->num_children)
+			{
 				return;
+			}
 
 			if (!item->parent)
 			{
@@ -404,8 +492,8 @@ namespace putki
 		}
 
 		struct aux_ptr_add
-		{		
-			
+		{
+
 		};
 
 
@@ -414,23 +502,26 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
+			std::cout << "RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
+
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
 				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
 				return;
 			}
 
-			std::cout << "RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
 			item->br = build_db::create_record(item->path.c_str(), db::signature(item->input, item->path.c_str()));
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
-			
+
 			// If we read from the actual grand input, which is read-only, we must clone the object.
-			// When building sub-assets, then not as concerned as it will not affect the build of other 
+			// When building sub-assets, then not as concerned as it will not affect the build of other
 			// objects, and we save pointer updates and confusion
 			instance_t clone = obj;
 			if (item->input == context->input)
+			{
 				clone = th->clone(obj);
+			}
 
 			item->output = putki::db::create(item->input);
 
@@ -495,21 +586,42 @@ namespace putki
 			for (int i=context->items.size()-1;i>=0;i--)
 			{
 				work_item *item = context->items[i];
-				if (!item->commit) 
+				if (!item->commit)
 				{
 					std::cout << " item[" << i << "] path=" << item->path << " not flagged for commit?!" << std::endl;
 					continue;
 				}
 
-				// done.
-				if (item->parent) 
+
+				if (item->parent)
 				{
-					// push up results & input deps.	
-					build_db::copy_input_dependencies(item->br, item->parent->br);
 					build_db::append_extra_outputs(item->parent->br, item->br);
+					build_db::commit_record(context->builder->build_db, item->br);
+
+					// add all input dependencies that actually exist in the input
+
+					// we can probably remove this altogether when allowing build outputs to have their source objects stored
+					// and letting them go through the normal build steps & dep check. for now we must let the parent object
+					// do all the dep check, therefore must propagate up.
+					build_db::deplist *deplist = build_db::inputdeps_get(context->builder->build_db, item->path.c_str(), true);
+					for (unsigned int j=0;;j++)
+					{
+						const char *path = build_db::deplist_entry(deplist, j);
+						if (!path)
+							break;
+						if (build_db::deplist_is_external_resource(deplist, j))
+							continue; // TODO: check if in tmp or what
+						if (!db::exists(context->input, path))
+							continue; // was generated
+						build_db::add_input_dependency(item->parent->br, path);
+					}
+					build_db::deplist_free(deplist);
+				}
+				else
+				{
+					build_db::commit_record(context->builder->build_db, item->br);
 				}
 
-				build_db::commit_record(context->builder->build_db, item->br);
 			}
 		}
 
@@ -521,22 +633,26 @@ namespace putki
 			context_build(ctx);
 			context_destroy(ctx);
 		}
-		
+
 
 		const char* context_get_built_object(build_context *context, unsigned int i)
 		{
 			if (i < context->items.size())
+			{
 				return context->items[i]->path.c_str();
+			}
 			return 0;
 		}
 
 		bool context_was_read_from_cache(build_context *context, unsigned int i)
 		{
 			if (i < context->items.size())
+			{
 				return context->items[i]->from_cache;
+			}
 			return false;
 		}
-		
+
 		void context_destroy(build_context *context)
 		{
 			for (unsigned int i=0;i<context->items.size();i++)

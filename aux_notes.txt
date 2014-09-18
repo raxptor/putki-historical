@@ -1,0 +1,84 @@
+OPTION 1
+--------
+
+
+* Aux objects are not real objects that can get their own build record.
+	- 
+
+
+=> There will be no build records with input as aux ref. 
+=> Build object on main object will have signature for the whole object.
+
+    => After a build is completed on a main object, either by handler or not:
+            - Traverse output object and transfer all aux refs from input
+              to output.
+
+    => Builds cannot be tracked normally / dependencies for pipelien versions
+       will break down as main object build record cannot easily be analyzed.
+
+       UNLESS build record includes a list of all the aux builds that need to be verified;
+		Could perhaps list sub-dependency lists with 
+			builder-dep:  object-type:pipeline-version
+		        builder-dep:  ElementWidget:putki-default
+			builder-dep:  ElementText:textfield-1
+
+		for all the aux builds.
+
+
+
+=> If there is no object handler, default
+
+=> Aux objects will by default not be built, they will be copied over
+
+
+PRO: No need to handle aux objects specially in the input
+
+     Possibly a little better scaling, and gives ownership over aux objects 
+     to source objects
+
+     The use case of 'small auxobjs' for inputs that are pure builder inputs
+     and should not be in the output works well (dubious usage?)
+
+     No need to write loaders/delayed loaders that can read aux objs.
+     No need to write caching algorithms that separate aux objs (whole
+     object needs to be loaded anyway!)
+
+     Can start with the implementation that aux objects cannot be built,
+     and then expanded from there.
+
+CON: Not any type of object can be had as aux objects. Objects that need
+     building will have to be handled by the main object.
+
+--------------------------
+OPTION 2 - LEAST CONFUSION
+--------------------------
+
+* Aux objects are just conveniently stored in the same object
+* They can be built just like anything else.
+
+* An object wishing to mainpulate its aux objects in the pipeline
+  must clone them and reinsert with another name, and add to output.
+
+	new_instance = putki::builder::clone_and_add_out(object, "#ahoub");
+
+* A pipeline must be aware it could be building inside an aux object.
+  Does adding _out always work? 
+	ui/widget/element#builtinex1_out
+
+CON: 
+	An object using aux objects for inputs cannot just
+        erase the references, the inputs will still be built
+        because they are pointed to.
+
+	But this is true for any other objects structure as well.
+	Should then use a different dependency discovery.
+
+		Example: Atlas -> Textures
+
+		(build objects directly required, inspect outputs for
+                 dependencies, build those objects too, etc, make tree.
+                 might impact parallell building)
+
+	This means aux data must be considered read-only and cannot
+        be manipuated in the buid step by the pipeline. 
+        wants to process its aux objects.

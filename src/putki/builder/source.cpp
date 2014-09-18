@@ -88,10 +88,10 @@ namespace putki
 						if (parent->add_to_load)
 						{
 							parent->to_load.push_back(path);
-							return true;
+							return false;
 						}
 
-						std::cout << "Unresolved reference to [" << path << "]!" << std::endl;
+						std::cout << "Unresolved reference to [" << path << "] when loading [" << db::pathof(parent->db, parent->obj) << "]" << std::endl;
 						parent->unresolved++;
 						*on = 0;
 					}
@@ -100,7 +100,6 @@ namespace putki
 					{
 						parent->auxes_touched.push_back(path);
 					}
-
 
 					return true;
 				}
@@ -254,14 +253,47 @@ namespace putki
 			std::cerr << "*** do_deferred_load could not fetch itself!" << std::endl;
 			return false;
 		}
-		
-		// resolve pointers - what 
-		resolver.obj = *obj; // to get the auxes
-		resolver.record(path, *th, *obj);
+
+		std::set<std::string> loaded;
+
+		while (true)
+		{
+			resolver.obj = *obj;
+			resolver.to_load.clear();
+			resolver.unresolved = 0;
+			resolver.record(path, *th, *obj);
+
+			unsigned int ld = 0;
+			for (unsigned int i=0; i<resolver.to_load.size(); i++)
+			{
+				std::string file = resolver.to_load[i] + ".json";
+				if (loaded.count(file) == 0)
+				{
+					ld++;
+					std::cout << "*** loading additional [" << file << "] into db " << std::endl;
+					load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+					loaded.insert(file);
+				}
+			}
+
+			if (!ld) {
+				break;
+			}
+		}
+
+		if (!resolver.to_load.empty())
+		{
+			// everything that could be loaded is loaded, do a final pass which will clear
+			// out any invalid pointers.
+			resolver.add_to_load = false;
+			resolver.unresolved = 0;
+			resolver.record(path, *th, *obj);
+		}
+
 		if (resolver.unresolved)
 		{
 			std::cerr << "*** there are unresolved pointers after the deferred load!" << std::endl;
-			return false;
+			return true;
 		}
 		
 		return true;
