@@ -238,11 +238,21 @@ namespace putki
 
 		void add_input_dependency(record *r, const char *dependency)
 		{
+			// aux filter.
+			char tmp[1024];
+			if (db::base_asset_path(dependency, tmp, sizeof(tmp)))
+			{
+				dependency = tmp;
+			}
+
 			// don't add same twice.
 			for (unsigned int i=0; i<r->input_dependencies.size(); i++)
-				if (!strcmp(r->input_dependencies[i].c_str(), dependency)) {
+			{
+				if (!strcmp(r->input_dependencies[i].c_str(), dependency)) 
+				{
 					return;
 				}
+			}
 
 			r->input_dependencies.push_back(dependency);
 		}

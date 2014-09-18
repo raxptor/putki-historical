@@ -295,7 +295,10 @@ namespace putki
 					//       dependencies might cause that object to be rebuilt, and then we load a cached object here
 					//       which pulls in an 'old' version into the database... no good!
 					std::cout << "         *** Loading cached object " << path << std::endl;
-					build_db::copy_existing(builder::get_build_db(builder), newrecord, path);
+					if (!build_db::copy_existing(builder::get_build_db(builder), newrecord, path))
+					{
+						std::cout << "   F A I L E D - to copy existing FAILED" << std::endl;
+					}
 
 					// first pass is outputs, second is pointer (which need to be loaded!)
 					for (int j=0;;j++)
@@ -619,6 +622,7 @@ namespace putki
 							std::ofstream f(out_path.c_str());
 							f << ts.str();
 							f.close();
+							std::cout << " RECORDING TMP SIGNATURE [" << cr_path_ptr << "] " << db::signature(item->output, cr_path_ptr) << std::endl;
 							inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
 						}
 						else
@@ -679,27 +683,9 @@ namespace putki
 
 				if (item->parent)
 				{
-					build_db::append_extra_outputs(item->parent->br, item->br);
+					// build_db::append_extra_outputs(item->parent->br, item->br);
 					build_db::commit_record(context->builder->build_db, item->br);
-
 					// add all input dependencies that actually exist in the input
-
-					// we can probably remove this altogether when allowing build outputs to have their source objects stored
-					// and letting them go through the normal build steps & dep check. for now we must let the parent object
-					// do all the dep check, therefore must propagate up.
-					build_db::deplist *deplist = build_db::inputdeps_get(context->builder->build_db, item->path.c_str(), true);
-					for (unsigned int j=0;;j++)
-					{
-						const char *path = build_db::deplist_entry(deplist, j);
-						if (!path)
-							break;
-						if (build_db::deplist_is_external_resource(deplist, j))
-							continue; // TODO: check if in tmp or what
-						if (!db::exists(context->input, path))
-							continue; // was generated
-						build_db::add_input_dependency(item->parent->br, path);
-					}
-					build_db::deplist_free(deplist);
 				}
 				else
 				{

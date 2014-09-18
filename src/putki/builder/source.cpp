@@ -40,12 +40,12 @@ namespace putki
 		{
 			db::data *db;
 			db::data *extra_resolve_db;
-			instance_t obj;
+			std::string path;
 
 			bool traverse_children;
 			bool add_to_load;
+			bool zero_unresolved;
 			std::vector<std::string> to_load;
-			std::vector<std::string> auxes_touched;
 			int unresolved;
 
 			enum_db_entries_resolve()
@@ -54,7 +54,7 @@ namespace putki
 				db = extra_resolve_db = 0;
 				unresolved = 0;
 				add_to_load = false;
-				obj = 0;
+				zero_unresolved = true;
 			}
 
 			struct process_ptr : public putki::depwalker_i
@@ -75,7 +75,7 @@ namespace putki
 					
 					type_handler_i *th;
 					instance_t obj;
-
+					
 					if (db::fetch(parent->db, path, &th, &obj))
 					{
 						*on = obj;
@@ -88,20 +88,21 @@ namespace putki
 					{
 						if (parent->add_to_load)
 						{
+							std::cout << " unresolved " << path << " .. so loading " << std::endl;
 							parent->to_load.push_back(path);
 							return false;
 						}
 
-						std::cout << "Unresolved reference to [" << path << "] when loading [" << db::pathof(parent->db, parent->obj) << "]" << std::endl;
+						std::cout << "Unresolved reference to [" << path << "] when loading [" << parent->path << "]" << std::endl;
 						parent->unresolved++;
-						*on = 0;
+						
+						if (parent->zero_unresolved)
+						{
+							*on = 0;
+						}
+						return false;
 					}
 					
-					if (obj && parent->obj && db::is_aux_path_of(parent->db, parent->obj, path))
-					{
-						parent->auxes_touched.push_back(path);
-					}
-
 					return true;
 				}
 
@@ -163,6 +164,7 @@ namespace putki
 				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
 				db::insert(db, asset_name.c_str(), h, obj);
+				
 			}
 			else
 			{
@@ -262,7 +264,7 @@ namespace putki
 
 		while (true)
 		{
-			resolver.obj = *obj;
+			resolver.path = path;
 			resolver.to_load.clear();
 			resolver.unresolved = 0;
 			resolver.record(path, *th, *obj);
@@ -342,9 +344,11 @@ namespace putki
 		{
 			// resolve
 			enum_db_entries_resolve resolver;
-			resolver.add_to_load = true;
+			resolver.add_to_load = resolve;
 			resolver.db = d;
+			resolver.path = path;
 			resolver.extra_resolve_db = resolve_db;
+			resolver.zero_unresolved = resolve;
 			db::read_all(d, &resolver);
 
 			unsigned int ld = 0;
