@@ -60,6 +60,7 @@ namespace putki
 
 		void write_object_into_stream(std::ostream& out, db::data *ref_source, type_handler_i *th, instance_t obj)
 		{
+			out.precision(30);
 			out << "{" << std::endl;
 			out << "	type: "<< json_str(th->name()) << "," << std::endl;
 			out << "	data: {\n";
