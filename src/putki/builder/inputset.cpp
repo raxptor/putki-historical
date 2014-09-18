@@ -155,6 +155,11 @@ namespace putki
 			f.close();
 		}
 		
+		void force_obj(data *d, const char *path, const char *signature)
+		{
+			d->objs[path].content_sig = signature;
+		}
+		
 		data *open(const char *objpath, const char *respath, const char *dbfile)
 		{
 			data *d = new data();
@@ -180,6 +185,7 @@ namespace putki
 				++i;
 			}
 
+			sys::mk_dir_for_path(dbfile);
 			write_directory(d);
 			return d;
 		}

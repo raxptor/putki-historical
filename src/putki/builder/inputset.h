@@ -8,6 +8,7 @@ namespace putki
 		struct data;
 		
 		data *open(const char *objpath, const char *respath, const char *dbfile);
+		void force_obj(data *d, const char *objpath, const char *signature);
 		void release(data *);
 		
 		const char *get_object_sig(data *d, const char *path);

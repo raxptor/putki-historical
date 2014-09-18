@@ -5,11 +5,15 @@
 #include <putki/builder/resource.h>
 #include <putki/builder/source.h>
 #include <putki/builder/inputset.h>
+#include <putki/builder/write.h>
+#include <putki/sys/files.h>
 
 #include <map>
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 namespace putki
 {
@@ -33,10 +37,12 @@ namespace putki
 			BuildersMap handlers;
 			runtime::descptr runtime;
 			std::string config;
-			std::string obj_path, res_path, out_path, tmp_path, built_obj_path;
+			std::string obj_path, res_path, out_path, tmpobj_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 			inputset::data *input_set;
+			inputset::data *tmp_input_set;
 			deferred_loader *cache_loader;
+			deferred_loader *tmp_loader;
 		};
 
 		struct prebuild_info
@@ -79,7 +85,7 @@ namespace putki
 			d->runtime = rt;
 			d->config = build_config;
 
-			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->built_obj_path = path;
+			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->tmpobj_path = d->built_obj_path = path;
 
 			std::string desc_path = runtime::desc_str(rt);
 			if (build_config)
@@ -98,9 +104,13 @@ namespace putki
 			d->out_path.append(desc_path);
 			d->out_path.append("");
 
+			d->tmpobj_path.append("/out/");
+			d->tmpobj_path.append(desc_path);
+			d->tmpobj_path.append("/.obj_tmp");
+
 			d->tmp_path.append("/out/");
 			d->tmp_path.append(desc_path);
-			d->tmp_path.append("/.tmp");
+			d->tmp_path.append("/.res_tmp");
 
 			d->built_obj_path.append("/out/");
 			d->built_obj_path.append(desc_path);
@@ -118,12 +128,19 @@ namespace putki
 			build_db_path.append(".build-db");
 
 			std::string input_db_path = path;
-			input_db_path.append("/out/.input_db");
+			input_db_path.append("/out/.input-db");
+			
+			std::string tmp_db_path = path;
+			tmp_db_path.append("/out/");
+			tmp_db_path.append(desc_path);
+			tmp_db_path.append("/.input-db");
 
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
 			d->input_set = inputset::open(d->obj_path.c_str(), d->res_path.c_str(), input_db_path.c_str());
+			d->tmp_input_set = inputset::open(d->tmpobj_path.c_str(), d->tmp_path.c_str(), tmp_db_path.c_str());
 
 			d->cache_loader = create_loader(d->built_obj_path.c_str());
+			d->tmp_loader = create_loader(d->tmpobj_path.c_str());
 			return d;
 		}
 
@@ -131,7 +148,9 @@ namespace putki
 		{
 			build_db::release(builder->build_db);
 			inputset::release(builder->input_set);
+			inputset::release(builder->tmp_input_set);
 			loader_decref(builder->cache_loader);
+			loader_decref(builder->tmp_loader);
 			delete builder;
 		}
 
@@ -174,7 +193,6 @@ namespace putki
 		{
 			return data->runtime;
 		}
-
 
 		void add_data_builder(builder::data *builder, type_t type, int obj_phase_mask, handler_i *handler)
 		{
@@ -219,11 +237,12 @@ namespace putki
 
 						if (!inputsig)
 						{
-							// this is (should be) an object that was generated from previous builds.
-							// we cannot pick up these from cache since there is no tmp objects input domain.
-							// if they were generated they are in output db but are input files. and here we would
-							// kinda rewrite them and lose orginal objects, and lose paths. so always rebuild.
-							return "this is a tmp object";
+							inputsig = inputset::get_object_sig(builder->tmp_input_set, entrypath);
+							if (!inputsig)
+							{
+								std::cout << "Signature missing weirdness [" << entrypath << "]" << std::endl;
+								inputsig = "bonkers";
+							}
 						}
 
 						bool sigmatch = !strcmp(inputsig, signature);
@@ -276,18 +295,29 @@ namespace putki
 					// first pass is outputs, second is pointer (which need to be loaded!)
 					for (int j=0;;j++)
 					{
-						const char *path = build_db::enum_outputs(newrecord, j);
-						if (!path)
+						const char *rpath = build_db::enum_outputs(newrecord, j);
+						if (!rpath)
 						{
 							break;
 						}
+						
+						std::cout << " output[" << j << "] is " << rpath << std::endl;
 
 						// We want to carefully load these files, and not overwrite any which might have been built
 						// this time.
-						if (!db::exists(output, path))
+						if (!db::exists(output, rpath))
 						{
-							load_file_deferred(builder->cache_loader, output, path);
-							// load_file_into_db(builder::built_obj_path(builder), path, output, true, input);
+							// only the main object is pulled from output
+							if (!strcmp(path, rpath))
+							{
+								std::cout << " deferred insert on " << rpath << " cache" << std::endl;
+								load_file_deferred(builder->cache_loader, output, rpath);
+							}
+							else
+							{
+								std::cout << " deferred TMP insert on " << rpath << " cache" << std::endl;
+								load_file_deferred(builder->tmp_loader, output, rpath);
+							}
 						}
 					}
 
@@ -530,7 +560,12 @@ namespace putki
 			const char *sig = inputset::get_object_sig(context->builder->input_set, item->path.c_str());
 			if (!sig)
 			{
-				sig = "tmp-obj-sig";
+				sig = inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str());
+				if (!sig)
+				{
+					std::cout << " *** INPUT HAD NO INPUT SIGNATURE (" << item->path << ") !!! ***" << std::endl;
+					sig = "tmp-obj-sig";
+				}
 			}
 
 			item->br = build_db::create_record(item->path.c_str(), sig);
@@ -548,7 +583,7 @@ namespace putki
 
 			item->output = putki::db::create(item->input);
 
-			if (build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output))
+			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -562,6 +597,31 @@ namespace putki
 						continue;
 					}
 
+					if (!from_cache)
+					{
+						// this is a tmp obj, store.
+						type_handler_i *_th;
+						instance_t _obj;
+						if (db::fetch(item->output, cr_path_ptr, &_th, &_obj))
+						{
+							std::string out_path = context->builder->tmpobj_path;
+							out_path.append("/");
+							out_path.append(cr_path_ptr);
+							out_path.append(".json");
+							std::stringstream ts;
+							write::write_object_into_stream(ts, item->output, _th, _obj);
+							sys::mk_dir_for_path(out_path.c_str());
+							std::ofstream f(out_path.c_str());
+							f << ts.str();
+							f.close();
+							inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
+						}
+						else
+						{
+							std::cerr << " **** COULD NOT READ OUTPUT " << cr_path_ptr << "!!!" << std::endl;
+						}
+					}
+
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
 					wi->input = item->output; // where the object is
@@ -570,7 +630,7 @@ namespace putki
 					wi->parent = item;
 					wi->br = 0;
 					wi->commit = false;
-					wi->from_cache = false;
+					wi->from_cache = from_cache;
 					context->items.push_back(wi);
 
 					item->num_children++;
@@ -580,11 +640,6 @@ namespace putki
 
 					outpos++;
 				}
-			}
-			else
-			{
-				// picked up built result from cache...
-				item->from_cache = true;
 			}
 
 			post_process_item(context, item);
