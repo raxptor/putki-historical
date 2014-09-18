@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 #include <putki/sys/files.h>
 
@@ -206,6 +207,7 @@ namespace putki
 	struct deferred_loader
 	{
 		std::string sourcepath;
+		std::map<std::string, db::data* > resolve_db;
 		int refcount;
 	};
 	
@@ -247,7 +249,7 @@ namespace putki
 		enum_db_entries_resolve resolver;
 		resolver.add_to_load = true;
 		resolver.db = db;
-		resolver.extra_resolve_db = 0;
+		resolver.extra_resolve_db = loader->resolve_db[path];
 		resolver.traverse_children = true;
 		
 		if (!db::fetch(db, path, th, obj))
@@ -301,8 +303,9 @@ namespace putki
 		return true;
 	}
 	
-	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path)
+	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path, db::data *resolve)
 	{
+		loader->resolve_db[path] = resolve;
 		db::insert_deferred(target, path, &do_deferred_load, loader);
 	}
 	

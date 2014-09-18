@@ -43,6 +43,9 @@ namespace putki
 			inputset::data *tmp_input_set;
 			deferred_loader *cache_loader;
 			deferred_loader *tmp_loader;
+			
+			// fix this
+			db::data *grand_input;
 		};
 
 		struct prebuild_info
@@ -141,6 +144,8 @@ namespace putki
 
 			d->cache_loader = create_loader(d->built_obj_path.c_str());
 			d->tmp_loader = create_loader(d->tmpobj_path.c_str());
+			
+			d->grand_input = 0;
 			return d;
 		}
 
@@ -311,12 +316,12 @@ namespace putki
 							if (!strcmp(path, rpath))
 							{
 								std::cout << " deferred insert on " << rpath << " cache" << std::endl;
-								load_file_deferred(builder->cache_loader, output, rpath);
+								load_file_deferred(builder->cache_loader, output, rpath, builder->grand_input);
 							}
 							else
 							{
 								std::cout << " deferred TMP insert on " << rpath << " cache" << std::endl;
-								load_file_deferred(builder->tmp_loader, output, rpath);
+								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
 					}
@@ -652,6 +657,8 @@ namespace putki
 
 		void context_build(build_context *context)
 		{
+			context->builder->grand_input = context->input;
+			
 			std::cout << "Starting build..." << std::endl;
 			for (int i=0;i<context->items.size();i++)
 			{
