@@ -120,7 +120,7 @@ namespace putki
 			input_db_path.append("/out/.input_db");
 
 			d->build_db = build_db::create(build_db_path.c_str(), !reset_build_db);
-			d->input_set = inputset::open(d->obj_path.c_str(), input_db_path.c_str());
+			d->input_set = inputset::open(d->obj_path.c_str(), d->res_path.c_str(), input_db_path.c_str());
 			return d;
 		}
 

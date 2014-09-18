@@ -12,7 +12,7 @@ namespace putki
 			char signature[64];
 		};
 		
-		data *open(const char *basepath, const char *dbfile);
+		data *open(const char *objpath, const char *respath, const char *dbfile);
 		void release(data *);
 		
 		void on_changed(const char *path);

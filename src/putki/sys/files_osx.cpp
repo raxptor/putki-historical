@@ -26,6 +26,18 @@ namespace putki
 			chdir(old_path);
 		}
 
+		bool stat(const char *path, file_info *out)
+		{
+			struct ::stat tmp;
+			if (!::stat(path, &tmp))
+			{
+				out->mtime = tmp.st_mtime;
+				out->size = tmp.st_size;
+				return true;
+			}
+			return false;
+		}
+
 		void search_tree(const char *root, const char *path_from_root, file_enum_t callback, void *userptr)
 		{
 
