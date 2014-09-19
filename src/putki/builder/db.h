@@ -31,7 +31,7 @@ namespace putki
 		bool exists(data *d, const char *path);
 		
 		// will trigger deferred load to execute if not loaded
-		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj);
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred=true);
 		
 		const char *auxref(data *d, const char *path, unsigned int index);
 		const char *pathof(data *d, instance_t obj);

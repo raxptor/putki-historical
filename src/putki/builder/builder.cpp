@@ -159,6 +159,7 @@ namespace putki
 			inputset::release(builder->tmp_input_set);
 			loader_decref(builder->cache_loader);
 			loader_decref(builder->tmp_loader);
+
 			delete builder;
 		}
 
@@ -330,6 +331,10 @@ namespace putki
 								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
+						else
+						{
+							std::cout << " WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]" << std::endl;
+						}
 					}
 
 					if (!db::exists(output, path))
@@ -496,6 +501,7 @@ namespace putki
 			builder::data *builder;
 			db::data *input;
 			db::data *output;
+			db::data *trash;
 			std::vector<work_item*> items;
 		};
 
@@ -505,6 +511,7 @@ namespace putki
 			ctx->builder = builder;
 			ctx->input = input;
 			ctx->output = output;
+			ctx->trash = db::create();
 			return ctx;
 		}
 
@@ -532,13 +539,13 @@ namespace putki
 			if (!item->parent)
 			{
 				std::cout << "     => inserting [" << item->path << "] into world output [record " << item->path << "]" << std::endl;
-				build::post_build_merge_database(item->output, context->output);
+				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
 			}
 			if (item->parent)
 			{
-				build::post_build_merge_database(item->output, item->parent->output);
+				build::post_build_merge_database(item->output, item->parent->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
 
@@ -725,6 +732,9 @@ namespace putki
 		{
 			for (unsigned int i=0;i<context->items.size();i++)
 				delete context->items[i];
+
+			std::cout << "Trash size: " << db::size(context->trash) << std::endl;
+			db::free_and_destroy_objs(context->trash);
 			delete context;
 		}
 

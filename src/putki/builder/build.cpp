@@ -94,11 +94,27 @@ namespace
 	{
 		putki::db::data *input;
 		putki::db::data *output;
+		putki::db::data *trash;
 
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			// forward all objects directly to the output db. we can't clone them here or all
-			// pointers to them will become wild.
+			// if we happen to overwrite an object (when merging outputs into parent records with tmp objects),
+			// we would like to know that it must be trashed.
+			if (trash)
+			{
+				putki::type_handler_i *_th;
+				putki::instance_t _obj;
+				if (th && obj && putki::db::fetch(output, path, &_th, &_obj, false))
+				{
+					// not doing this if the objects are the same.
+					if (obj != _obj)
+					{
+						std::cout << " trashing object " << path << std::endl;
+						putki::db::insert(trash, path, th, obj);
+					}
+				}
+			}
+
 			putki::db::copy_obj(input, output, path);
 		}
 	};
@@ -185,11 +201,12 @@ namespace putki
 		}
 
 		// merges objects from source into target.
-		void post_build_merge_database(putki::db::data *source, db::data *target)
+		void post_build_merge_database(putki::db::data *source, db::data *target, db::data *trash)
 		{
 			db_record_inserter ri;
 			ri.input = source;
 			ri.output = target;
+			ri.trash = trash;
 			putki::db::read_all_no_fetch(source, &ri);
 		}
 
@@ -238,10 +255,11 @@ namespace putki
 			post_build_ptr_update(input, output);
 
 			// GLOBAL PASS
+			db::data *junk = db::create();
 			{
 				db::data *global_out = db::create();
 				builder::build_global_pass(builder, output, global_out);
-				build::post_build_merge_database(global_out, output);
+				build::post_build_merge_database(global_out, output, junk);
 				db::free(global_out);
 			}
 
@@ -269,10 +287,7 @@ namespace putki
 				const char *path = context_get_built_object(ctx, i);
 				if (!path)
 					break;
-					
-//				if (context_was_read_from_cache(ctx, i))
-//					continue;
-					
+
 				type_handler_i *th;
 				instance_t obj;
 				if (db::fetch(output, path, &th, &obj)) 
@@ -285,29 +300,30 @@ namespace putki
 					std::cout << "Unable to resolve [" << path << "]!" << std::endl;
 				}
 			}
-			
-			builder::context_destroy(ctx);
 
-			if (single_asset)
+			if (!single_asset)
+			{
+				std::cout << "=> Packaging data." << std::endl;
+
+				char pkg_path[1024];
+				sprintf(pkg_path, "%s/packages/", builder::out_path(builder));
+
+				packaging_config pconf;
+				pconf.package_path = pkg_path;
+				pconf.rt = builder::runtime(builder);
+				pconf.bdb = builder::get_build_db(builder);
+				putki::builder::invoke_packager(output, &pconf);
+			}
+			else
 			{
 				std::cout << "=> Not packaging data in single mode." << std::endl;
-				return;
 			}
-
-			std::cout << "=> Packaging data." << std::endl;
-
-			char pkg_path[1024];
-			sprintf(pkg_path, "%s/packages/", builder::out_path(builder));
-
-			packaging_config pconf;
-			pconf.package_path = pkg_path;
-			pconf.rt = builder::runtime(builder);
-			pconf.bdb = builder::get_build_db(builder);
-			putki::builder::invoke_packager(output, &pconf);
 
 			// there should be no objects outside these database now.
 			db::free_and_destroy_objs(input);
 			db::free_and_destroy_objs(output);
+			db::free_and_destroy_objs(junk);
+			builder::context_destroy(ctx);
 		}
 
 		void full_build(putki::builder::data *builder)

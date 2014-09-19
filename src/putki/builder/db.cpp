@@ -263,7 +263,7 @@ namespace putki
 			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
 		}
 
-		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj)
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred)
 		{		
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
@@ -272,6 +272,9 @@ namespace putki
 				*obj = i->second.obj;
 				return true;
 			}
+
+			if (!allow_execute_deferred)
+				return false;
 			
 			std::map<std::string, deferred>::iterator j = d->deferred.find(path);
 			if (j != d->deferred.end())
