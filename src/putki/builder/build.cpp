@@ -329,13 +329,9 @@ namespace putki
 
 				type_handler_i *th;
 				instance_t obj;
-				if (db::fetch(output, path, &th, &obj)) 
+				if (db::fetch(output, path, &th, &obj, false))
 				{
 					js.record(path, th, obj);
-				}
-				else
-				{
-					APP_ERROR("Unable to resolve [" << path << "]!")
 				}
 			}
 
