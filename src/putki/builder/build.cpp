@@ -103,14 +103,16 @@ namespace
 			if (trash)
 			{
 				putki::type_handler_i *_th;
-				putki::instance_t _obj;
-				if (th && obj && putki::db::fetch(output, path, &_th, &_obj, false))
+				putki::instance_t _obj = 0;
+
+				if (putki::db::fetch(output, path, &_th, &_obj, false))
 				{
-					// not doing this if the objects are the same.
-					if (obj != _obj)
+					// if we are overwriting with a deferred object, current object will be lost
+					// if we are overwriting with a different object, current object will be lost
+					if (!obj || obj != _obj)
 					{
 						std::cout << " trashing object " << path << std::endl;
-						putki::db::insert(trash, path, th, obj);
+						putki::db::insert(trash, path, _th, _obj);
 					}
 				}
 			}
