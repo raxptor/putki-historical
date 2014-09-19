@@ -220,12 +220,22 @@ namespace putki
 			i->second.handlers.push_back(b);
 		}
 
+		// remove this when cleaned up
+		struct destroy_deplist
+		{
+			destroy_deplist(build_db::deplist *dl) : _dl(dl) { }
+			~destroy_deplist() { build_db::deplist_free(_dl); }
+			build_db::deplist *_dl;
+		};
+
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
 		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			// Time to hunt for cached object.
 			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path, false);
+			destroy_deplist destroy(dlist);
+
 			if (dlist)
 			{
 				int matches = 0;
@@ -350,8 +360,6 @@ namespace putki
 				{
 					return "resource has not been built";
 				}
-
-				build_db::deplist_free(dlist);
 			}
 
 			return "no previous build records";

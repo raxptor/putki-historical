@@ -78,6 +78,8 @@ namespace putki
 
 				md5_buffer(bytes, (long)sz, signature);
 				md5_sig_to_string(signature, signature_string, 64);
+
+				free(bytes);
 				return signature_string;
 			}
 		}
