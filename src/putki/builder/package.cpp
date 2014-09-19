@@ -50,9 +50,19 @@ namespace putki
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
-					// don't traverse.
-					return false;
+					// fix it up
+					type_handler_i *_th;
+					instance_t _obj;
+					if (db::fetch(db, path, &_th, &_obj))
+					{
+						APP_DEBUG("Resoved [" << path << "]")
+						*on = _obj;
+					}
+					else
+					{
+						APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
+						return false;
+					}
 				}
 
 				deps.push_back(path);

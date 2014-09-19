@@ -561,6 +561,30 @@ namespace putki
 			}
 		}
 
+		void context_add_build_record_pointers(build_context *context, const char *path)
+		{
+			build_db::record *r = build_db::find(context->builder->build_db, path);
+			if (!r)
+				APP_ERROR("Build db broken")
+
+			for (unsigned long i=0;;i++)
+			{
+				const char *path = build_db::get_pointer(r, i);
+				if (!path) break;
+				if (db::exists(context->output, path)) continue;
+
+				if (inputset::get_object_sig(context->builder->input_set, path))
+				{
+					RECORD_DEBUG(r, "dep for ptr[" << i << "] = " << path)
+					context_add_to_build(context, path);
+				}
+				else
+				{
+					RECORD_INFO(r, "This record contains unresolved pointer to " << path)
+				}
+			}
+		}
+
 		void post_process_item(build_context *context, work_item *item)
 		{
 			if (item->num_children)
@@ -577,21 +601,7 @@ namespace putki
 				if (!item->from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
 
-				build_db::record *r = build_db::find(context->builder->build_db, item->path.c_str());
-				if (!r)
-					APP_ERROR("Build db broken")
-
-				for (unsigned long i=0;;i++)
-				{
-					const char *path = build_db::get_pointer(r, i);
-					if (!path) break;
-					if (db::exists(context->output, path)) continue;
-
-					if (inputset::get_object_sig(context->builder->input_set, path))
-						context_add_to_build(context, path);
-					else
-						RECORD_INFO(r, "This record contains unresolved pointer to " << path)
-				}
+				context_add_build_record_pointers(context, item->path.c_str());
 
 				db::free(item->output, context->output);
 			}
@@ -602,6 +612,11 @@ namespace putki
 				db::free(item->output, item->parent->output);
 
 				build_db::commit_record(context->builder->build_db, item->br);
+
+				if (!item->from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+
+				context_add_build_record_pointers(context, item->path.c_str());
 
 				if (!--item->parent->num_children)
 				{
@@ -719,6 +734,11 @@ namespace putki
 			{
 				context_process_record(context, context->items[i]);
 			}
+
+			// when build is done, we will not use input any more
+			context->builder->grand_input = 0;
+			loader_clear_resolve_dbs(context->builder->tmp_loader);
+			loader_clear_resolve_dbs(context->builder->cache_loader);
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
