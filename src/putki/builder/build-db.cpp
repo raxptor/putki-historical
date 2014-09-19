@@ -7,7 +7,9 @@
 #include <set>
 #include <fstream>
 #include <cstring>
+
 #include <putki/builder/db.h>
+#include <putki/builder/log.h>
 
 namespace putki
 {
@@ -59,7 +61,7 @@ namespace putki
 				std::ifstream dbtxt(d->path.c_str());
 				if (dbtxt.good())
 				{
-					std::cout << "Replaying build db from [" << d->path << "]" << std::endl;
+					APP_DEBUG("Loading build db from [" << d->path << "]")
 					record *cur = 0;
 					std::string line;
 					while (std::getline(dbtxt, line))
@@ -121,7 +123,7 @@ namespace putki
 						}
 						else
 						{
-							std::cout << "UNPARSED " << line << std::endl;
+							APP_WARNING("UNPARSED " << line)
 						}
 					}
 
@@ -137,7 +139,7 @@ namespace putki
 		void store(data *d)
 		{
 			std::ofstream dbtxt(d->path.c_str());
-			std::cout << "Writing build-db to [" << d->path << "]" << std::endl;
+			APP_DEBUG("Writing build-db to [" << d->path << "]")
 
 			for (RM::iterator i=d->records.begin(); i!=d->records.end(); i++)
 			{
@@ -161,8 +163,9 @@ namespace putki
 					dbtxt << "p:" << (*pi++) << "\n";
 			}
 
-			if (!dbtxt.good()) {
-				std::cout << "Failed writing file!" << std::endl;
+			if (!dbtxt.good())
+			{
+				APP_ERROR("Failed writing file!")
 			}
 		}
 
@@ -375,7 +378,7 @@ namespace putki
 				const char *path = db::pathof_including_unresolved(db, *on);
 				if (!path)
 				{
-					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
+					APP_ERROR("Found object without path")
 					return true;
 				}
 
@@ -385,7 +388,7 @@ namespace putki
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					std::cout << "Ignoring unresolved asset with path [" << path << "]" << std::endl;
+					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
 					// don't traverse.
 					return false;
 				}
@@ -405,7 +408,7 @@ namespace putki
 			RM::iterator rec = data->records.find(path);
 			if (rec == data->records.end())
 			{
-				std::cout << "No build record for " << path << ", fail to add metadata" << std::endl;
+				APP_WARNING("No build record for " << path << ", fail to add metadata")
 				return;
 			}
 
@@ -423,7 +426,7 @@ namespace putki
 			}
 			else
 			{
-				std::cout << " failed to fetch object for meta data insertion" << std::endl;
+				APP_WARNING("Failed to fetch object for meta data insertion")
 			}
 
 		}
@@ -455,7 +458,9 @@ namespace putki
 
 			// these will not have any records, only main objects.
 			if (!db::is_aux_path(path))
-				std::cout << "OOPS! Could not find [" << path << "] in build record!" << std::endl;
+			{
+				APP_WARNING("OOPS! Could not find [" << path << "] in build record!")
+			}
 
 			return false;
 		}
@@ -474,7 +479,7 @@ namespace putki
 				dl->entries.push_back(e);
 			}
 
-			std::cout << "Found " << dl->entries.size() << " dependant objects on [" << path << "]" << std::endl;
+			APP_DEBUG("Found " << dl->entries.size() << " dependant objects on [" << path << "]")
 			return dl;
 		}
 

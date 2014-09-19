@@ -4,6 +4,7 @@
 #include <putki/builder/source.h>
 #include <putki/builder/db.h>
 #include <putki/builder/write.h>
+#include <putki/builder/log.h>
 
 #include <fstream>
 #include <string>
@@ -64,7 +65,7 @@ namespace putki
 			ObjMap::iterator i = d->objs.find(asset_name);
 			if (i == d->objs.end())
 			{
-				std::cout << "added [" << asset_name << "]" << std::endl;
+				APP_DEBUG("Added [" << asset_name << "]")
 				o_record tmp;
 				tmp.path = name;
 				tmp.info.size = 0;
@@ -79,7 +80,7 @@ namespace putki
 			sys::file_info info;
 			if (!sys::stat(fullname, &info))
 			{
-				std::cerr << "could not stat [" << fullname << "]" << std::endl;
+				APP_WARNING("Could not stat [" << fullname << "]")
 				info.size = record.info.size;
 				info.mtime = record.info.mtime;
 			}
@@ -90,7 +91,7 @@ namespace putki
 			{
 				if (!record.content_sig.empty())
 				{
-					std::cout << "=> Parsing file " << fullname << " for changes" << std::endl;
+					APP_DEBUG("=> Parsing file " << fullname << " for changes")
 				}
 
 				db::data *tmp = db::create();
@@ -113,7 +114,7 @@ namespace putki
 
 			if (sig != record.content_sig && !record.content_sig.empty())
 			{
-				std::cout << "=> New signature on object [" << sig << "], old sig = [" << record.content_sig << "]" << std::endl;
+				APP_DEBUG("New signature on object [" << sig << "], old sig = [" << record.content_sig << "]")
 				d->has_changes = true;
 			}
 
@@ -163,7 +164,7 @@ namespace putki
 
 		void write(data *d)
 		{
-			std::cout << "Writing input-db to [" << d->dbfile << "]" << std::endl;
+			APP_DEBUG("Writing input-db to [" << d->dbfile << "]")
 			std::ofstream f(d->dbfile.c_str());
 			ObjMap::iterator i = d->objs.begin();
 			while (i != d->objs.end())
@@ -188,7 +189,7 @@ namespace putki
 			d->dbfile = dbfile;
 			d->has_changes = false;
 
-			std::cout << "Input set [" << objpath << "]/[" << respath << "] tracked in [" << dbfile << "]" << std::endl;
+			APP_DEBUG("Input set [" << objpath << "]/[" << respath << "] tracked in [" << dbfile << "]")
 
 			load_directory(d);
 
@@ -199,7 +200,7 @@ namespace putki
 			{
 				if (!i->second.exists)
 				{
-					std::cout << "=> [" << i->first << "] has been removed" << std::endl;
+					APP_INFO("Removed object [" << i->first << "]")
 					i = d->objs.erase(i);
 					continue;
 				}

@@ -1,6 +1,7 @@
 #include <putki/builder/build.h>
 #include <putki/builder/builder.h>
 #include <putki/liveupdate/liveupdate.h>
+#include <putki/builder/log.h>
 #include <putki/runtime.h>
 
 #include <stdint.h>
@@ -93,12 +94,10 @@ int run_putki_builder(int argc, char **argv)
 	// reload build database if incremental build
 	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental, build_config);
 
-	std::cout << "# Starting full build for platform [" << putki::runtime::desc_str(rt) << "]" << std::endl;
-
 	if (single_asset)
 	{
+		APP_WARNING("Single building is experimental and may get the build database out of sync.")
 		putki::build::single_build(builder, single_asset);
-		std::cout << "# Warning: Single building is experimental and may get the build database out of sync." << std::endl;
 	}
 	else
 	{

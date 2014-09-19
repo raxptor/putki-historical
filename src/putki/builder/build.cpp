@@ -197,30 +197,17 @@ namespace
 		}
 	};
 
-	struct read_output : public putki::db::enum_i
-	{
-		std::string output_path;
-		putki::runtime::descptr output_runtime;
-
-		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
-		{
-			std::string outpath = output_path + path;
-			char *ptr = th->write_into_buffer(output_runtime, obj, xbuf, xbuf + xbufSize);
-			if (ptr)
-			{
-				std::cout << "     => Writing " << outpath << std::endl;
-				putki::sys::mk_dir_for_path(outpath.c_str());
-				std::ofstream out(outpath.c_str(), std::ios::binary);
-				out.write(xbuf, ptr - xbuf);
-			}
-		}
-	};
-
 	struct write_cache_json : public putki::db::enum_i
 	{
 		putki::builder::data *builder;
 		putki::db::data *db;
 		std::string path_base;
+		int written;
+
+		write_cache_json() 
+		{
+			written = 0;
+		}
 
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
@@ -241,6 +228,7 @@ namespace
 			putki::sys::mk_dir_for_path(out_path.c_str());
 			std::ofstream f(out_path.c_str());
 			f << tmp.str();
+			written++;
 		}
 	};
 
@@ -284,17 +272,19 @@ namespace putki
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
 		{
-			if (single_asset) {
-				std::cout << "=> Starting isolated build of " << single_asset << std::endl;
+			if (single_asset)
+			{
+				APP_INFO("Single-object build " << single_asset)
 			}
-			else{
-				std::cout << "=> Starting full build" << std::endl;
+			else
+			{
+				APP_INFO("Full build")
 			}
 
 			db::data *input = putki::db::create();
 			load_tree_into_db(builder::obj_path(builder), input);
 
-			std::cout << "=> Loaded DB, building source files" << std::endl;
+			APP_INFO("Prepared source db")
 
 			db::data *output = putki::db::create();
 			builder::build_context *ctx = builder::create_context(builder, input, output);
@@ -313,7 +303,7 @@ namespace putki
 				}
 				else
 				{
-					std::cout << "Unable to resolve [" << single_asset << "]!" << std::endl;
+					APP_WARNING("Unable to resolve [" << single_asset << "]!")
 				}
 			}
 			else
@@ -338,7 +328,7 @@ namespace putki
 			post_build_ptr_update(input, output);
 
 			//
-			std::cout << "=> Updating metadata on built items" << std::endl;
+			int updated = 0;
 			for (unsigned int i=0;;i++)
 			{
 				const char *path = context_get_built_object(ctx, i);
@@ -347,9 +337,14 @@ namespace putki
 				if (context_was_read_from_cache(ctx, i))
 					continue;
 				build_db::insert_metadata(builder::get_build_db(builder), output, path);
+				updated++;
 			}
 
-			std::cout << "=> Writing final .json objects for cache." << std::endl;
+			if (updated > 0)
+			{
+				APP_INFO("Updated metadata for " << updated << " items")
+			}
+
 			write_cache_json js;
 			js.path_base = builder::built_obj_path(builder);
 			js.db = output;
@@ -364,18 +359,22 @@ namespace putki
 				instance_t obj;
 				if (db::fetch(output, path, &th, &obj)) 
 				{
-					std::cout << "  writing [" << path << "]" << std::endl;
 					js.record(path, th, obj);
 				}
 				else
 				{
-					std::cout << "Unable to resolve [" << path << "]!" << std::endl;
+					APP_ERROR("Unable to resolve [" << path << "]!")
 				}
+			}
+
+			if (js.written > 0)
+			{
+				APP_INFO("Wrote " << js.written << " JSON objects to output")
 			}
 
 			if (!single_asset)
 			{
-				std::cout << "=> Packaging data." << std::endl;
+				APP_INFO("Packaging data...")
 
 				char pkg_path[1024];
 				sprintf(pkg_path, "%s/packages/", builder::out_path(builder));
@@ -388,7 +387,7 @@ namespace putki
 			}
 			else
 			{
-				std::cout << "=> Not packaging data in single mode." << std::endl;
+				APP_INFO("Not packaging data in single mode.")
 			}
 
 			// there should be no objects outside these database now.
@@ -411,10 +410,10 @@ namespace putki
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
 		{
 			std::string final_path = packaging->package_path + out_path;
-			std::cout << "Saving package to [" << final_path << "] ..." << std::endl;
+			APP_INFO("Saving package to [" << final_path << "] ...")
 
 			long bytes_written = putki::package::write(package, packaging->rt, xbuf, xbufSize);
-			std::cout << "Wrote " << bytes_written << " bytes" << std::endl;
+			APP_INFO("Wrote " << bytes_written << " bytes")
 
 			putki::package::debug(package, packaging->bdb);
 
@@ -428,20 +427,3 @@ namespace putki
 	}
 }
 
-/*
-   // API
-   // Impl.
-   void do_build_steps()
-   {
-
-   //	std::cout << "Writing output records..." << std::endl;
-   //	read_output o;
-   //	putki::db::read_all(output, &o);
-
-   //	std::cout << "Building packages..." << std::endl;
-   /	app_build_packages(output);
-
-
-   //	std::cout << "Build done!" << std::endl;
-   //}
- */

@@ -52,7 +52,7 @@ namespace putki
 		if (putki::show_line(type)) \
 			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
 		__DPRINT_LINE << stmt; \
-		putki::print_log(type, "", __DPRINT_LINE.str().c_str()); \
+		putki::print_log(type, "GLOBAL", __DPRINT_LINE.str().c_str()); \
 	} \
 }
 

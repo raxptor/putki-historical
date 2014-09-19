@@ -688,20 +688,20 @@ namespace putki
 
 		void context_finalize(build_context *context)
 		{
-			std::cout << "Finalizing build context with " << context->items.size() << " records." << std::endl;
+			APP_INFO("Finalizing build context with " << context->items.size() << " records.")
 		}
 
 		void context_build(build_context *context)
 		{
 			context->builder->grand_input = context->input;
 			
-			std::cout << "Starting build..." << std::endl;
+			APP_INFO("Starting build...")
 			for (int i=0;i<context->items.size();i++)
 			{
 				context_process_record(context, context->items[i]);
 			}
 
-			std::cout << "Finished build with " << context->items.size() << " build records to commit" << std::endl;
+			APP_INFO("Finished build, total of " << context->items.size() << " build records")
 
 			// All records are such that the parent will come first, so we go back wards.
 			for (int i=context->items.size()-1;i>=0;i--)
@@ -709,7 +709,7 @@ namespace putki
 				work_item *item = context->items[i];
 				if (!item->commit)
 				{
-					std::cout << " item[" << i << "] path=" << item->path << " not flagged for commit?!" << std::endl;
+					APP_WARNING("item[" << i << "] path=" << item->path << " not flagged for commit?!")
 					continue;
 				}
 
@@ -757,7 +757,7 @@ namespace putki
 			for (unsigned int i=0;i<context->items.size();i++)
 				delete context->items[i];
 
-			std::cout << "Trash size: " << db::size(context->trash) << std::endl;
+			APP_DEBUG("Trash size: " << db::size(context->trash))
 			db::free_and_destroy_objs(context->trash);
 			delete context;
 		}
@@ -779,14 +779,16 @@ namespace putki
 
 		void build_global_pass(data *builder, db::data *input, db::data *output)
 		{
+			/*
 			global_pass_builder gb;
 			gb.builder = builder;
 			gb.input = input;
 			gb.output = output;
 			gb.phase = PHASE_GLOBAL;
-			std::cout << "==> Doing global build pass." << std::endl;
+			std::cout << "Doing global build pass." << std::endl;
 			db::read_all_no_fetch(input, &gb);
-			std::cout << "==> Global build pass done." << std::endl;
+			std::cout << "Global build pass done." << std::endl;
+			*/
 		}
 
 		void write_build_db(builder::data *d)
