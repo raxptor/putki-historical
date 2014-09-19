@@ -18,7 +18,7 @@ namespace putki
 			std::vector<std::string> paths;
 			std::vector<std::string> subpaths;
 			db::data *ref_source;
-			instance_t base;
+			instance_t base, start;
 			type_handler_i *th;
 
 			virtual bool pointer_pre(instance_t *on)
@@ -27,6 +27,10 @@ namespace putki
 				if (!obj) {
 					return false;
 				}
+
+				// returning back to where we were.
+				if (obj == start)
+					return false;
 
 				const char *path = db::pathof(ref_source, obj);
 				if (path && db::is_aux_path_of(ref_source, base, path))
@@ -37,6 +41,7 @@ namespace putki
 					auxwriter aw;
 					if (db::fetch(ref_source, path, &aw.th, &aw.base))
 					{
+						aw.start = start;
 						aw.ref_source = ref_source;
 						aw.th->walk_dependencies(aw.base, &aw, false);
 
@@ -76,6 +81,7 @@ namespace putki
 			auxwriter aw;
 			aw.th = th;
 			aw.base = obj;
+			aw.start = obj;
 			aw.ref_source = ref_source;
 			th->walk_dependencies(obj, &aw, false);
 

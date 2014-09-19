@@ -29,6 +29,13 @@ namespace putki
 
 	struct depwalker_i
 	{
+		// dodge cycles
+		depwalker_i();
+		virtual ~depwalker_i();
+		struct visited_set;
+		visited_set *_visited;
+		bool pointer_pre_filter(instance_t *on);
+
 		virtual bool pointer_pre(instance_t *on) = 0; // pre descending into pointer.
 		virtual void pointer_post(instance_t *on) = 0; // post descending into pointer.
 	};

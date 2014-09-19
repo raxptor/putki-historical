@@ -1,5 +1,6 @@
 #include "typereg.h"
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -20,6 +21,45 @@ namespace putki
 			static registry r;
 			return &r;
 		}
+	}
+
+	struct depwalker_i::visited_set
+	{
+		std::set<void *> visited;
+	};
+
+	depwalker_i::depwalker_i()
+	{
+		_visited = 0;
+	}
+
+	depwalker_i::~depwalker_i()
+	{
+		delete _visited;
+	}
+
+	bool depwalker_i::pointer_pre_filter(instance_t *on)
+	{
+		bool ret = pointer_pre(on);
+		if (ret)
+		{
+			if (!_visited)
+			{
+				_visited = new depwalker_i::visited_set();
+				_visited->visited.insert(on);
+				return true;
+			}
+			else if (_visited->visited.count(on))
+			{
+				return false;
+			}
+			else
+			{
+				_visited->visited.insert(on);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void typereg_init()

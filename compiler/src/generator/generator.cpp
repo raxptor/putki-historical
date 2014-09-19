@@ -840,7 +840,7 @@ namespace putki
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
-					out.line() << "if (walker->pointer_pre((putki::instance_t *)&" << ref << "))";
+					out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << "))";
 					out.line() << "{";
 					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker "
 					            << (runtime ? "" : ",true ") << rttiDispatchArg << "); }";

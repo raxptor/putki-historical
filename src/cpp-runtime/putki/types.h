@@ -9,6 +9,11 @@ namespace putki
 
 	struct depwalker_i
 	{
+		bool pointer_pre_filter(instance_t *ptr)
+		{
+			// todo, build in cycle dodging here
+			return pointer_pre(ptr);
+		}
 		virtual bool pointer_pre(instance_t *ptr) {
 			return true;
 		}
