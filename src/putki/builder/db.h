@@ -21,7 +21,7 @@ namespace putki
 
 		void register_on_destroy(data *d, on_destroy_fn fn, void *userptr);
 		void free_and_destroy_objs(data *d);
-		void free(data *);
+		void free(data *d, data *unresolved_target = 0);
 
 		void insert_deferred(data *d, const char *path, deferred_load_fn, void *userptr);
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);

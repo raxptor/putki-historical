@@ -388,8 +388,7 @@ namespace putki
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
-					// don't traverse.
+					out->pointers.insert(path);
 					return false;
 				}
 
