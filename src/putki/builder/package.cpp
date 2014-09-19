@@ -55,7 +55,6 @@ namespace putki
 					instance_t _obj;
 					if (db::fetch(db, path, &_th, &_obj))
 					{
-						APP_DEBUG("Resoved [" << path << "]")
 						*on = _obj;
 					}
 					else

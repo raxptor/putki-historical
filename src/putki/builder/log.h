@@ -58,6 +58,7 @@ namespace putki
 
 #define RECORD_INFO(target, stmt) RECORD_LOG(target, putki::LOG_INFO, stmt)
 #define RECORD_DEBUG(target, stmt) RECORD_LOG(target, putki::LOG_DEBUG, stmt)
+#define RECORD_WARNING(target, stmt) RECORD_LOG(target, putki::LOG_WARNING, stmt)
 #define RECORD_ERROR(target, stmt) RECORD_LOG(target, putki::LOG_ERROR, stmt)
 
 #define BUILD_INFO(target, stmt) BUILD_LOG(target, putki::LOG_INFO, stmt)

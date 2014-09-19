@@ -571,7 +571,6 @@ namespace putki
 			{
 				const char *path = build_db::get_pointer(r, i);
 				if (!path) break;
-				if (db::exists(context->output, path)) continue;
 
 				if (inputset::get_object_sig(context->builder->input_set, path))
 				{
@@ -580,7 +579,10 @@ namespace putki
 				}
 				else
 				{
-					RECORD_INFO(r, "This record contains unresolved pointer to " << path)
+					if (inputset::get_object_sig(context->builder->tmp_input_set, path))
+						RECORD_DEBUG(r, "dep for ptr[" << i << "] (tmp) " << path)
+					else
+						RECORD_WARNING(r, "dep for ptr[" << i << "] = unresolved ptr to " << path)
 				}
 			}
 		}
@@ -614,7 +616,7 @@ namespace putki
 				build_db::commit_record(context->builder->build_db, item->br);
 
 				if (!item->from_cache)
-					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
 
 				context_add_build_record_pointers(context, item->path.c_str());
 
