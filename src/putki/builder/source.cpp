@@ -77,11 +77,11 @@ namespace putki
 					type_handler_i *th;
 					instance_t obj;
 					
-					if (db::fetch(parent->db, path, &th, &obj))
+					if (db::fetch(parent->db, path, &th, &obj, false, true))
 					{
 						*on = obj;
 					}
-					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj))
+					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj, false, true))
 					{
 						*on = obj;
 					}
@@ -89,16 +89,16 @@ namespace putki
 					{
 						if (parent->add_to_load)
 						{
-							APP_DEBUG("Unresolved " << path << " .. so loading.")
 							parent->to_load.push_back(path);
 							return false;
 						}
 
-						APP_DEBUG("Unresolved reference to [" << path << "] when loading [" << parent->path << "]")
+						APP_WARNING("Unresolved reference to [" << path << "] when loading [" << parent->path << "]")
 						parent->unresolved++;
 						
 						if (parent->zero_unresolved)
 						{
+						
 							*on = 0;
 						}
 						return false;
@@ -257,7 +257,7 @@ namespace putki
 		enum_db_entries_resolve resolver;
 		resolver.add_to_load = true;
 		resolver.db = db;
-		resolver.extra_resolve_db = loader->resolve_db[path];
+		resolver.extra_resolve_db = 0; // loader->resolve_db[path];
 		resolver.traverse_children = true;
 		
 		if (!db::fetch(db, path, th, obj, false, true))
@@ -267,6 +267,7 @@ namespace putki
 		}
 
 		std::set<std::string> loaded;
+		std::set<std::string> i_loaded;
 
 		while (true)
 		{
@@ -279,17 +280,21 @@ namespace putki
 			for (unsigned int i=0; i<resolver.to_load.size(); i++)
 			{
 				std::string file = resolver.to_load[i] + ".json";
-				if (loaded.count(file) == 0)
+				if (loaded.count(resolver.to_load[i]) == 0)
 				{
 					ld++;
-					APP_DEBUG("deferred: loading additional [" << file << "] into db ")
 					
-					if (db::start_loading(db, path))
+					if (db::start_loading(db, resolver.to_load[i].c_str()))
 					{
+						APP_DEBUG("Loading dependency [" << resolver.to_load[i] << "] into db")
 						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+						i_loaded.insert(resolver.to_load[i]);
 					}
-					
-					loaded.insert(file);
+					else
+					{
+						APP_DEBUG("Waiting for someone else load [" << resolver.to_load[i] << "]")
+					}
+					loaded.insert(resolver.to_load[i]);
 				}
 			}
 
@@ -308,15 +313,30 @@ namespace putki
 		}
 		
 		db::done_loading(db, path);
-		std::set<std::string>::iterator i = loaded.begin();
-		while (i != loaded.end())
+		std::set<std::string>::iterator i = i_loaded.begin();
+		while (i != i_loaded.end())
 		{
 			db::done_loading(db, i->c_str());
+			i++;
 		}
-
+		
+		// death wait
+		i = loaded.begin();
+		while (i != loaded.end())
+		{
+			if (!i_loaded.count(*i))
+			{
+				APP_DEBUG("Death wait on " << *i)
+				type_handler_i *th_;
+				instance_t obj_;
+				db::fetch(db, i->c_str(), &th_, &obj_, false);
+			}
+			i++;
+		}
+		
 		if (resolver.unresolved)
 		{
-			std::cerr << "*** there are unresolved pointers after the deferred load!" << std::endl;
+			APP_WARNING(" *** there are unresolved pointers after the deferred load!");
 			return true;
 		}
 		

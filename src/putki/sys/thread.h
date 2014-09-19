@@ -89,7 +89,7 @@ namespace putki
 			}
 			condition& operator=(condition &b)
 			{
-			
+				return *this;
 			}
 			
 			~condition()

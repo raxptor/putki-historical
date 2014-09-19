@@ -300,17 +300,14 @@ namespace putki
 			{
 				if (d->objs.find(path) != d->objs.end())
 				{
-					APP_DEBUG("Someone else will resolve it")
 					return false;
 				}
-				APP_DEBUG("Was loading " << path << " waiting")
 				was_loading = true;
 				d->isloading_cond.wait(d->mtx);
 			}
 			
 			if (!was_loading)
 			{
-				APP_DEBUG("Was not loading " << path << " go ahead")
 				d->isloading.insert(path);
 				return true;
 			}
@@ -324,7 +321,6 @@ namespace putki
 		
 		void done_loading(data *d, const char *path)
 		{
-			APP_DEBUG("done loading")
 			sys::scoped_maybe_lock _lk(d->mtx);
 			d->isloading.erase(d->isloading.find(path));
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
@@ -334,9 +330,8 @@ namespace putki
 				for (unsigned int k=0;k!=i->second.auxrefs.size();k++)
 				{
 					std::string & str = i->second.auxrefs[k];
-					d->isloading.erase(d->isloading.find(std::string(path) + "#" + str));
+					d->isloading.erase(d->isloading.find(std::string(path) + str));
 				}
-				APP_DEBUG("loaded " << i->second.auxrefs.size() << " auxref")
 			}
 			
 			d->isloading_cond.broadcast();
