@@ -11,6 +11,7 @@
 #include <putki/builder/parse.h>
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
+#include <putki/builder/log.h>
 
 namespace putki
 {
@@ -88,12 +89,12 @@ namespace putki
 					{
 						if (parent->add_to_load)
 						{
-							std::cout << " unresolved " << path << " .. so loading " << std::endl;
+							APP_DEBUG("Unresolved " << path << " .. so loading.")
 							parent->to_load.push_back(path);
 							return false;
 						}
 
-						std::cout << "Unresolved reference to [" << path << "] when loading [" << parent->path << "]" << std::endl;
+						APP_DEBUG("Unresolved reference to [" << path << "] when loading [" << parent->path << "]")
 						parent->unresolved++;
 						
 						if (parent->zero_unresolved)
@@ -168,7 +169,7 @@ namespace putki
 			}
 			else
 			{
-				std::cout << " => Unrecognized type [" << objtype << "]" << std::endl;
+				APP_WARNING("Unrecognized type [" << objtype << "]")
 			}
 
 			// go grab all the auxs
@@ -202,7 +203,7 @@ namespace putki
 		}
 		else
 		{
-			std::cout << "[failed to load into db <" << fullpath << "> <" << name << ">" << std::endl;
+			APP_WARNING("Failed to load into db <" << fullpath << "> <" << name << ">")
 		}
 	}
 	
@@ -230,7 +231,7 @@ namespace putki
 	{
 		if (!--loader->refcount)
 		{
-			std::cout << "Destroying loader with [" << loader->sourcepath << "]" << std::endl;
+			APP_DEBUG("Destroying loader with [" << loader->sourcepath << "]")
 			delete loader;
 		}
 	}
@@ -240,8 +241,7 @@ namespace putki
 		deferred_loader *loader = (deferred_loader *)userptr;
 		
 		// 1. Load the json file raw into the database. 
-		std::cout << "\033[" << 31 << "m";
-		std::cout << "REALIZING DEFERRED LOAD ON " << path << " from [" << loader->sourcepath << "]\033[39m" << std::endl;
+		APP_DEBUG("deferred: loading " << path << " from [" << loader->sourcepath << "]")
 		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
@@ -257,7 +257,7 @@ namespace putki
 		
 		if (!db::fetch(db, path, th, obj))
 		{
-			std::cerr << "*** do_deferred_load could not fetch itself!" << std::endl;
+			APP_ERROR("Deferred load fail")
 			return false;
 		}
 
@@ -277,7 +277,7 @@ namespace putki
 				if (loaded.count(file) == 0)
 				{
 					ld++;
-					std::cout << "*** loading additional [" << file << "] into db " << std::endl;
+					APP_DEBUG("deferred: loading additional [" << file << "] into db ")
 					load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
 					loaded.insert(file);
 				}
@@ -337,7 +337,7 @@ namespace putki
 		_count++;
 		putki::sys::search_tree(sourcepath, add_file, 0);
 		db::register_on_destroy(d, on_destroy_db, _loader);
-		std::cout << "Inserted " << _count << " objects with deferred loads" << std::endl;
+		APP_INFO("Inserted " << _count << " objects with deferred loads")
 	}
 
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)

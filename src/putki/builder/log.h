@@ -25,18 +25,24 @@ namespace putki
 
 #define RECORD_LOG(target, type, stmt) { \
 	std::ostringstream __DPRINT_LINE; \
-	if (putki::show_line(type)) \
-	__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
-	__DPRINT_LINE << stmt; \
-	build_db::record_log(target, type, __DPRINT_LINE.str().c_str()); \
+	if (putki::check_filter(type)) \
+	{ \
+		if (putki::show_line(type)) \
+			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
+		__DPRINT_LINE << stmt; \
+		build_db::record_log(target, type, __DPRINT_LINE.str().c_str()); \
+	} \
 }
 
 #define BUILD_LOG(target, type, stmt) { \
-	std::ostringstream __DPRINT_LINE; \
-	if (putki::show_line(type)) \
-	__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
-	__DPRINT_LINE << stmt; \
-	builder::record_log(target, type, __DPRINT_LINE.str().c_str()); \
+	if (putki::check_filter(type)) \
+	{ \
+		std::ostringstream __DPRINT_LINE; \
+		if (putki::show_line(type)) \
+			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
+		__DPRINT_LINE << stmt; \
+		builder::record_log(target, type, __DPRINT_LINE.str().c_str()); \
+	} \
 }
 
 #define APP_LOG(type, stmt) { \
@@ -44,7 +50,7 @@ namespace putki
 	{ \
 		std::ostringstream __DPRINT_LINE; \
 		if (putki::show_line(type)) \
-		__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
+			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
 		__DPRINT_LINE << stmt; \
 		putki::print_log(type, "", __DPRINT_LINE.str().c_str()); \
 	} \
@@ -60,6 +66,7 @@ namespace putki
 
 #define APP_DEBUG(stmt) APP_LOG(putki::LOG_DEBUG, stmt)
 #define APP_INFO(stmt) APP_LOG(putki::LOG_INFO, stmt)
+#define APP_WARNING(stmt) APP_LOG(putki::LOG_WARNING, stmt)
 #define APP_ERROR(stmt) APP_LOG(putki::LOG_ERROR, stmt)
 
 #endif

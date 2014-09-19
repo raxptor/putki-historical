@@ -673,7 +673,11 @@ namespace putki
 					item->num_children++;
 
 					std::string cr_path = cr_path_ptr;
-					RECORD_INFO(item->br, "Build created [" << cr_path << "]")
+
+					if (!from_cache)
+					{
+						RECORD_INFO(item->br, "Build created [" << cr_path << "]")
+					}
 
 					outpos++;
 				}

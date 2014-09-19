@@ -3,6 +3,7 @@
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
 #include <putki/builder/build-db.h>
+#include <putki/builder/log.h>
 #include <putki/blob.h>
 
 #include <set>
@@ -37,14 +38,13 @@ namespace putki
 				const char *path = db::pathof_including_unresolved(db, *on);
 				if (!path)
 				{
-					std::cout << "     found OBJECT WITHOUTH PATH!" << std::endl;
+					APP_ERROR("Found object without path")
 					return true;
 				}
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					std::cout << "Ignoring unresolved asset with path [" << path << "]" << std::endl;
-
+					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
 					// don't traverse.
 					return false;
 				}
@@ -82,7 +82,7 @@ namespace putki
 		void debug(package::data *data, build_db::data *bdb)
 		{
 			blobmap_t::iterator i = data->blobs.begin();
-			std::cout << " *** package contents ***" << std::endl;
+			APP_DEBUG("Package contents:")
 			std::set<std::string> included;
 			std::vector<std::string> queue;
 
@@ -103,7 +103,7 @@ namespace putki
 			{
 				if (db::is_aux_path(queue[pos].c_str()))
 				{
-					std::cout << "      + " << queue[pos] << std::endl;
+					APP_DEBUG("    + " << queue[pos])
 					pos++;
 					continue;
 				}
@@ -111,12 +111,12 @@ namespace putki
 				build_db::record *r = build_db::find(bdb, queue[pos].c_str());
 				if (!r)
 				{
-						std::cout << " pointer to non built object, i want to package [" << queue[pos] << "]!!!" << std::endl;
+						APP_ERROR("Pointer to non built object, i want to package [" << queue[pos] << "]")
 						pos++;
 						continue;
 				}
 
-				std::cout << " entry:" << queue[pos] << " [" << build_db::get_type(r) << "] built_sig=" << build_db::get_signature(r) << std::endl;
+				APP_DEBUG("  entry:" << queue[pos] << " [" << build_db::get_type(r) << "] built_sig=" << build_db::get_signature(r))
 
 				for (int j=0;;j++)
 				{
@@ -125,7 +125,7 @@ namespace putki
 						break;
 					if (included.count(ptr))
 						continue;
-					std::cout << "    pointer to [" << ptr << "]" << std::endl;
+					APP_DEBUG("    pointer to [" << ptr << "]")
 					queue.push_back(ptr);
 					included.insert(ptr);
 				}
@@ -172,7 +172,7 @@ namespace putki
 			}
 			else
 			{
-				std::cout << "ERROR: Trying to add [" << path << "] to package, but not found!" << std::endl;
+				APP_ERROR("Trying to add [" << path << "] to package, but not found!")
 			}
 		}
 
@@ -207,7 +207,7 @@ namespace putki
 					const char *path = db::pathof(db, *p);
 					if (!path)
 					{
-						std::cout << "Object [" << *p << "] will not be packed because it is missing in the db." << std::endl;
+						APP_WARNING("Object [" << *p << "] will not be packed because it is missing in the db.")
 						// need to return false because this could be unresolved. we can't do anything about it anyway!.
 						return false;
 					}
@@ -225,7 +225,7 @@ namespace putki
 
 		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
-			std::cout << "Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs." << std::endl;
+			APP_DEBUG("Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs.")
 
 			// create a pack list and save where each entry goes.
 			std::map<std::string, int> packorder;
@@ -267,7 +267,7 @@ namespace putki
 				const char *path = db::pathof_including_unresolved(data->source, pp.ptrs[i].value);
 				if (!path)
 				{
-					std::cout << "!!! POINTER NOT IN THE OUTPUT DOMAIN DETECTED !!!" << std::endl;
+					APP_ERROR("Pointer not in output db")
 				}
 				else
 				{
@@ -300,7 +300,7 @@ namespace putki
 				}
 			}
 
-			std::cout << " * " << packlist.size() << " blobs, " << written << " pointer writes." << std::endl;
+			APP_DEBUG(" * " << packlist.size() << " blobs, " << written << " pointer writes.")
 
 			char *ptr = buffer;
 			char *end = buffer + available;
@@ -332,6 +332,7 @@ namespace putki
 					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
 					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
 					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
+					APP_ERROR("HELP")
 				}
 			}
 
@@ -339,7 +340,7 @@ namespace putki
 			ptr = pack_int32_field(ptr, unpacked.size());
 			for (unsigned int i=0; i<unpacked.size(); i++)
 			{
-				std::cout << "  => Writing path for unresolved asset " << unpacked[i] << std::endl;
+				APP_DEBUG("Writing path for unresolved asset " << unpacked[i])
 				ptr = pack_int16_field(ptr, (unsigned short) unpacked[i].size() + 1);
 				memcpy(ptr, unpacked[i].c_str(), unpacked[i].size() + 1);
 				ptr += unpacked[i].size() + 1;
@@ -349,7 +350,7 @@ namespace putki
 			for (unsigned int i=0; i<pp.ptrs.size(); i++)
 				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
 
-			std::cout << "Package ready: wrote " << (ptr - buffer) << " bytes." << std::endl;
+			APP_INFO("Package ready: wrote " << (ptr - buffer) << " bytes.")
 
 			return ptr - buffer;
 		}

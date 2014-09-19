@@ -30,9 +30,16 @@ namespace
 	const unsigned long xbufSize = 32*1024*1024;
 	char xbuf[xbufSize];
 
+
 	struct domain_switch : public putki::db::enum_i
 	{
 		putki::db::data *input, *output;
+		bool create_unresolved;
+	
+		domain_switch()
+		{
+			create_unresolved = true;
+		}
 
 		struct depwalker : public putki::depwalker_i
 		{
@@ -67,11 +74,24 @@ namespace
 
 				if (!putki::db::fetch(parent->output, path, &th, &obj))
 				{
-					obj = putki::db::create_unresolved_pointer(parent->output, path);
-					APP_INFO("=> Adding unresolved pointer for output for path [" << path << "]")
+					if (parent->create_unresolved)
+					{
+						*on = putki::db::create_unresolved_pointer(parent->output, path);
+						APP_INFO("Adding unresolved pointer for output for path [" << path << "]")
+						return;
+					}
+					else
+					{
+						return;
+					}
 				}
 
-				*on = obj;
+				if (*on != obj)
+				{
+					*on = obj;
+					APP_DEBUG("Updating pointer to [" << path << "]")
+				}
+
 				return;
 			}
 		};
@@ -89,6 +109,50 @@ namespace
 		}
 	};
 
+	struct unresolver : public putki::db::enum_i
+	{
+		putki::db::data *input;
+
+		struct depwalker : public putki::depwalker_i
+		{
+			unresolver *parent;
+
+			bool pointer_pre(putki::instance_t *on)
+			{
+				return true;
+			}
+
+			void pointer_post(putki::instance_t *on)
+			{
+				if (!*on) {
+					return;
+				}
+
+				const char *path = putki::db::pathof_including_unresolved(parent->input, *on);
+				if (!path)
+				{
+					APP_ERROR("!!! A wild object appears! [" << *on << "] during unresolve")
+					return;
+				}
+
+				APP_DEBUG("Unresolving pointer to " << path)
+				*on = putki::db::create_unresolved_pointer(parent->input, path);
+				return;
+			}
+		};
+
+		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
+		{
+			// ignore deferred objects.
+			if (obj && th)
+			{
+				depwalker dp;
+				dp.parent = this;
+				th->walk_dependencies(obj, &dp, false);
+			}
+		}
+	};
+
 	struct db_record_inserter : public putki::db::enum_i
 	{
 		putki::db::data *input;
@@ -99,6 +163,7 @@ namespace
 		{
 			// if we happen to overwrite an object (when merging outputs into parent records with tmp objects),
 			// we would like to know that it must be trashed.
+			APP_DEBUG("Copying " << path)
 			if (trash)
 			{
 				putki::type_handler_i *_th;
@@ -110,7 +175,7 @@ namespace
 					// if we are overwriting with a different object, current object will be lost
 					if (!obj || obj != _obj)
 					{
-						APP_DEBUG("Trashing object " << path)
+						APP_DEBUG("Trashing object " << path << " src=" << obj << " replacing=" << _obj)
 						putki::db::insert(trash, path, _th, _obj);
 					}
 				}
@@ -209,6 +274,12 @@ namespace putki
 			ri.output = target;
 			ri.trash = trash;
 			putki::db::read_all_no_fetch(source, &ri);
+
+			domain_switch dsw;
+			dsw.input = source;
+			dsw.output = target;
+			dsw.create_unresolved = false;
+			db::read_all_no_fetch(target, &dsw);
 		}
 
 		void do_build(putki::builder::data *builder, const char *single_asset)

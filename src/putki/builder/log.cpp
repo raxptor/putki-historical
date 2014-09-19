@@ -33,7 +33,7 @@ namespace putki
 					buf << "\033[31m";
 					break;
 				case LOG_WARNING:
-					buf << "\033[32m";
+					buf << "\033[35m";
 					break;
 				default:
 				case LOG_DEBUG:
@@ -63,6 +63,8 @@ namespace putki
 
 	bool check_filter(LogType level)
 	{
+		if (level == LOG_DEBUG)
+			return false;
 		return true;
 	}
 }
