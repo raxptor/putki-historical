@@ -49,8 +49,8 @@ namespace putki
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
-			std::map<std::string, deferred> deferred;
 			std::vector<on_destroy> ondestroy;
+			std::map<std::string, struct deferred> deferred;
 			char auxpathbuf[256];
 			data *parent;
 		};
