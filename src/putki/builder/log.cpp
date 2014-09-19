@@ -6,7 +6,7 @@
 
 namespace putki
 {
-	bool tty_out = isatty(0);
+	bool tty_out = isatty(1);
 
 	void print_log(LogType level, const char *indent, const char *message)
 	{
@@ -63,8 +63,8 @@ namespace putki
 
 	bool check_filter(LogType level)
 	{
-		if (level == LOG_DEBUG)
-			return false;
+//		if (level == LOG_DEBUG)
+//			return false;
 		return true;
 	}
 }
