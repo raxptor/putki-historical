@@ -3,6 +3,7 @@
 
 #include <putki/builder/typereg.h>
 #include <putki/builder/build.h>
+#include <putki/builder/log.h>
 #include <putki/runtime.h>
 
 namespace putki
@@ -44,6 +45,8 @@ namespace putki
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
 		void build_global_pass(data *builder, db::data *input, db::data *output);
 		void build_final_pass(data *builder, db::data *input, db::data *output);
+		
+		void record_log(data *builder, LogType, const char *text);
 		
 		// new api
 		struct build_context;

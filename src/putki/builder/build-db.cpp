@@ -213,6 +213,14 @@ namespace putki
 			return r;
 		}
 
+		void record_log(record *r, LogType type, const char *msg)
+		{
+			std::string pfx("[");
+			pfx.append(r->source_path);
+			pfx.append("]");
+			print_log(type, pfx.c_str(), msg);
+		}
+
 		bool copy_existing(data *d, record *target, const char *path)
 		{
 			RM::iterator q = d->records.find(path);

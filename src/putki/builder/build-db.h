@@ -1,5 +1,7 @@
 #pragma once
 
+#include <putki/builder/log.h>
+
 namespace putki
 {
 	namespace db
@@ -32,6 +34,8 @@ namespace putki
 		void add_input_dependency(record *r, const char *dependency);
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature);
 		void insert_metadata(data *data, db::data *db, const char *path);
+		void record_log(record *r, LogType type, const char *msg);
+		
 		void commit_record(data *d, record *r);
 
 		void copy_input_dependencies(record *copy_to, record *copy_from);

@@ -6,6 +6,7 @@
 #include <putki/builder/source.h>
 #include <putki/builder/inputset.h>
 #include <putki/builder/write.h>
+#include <putki/builder/log.h>
 #include <putki/sys/files.h>
 
 #include <map>
@@ -239,13 +240,17 @@ namespace putki
 			if (dlist)
 			{
 				int matches = 0;
-				std::cout << "        => Examining rebuild need for " << path << std::endl;
 				for (int i=0;;i++)
 				{
 					const char *entrypath = build_db::deplist_path(dlist, i);
 					if (!entrypath)
 					{
 						break;
+					}
+				
+					if (!i)
+					{
+						RECORD_DEBUG(newrecord, "Examining cache...")
 					}
 
 					const char *signature = build_db::deplist_signature(dlist, i);
@@ -259,13 +264,14 @@ namespace putki
 							inputsig = inputset::get_object_sig(builder->tmp_input_set, entrypath);
 							if (!inputsig)
 							{
-								std::cout << "Signature missing weirdness [" << entrypath << "]" << std::endl;
+								BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
 								inputsig = "bonkers";
 							}
 						}
 
 						bool sigmatch = !strcmp(inputsig, signature);
-						std::cout << "        i: " << entrypath << " old:" << signature << " new " << inputsig << std::endl;
+						RECORD_DEBUG(newrecord, "=> i: " << entrypath << " old:" << signature << " new " << inputsig)
+
 						// only care for builder match when the input is going to be built with this builder
 						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder_name, handler_name);
 						if (sigmatch && buildermatch)
@@ -280,7 +286,7 @@ namespace putki
 							}
 							else
 							{
-								std::cout << "        *** Detected modification in [" << entrypath << "]" << std::endl;
+								RECORD_DEBUG(newrecord, "!! Detected modification in [" << entrypath << "]")
 							}
 
 							return "input or builder has been modified";
@@ -288,7 +294,7 @@ namespace putki
 					}
 					else
 					{
-						std::cout << "        ext: " << entrypath << " old:" << signature << std::endl;
+						RECORD_DEBUG(newrecord, "=> ext: " << entrypath << " old:" << signature)
 						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
 						{
 							return "external source data has been modified";
@@ -308,10 +314,10 @@ namespace putki
 					//       that are/will be rebuilt... objects that are pointed to but not registered as
 					//       dependencies might cause that object to be rebuilt, and then we load a cached object here
 					//       which pulls in an 'old' version into the database... no good!
-					std::cout << "         *** Loading cached object " << path << std::endl;
+					RECORD_DEBUG(newrecord, "Loading from cache...")
 					if (!build_db::copy_existing(builder::get_build_db(builder), newrecord, path))
 					{
-						std::cout << "   F A I L E D - to copy existing FAILED" << std::endl;
+						BUILD_ERROR(builder, "Failed to copy existing FAILED")
 					}
 
 					// first pass is outputs, second is pointer (which need to be loaded!)
@@ -323,7 +329,7 @@ namespace putki
 							break;
 						}
 						
-						std::cout << " output[" << j << "] is " << rpath << std::endl;
+						RECORD_DEBUG(newrecord, "	output[" << j << "] is " << rpath)
 
 						// We want to carefully load these files, and not overwrite any which might have been built
 						// this time.
@@ -332,24 +338,24 @@ namespace putki
 							// only the main object is pulled from output
 							if (!strcmp(path, rpath))
 							{
-								std::cout << " deferred insert on " << rpath << " cache" << std::endl;
+								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " cache")
 								load_file_deferred(builder->cache_loader, output, rpath, builder->grand_input);
 							}
 							else
 							{
-								std::cout << " deferred TMP insert on " << rpath << " cache" << std::endl;
+								RECORD_DEBUG(newrecord, "	deferred tmp insert on " << rpath << " cache")
 								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
 						else
 						{
-							std::cout << " WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]" << std::endl;
+							BUILD_ERROR(builder, "WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]")
 						}
 					}
 
 					if (!db::exists(output, path))
 					{
-						std::cerr << "ERROR! Wanted to load cached object [" << path << "] but it did not work!" << std::endl;
+						BUILD_ERROR(builder, "ERROR! Wanted to load cached object [" << path << "] but it did not work!")
 					}
 
 					// Now we hope for the best since these files came from disk and should be OK unless the user
@@ -386,7 +392,6 @@ namespace putki
 				}
 
 				const char *path = putki::db::pathof(input, *on);
-
 				if (!path)
 				{
 					return;
@@ -403,21 +408,20 @@ namespace putki
 				if (putki::db::fetch(output, path, &th, &obj))
 				{
 					*on = obj;
-					std::cout << "Updated pointer to aux [" << path << "]" << std::endl;
+					RECORD_DEBUG(record, "Updated pointer to aux [" << path << "]")
 				}
 				else
 				{
 					if (!putki::db::fetch(input, path, &th, &obj))
 					{
-						std::cout << "Breakdown of common sense on [" << path << "] CRAZY OBJECT!" << std::endl;
+						RECORD_ERROR(record, "Breakdown of common sense on [" << path << "] CRAZY OBJECT!")
 						return;
 					}
 
-					std::cout << "    => cloning [" << path << "] to output." << std::endl;
+					RECORD_DEBUG(record, "Cloning [" << path << "] to output.")
 					obj = th->clone(obj);
 					putki::db::insert(output, path, th, obj);
 					*on = obj;
-					/* build_db::add_output(record, path, name); */
 				}
 			}
 		};
@@ -439,7 +443,7 @@ namespace putki
 						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
-							std::cout << " => Building [" << path << "] with [" << e->handler->version() << "] because " << reason << std::endl;
+							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
 							if (input == builder->grand_input)
@@ -451,7 +455,7 @@ namespace putki
 						else
 						{
 							// build record has been rewritten from cache, can't go modify it more now.
-							std::cout << " => Picked up cached result for [" << path << "]" << std::endl;
+							RECORD_DEBUG(record, "Using from cache")
 							return false;
 						}
 
@@ -468,13 +472,19 @@ namespace putki
 			if (!handled)
 			{
 				// Just moving into output
+
 				build_db::set_builder(record, default_name);
 
 				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
 				// only actually to see if it needs to be rewritten
 				if (!fetch_cached_build(builder, record, default_name, input, path, obj, th, output))
 				{
+					RECORD_DEBUG(record, "Using from cache")
 					return false;
+				}
+				else
+				{
+					RECORD_INFO(record, "Building with default handler")
 				}
 			}
 
@@ -556,13 +566,14 @@ namespace putki
 
 			if (!item->parent)
 			{
-				std::cout << "     => inserting [" << item->path << "] into world output [record " << item->path << "]" << std::endl;
+				RECORD_DEBUG(item->br, "Merging to world output")
 				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
 			}
 			if (item->parent)
 			{
+				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
@@ -584,11 +595,11 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
-			std::cout << "RECORD " << item->path << " input:" << item->input << " parent:" << item->parent << std::endl;
+			BUILD_INFO(context->builder, "Record: " << item->path)
 
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
-				std::cerr << "ERROR1 WITH ITEM " << item->path << std::endl;
+				BUILD_ERROR(context->builder, "Fetch failed");
 				return;
 			}
 
@@ -599,7 +610,7 @@ namespace putki
 				sig = inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str());
 				if (!sig)
 				{
-					std::cout << " *** INPUT HAD NO INPUT SIGNATURE (" << item->path << ") !!! ***" << std::endl;
+					BUILD_ERROR(context->builder, "No signature");
 					sig = "tmp-obj-sig";
 				}
 			}
@@ -632,19 +643,19 @@ namespace putki
 						if (db::fetch(item->output, cr_path_ptr, &_th, &_obj))
 						{
 							char fn[1024];
-							std::cout << " RECORDING TMP SIGNATURE [" << cr_path_ptr << "] " << db::signature(item->output, cr_path_ptr) << std::endl;
+							// BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(item->output, cr_path_ptr))
 							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, item->output, _th, _obj, fn))
 							{
 								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
 							}
 							else
 							{
-								std::cerr << " *** could not write " << cr_path_ptr << std::endl;
+								APP_ERROR("Failed to write " << cr_path_ptr)
 							}
 						}
 						else
 						{
-							std::cerr << " **** COULD NOT READ OUTPUT " << cr_path_ptr << "!!!" << std::endl;
+							BUILD_ERROR(context->builder, "Could not read output " << cr_path_ptr)
 						}
 					}
 
@@ -662,7 +673,7 @@ namespace putki
 					item->num_children++;
 
 					std::string cr_path = cr_path_ptr;
-					std::cout << "      ==> Adding subly created input [" << outpos << "] which is [" << cr_path << "]" << std::endl;
+					RECORD_INFO(item->br, "Build created [" << cr_path << "]")
 
 					outpos++;
 				}
@@ -784,6 +795,10 @@ namespace putki
 			std::cout << "!!! BUILD ERROR: " << str << std::endl;
 		}
 
+		void record_log(data *builder, LogType type, const char *text)
+		{
+			putki::print_log(type, "BUILD", text);
+		}
 	}
 
 }

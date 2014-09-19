@@ -16,6 +16,7 @@
 #include <putki/builder/resource.h>
 #include <putki/builder/write.h>
 #include <putki/builder/build-db.h>
+#include <putki/builder/log.h>
 
 #include <putki/sys/files.h>
 
@@ -57,8 +58,9 @@ namespace
 				if (!path)
 				{
 					// this would mean the object exists neither in the input nor output domain.
-					if (!putki::db::pathof_including_unresolved(parent->output, *on)) {
-						std::cout << "!!! A wild object appears! [" << *on << "]" << std::endl;
+					if (!putki::db::pathof_including_unresolved(parent->output, *on)) 
+					{
+						APP_ERROR("!!! A wild object appears! [" << *on << "]")
 					}
 					return;
 				}
@@ -66,12 +68,9 @@ namespace
 				if (!putki::db::fetch(parent->output, path, &th, &obj))
 				{
 					obj = putki::db::create_unresolved_pointer(parent->output, path);
-					std::cout << "=> Adding unresolved pointer for output for path [" << path << "]" << std::endl;
-					std::cout << "  object was " << obj << std::endl;
+					APP_INFO("=> Adding unresolved pointer for output for path [" << path << "]")
 				}
 
-				// std::cout << " - Updating reference in [" << putki::db::pathof(parent->output, source) << "] to [" << path << "] in output" << std::endl;
-				// rewrite to output domain
 				*on = obj;
 				return;
 			}
@@ -111,7 +110,7 @@ namespace
 					// if we are overwriting with a different object, current object will be lost
 					if (!obj || obj != _obj)
 					{
-						std::cout << " trashing object " << path << std::endl;
+						APP_DEBUG("Trashing object " << path)
 						putki::db::insert(trash, path, _th, _obj);
 					}
 				}
