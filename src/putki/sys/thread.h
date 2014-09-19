@@ -83,6 +83,14 @@ namespace putki
 			{
 				pthread_cond_init(&c, 0);
 			}
+			condition(const condition &a)
+			{
+				pthread_cond_init(&c, 0);
+			}
+			condition& operator=(condition &b)
+			{
+			
+			}
 			
 			~condition()
 			{

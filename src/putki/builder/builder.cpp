@@ -710,7 +710,6 @@ namespace putki
 			buildthread *bt = (buildthread *)userptr;
 			build_context *context = bt->context;
 			int id = bt->id;
-			delete bt;
 			
 			bool has_built = false;
 			
@@ -746,6 +745,7 @@ namespace putki
 				context_process_record(context, item);
 				has_built = true;
 			}
+			delete bt;
 		}
 
 		void context_build(build_context *context)

@@ -13,6 +13,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <putki/sys/thread.h>
+
 // #define PARSE_DEBUG(x) std::cout << x;
 #define PARSE_DEBUG(x) {}
 
@@ -131,10 +133,14 @@ namespace putki
 
 			std::cout << std::endl;
 		}
+		
+		sys::mutex r_mtx;
 
 
 		data * parse(const char *full_path)
 		{
+			sys::scoped_maybe_lock lk(&r_mtx);
+			
 			FILE *fp = ::fopen(full_path, "rb");
 			if (!fp) {
 				return 0;

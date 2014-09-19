@@ -166,12 +166,10 @@ namespace putki
 
 		const char *pathof_including_unresolved(data *d, instance_t obj)
 		{
-			sys::scoped_maybe_lock _lk(d->mtx);
 			const char *unres = is_unresolved_pointer(d, obj);
 			if (unres) {
 				return unres;
 			}
-			_lk.unlock();
 			return pathof(d, obj);
 		}
 
@@ -273,6 +271,7 @@ namespace putki
 
 		const char *make_aux_path(data *d, instance_t onto)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);		
 			std::map<instance_t, std::string>::iterator i = d->paths.find(onto);
 			if (i != d->paths.end())
 			{
@@ -289,6 +288,7 @@ namespace putki
 		
 		bool exists(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
 		}
 		
@@ -298,12 +298,19 @@ namespace putki
 			sys::scoped_maybe_lock _lk(d->mtx);
 			while (d->isloading.count(path))
 			{
+				if (d->objs.find(path) != d->objs.end())
+				{
+					APP_DEBUG("Someone else will resolve it")
+					return false;
+				}
+				APP_DEBUG("Was loading " << path << " waiting")
 				was_loading = true;
 				d->isloading_cond.wait(d->mtx);
 			}
 			
 			if (!was_loading)
 			{
+				APP_DEBUG("Was not loading " << path << " go ahead")
 				d->isloading.insert(path);
 				return true;
 			}
@@ -317,32 +324,38 @@ namespace putki
 		
 		void done_loading(data *d, const char *path)
 		{
+			APP_DEBUG("done loading")
 			sys::scoped_maybe_lock _lk(d->mtx);
 			d->isloading.erase(d->isloading.find(path));
+			std::map<std::string, entry>::iterator i = d->objs.find(path);
+			if (i != d->objs.end()) 
+			{
+				// clear loads for all auxrefs
+				for (unsigned int k=0;k!=i->second.auxrefs.size();k++)
+				{
+					std::string & str = i->second.auxrefs[k];
+					d->isloading.erase(d->isloading.find(std::string(path) + "#" + str));
+				}
+				APP_DEBUG("loaded " << i->second.auxrefs.size() << " auxref")
+			}
+			
 			d->isloading_cond.broadcast();
 		}
 
-		void mark_loading(data *d, const char *path, bool is_loading)
-		{
-			sys::scoped_maybe_lock _lk(d->mtx);
-			if (is_loading)
-				d->isloading.insert(path);
-			else
-				d->isloading.erase(d->isloading.find(path));
-			d->isloading_cond.broadcast();
-		}
-
-		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred)
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred, bool iamtheloader)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
 			while (true)
 			{
-				if (d->isloading.count(path))
+				if (!iamtheloader)
 				{
-					d->isloading_cond.wait(d->mtx);
-					continue;
+					if (d->isloading.count(path))
+					{
+						d->isloading_cond.wait(d->mtx);
+						continue;
+					}
 				}
-			
+
 				std::map<std::string, entry>::iterator i = d->objs.find(path);
 				if (i != d->objs.end())
 				{
@@ -405,6 +418,7 @@ namespace putki
 
 		instance_t ptr_to_allow_unresolved(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end()) {
 				return i->second.obj;

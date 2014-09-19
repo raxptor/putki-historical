@@ -194,6 +194,7 @@ namespace putki
 						d.db = db;
 						h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
 
+						db::start_loading(db, refpath.c_str());
 						db::insert(db, refpath.c_str(), h, obj);
 					}
 				}
@@ -245,11 +246,11 @@ namespace putki
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
 		
-		if (db::start_loading(db, path))
+		if (!db::start_loading(db, path))
 		{
-			load_into_db(db, fullpath.c_str(), fpath.c_str());
-			db::done_loading(db, path);
+			return true;
 		}
+		load_into_db(db, fullpath.c_str(), fpath.c_str());
 		
 		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
 		//  target database itself.
@@ -259,7 +260,7 @@ namespace putki
 		resolver.extra_resolve_db = loader->resolve_db[path];
 		resolver.traverse_children = true;
 		
-		if (!db::fetch(db, path, th, obj))
+		if (!db::fetch(db, path, th, obj, false, true))
 		{
 			APP_ERROR("Deferred load fail")
 			return false;
@@ -286,8 +287,8 @@ namespace putki
 					if (db::start_loading(db, path))
 					{
 						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
-						db::done_loading(db, path);
 					}
+					
 					loaded.insert(file);
 				}
 			}
@@ -304,6 +305,13 @@ namespace putki
 			resolver.add_to_load = false;
 			resolver.unresolved = 0;
 			resolver.record(path, *th, *obj);
+		}
+		
+		db::done_loading(db, path);
+		std::set<std::string>::iterator i = loaded.begin();
+		while (i != loaded.end())
+		{
+			db::done_loading(db, i->c_str());
 		}
 
 		if (resolver.unresolved)
@@ -323,13 +331,18 @@ namespace putki
 	
 	namespace
 	{
-		db::data *_db;
-		deferred_loader *_loader;
-		unsigned int _count = 0;
+		struct add
+		{
+			db::data *db;
+			deferred_loader *loader;
+			int count;	
+		};
+		
 		void add_file(const char *fullpath, const char *name, void *userptr)
 		{
-			_count++;
-			load_into_db(_db, fullpath, name, _loader);
+			add *a = (add*) userptr;
+			a->count++;
+			load_into_db(a->db, fullpath, name, a->loader);
 		}
 	}
 
@@ -341,12 +354,14 @@ namespace putki
 
 	void load_tree_into_db(const char *sourcepath, db::data *d)
 	{
-		_db = d;	
-		_loader = create_loader(sourcepath);
-		_count++;
-		putki::sys::search_tree(sourcepath, add_file, 0);
-		db::register_on_destroy(d, on_destroy_db, _loader);
-		APP_INFO("Inserted " << _count << " objects with deferred loads")
+		add *a = new add();
+		a->db = d;
+		a->loader = create_loader(sourcepath);
+		a->count = 0;
+		putki::sys::search_tree(sourcepath, add_file, a);
+		db::register_on_destroy(d, on_destroy_db, a->loader);
+		APP_INFO("Inserted " << a->count << " objects with deferred loads")
+		delete a;
 	}
 
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)
