@@ -146,6 +146,7 @@ namespace putki
 
 		const char *pathof(data *d, instance_t obj)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);
 			if (i != d->paths.end()) {
 				return i->second.c_str();
@@ -161,6 +162,7 @@ namespace putki
 
 		const char *pathof_including_unresolved(data *d, instance_t obj)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			const char *unres = is_unresolved_pointer(d, obj);
 			if (unres) {
 				return unres;
@@ -170,6 +172,7 @@ namespace putki
 
 		const char *signature(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{

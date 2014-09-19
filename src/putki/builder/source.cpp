@@ -146,7 +146,6 @@ namespace putki
 			return;
 		}
 		
-
 		parse::data *pd = parse::parse(fullpath);
 		if (pd)
 		{
