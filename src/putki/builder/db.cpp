@@ -347,11 +347,14 @@ namespace putki
 
 		void read_all_no_fetch(data *d, enum_i *eobj)
 		{
-			// actually loaded
+			std::vector< std::pair<std::string, entry> > objs;
+			std::vector< std::string > defs;
+
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{
-				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
+				objs.push_back(std::make_pair(i->first, i->second));
 				++i;
 			}
 			
@@ -359,31 +362,47 @@ namespace putki
 			std::map<std::string, deferred>::iterator j = d->deferred.begin();
 			while (j != d->deferred.end())
 			{
-				eobj->record(j->first.c_str(), 0, 0);
-				++j;
+				defs.push_back((j++)->first);
 			}
+			
+			_lk.unlock();
+			
+			
+			for (unsigned int k=0;k<objs.size();k++)
+				eobj->record(objs[k].first.c_str(), objs[k].second.th, objs[k].second.obj);
+			for (unsigned int k=0;k<defs.size();k++)
+				eobj->record(defs[k].c_str(), 0, 0);
 		}
 
 		void read_all(data *d, enum_i *eobj)
 		{
-			if (!d->deferred.empty())
+			std::set<std::string> paths;
+	
+			// insert all deferred
+			sys::scoped_maybe_lock _lk(d->mtx);
+			std::map<std::string, deferred>::iterator i = d->deferred.begin();
+			while (i != d->deferred.end())
 			{
-				std::cout << "db::read_all forced to realize reads! (" << d->deferred.size() << " entries)" << std::endl;
-				while (!d->deferred.empty())
-				{
-					std::string name = d->deferred.begin()->first.c_str();
-					type_handler_i *th;
-					instance_t obj;
-					// this will erase from the map
-					db::fetch(d, name.c_str(), &th, &obj);
-				}
+				paths.insert((i++)->first);
 			}
-		
-			std::map<std::string, entry>::iterator i = d->objs.begin();
-			while (i != d->objs.end())
+			
+			// and
+			std::map<std::string, entry>::iterator j = d->objs.begin();
+			while (j != d->objs.end())
 			{
-				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
-				++i;
+				paths.insert((j++)->first);
+			}
+	
+			_lk.unlock();
+		
+			for (std::set<std::string>::iterator i=paths.begin();i!=paths.end();i++)
+			{
+				type_handler_i *th;
+				instance_t obj;
+				if (db::fetch(d, (*i).c_str(), &th, &obj))
+				{
+					eobj->record((*i).c_str(), th, obj);
+				}
 			}
 		}
 
@@ -394,6 +413,8 @@ namespace putki
 
 		instance_t create_unresolved_pointer(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+		
 			std::map<std::string, const char *>::iterator i = d->strpool.find(path);
 			if (i != d->strpool.end()) {
 				return (instance_t) i->second;
@@ -408,6 +429,8 @@ namespace putki
 
 		const char *is_unresolved_pointer(data *d, void *p)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+		
 			if (d->unresolved.count((const char*)p) != 0)
 			{
 				return (const char*) p;
@@ -416,13 +439,12 @@ namespace putki
 			{
 				if (d->parent)
 				{
+					_lk.unlock();
 					return is_unresolved_pointer(d->parent, p);
 				}
 				return 0;
 			}
 		}
-
-
 	}
 }
 

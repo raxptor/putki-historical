@@ -67,6 +67,14 @@ namespace putki
 			{
 				if (_m) _m->unlock();
 			}
+			void unlock()
+			{
+				if (_m)
+				{
+					_m->unlock();
+					_m = 0;
+				}
+			}
 		};
 		
 		struct condition
