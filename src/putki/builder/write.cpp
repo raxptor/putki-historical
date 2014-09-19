@@ -2,9 +2,12 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <vector>
 #include <string>
+
+#include <putki/sys/files.h>
 
 namespace putki
 {
@@ -107,6 +110,22 @@ namespace putki
 			// now all the aux
 
 			out << "}" << std::endl;
+		}
+
+		bool write_object_to_fs(const char *basedir, const char *path, db::data *ref_source, type_handler_i *th, instance_t obj, char *fn_out)
+		{
+			std::string out_path(basedir);
+			out_path.append("/");
+			out_path.append(path);
+			out_path.append(".json");
+			std::stringstream ts;
+			write::write_object_into_stream(ts, ref_source, th, obj);
+			sys::mk_dir_for_path(out_path.c_str());
+			std::ofstream f(out_path.c_str());
+			f << ts.str();
+			f.close();
+			strcpy(fn_out, out_path.c_str());
+			return true;
 		}
 
 		std::string json_str(const char *input)

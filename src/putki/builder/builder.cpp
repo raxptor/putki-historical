@@ -615,18 +615,16 @@ namespace putki
 						instance_t _obj;
 						if (db::fetch(item->output, cr_path_ptr, &_th, &_obj))
 						{
-							std::string out_path = context->builder->tmpobj_path;
-							out_path.append("/");
-							out_path.append(cr_path_ptr);
-							out_path.append(".json");
-							std::stringstream ts;
-							write::write_object_into_stream(ts, item->output, _th, _obj);
-							sys::mk_dir_for_path(out_path.c_str());
-							std::ofstream f(out_path.c_str());
-							f << ts.str();
-							f.close();
+							char fn[1024];
 							std::cout << " RECORDING TMP SIGNATURE [" << cr_path_ptr << "] " << db::signature(item->output, cr_path_ptr) << std::endl;
-							inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
+							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, item->output, _th, _obj, fn))
+							{
+								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
+							}
+							else
+							{
+								std::cerr << " *** could not write " << cr_path_ptr << std::endl;
+							}
 						}
 						else
 						{
@@ -686,9 +684,7 @@ namespace putki
 
 				if (item->parent)
 				{
-					// build_db::append_extra_outputs(item->parent->br, item->br);
 					build_db::commit_record(context->builder->build_db, item->br);
-					// add all input dependencies that actually exist in the input
 				}
 				else
 				{
