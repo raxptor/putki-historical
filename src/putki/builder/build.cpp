@@ -109,50 +109,6 @@ namespace
 		}
 	};
 
-	struct unresolver : public putki::db::enum_i
-	{
-		putki::db::data *input;
-
-		struct depwalker : public putki::depwalker_i
-		{
-			unresolver *parent;
-
-			bool pointer_pre(putki::instance_t *on)
-			{
-				return true;
-			}
-
-			void pointer_post(putki::instance_t *on)
-			{
-				if (!*on) {
-					return;
-				}
-
-				const char *path = putki::db::pathof_including_unresolved(parent->input, *on);
-				if (!path)
-				{
-					APP_ERROR("!!! A wild object appears! [" << *on << "] during unresolve")
-					return;
-				}
-
-				APP_DEBUG("Unresolving pointer to " << path)
-				*on = putki::db::create_unresolved_pointer(parent->input, path);
-				return;
-			}
-		};
-
-		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
-		{
-			// ignore deferred objects.
-			if (obj && th)
-			{
-				depwalker dp;
-				dp.parent = this;
-				th->walk_dependencies(obj, &dp, false);
-			}
-		}
-	};
-
 	struct db_record_inserter : public putki::db::enum_i
 	{
 		putki::db::data *input;
@@ -267,7 +223,7 @@ namespace putki
 			dsw.input = source;
 			dsw.output = target;
 			dsw.create_unresolved = false;
-			db::read_all_no_fetch(target, &dsw);
+			db::read_all_no_fetch(source, &dsw);
 		}
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
