@@ -244,7 +244,12 @@ namespace putki
 		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
-		load_into_db(db, fullpath.c_str(), fpath.c_str());
+		
+		if (db::start_loading(db, path))
+		{
+			load_into_db(db, fullpath.c_str(), fpath.c_str());
+			db::done_loading(db, path);
+		}
 		
 		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
 		//  target database itself.
@@ -277,7 +282,12 @@ namespace putki
 				{
 					ld++;
 					APP_DEBUG("deferred: loading additional [" << file << "] into db ")
-					load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+					
+					if (db::start_loading(db, path))
+					{
+						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+						db::done_loading(db, path);
+					}
 					loaded.insert(file);
 				}
 			}

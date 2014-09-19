@@ -57,6 +57,9 @@ namespace putki
 			std::vector<on_destroy> ondestroy;
 			sys::mutex *mtx;
 			std::map<std::string, struct deferred> deferred;
+			
+			sys::condition isloading_cond;
+			std::set<std::string> isloading;
 			char auxpathbuf[256];
 			data *parent;
 		};
@@ -283,12 +286,58 @@ namespace putki
 		{
 			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
 		}
+		
+		bool start_loading(data *d, const char *path)
+		{
+			bool was_loading = false;
+			sys::scoped_maybe_lock _lk(d->mtx);
+			while (d->isloading.count(path))
+			{
+				was_loading = true;
+				d->isloading_cond.wait(d->mtx);
+			}
+			
+			if (!was_loading)
+			{
+				d->isloading.insert(path);
+				return true;
+			}
+			else
+			{
+				// is loaded now!
+				APP_DEBUG("Got race bonus load on " << path)
+				return false;
+			}
+		}
+		
+		void done_loading(data *d, const char *path)
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			d->isloading.erase(d->isloading.find(path));
+			d->isloading_cond.broadcast();
+		}
+
+		void mark_loading(data *d, const char *path, bool is_loading)
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			if (is_loading)
+				d->isloading.insert(path);
+			else
+				d->isloading.erase(d->isloading.find(path));
+			d->isloading_cond.broadcast();
+		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
 			while (true)
 			{
+				if (d->isloading.count(path))
+				{
+					d->isloading_cond.wait(d->mtx);
+					continue;
+				}
+			
 				std::map<std::string, entry>::iterator i = d->objs.find(path);
 				if (i != d->objs.end())
 				{
@@ -367,6 +416,12 @@ namespace putki
 			std::map<std::string, entry>::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{
+				if (d->isloading.count(i->first))
+				{
+					i++;
+					continue;
+				}
+			
 				objs.push_back(std::make_pair(i->first, i->second));
 				++i;
 			}
@@ -375,7 +430,13 @@ namespace putki
 			std::map<std::string, deferred>::iterator j = d->deferred.begin();
 			while (j != d->deferred.end())
 			{
-				defs.push_back((j++)->first);
+				if (d->isloading.count(j->first))
+				{
+					j++;
+					continue;
+				}
+				defs.push_back((j)->first);
+				j++;
 			}
 			
 			_lk.unlock();
@@ -396,6 +457,11 @@ namespace putki
 			std::map<std::string, deferred>::iterator i = d->deferred.begin();
 			while (i != d->deferred.end())
 			{
+				if (d->isloading.count(i->first))
+				{
+					i++;
+					continue;
+				}
 				paths.insert((i++)->first);
 			}
 			
@@ -403,6 +469,12 @@ namespace putki
 			std::map<std::string, entry>::iterator j = d->objs.begin();
 			while (j != d->objs.end())
 			{
+				if (d->isloading.count(j->first))
+				{
+					j++;
+					continue;
+				}
+			
 				paths.insert((j++)->first);
 			}
 	

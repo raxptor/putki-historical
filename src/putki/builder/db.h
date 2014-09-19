@@ -28,6 +28,8 @@ namespace putki
 		void insert_deferred(data *d, const char *path, deferred_load_fn, void *userptr);
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
 		void copy_obj(data *source, data *dest, const char *path);
+		bool start_loading(data *d, const char *path);
+		void done_loading(data *d, const char *path);
 		
 		// includes deferred loads
 		bool exists(data *d, const char *path);
