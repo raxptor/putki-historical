@@ -157,6 +157,7 @@ namespace putki
 
 			if (d->parent)
 			{
+				_lk.unlock();
 				return pathof(d->parent, obj);
 			}
 
@@ -170,6 +171,7 @@ namespace putki
 			if (unres) {
 				return unres;
 			}
+			_lk.unlock();
 			return pathof(d, obj);
 		}
 
@@ -179,8 +181,11 @@ namespace putki
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
+				entry e = i->second;
+				_lk.unlock();
+				
 				std::stringstream ss;
-				write::write_object_into_stream(ss, d, i->second.th, i->second.obj);
+				write::write_object_into_stream(ss, d, e.th, e.obj);
 
 				char signature[16];
 				static char signature_string[64];
