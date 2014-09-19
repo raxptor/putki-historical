@@ -37,6 +37,7 @@ namespace putki
 		{
 			sys::condition cond;
 			bool loading;
+			int waiting;
 			deferred_load_fn fn;
 			void *userptr;
 		};
@@ -194,6 +195,7 @@ namespace putki
 			d.fn = fn;
 			d.userptr = userptr;
 			d.loading = false;
+			d.waiting = 0;
 			data->deferred[path] = d;
 		}
 
@@ -219,7 +221,10 @@ namespace putki
 					dest->objs.erase(i);
 
 //				std::cout << " +++ Copy deferred " << path << std::endl;
-				dest->deferred[path] = j->second;
+				dest->deferred[path].fn = j->second.fn;
+				dest->deferred[path].userptr = j->second.userptr;
+				dest->deferred[path].loading = false;
+				dest->deferred[path].waiting = 0;
 				return;
 			}
 
@@ -302,7 +307,10 @@ namespace putki
 				{
 					if (j->second.loading)
 					{
+						j->second.waiting++;
 						j->second.cond.wait(d->mtx);
+						if (!-- j->second.waiting)
+							d->deferred.erase(j);
 						continue;
 					}
 				}
@@ -323,10 +331,12 @@ namespace putki
 				j = d->deferred.find(path);
 				if (!j->second.loading)
 					APP_ERROR("Not loading any more");
-					
-				j->second.cond.broadcast();
-				d->deferred.erase(j);
 				
+				j->second.cond.broadcast();
+				
+				if (!j->second.waiting)
+					d->deferred.erase(j);
+					
 				if (!succ)
 				{
 					APP_WARNING("DEFERRED LOAD OF " << path << " FAILED!");
