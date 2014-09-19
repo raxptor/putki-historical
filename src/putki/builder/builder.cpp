@@ -523,6 +523,7 @@ namespace putki
 			bool commit;
 			bool from_cache;
 			prebuild_info prebuild;
+			sys::mutex data;
 		};
 
 		struct build_context
@@ -568,20 +569,26 @@ namespace putki
 
 		void post_process_item(build_context *context, work_item *item)
 		{
+                	sys::scoped_maybe_lock id(&item->data);
 			if (item->num_children)
 			{
+				id.unlock();
 				return;
 			}
 
 			if (!item->parent)
 			{
 				RECORD_DEBUG(item->br, "Merging to world output")
+				id.unlock();
+				
 				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
 			}
 			if (item->parent)
 			{
+				sys::scoped_maybe_lock lk(&item->parent->data);
+			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
 				db::free(item->output);
@@ -589,6 +596,7 @@ namespace putki
 
 				if (!--item->parent->num_children)
 				{
+					lk.unlock();
 					post_process_item(context, item->parent);
 				}
 			}
@@ -623,10 +631,7 @@ namespace putki
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
-			context->everything.lock();
-
 			item->output = putki::db::create(item->input);
-			
 
 			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
@@ -675,10 +680,15 @@ namespace putki
 					wi->br = 0;
 					wi->commit = false;
 					wi->from_cache = from_cache;
-					context->items.push_back(wi);
 
 					item->num_children++;
-
+					
+					{
+						context->mtx_items.lock();
+						context->items.push_back(wi);
+						context->mtx_items.unlock();
+					}
+					
 					std::string cr_path = cr_path_ptr;
 
 					if (!from_cache)
@@ -691,7 +701,6 @@ namespace putki
 			}
 
 			post_process_item(context, item);
-			context->everything.unlock();
 		}
 
 		void context_finalize(build_context *context)

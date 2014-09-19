@@ -210,7 +210,6 @@ namespace putki
 	struct deferred_loader
 	{
 		std::string sourcepath;
-		std::map<std::string, db::data* > resolve_db;
 		int refcount;
 	};
 	
@@ -248,6 +247,10 @@ namespace putki
 		
 		if (!db::start_loading(db, path))
 		{
+			if (!db::fetch(db, path, th, obj, false, true))
+			{
+				APP_ERROR("Race load fail!")
+			}
 			return true;
 		}
 		load_into_db(db, fullpath.c_str(), fpath.c_str());
@@ -345,7 +348,6 @@ namespace putki
 	
 	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path, db::data *resolve)
 	{
-		loader->resolve_db[path] = resolve;
 		db::insert_deferred(target, path, &do_deferred_load, loader);
 	}
 	
