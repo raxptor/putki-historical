@@ -228,8 +228,9 @@ namespace putki
 	
 	void loader_decref(deferred_loader *loader)
 	{
-		if (!loader->refcount--)
+		if (!--loader->refcount)
 		{
+			std::cout << "Destroying loader with [" << loader->sourcepath << "]" << std::endl;
 			delete loader;
 		}
 	}
@@ -323,12 +324,19 @@ namespace putki
 		}
 	}
 
+	void on_destroy_db(void *p)
+	{
+		deferred_loader *l = (deferred_loader *)p;
+		loader_decref(l);
+	}
+
 	void load_tree_into_db(const char *sourcepath, db::data *d)
 	{
 		_db = d;	
 		_loader = create_loader(sourcepath);
 		_count++;
 		putki::sys::search_tree(sourcepath, add_file, 0);
+		db::register_on_destroy(d, on_destroy_db, _loader);
 		std::cout << "Inserted " << _count << " objects with deferred loads" << std::endl;
 	}
 

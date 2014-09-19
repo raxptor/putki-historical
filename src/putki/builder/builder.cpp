@@ -559,7 +559,7 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
-			std::cout << "RECORD " << item->path << " object:" << obj << " input:" << item->input << " parent:" << item->parent << std::endl;
+			std::cout << "RECORD " << item->path << " input:" << item->input << " parent:" << item->parent << std::endl;
 
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{

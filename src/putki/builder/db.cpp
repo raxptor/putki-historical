@@ -37,6 +37,12 @@ namespace putki
 			void *userptr;
 		};
 
+		struct on_destroy
+		{
+			on_destroy_fn fn;
+			void *userptr;
+		};
+
 		struct data
 		{
 			std::map<std::string, entry> objs;
@@ -44,6 +50,7 @@ namespace putki
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
 			std::map<std::string, deferred> deferred;
+			std::vector<on_destroy> ondestroy;
 			char auxpathbuf[256];
 			data *parent;
 		};
@@ -53,6 +60,14 @@ namespace putki
 			data *d = new data();
 			d->parent = parent;
 			return d;
+		}
+
+		void register_on_destroy(data *d, on_destroy_fn fn, void *userptr)
+		{
+			on_destroy od;
+			od.fn = fn;
+			od.userptr = userptr;
+			d->ondestroy.push_back(od);
 		}
 
 		void free_and_destroy_objs(data *d)
@@ -67,6 +82,9 @@ namespace putki
 			// all the strdup:ed strings
 			for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
 				::free(const_cast<char*>(*i));
+
+			for (std::vector<on_destroy>::iterator i = d->ondestroy.begin(); i != d->ondestroy.end(); i++)
+				i->fn(i->userptr);
 
 			delete d;
 		}
