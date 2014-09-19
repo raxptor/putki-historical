@@ -19,6 +19,7 @@
 #include <putki/builder/log.h>
 
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
 #include <iostream>
 #include <fstream>
@@ -236,13 +237,15 @@ namespace putki
 			{
 				APP_INFO("Full build")
 			}
+			
+			sys::mutex db_mtx;
 
-			db::data *input = putki::db::create();
+			db::data *input = putki::db::create(0, &db_mtx);
 			load_tree_into_db(builder::obj_path(builder), input);
 
 			APP_INFO("Prepared source db")
 
-			db::data *output = putki::db::create();
+			db::data *output = putki::db::create(0, &db_mtx);
 			builder::build_context *ctx = builder::create_context(builder, input, output);
 
 			// insert all source files into the build context's records.

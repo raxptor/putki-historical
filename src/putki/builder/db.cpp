@@ -11,8 +11,10 @@
 #include <cstdio>
 
 #include <putki/sys/compat.h>
+#include <putki/sys/thread.h>
 
 #include <putki/builder/write.h>
+#include <putki/builder/log.h>
 
 extern "C" {
 	#include <md5/md5.h>
@@ -33,6 +35,8 @@ namespace putki
 
 		struct deferred
 		{
+			sys::condition cond;
+			bool loading;
 			deferred_load_fn fn;
 			void *userptr;
 		};
@@ -51,14 +55,16 @@ namespace putki
 			std::map<std::string, const char *> strpool;
 			std::map<std::string, deferred> deferred;
 			std::vector<on_destroy> ondestroy;
+			sys::mutex *mtx;
 			char auxpathbuf[256];
 			data *parent;
 		};
 
-		db::data * create(data *parent)
+		db::data * create(data *parent, sys::mutex *mtx)
 		{
 			data *d = new data();
 			d->parent = parent;
+			d->mtx = mtx;
 			return d;
 		}
 
@@ -127,6 +133,7 @@ namespace putki
 
 		const char *auxref(data *d, const char *path, unsigned int index)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
@@ -182,14 +189,19 @@ namespace putki
 		
 		void insert_deferred(data *data, const char *path, deferred_load_fn fn, void *userptr)
 		{
+			sys::scoped_maybe_lock _lk(data->mtx);
 			deferred d;
 			d.fn = fn;
 			d.userptr = userptr;
+			d.loading = false;
 			data->deferred[path] = d;
 		}
 
 		void copy_obj(data *source, data *dest, const char *path)
 		{
+			sys::scoped_maybe_lock _lk0(source->mtx);
+			sys::scoped_maybe_lock _lk1(dest->mtx);
+		
 			std::map<std::string, entry>::iterator i = source->objs.find(path);
 			if (i != source->objs.end())
 			{
@@ -216,7 +228,8 @@ namespace putki
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
-//			std::cout << "DB:" << d << " db insert on path [" << path << "] obj " << i << std::endl;
+			sys::scoped_maybe_lock _lk(d->mtx);
+//			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj ");
 			entry e;
 			e.th = th;
 			e.obj = i;
@@ -264,33 +277,63 @@ namespace putki
 		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred)
-		{		
-			std::map<std::string, entry>::iterator i = d->objs.find(path);
-			if (i != d->objs.end())
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			while (true)
 			{
-				*th = i->second.th;
-				*obj = i->second.obj;
-				return true;
-			}
+				std::map<std::string, entry>::iterator i = d->objs.find(path);
+				if (i != d->objs.end())
+				{
+					*th = i->second.th;
+					*obj = i->second.obj;
+					return true;
+				}
 
-			if (!allow_execute_deferred)
-				return false;
+				if (!allow_execute_deferred)
+					return false;
 			
-			std::map<std::string, deferred>::iterator j = d->deferred.find(path);
-			if (j != d->deferred.end())
-			{
-				bool succ = j->second.fn(d, path, th, obj, j->second.userptr);
+				std::map<std::string, deferred>::iterator j = d->deferred.find(path);
+				if (j == d->deferred.end())
+				{
+					return false;
+				}
+					
+				if (j != d->deferred.end())
+				{
+					if (j->second.loading)
+					{
+						j->second.cond.wait(d->mtx);
+						continue;
+					}
+				}
+				
+				j->second.loading = true;
+				
+				deferred_load_fn fn = j->second.fn;
+				void *userptr = j->second.userptr;
+				
+				if (d->mtx)
+					d->mtx->unlock();
+					
+				bool succ = fn(d, path, th, obj, userptr);
+				
+				if (d->mtx)
+					d->mtx->lock();
+			
+				j = d->deferred.find(path);
+				if (!j->second.loading)
+					APP_ERROR("Not loading any more");
+					
+				j->second.cond.broadcast();
 				d->deferred.erase(j);
 				
 				if (!succ)
 				{
-					std::cout << "DEFERRED LOAD OF " << path << " FAILED!" << std::endl;
+					APP_WARNING("DEFERRED LOAD OF " << path << " FAILED!");
 				}
 				
 				return succ;
 			}
-		
-			return false;
 		}
 
 		instance_t ptr_to_allow_unresolved(data *d, const char *path)

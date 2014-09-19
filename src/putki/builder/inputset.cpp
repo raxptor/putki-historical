@@ -5,6 +5,7 @@
 #include <putki/builder/db.h>
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
+#include <putki/sys/thread.h>
 
 #include <fstream>
 #include <string>
@@ -34,8 +35,8 @@ namespace putki
 			std::string respath;
 			std::string dbfile;
 			bool has_changes;
-
 			ObjMap objs;
+			sys::mutex mtx;
 		};
 
 		std::string obj_path(const char *base, const char *path)
@@ -89,9 +90,12 @@ namespace putki
 
 			if (record.content_sig.empty() || info.size != record.info.size || info.mtime != record.info.mtime)
 			{
+				d->has_changes = true;
+		
 				if (!record.content_sig.empty())
 				{
-					APP_DEBUG("=> Parsing file " << fullname << " for changes")
+					APP_DEBUG("Parsing file " << fullname << " for changes")
+					APP_DEBUG(record.content_sig << " " << info.size << ":" << record.info.size << " " << info.mtime << ":" << record.info.mtime)
 				}
 
 				db::data *tmp = db::create();
@@ -177,6 +181,7 @@ namespace putki
 
 		void force_obj(data *d, const char *path, const char *signature)
 		{
+			sys::scoped_maybe_lock lk(&d->mtx);
 			d->objs[path].content_sig = signature;
 			sys::stat(obj_path(d->objpath.c_str(), path).c_str(), &d->objs[path].info);
 		}
@@ -212,6 +217,7 @@ namespace putki
 			if (d->has_changes)
 			{
 				write(d);
+				d->has_changes = false;
 			}
 
 			return d;
@@ -224,6 +230,8 @@ namespace putki
 
 		const char *get_object_sig(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+		
 			ObjMap::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{

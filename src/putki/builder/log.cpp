@@ -3,10 +3,15 @@
 #include <sstream>
 
 #include <putki/builder/log.h>
+#include <putki/sys/thread.h>
 
 namespace putki
 {
-	bool tty_out = isatty(1);
+	namespace
+	{
+		bool tty_out = isatty(1);
+		sys::mutex mtx;
+	}
 
 	void print_log(LogType level, const char *indent, const char *message)
 	{
@@ -46,7 +51,10 @@ namespace putki
 		{
 			buf << "\033[0m";
 		}
+		
+		mtx.lock();
 		std::cout << buf.str() << std::endl;
+		mtx.unlock();
 
 		if (level == LOG_ERROR)
 		{

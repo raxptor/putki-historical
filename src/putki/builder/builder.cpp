@@ -8,6 +8,7 @@
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
 #include <map>
 #include <string>
@@ -530,7 +531,14 @@ namespace putki
 			db::data *input;
 			db::data *output;
 			db::data *trash;
+			
+			sys::mutex mtx_items, mtx_output;
+			sys::condition cnd_items;
+			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
+			
+			std::vector<sys::thread*> threads;
+			sys::mutex everything;
 		};
 
 		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
@@ -545,6 +553,7 @@ namespace putki
 
 		void context_add_to_build(build_context *context, const char *path)
 		{
+			sys::scoped_maybe_lock lk0(&context->mtx_items);
 			work_item *wi = new work_item();
 			wi->input = context->input;
 			wi->output = 0;
@@ -585,11 +594,6 @@ namespace putki
 			}
 		}
 
-		struct aux_ptr_add
-		{
-
-		};
-
 		void context_process_record(build_context *context, work_item *item)
 		{
 			type_handler_i *th;
@@ -599,10 +603,10 @@ namespace putki
 
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
-				BUILD_ERROR(context->builder, "Fetch failed");
+				BUILD_ERROR(context->builder, "Fetch failed on " << item->path);
 				return;
 			}
-
+			
 			// We use db::signature
 			const char *sig = inputset::get_object_sig(context->builder->input_set, item->path.c_str());
 			if (!sig)
@@ -619,7 +623,10 @@ namespace putki
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
+			context->everything.lock();
+
 			item->output = putki::db::create(item->input);
+			
 
 			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
@@ -684,23 +691,86 @@ namespace putki
 			}
 
 			post_process_item(context, item);
+			context->everything.unlock();
 		}
 
 		void context_finalize(build_context *context)
 		{
 			APP_INFO("Finalizing build context with " << context->items.size() << " records.")
 		}
+		
+		struct buildthread
+		{
+			build_context *context;
+			int id;
+		};
+		
+		void* build_thread(void *userptr)
+		{
+			buildthread *bt = (buildthread *)userptr;
+			build_context *context = bt->context;
+			int id = bt->id;
+			delete bt;
+			
+			bool has_built = false;
+			
+			while (true)
+			{
+				// get an item
+				work_item *item;
+				context->mtx_items.lock();
+				
+				if (has_built)
+				{
+					context->items_finished++;
+					context->cnd_items.broadcast();
+				}
+				
+				while (true)
+				{
+					if (context->item_pos < context->items.size())
+					{
+						item = context->items[context->item_pos++];
+						APP_INFO("Thread " << id << " picked item " << item->path)
+						context->mtx_items.unlock();
+						break;
+					}
+					if (context->items_finished == context->item_pos)
+					{
+						context->mtx_items.unlock();
+						return 0;
+					}
+					context->cnd_items.wait(&context->mtx_items);
+				}
+				
+				context_process_record(context, item);
+				has_built = true;
+			}
+		}
 
 		void context_build(build_context *context)
 		{
 			context->builder->grand_input = context->input;
-			
-			APP_INFO("Starting build...")
-			for (int i=0;i<context->items.size();i++)
-			{
-				context_process_record(context, context->items[i]);
-			}
+			context->item_pos = context->items_finished = 0;
 
+			const int threads = 10;
+			APP_INFO("Starting build with " << threads << " threads..")
+			
+			for (int i=0;i<threads;i++)
+			{
+				buildthread *bt = new buildthread();
+				bt->id = i;
+				bt->context = context;
+				context->threads.push_back(sys::thread_create(build_thread, bt));
+			}
+			
+			for (int i=0;i<threads;i++)
+			{
+				sys::thread_join(context->threads[i]);
+				APP_INFO("Thread " << i << " completed")
+				delete context->threads[i];
+			}
+			
 			APP_INFO("Finished build, total of " << context->items.size() << " build records")
 
 			// All records are such that the parent will come first, so we go back wards.

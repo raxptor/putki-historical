@@ -10,6 +10,7 @@
 
 #include <putki/builder/db.h>
 #include <putki/builder/log.h>
+#include <putki/sys/thread.h>
 
 namespace putki
 {
@@ -41,7 +42,7 @@ namespace putki
 			metadata md;
 		};
 
-		typedef std::map<std::string, record> RM;
+		typedef std::map<std::string, record*> RM;
 		typedef std::multimap<std::string, std::string> RevDepMap;
 
 		struct data
@@ -49,6 +50,7 @@ namespace putki
 			std::string path;
 			RM records;
 			RevDepMap depends;
+			sys::mutex mtx;
 		};
 
 		data* create(const char *path, bool load)
@@ -143,7 +145,7 @@ namespace putki
 
 			for (RM::iterator i=d->records.begin(); i!=d->records.end(); i++)
 			{
-				record &r = i->second;
+				record &r = *(i->second);
 
 				// sources have extra argument signature, outputs have extra argument builder
 				dbtxt << "#:" << i->first << "@" << r.source_sig << "*" << r.builder << "\n";
@@ -171,14 +173,18 @@ namespace putki
 
 		void release(data *d)
 		{
+			RM::iterator q = d->records.begin();
+			while (q != d->records.end())
+				delete ((q++)->second);
 			delete d;
 		}
 
 		record *find(data *d, const char *output_path)
 		{
+			sys::scoped_maybe_lock _lk(&d->mtx);
 			RM::iterator q = d->records.find(output_path);
 			if (q != d->records.end())
-				return &q->second;
+				return q->second;
 			return 0;
 		}
 
@@ -226,10 +232,11 @@ namespace putki
 
 		bool copy_existing(data *d, record *target, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(&d->mtx);
 			RM::iterator q = d->records.find(path);
 			if (q != d->records.end())
 			{
-				*target = q->second;
+				*target = *(q->second);
 				return true;
 			}
 			return false;
@@ -343,13 +350,13 @@ namespace putki
 
 		void commit_record(data *d, record *r)
 		{
-			// std::cout << "Committing record " << r->source_path << std::endl;
+			sys::scoped_maybe_lock _lk(&d->mtx);
 
 			// clear up old if exists
 			RM::iterator q = d->records.find(r->source_path);
 			if (q != d->records.end())
 			{
-				cleanup_deps(d, &q->second);
+				cleanup_deps(d, q->second);
 				d->records.erase(q);
 			}
 
@@ -360,8 +367,7 @@ namespace putki
 			}
 
 
-			d->records.insert(std::make_pair(r->source_path, *r));
-			delete r;
+			d->records.insert(std::make_pair(r->source_path, r));
 		}
 
 		struct depwalker : putki::depwalker_i
@@ -405,23 +411,26 @@ namespace putki
 
 		void insert_metadata(data *data, db::data *db, const char *path)
 		{
+			data->mtx.lock();
 			RM::iterator rec = data->records.find(path);
 			if (rec == data->records.end())
 			{
 				APP_WARNING("No build record for " << path << ", fail to add metadata")
+				data->mtx.unlock();
 				return;
 			}
+			data->mtx.unlock();
 
 			type_handler_i *th;
 			instance_t obj;
 			if (db::fetch(db, path, &th, &obj))
 			{
-				rec->second.md.type = th->name();
-				rec->second.md.signature = db::signature(db, path);
-				rec->second.md.pointers.clear();
+				rec->second->md.type = th->name();
+				rec->second->md.signature = db::signature(db, path);
+				rec->second->md.pointers.clear();
 				depwalker dw;
 				dw.db = db;
-				dw.out = &rec->second.md;
+				dw.out = &rec->second->md;
 				th->walk_dependencies(obj, &dw, false);
 			}
 			else
@@ -443,7 +452,7 @@ namespace putki
 			std::vector<entry> entries;
 		};
 
-		bool fill_entry(data *d, const char *path, deplist::entry *out)
+		bool fill_entry_lked(data *d, const char *path, deplist::entry *out)
 		{
 			out->path = path;
 			out->is_external_resource = false;
@@ -451,8 +460,8 @@ namespace putki
 			RM::iterator q = d->records.find(path);
 			if (q != d->records.end())
 			{
-				out->signature = q->second.source_sig;
-				out->builder = q->second.builder;
+				out->signature = q->second->source_sig;
+				out->builder = q->second->builder;
 				return true;
 			}
 
@@ -467,12 +476,14 @@ namespace putki
 
 		deplist* deplist_get(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+		
 			deplist *dl = new deplist();
 			std::pair<RevDepMap::iterator, RevDepMap::iterator> range = d->depends.equal_range(path);
 			for (RevDepMap::iterator i=range.first; i!=range.second; i++)
 			{
 				deplist::entry e;
-				if (!fill_entry(d, i->second.c_str(), &e)) {
+				if (!fill_entry_lked(d, i->second.c_str(), &e)) {
 					return 0;
 				}
 
@@ -485,17 +496,19 @@ namespace putki
 
 		deplist* inputdeps_get(data *d, const char *path, bool paths_only)
 		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+		
 			deplist *dl = new deplist();
 
 			RM::iterator q = d->records.find(path);
 			if (q != d->records.end())
 			{
-				for (unsigned int i=0; i<q->second.input_dependencies.size(); i++)
+				for (unsigned int i=0; i<q->second->input_dependencies.size(); i++)
 				{
 					deplist::entry e;
 					if (paths_only)
 					{
-						e.path = q->second.input_dependencies[i];
+						e.path = q->second->input_dependencies[i];
 						e.is_external_resource = false;
 						dl->entries.push_back(e);
 
@@ -503,18 +516,18 @@ namespace putki
 					else
 					{
 						// fetch full
-						if (fill_entry(d, q->second.input_dependencies[i].c_str(), &e)) {
+						if (fill_entry_lked(d, q->second->input_dependencies[i].c_str(), &e)) {
 							dl->entries.push_back(e);
 						}
 					}
 				}
-				for (unsigned int i=0; i<q->second.external_dependencies.size(); i++)
+				for (unsigned int i=0; i<q->second->external_dependencies.size(); i++)
 				{
 					// file entry
 					deplist::entry e;
 					e.is_external_resource = true;
-					e.path = q->second.external_dependencies[i].path;
-					e.signature = q->second.external_dependencies[i].signature;
+					e.path = q->second->external_dependencies[i].path;
+					e.signature = q->second->external_dependencies[i].signature;
 					dl->entries.push_back(e);
 				}
 			}
