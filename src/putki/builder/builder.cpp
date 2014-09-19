@@ -440,6 +440,11 @@ namespace putki
 						if (reason)
 						{
 							std::cout << " => Building [" << path << "] with [" << e->handler->version() << "] because " << reason << std::endl;
+
+							// now need to build, clone it before the builder gets to it.
+							if (input == builder->grand_input)
+								obj = th->clone(obj);
+
 							e->handler->handle(builder, record, input, path, obj, output, phase);
 							built_by_any = true;
 						}
@@ -475,6 +480,11 @@ namespace putki
 
 			if (!db::exists(output, path))
 			{
+				// items that go to output must always be clones. if they weren't built,
+				// they weren't cloned.
+				if (!built_by_any && input == builder->grand_input)
+					obj = th->clone(obj);
+
 				db::insert(output, path, th, obj);
 			}
 
@@ -598,18 +608,9 @@ namespace putki
 
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
-			// If we read from the actual grand input, which is read-only, we must clone the object.
-			// When building sub-assets, then not as concerned as it will not affect the build of other
-			// objects, and we save pointer updates and confusion
-			instance_t clone = obj;
-			if (item->input == context->input)
-			{
-				clone = th->clone(obj);
-			}
-
 			item->output = putki::db::create(item->input);
 
-			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), clone, th, item->output);
+			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
