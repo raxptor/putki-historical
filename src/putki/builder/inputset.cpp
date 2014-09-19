@@ -32,9 +32,15 @@ namespace putki
 			std::string objpath;
 			std::string respath;
 			std::string dbfile;
+			bool has_changes;
 
 			ObjMap objs;
 		};
+
+		std::string obj_path(const char *base, const char *path)
+		{
+			return std::string(base) + "/" + path + ".json";
+		}
 
 		void obj_file(const char *fullname, const char *name, void *userptr)
 		{
@@ -43,12 +49,14 @@ namespace putki
 			// parse
 			std::string asset_name(name);
 			int p = asset_name.find_last_of('.');
-			if (p == std::string::npos) {
+			if (p == std::string::npos)
+			{
 				return;
 			}
 
 			std::string ending = asset_name.substr(p, asset_name.size() - p);
-			if (ending != ".json") {
+			if (ending != ".json")
+			{
 				return;
 			}
 
@@ -62,6 +70,7 @@ namespace putki
 				tmp.info.size = 0;
 				tmp.info.mtime = 0;
 				d->objs.insert(std::make_pair(asset_name, tmp));
+				d->has_changes = true;
 				i = d->objs.find(asset_name);
 			}
 
@@ -80,11 +89,13 @@ namespace putki
 			if (record.content_sig.empty() || info.size != record.info.size || info.mtime != record.info.mtime)
 			{
 				if (!record.content_sig.empty())
+				{
 					std::cout << "=> Parsing file " << fullname << " for changes" << std::endl;
+				}
 
 				db::data *tmp = db::create();
 				load_file_into_db(d->objpath.c_str(), i->first.c_str(), tmp, false, 0);
-			
+
 				type_handler_i *th;
 				instance_t obj;
 				if (db::fetch(tmp, i->first.c_str(), &th, &obj))
@@ -103,6 +114,7 @@ namespace putki
 			if (sig != record.content_sig && !record.content_sig.empty())
 			{
 				std::cout << "=> New signature on object [" << sig << "], old sig = [" << record.content_sig << "]" << std::endl;
+				d->has_changes = true;
 			}
 
 			record.content_sig = sig;
@@ -117,34 +129,41 @@ namespace putki
 				std::string line;
 				std::getline(f, line);
 				if (f.eof())
+				{
 					break;
+				}
 				if (line.empty())
+				{
 					continue;
+				}
 
-				int spl[64], spls=0;
-				for (int i=0;i<line.size();i++)
+				int spl[64], spls = 0;
+				for (int i = 0;i < line.size();i++)
 					if (line[i] == ':')
+					{
 						spl[spls++] = i;
+					}
 
 				spl[spls++] = line.size();
-		
+
 				if (spls >= 4)
 				{
 					if (line[0] == 'i')
 					{
 						o_record tmp;
-						tmp.info.size = atoi(line.substr(spl[1]+1, spl[2]-spl[1]-1).c_str());
-						tmp.info.mtime = atoi(line.substr(spl[2]+1, spl[3]-spl[2]-1).c_str());
-						tmp.content_sig = line.substr(spl[3]+1, spl[4]-spl[3]-1);
+						tmp.info.size = atoi(line.substr(spl[1] + 1, spl[2] - spl[1] - 1).c_str());
+						tmp.info.mtime = atoi(line.substr(spl[2] + 1, spl[3] - spl[2] - 1).c_str());
+						tmp.content_sig = line.substr(spl[3] + 1, spl[4] - spl[3] - 1);
 						tmp.exists = false;
-						d->objs.insert(std::make_pair(line.substr(spl[0]+1, spl[1]-spl[0]-1), tmp));
+						d->objs.insert(std::make_pair(line.substr(spl[0] + 1, spl[1] - spl[0] - 1), tmp));
 					}
 				}
 			}
 		}
 
-		void write_directory(data *d)
+		void write(data *d)
 		{
+			std::cout << "Writing input-db to [" << d->dbfile << "]" << std::endl;
 			std::ofstream f(d->dbfile.c_str());
 			ObjMap::iterator i = d->objs.begin();
 			while (i != d->objs.end())
@@ -154,18 +173,20 @@ namespace putki
 			}
 			f.close();
 		}
-		
+
 		void force_obj(data *d, const char *path, const char *signature)
 		{
 			d->objs[path].content_sig = signature;
+			sys::stat(obj_path(d->objpath.c_str(), path).c_str(), &d->objs[path].info);
 		}
-		
+
 		data *open(const char *objpath, const char *respath, const char *dbfile)
 		{
 			data *d = new data();
 			d->respath = respath;
 			d->objpath = objpath;
 			d->dbfile = dbfile;
+			d->has_changes = false;
 
 			std::cout << "Input set [" << objpath << "]/[" << respath << "] tracked in [" << dbfile << "]" << std::endl;
 
@@ -186,7 +207,12 @@ namespace putki
 			}
 
 			sys::mk_dir_for_path(dbfile);
-			write_directory(d);
+
+			if (d->has_changes)
+			{
+				write(d);
+			}
+
 			return d;
 		}
 

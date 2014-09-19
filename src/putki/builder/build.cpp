@@ -270,8 +270,8 @@ namespace putki
 				if (!path)
 					break;
 					
-				if (context_was_read_from_cache(ctx, i))
-					continue;
+//				if (context_was_read_from_cache(ctx, i))
+//					continue;
 					
 				type_handler_i *th;
 				instance_t obj;

@@ -324,6 +324,7 @@ namespace putki
 					ptr = pack_int32_field(ptr, packlist[i]->th->id());
 				}
 
+				char *start = ptr;
 				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
 				if (!ptr)
 				{
@@ -331,10 +332,6 @@ namespace putki
 					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
 					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
 					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
-				}
-				else
-				{
-					// std::cout << "Wrote " << (ptr - start) << " bytes for slot " << i << std::endl;
 				}
 			}
 
