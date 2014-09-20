@@ -340,11 +340,11 @@ namespace putki
 							if (!strcmp(path, rpath))
 							{
 								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " cache")
-								load_file_deferred(builder->cache_loader, output, rpath, builder->grand_input);
+								load_file_deferred(builder->cache_loader, output, rpath, 0);
 							}
 							else
 							{
-								RECORD_DEBUG(newrecord, "	deferred tmp insert on " << rpath << " cache")
+								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " tmp")
 								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
@@ -766,7 +766,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 100;
+			const int threads = 50;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)

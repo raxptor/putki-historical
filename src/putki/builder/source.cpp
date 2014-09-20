@@ -213,6 +213,7 @@ namespace putki
 		std::string sourcepath;
 		int refcount;
 		sys::mutex resolve_mtx;
+		std::map<std::string, db::data*> resolve_db;
 	};
 	
 	deferred_loader *create_loader(const char *sourcepath)
@@ -264,7 +265,12 @@ namespace putki
 		enum_db_entries_resolve resolver;
 		resolver.add_to_load = true;
 		resolver.db = db;
-		resolver.extra_resolve_db = 0; // loader->resolve_db[path];
+	
+		{
+			sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
+			resolver.extra_resolve_db = loader->resolve_db[path];
+		}
+		
 		resolver.traverse_children = true;
 		
 		if (!db::fetch(db, path, th, obj, false, true))
@@ -300,7 +306,6 @@ namespace putki
 					const char *dep = resolver.to_load[i].c_str();
 					if (db::start_loading(db, dep))
 					{
-						APP_DEBUG("Loading dependency " << path << " -> " << dep)
 						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
 						
 						type_handler_i *xth;
@@ -312,20 +317,19 @@ namespace putki
 						}
 						else
 						{
-							APP_WARNING("Dependency " << path << " -> " << dep << " SUCCESS!")
+							APP_DEBUG("Dependency " << path << " -> " << dep << " loaded")
 							i_loaded.insert(resolver.to_load[i]);
 						}
 					}
 					else
 					{
-						APP_WARNING("Dependency " << path << " -> " << dep << " INSERTED BY OTHER")
+						APP_DEBUG("Dependency " << path << " -> " << dep << " inserted by other")
 					}
 				}
 			}
 			
 			if (!ld)
 			{
-				APP_DEBUG("No more dependencies for " << path)
 				break;
 			}
 		}
@@ -353,6 +357,10 @@ namespace putki
 	
 	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path, db::data *resolve)
 	{
+		loader->resolve_mtx.lock();
+		loader->resolve_db[path] = resolve;
+		loader->resolve_mtx.unlock();
+		
 		db::insert_deferred(target, path, &do_deferred_load, loader);
 	}
 	
