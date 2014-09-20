@@ -294,34 +294,29 @@ namespace putki
 		
 		bool start_loading(data *d, const char *path)
 		{
-			bool was_loading = false;
 			sys::scoped_maybe_lock _lk(d->mtx);
 			
 			// already loaded
 			if (d->objs.find(path) != d->objs.end())
 				return false;
 			
-			while (d->isloading.count(path))
+			// If still loading and not inserted, it is being processed by a loader
+			// We are thus waiting for disk I/O
+			bool was_loading = false;
+			while (d->isloading.count(path) && d->objs.find(path) == d->objs.end())
 			{
+				d->isloading_cond.wait(d->mtx);
 				was_loading = true;
-				
-				// if it hasn't been inserted yet, and still loading,
-				// it means we just wait for other guy to complete his disk i/o.
-				// (which, if fails, removes the isloading)
-				if (d->objs.find(path) == d->objs.end())
-				{
-					d->isloading_cond.wait(d->mtx);
-					continue;
-				}
 			}
 			
-			if (was_loading)
+			if (was_loading || d->objs.find(path) != d->objs.end())
 			{
-				// this is a failed load.
+				// load completed with fail, or we see the object in the db.
 				return false;
 			}
 			else
 			{
+				// object either existed or was not being loaded.
 				d->isloading.insert(path);
 				return true;
 			}
