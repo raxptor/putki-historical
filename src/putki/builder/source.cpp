@@ -165,7 +165,6 @@ namespace putki
 				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
 
 				db::insert(db, asset_name.c_str(), h, obj);
-				
 			}
 			else
 			{
@@ -306,10 +305,18 @@ namespace putki
 					const char *dep = resolver.to_load[i].c_str();
 					if (db::start_loading(db, dep))
 					{
-						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
-						
 						type_handler_i *xth;
 						instance_t xobj;
+
+						if (db::fetch(db, dep, &xth, &xobj, false, true))
+						{
+							APP_ERROR("Dependency " << path << " -> " << dep << " raced! start_loading returned true, but object exists in db")
+							db::done_loading(db, dep);
+							continue;
+						}
+					
+						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+
 						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
 						{
 							APP_WARNING("Dependency " << path << " -> " << dep << " FAILED!")

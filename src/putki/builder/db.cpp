@@ -296,6 +296,11 @@ namespace putki
 		{
 			bool was_loading = false;
 			sys::scoped_maybe_lock _lk(d->mtx);
+			
+			// already loaded
+			if (d->objs.find(path) != d->objs.end())
+				return false;
+			
 			while (d->isloading.count(path))
 			{
 				was_loading = true;
@@ -307,11 +312,6 @@ namespace putki
 				{
 					d->isloading_cond.wait(d->mtx);
 					continue;
-				}
-				else
-				{
-//					APP_DEBUG("Got race bonus load on " << path)
-					return false;
 				}
 			}
 			

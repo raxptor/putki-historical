@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -533,7 +534,7 @@ namespace putki
 			db::data *output;
 			db::data *trash;
 			
-			sys::mutex mtx_items, mtx_output;
+			sys::mutex mtx_items, mtx_output, mtx_trash;
 			sys::condition cnd_items;
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
@@ -548,7 +549,7 @@ namespace putki
 			ctx->builder = builder;
 			ctx->input = input;
 			ctx->output = output;
-			ctx->trash = db::create();
+			ctx->trash = db::create(0, &ctx->mtx_trash);
 			return ctx;
 		}
 
@@ -580,7 +581,6 @@ namespace putki
 			{
 				RECORD_DEBUG(item->br, "Merging to world output")
 				id.unlock();
-				
 				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
 				item->commit = true;
@@ -591,6 +591,7 @@ namespace putki
 			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
+				
 				db::free(item->output);
 				item->commit = true;
 
@@ -750,6 +751,7 @@ namespace putki
 					if (context->items_finished == context->item_pos)
 					{
 						context->mtx_items.unlock();
+						delete bt;
 						return 0;
 					}
 					context->cnd_items.wait(&context->mtx_items);
@@ -758,7 +760,6 @@ namespace putki
 				context_process_record(context, item);
 				has_built = true;
 			}
-			delete bt;
 		}
 
 		void context_build(build_context *context)
@@ -766,7 +767,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 50;
+			const int threads = 3;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)

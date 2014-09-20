@@ -357,6 +357,7 @@ namespace putki
 			if (q != d->records.end())
 			{
 				cleanup_deps(d, q->second);
+				delete q->second;
 				d->records.erase(q);
 			}
 

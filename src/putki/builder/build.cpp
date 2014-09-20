@@ -21,6 +21,7 @@
 #include <putki/sys/files.h>
 #include <putki/sys/thread.h>
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
