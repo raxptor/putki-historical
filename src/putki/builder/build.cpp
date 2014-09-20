@@ -90,7 +90,6 @@ namespace
 				if (*on != obj)
 				{
 					*on = obj;
-					APP_DEBUG("Updating pointer to [" << path << "]")
 				}
 
 				return;

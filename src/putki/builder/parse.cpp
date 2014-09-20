@@ -13,6 +13,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <sys/time.h>
+#include <unistd.h>
+
 #include <putki/sys/thread.h>
 
 // #define PARSE_DEBUG(x) std::cout << x;
@@ -140,12 +143,11 @@ namespace putki
 		data * parse(const char *full_path)
 		{
 			sys::scoped_maybe_lock lk(&r_mtx);
-			
 			FILE *fp = ::fopen(full_path, "rb");
 			if (!fp) {
 				return 0;
 			}
-
+			
 			::fseek(fp, 0, SEEK_END);
 			long size = ftell(fp); // get current file pointer
 			::fseek(fp, 0, SEEK_SET);

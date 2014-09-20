@@ -632,11 +632,14 @@ namespace putki
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
 			item->output = putki::db::create(item->input);
+			
+			std::vector<work_item *> sub_items;
 
 			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
+				
 
 				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
 				{
@@ -680,15 +683,8 @@ namespace putki
 					wi->br = 0;
 					wi->commit = false;
 					wi->from_cache = from_cache;
-
-					item->num_children++;
-					
-					{
-						context->mtx_items.lock();
-						context->items.push_back(wi);
-						context->mtx_items.unlock();
-					}
-					
+					sub_items.push_back(wi);
+									
 					std::string cr_path = cr_path_ptr;
 
 					if (!from_cache)
@@ -699,6 +695,13 @@ namespace putki
 					outpos++;
 				}
 			}
+			
+			item->num_children += sub_items.size();
+			
+			context->mtx_items.lock();
+			for (unsigned int i=0;i<sub_items.size();i++)
+				context->items.push_back(sub_items[i]);
+			context->mtx_items.unlock();
 
 			post_process_item(context, item);
 		}
@@ -763,7 +766,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 10;
+			const int threads = 100;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)
