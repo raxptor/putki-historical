@@ -581,8 +581,12 @@ namespace putki
 			{
 				RECORD_DEBUG(item->br, "Merging to world output")
 				id.unlock();
+
+				flush_log(item->br);
+
 				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
+				
 				item->commit = true;
 			}
 			if (item->parent)
@@ -590,9 +594,12 @@ namespace putki
 				sys::scoped_maybe_lock lk(&item->parent->data);
 			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
+				flush_log(item->br);				
+				
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
 				
 				db::free(item->output);
+				
 				item->commit = true;
 
 				if (!--item->parent->num_children)
@@ -767,7 +774,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 3;
+			const int threads = 20;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)
@@ -887,7 +894,7 @@ namespace putki
 
 		void record_log(data *builder, LogType type, const char *text)
 		{
-			putki::print_log(type, "BUILD", text);
+			putki::print_log("BUILD", type, text);
 		}
 	}
 

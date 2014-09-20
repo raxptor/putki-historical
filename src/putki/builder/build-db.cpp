@@ -23,6 +23,8 @@ namespace putki
 			std::string signature;
 			std::set<std::string> pointers;
 		};
+		
+		typedef std::pair<LogType, std::string> logentry_t;
 
 		struct record
 		{
@@ -39,6 +41,8 @@ namespace putki
 			std::vector<external_dep> external_dependencies;
 			std::vector<std::string> outputs;
 			std::vector<std::string> builders;
+			
+			std::vector<logentry_t> logs;
 			metadata md;
 		};
 
@@ -221,13 +225,39 @@ namespace putki
 			}
 			return r;
 		}
-
-		void record_log(record *r, LogType type, const char *msg)
+		
+		void flush_log(record *r)
 		{
 			std::string pfx("[");
 			pfx.append(r->source_path);
 			pfx.append("]");
-			print_log(type, pfx.c_str(), msg);
+		
+			while (!r->logs.empty())
+			{
+				const unsigned int max = 64;
+				LogType types[max];
+				const char *messages[max];
+				
+				unsigned int count = 0;
+				while (count < max && count < r->logs.size())
+				{
+					types[count] = r->logs[count].first;
+					messages[count] = r->logs[count].second.c_str();
+					count++;
+				}
+				
+				print_log_multi(pfx.c_str(), types, messages, count);
+				r->logs.erase(r->logs.begin(), r->logs.begin() + count);
+			}
+		}
+
+		void record_log(record *r, LogType type, const char *msg)
+		{
+			r->logs.push_back(logentry_t(type, msg));
+			if (type == LOG_ERROR)
+			{
+				flush_log(r);
+			}
 		}
 
 		bool copy_existing(data *d, record *target, const char *path)
@@ -367,6 +397,7 @@ namespace putki
 				// std::cout << "Inserting extra record on " << r->input_dependencies[i] << " i am " << d << std::endl;
 			}
 
+			flush_log(r);
 
 			d->records.insert(std::make_pair(r->source_path, r));
 		}

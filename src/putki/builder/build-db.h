@@ -35,6 +35,7 @@ namespace putki
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature);
 		void insert_metadata(data *data, db::data *db, const char *path);
 		void record_log(record *r, LogType type, const char *msg);
+		void flush_log(record *r);
 		
 		void commit_record(data *d, record *r);
 

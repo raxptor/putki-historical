@@ -13,60 +13,77 @@ namespace putki
 		sys::mutex mtx;
 	}
 
-	void print_log(LogType level, const char *indent, const char *message)
+	
+	void print_log(const char *indent, LogType level, const char *message)
+	{
+		print_log_multi(indent, &level, &message, 1);
+	}
+
+	void print_log_multi(const char *indent, LogType *levels, const char **messages, unsigned int count)
 	{
 		std::stringstream buf;
 
-		if (tty_out)
-			buf << "\033[34m";
-
-		buf << indent;
-
-		if (tty_out)
-			buf << "\033[0m";
-
-		buf << " => ";
-		
-		if (tty_out)
+		for (unsigned int i=0;i!=count;i++)
 		{
-			switch (level)
+			if (tty_out)
 			{
-				case LOG_INFO:
-					buf << "\033[0m";
-					break;
-				case LOG_ERROR:
-					buf << "\033[31m";
-					break;
-				case LOG_WARNING:
-					buf << "\033[35m";
-					break;
-				default:
-				case LOG_DEBUG:
-					buf << "\033[32m";
-					break;
+				buf << "\033[34m";
 			}
-		}
-		buf << message;
-		if (tty_out)
-		{
-			buf << "\033[0m";
+
+			buf << indent;
+
+			if (tty_out)
+			{
+				buf << "\033[0m";
+			}
+
+			buf << " => ";
+			
+			if (tty_out)
+			{
+				switch (levels[i])
+				{
+					case LOG_INFO:
+						buf << "\033[0m";
+						break;
+					case LOG_ERROR:
+						buf << "\033[31m";
+						break;
+					case LOG_WARNING:
+						buf << "\033[35m";
+						break;
+					default:
+					case LOG_DEBUG:
+						buf << "\033[32m";
+						break;
+				}
+			}
+			
+			buf << messages[i];
+			
+			if (tty_out)
+			{
+				buf << "\033[0m";
+			}
+			
+			if (levels[i] == LOG_ERROR)
+			{
+				// flush.
+				mtx.lock();
+				std::cout << buf.str() << std::endl;
+				mtx.unlock();
+				// crash
+				int *p = (int *) 0x23414;
+				*p = 234124;
+			}
+			
+			if (i != (count-1))
+				buf << "\n";
 		}
 		
 		mtx.lock();
 		std::cout << buf.str() << std::endl;
 		mtx.unlock();
-
-		if (level == LOG_ERROR)
-		{
-			int *q = (int*)0x1234;
-			*q = 0x4321;
-		}
-
-	}
-
-	void print_blob(const char *message)
-	{
-		std::cout << "blob:" << message << std::endl;
 	}
 
 	bool check_filter(LogType level)

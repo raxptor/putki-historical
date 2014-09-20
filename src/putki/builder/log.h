@@ -13,8 +13,8 @@ namespace putki
 		LOG_ERROR
 	};
 	
-	void print_log(LogType level, const char *indent, const char *message);
-	void print_blob(const char *message);
+	void print_log_multi(const char *indent, LogType *levels, const char **messages, unsigned int count);
+	void print_log(const char *indent, LogType level, const char *message);
 	bool check_filter(LogType);
 	
 	inline bool show_line(LogType lt)
@@ -55,7 +55,7 @@ namespace putki
 		if (putki::show_line(type)) \
 			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
 		__DPRINT_LINE << stmt; \
-		putki::print_log(type, "GLOBAL", __DPRINT_LINE.str().c_str()); \
+		putki::print_log("GLOBAL", type, __DPRINT_LINE.str().c_str()); \
 	} \
 }
 
