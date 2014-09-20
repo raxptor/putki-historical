@@ -206,7 +206,7 @@ namespace putki
 				if (!i->second.exists)
 				{
 					APP_INFO("Removed object [" << i->first << "]")
-					i = d->objs.erase(i);
+					d->objs.erase(i++);
 					continue;
 				}
 				++i;
