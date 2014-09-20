@@ -2,6 +2,7 @@
 
 #include <putki/builder/builder.h>
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
 #include <fstream>
 #include <iostream>
@@ -15,6 +16,8 @@ namespace putki
 {
 	namespace resource
 	{
+		sys::mutex _mtx;
+		
 		std::string real_path(builder::data *builder, const char *path)
 		{
 			std::string full_path;
@@ -35,6 +38,8 @@ namespace putki
 
 		bool load(builder::data *bld, const char *path, const char **outBytes, long long *outSize)
 		{
+			sys::scoped_maybe_lock lk(&_mtx);
+			
 			std::string full_path = real_path(bld, path);
 
 			std::ifstream f(full_path.c_str(), std::ios::binary);
@@ -79,7 +84,7 @@ namespace putki
 				md5_buffer(bytes, (long)sz, signature);
 				md5_sig_to_string(signature, signature_string, 64);
 
-				free(bytes);
+				delete [] bytes;
 				return signature_string;
 			}
 		}

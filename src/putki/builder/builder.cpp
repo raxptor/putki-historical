@@ -706,6 +706,7 @@ namespace putki
 		void context_finalize(build_context *context)
 		{
 			APP_INFO("Finalizing build context with " << context->items.size() << " records.")
+			std::random_shuffle(context->items.begin(), context->items.end());
 		}
 		
 		struct buildthread

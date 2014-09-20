@@ -298,24 +298,32 @@ namespace putki
 			sys::scoped_maybe_lock _lk(d->mtx);
 			while (d->isloading.count(path))
 			{
-				if (d->objs.find(path) != d->objs.end())
+				was_loading = true;
+				
+				// if it hasn't been inserted yet, and still loading,
+				// it means we just wait for other guy to complete his disk i/o.
+				// (which, if fails, removes the isloading)
+				if (d->objs.find(path) == d->objs.end())
 				{
+					d->isloading_cond.wait(d->mtx);
+					continue;
+				}
+				else
+				{
+//					APP_DEBUG("Got race bonus load on " << path)
 					return false;
 				}
-				was_loading = true;
-				d->isloading_cond.wait(d->mtx);
 			}
 			
-			if (!was_loading)
+			if (was_loading)
 			{
-				d->isloading.insert(path);
-				return true;
+				// this is a failed load.
+				return false;
 			}
 			else
 			{
-				// is loaded now!
-				APP_DEBUG("Got race bonus load on " << path)
-				return false;
+				d->isloading.insert(path);
+				return true;
 			}
 		}
 		
@@ -335,6 +343,7 @@ namespace putki
 			}
 			
 			d->isloading_cond.broadcast();
+//			APP_DEBUG("erased from load queue " << path);
 		}
 
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred, bool iamtheloader)

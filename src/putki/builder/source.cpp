@@ -7,6 +7,7 @@
 #include <map>
 
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
 #include <putki/builder/parse.h>
 #include <putki/builder/typereg.h>
@@ -211,6 +212,7 @@ namespace putki
 	{
 		std::string sourcepath;
 		int refcount;
+		sys::mutex resolve_mtx;
 	};
 	
 	deferred_loader *create_loader(const char *sourcepath)
@@ -247,14 +249,16 @@ namespace putki
 		
 		if (!db::start_loading(db, path))
 		{
-			if (!db::fetch(db, path, th, obj, false, true))
+			if (!db::fetch(db, path, th, obj, false))
 			{
 				APP_ERROR("Race load fail!")
 			}
+			APP_DEBUG("Raced to " << path);
 			return true;
 		}
-		load_into_db(db, fullpath.c_str(), fpath.c_str());
 		
+		load_into_db(db, fullpath.c_str(), fpath.c_str());
+
 		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
 		//  target database itself.
 		enum_db_entries_resolve resolver;
@@ -265,7 +269,9 @@ namespace putki
 		
 		if (!db::fetch(db, path, th, obj, false, true))
 		{
-			APP_ERROR("Deferred load fail")
+			APP_ERROR("Failed to load object " << path)
+			*th = 0;
+			*obj = 0;
 			return false;
 		}
 
@@ -277,7 +283,11 @@ namespace putki
 			resolver.path = path;
 			resolver.to_load.clear();
 			resolver.unresolved = 0;
-			resolver.record(path, *th, *obj);
+			
+			{
+				sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
+				resolver.record(path, *th, *obj);
+			}
 
 			unsigned int ld = 0;
 			for (unsigned int i=0; i<resolver.to_load.size(); i++)
@@ -285,21 +295,35 @@ namespace putki
 				std::string file = resolver.to_load[i] + ".json";
 				if (loaded.count(resolver.to_load[i]) == 0)
 				{
+					loaded.insert(resolver.to_load[i]);
 					ld++;
 					
 					if (db::start_loading(db, resolver.to_load[i].c_str()))
 					{
-						APP_DEBUG("Loading dependency [" << resolver.to_load[i] << "] into db")
+						APP_DEBUG("Loading dependency [" << resolver.to_load[i] << "] of [" << path << "] into db")
 						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
-						i_loaded.insert(resolver.to_load[i]);
+						
+						type_handler_i *xth;
+						instance_t xobj;
+						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
+						{
+							APP_WARNING("    Depedency failed to load")
+							db::done_loading(db, resolver.to_load[i].c_str());
+						}
+						else
+						{
+							APP_DEBUG("Succeded in dependency load " << resolver.to_load[i] << " onto " << path);
+							i_loaded.insert(resolver.to_load[i]);
+						}
 					}
 					else
 					{
 						APP_DEBUG("Waiting for someone else load [" << resolver.to_load[i] << "]")
 					}
-					loaded.insert(resolver.to_load[i]);
 				}
 			}
+			
+			APP_DEBUG(path << " ld=" << ld)
 
 			if (!ld) {
 				break;
@@ -310,39 +334,35 @@ namespace putki
 		{
 			// everything that could be loaded is loaded, do a final pass which will clear
 			// out any invalid pointers.
+			APP_WARNING("Completing load with unresolved pointers " << path)
 			resolver.add_to_load = false;
 			resolver.unresolved = 0;
-			resolver.record(path, *th, *obj);
+			{
+				sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
+				resolver.record(path, *th, *obj);
+			}
 		}
 		
+		APP_WARNING("Completing normal load " << path)
+
+		
 		db::done_loading(db, path);
+			
 		std::set<std::string>::iterator i = i_loaded.begin();
 		while (i != i_loaded.end())
 		{
+			APP_DEBUG("Side-effect done loading " << *i << " to complete " << path)
 			db::done_loading(db, i->c_str());
 			i++;
 		}
-		
-		// death wait
-		i = loaded.begin();
-		while (i != loaded.end())
-		{
-			if (!i_loaded.count(*i))
-			{
-				APP_DEBUG("Death wait on " << *i)
-				type_handler_i *th_;
-				instance_t obj_;
-				db::fetch(db, i->c_str(), &th_, &obj_, false);
-			}
-			i++;
-		}
-		
+				
 		if (resolver.unresolved)
 		{
 			APP_WARNING(" *** there are unresolved pointers after the deferred load!");
 			return true;
 		}
 		
+		APP_DEBUG("Normal done loading on " << path)
 		return true;
 	}
 	
