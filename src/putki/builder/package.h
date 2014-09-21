@@ -16,6 +16,8 @@ namespace putki
 
 		// need storepath = true to be able to look it up from the package in runtime.
 		void add(package::data *data, const char *path, bool storepath);
+		const char *get_needed_asset(data *d, unsigned int i);
+		
 		void debug(package::data *data, build_db::data *bdb);
 
 		long write(data *data, runtime::descptr rt, char *buffer, long available);

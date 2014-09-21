@@ -198,7 +198,7 @@ namespace putki
 				return 0;
 
 			std::set<std::string>::iterator it = r->md.pointers.begin();
-			for (unsigned int i=1;i<index;i++)
+			for (unsigned int i=0;i<index;i++)
 				it++;
 
 			return (*it).c_str();
@@ -429,13 +429,12 @@ namespace putki
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
-					// don't traverse.
+					out->pointers.insert(path);
 					return false;
 				}
 
 				out->pointers.insert(path);
-				return true;
+				return false;
 			}
 
 			void pointer_post(instance_t *on)
@@ -465,12 +464,12 @@ namespace putki
 				rec->second->md.pointers.clear();
 				depwalker dw;
 				dw.db = db;
-				dw.out = &rec->second->md;
-				th->walk_dependencies(obj, &dw, false);
+				dw.out = &rec->second.md;
+				th->walk_dependencies(obj, &dw, true);
 			}
 			else
 			{
-				APP_WARNING("Failed to fetch object for meta data insertion")
+				APP_WARNING("Failed to fetch [" << path << "] for meta data insertion")
 			}
 
 		}

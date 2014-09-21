@@ -376,6 +376,11 @@ namespace putki
 		
 		db::insert_deferred(target, path, &do_deferred_load, loader);
 	}
+
+	void loader_clear_resolve_dbs(deferred_loader *loader)
+	{
+		loader->resolve_db.clear();
+	}
 	
 	namespace
 	{

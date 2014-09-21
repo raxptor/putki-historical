@@ -11,6 +11,7 @@
 #include <putki/sys/thread.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -527,7 +528,6 @@ namespace putki
 			work_item *parent;
 			int num_children;
 			build_db::record *br;
-			bool commit;
 			bool from_cache;
 			prebuild_info prebuild;
 			sys::mutex data;
@@ -544,9 +544,9 @@ namespace putki
 			sys::condition cnd_items;
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
-			
 			std::vector<sys::thread*> threads;
 			sys::mutex everything;
+			std::set<std::string> added;
 		};
 
 		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
@@ -562,16 +562,46 @@ namespace putki
 		void context_add_to_build(build_context *context, const char *path)
 		{
 			sys::scoped_maybe_lock lk0(&context->mtx_items);
-			work_item *wi = new work_item();
-			wi->input = context->input;
-			wi->output = 0;
-			wi->path = path;
-			wi->num_children = 0;
-			wi->parent = 0;
-			wi->br = 0;
-			wi->commit = false;
-			wi->from_cache = false;
-			context->items.push_back(wi);
+			if (!context->added.count(path))
+			{
+				work_item *wi = new work_item();
+				wi->input = context->input;
+				wi->output = 0;
+				wi->path = path;
+				wi->num_children = 0;
+				wi->parent = 0;
+				wi->br = 0;
+				wi->from_cache = false;
+				context->items.push_back(wi);
+				context->added.insert(path);
+			}
+		}
+
+		void context_add_build_record_pointers(build_context *context, const char *path)
+		{
+			build_db::record *r = build_db::find(context->builder->build_db, path);
+			if (!r)
+				APP_ERROR("Build db broken")
+
+			for (unsigned long i=0;;i++)
+			{
+				const char *path = build_db::get_pointer(r, i);
+				if (!path) break;
+
+				char buf[SIG_BUF_SIZE];
+				if (inputset::get_object_sig(context->builder->input_set, path, buf))
+				{
+					RECORD_DEBUG(r, "dep for ptr[" << i << "] = " << path)
+					context_add_to_build(context, path);
+				}
+				else
+				{
+					if (inputset::get_object_sig(context->builder->tmp_input_set, path, buf))
+						RECORD_DEBUG(r, "dep for ptr[" << i << "] (tmp) " << path)
+					else
+						RECORD_WARNING(r, "dep for ptr[" << i << "] = unresolved ptr to " << path)
+				}
+			}
 		}
 
 		void post_process_item(build_context *context, work_item *item)
@@ -591,9 +621,15 @@ namespace putki
 				flush_log(item->br);
 
 				build::post_build_merge_database(item->output, context->output, context->trash);
-				db::free(item->output);
-				
-				item->commit = true;
+
+				build_db::commit_record(context->builder->build_db, item->br);
+
+				if (!item->from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+
+				context_add_build_record_pointers(context, item->path.c_str());
+
+				db::free(item->output, context->output);
 			}
 			if (item->parent)
 			{
@@ -603,10 +639,15 @@ namespace putki
 				flush_log(item->br);				
 				
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
-				
-				db::free(item->output);
-				
-				item->commit = true;
+
+				db::free(item->output, item->parent->output);
+
+				build_db::commit_record(context->builder->build_db, item->br);
+
+				if (!item->from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
+
+				context_add_build_record_pointers(context, item->path.c_str());
 
 				if (!--item->parent->num_children)
 				{
@@ -648,7 +689,7 @@ namespace putki
 			
 			std::vector<work_item *> sub_items;
 
-			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
+			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -663,7 +704,7 @@ namespace putki
 						continue;
 					}
 
-					if (!from_cache)
+					if (!item->from_cache)
 					{
 						// this is a tmp obj, store.
 						type_handler_i *_th;
@@ -694,13 +735,13 @@ namespace putki
 					wi->num_children = 0;
 					wi->parent = item;
 					wi->br = 0;
-					wi->commit = false;
-					wi->from_cache = from_cache;
 					sub_items.push_back(wi);
 									
+					wi->from_cache = item->from_cache;
+
 					std::string cr_path = cr_path_ptr;
 
-					if (!from_cache)
+					if (!item->from_cache)
 					{
 						RECORD_INFO(item->br, "Build created [" << cr_path << "]")
 					}
@@ -789,6 +830,7 @@ namespace putki
 				bt->context = context;
 				context->threads.push_back(sys::thread_create(build_thread, bt));
 			}
+<<<<<<< HEAD
 			
 			for (int i=0;i<threads;i++)
 			{

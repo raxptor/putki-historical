@@ -16,6 +16,12 @@ namespace putki
 {
 	namespace package
 	{
+		struct preliminary
+		{
+			std::string path;
+			bool save_path;
+		};
+
 		struct entry
 		{
 			bool save_path;
@@ -44,9 +50,18 @@ namespace putki
 
 				if (db::is_unresolved_pointer(db, *on))
 				{
-					APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
-					// don't traverse.
-					return false;
+					// fix it up
+					type_handler_i *_th;
+					instance_t _obj;
+					if (db::fetch(db, path, &_th, &_obj))
+					{
+						*on = _obj;
+					}
+					else
+					{
+						APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
+						return false;
+					}
 				}
 
 				deps.push_back(path);
@@ -65,6 +80,7 @@ namespace putki
 		{
 			db::data *source;
 			blobmap_t blobs;
+			std::vector<preliminary> list;
 		};
 
 		data * create(db::data *db)
@@ -178,7 +194,17 @@ namespace putki
 
 		void add(data *data, const char *path, bool storepath)
 		{
-			add(data, path, storepath, true);
+			preliminary p;
+			p.path = path;
+			p.save_path = storepath;
+			data->list.push_back(p);
+		}
+
+		const char *get_needed_asset(data *d, unsigned int i)
+		{
+			if (i < d->list.size())
+				return d->list[i].path.c_str();
+			return 0;
 		}
 
 		// extracts all the pointer values and their values so packaging can
@@ -225,6 +251,10 @@ namespace putki
 
 		long write(data *data, runtime::descptr rt, char *buffer, long available)
 		{
+			for (unsigned int i=0;i<data->list.size();i++)
+				add(data, data->list[i].path.c_str(), data->list[i].save_path, true);
+			data->list.clear();
+
 			APP_DEBUG("Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs.")
 
 			// create a pack list and save where each entry goes.
