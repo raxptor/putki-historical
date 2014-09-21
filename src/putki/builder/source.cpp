@@ -99,7 +99,6 @@ namespace putki
 						
 						if (parent->zero_unresolved)
 						{
-						
 							*on = 0;
 						}
 						return false;
@@ -153,22 +152,22 @@ namespace putki
 
 			parse::node *root = parse::get_root(pd);
 			std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
+			instance_t rootobj;
 
 			type_handler_i *h = typereg_get_handler(objtype.c_str());
 			if (h)
 			{
-				instance_t obj = h->alloc();
-
+				rootobj = h->alloc();
 				load_resolver_store_db_ref d;
 				d.objpath = asset_name;
 				d.db = db;
-				h->fill_from_parsed(parse::get_object_item(root, "data"), obj, &d);
-
-				db::insert(db, asset_name.c_str(), h, obj);
+				h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
+				db::insert(db, asset_name.c_str(), h, rootobj);
 			}
 			else
 			{
 				APP_WARNING("Unrecognized type [" << objtype << "]")
+				return;
 			}
 
 			// go grab all the auxs
@@ -200,6 +199,7 @@ namespace putki
 				}
 			}
 			putki::parse::free(pd);
+			
 		}
 		else
 		{
@@ -256,8 +256,11 @@ namespace putki
 			APP_DEBUG("Raced to " << path);
 			return true;
 		}
-		
-		load_into_db(db, fullpath.c_str(), fpath.c_str());
+
+		{
+			sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
+			load_into_db(db, fullpath.c_str(), fpath.c_str());
+		}
 
 		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
 		//  target database itself.
@@ -315,7 +318,10 @@ namespace putki
 							continue;
 						}
 					
-						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+						{
+							sys::scoped_maybe_lock lk0(&loader->resolve_mtx);	
+							load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
+						}
 
 						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
 						{

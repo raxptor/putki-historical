@@ -259,15 +259,14 @@ namespace putki
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
 						const char *builder_name = build_db::deplist_builder(dlist, i);
-						const char *inputsig = inputset::get_object_sig(builder->input_set, entrypath);
-
-						if (!inputsig)
+						char inputsig[SIG_BUF_SIZE];
+						
+						if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
 						{
-							inputsig = inputset::get_object_sig(builder->tmp_input_set, entrypath);
-							if (!inputsig)
+							if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
 							{
 								BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
-								inputsig = "bonkers";
+								strcpy(inputsig, "bonkers");
 							}
 						}
 
@@ -297,7 +296,15 @@ namespace putki
 					else
 					{
 						RECORD_DEBUG(newrecord, "=> ext: " << entrypath << " old:" << signature)
-						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
+						char cursig[SIG_BUF_SIZE];
+						if ( (entrypath[0] != '%' && !inputset::get_res_sig(builder->input_set, entrypath, cursig)) ||
+						     (entrypath[0] == '%' && !inputset::get_res_sig(builder->tmp_input_set, entrypath+1, cursig) ))
+						{
+							RECORD_DEBUG(newrecord, "Could not get input sig for " << entrypath)
+							strcpy(cursig, "missing");
+						}
+						
+						if (strcmp(cursig, signature))
 						{
 							return "external source data has been modified";
 						}
@@ -340,12 +347,10 @@ namespace putki
 							// only the main object is pulled from output
 							if (!strcmp(path, rpath))
 							{
-								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " cache")
 								load_file_deferred(builder->cache_loader, output, rpath, 0);
 							}
 							else
 							{
-								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " tmp")
 								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
@@ -445,6 +450,7 @@ namespace putki
 						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
+							APP_INFO("Builing [" << path << "]")
 							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
@@ -615,7 +621,7 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 
-			BUILD_INFO(context->builder, "Record: " << item->path)
+			BUILD_DEBUG(context->builder, "Record: " << item->path)
 
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
@@ -624,14 +630,13 @@ namespace putki
 			}
 			
 			// We use db::signature
-			const char *sig = inputset::get_object_sig(context->builder->input_set, item->path.c_str());
-			if (!sig)
+			char sig[SIG_BUF_SIZE];
+			if (!inputset::get_object_sig(context->builder->input_set, item->path.c_str(), sig))
 			{
-				sig = inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str());
-				if (!sig)
+				if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
 				{
 					BUILD_ERROR(context->builder, "No signature");
-					sig = "tmp-obj-sig";
+					strcpy(sig, "tmp-obj-sig");
 				}
 			}
 
@@ -751,7 +756,7 @@ namespace putki
 					if (context->item_pos < context->items.size())
 					{
 						item = context->items[context->item_pos++];
-						APP_INFO("Thread " << id << " picked item " << item->path)
+						APP_DEBUG("Thread " << id << " picked item " << item->path)
 						context->mtx_items.unlock();
 						break;
 					}
@@ -788,7 +793,7 @@ namespace putki
 			for (int i=0;i<threads;i++)
 			{
 				sys::thread_join(context->threads[i]);
-				APP_INFO("Thread " << i << " completed")
+				APP_DEBUG("Thread " << i << " completed")
 				delete context->threads[i];
 			}
 			

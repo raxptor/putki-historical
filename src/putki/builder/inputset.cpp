@@ -357,7 +357,6 @@ namespace putki
 				d->has_changes = false;
 			}
 
-			exit(0);
 			return d;
 		}
 
@@ -366,16 +365,30 @@ namespace putki
 			delete d;
 		}
 
-		const char *get_object_sig(data *d, const char *path)
+		bool get_object_sig(data *d, const char *path, char *buffer)
 		{
 			sys::scoped_maybe_lock lk(&d->mtx);
 		
 			ObjMap::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
-				return i->second.content_sig.c_str();
+				strcpy(buffer, i->second.content_sig.c_str());
+				return true;
 			}
-			return 0;
+			return false;
+		}
+		
+		bool get_res_sig(data *d, const char *path, char *buffer)
+		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+		
+			ResMap::iterator i = d->res.find(path);
+			if (i != d->res.end())
+			{
+				strcpy(buffer, i->second.content_sig.c_str());
+				return true;
+			}
+			return false;
 		}
 	}
 }

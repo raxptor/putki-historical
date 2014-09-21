@@ -266,7 +266,10 @@ namespace putki
 			RM::iterator q = d->records.find(path);
 			if (q != d->records.end())
 			{
+				std::vector<logentry_t> logs = target->logs;
 				*target = *(q->second);
+				target->logs = logs;
+				target->logs.insert(target->logs.begin(), logs.begin(), logs.end());
 				return true;
 			}
 			return false;

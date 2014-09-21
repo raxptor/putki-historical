@@ -369,10 +369,10 @@ namespace putki
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
 		{
 			std::string final_path = packaging->package_path + out_path;
-			APP_INFO("Saving package to [" << final_path << "] ...")
+			APP_DEBUG("Saving package to [" << final_path << "] ...")
 
 			long bytes_written = putki::package::write(package, packaging->rt, xbuf, xbufSize);
-			APP_INFO("Wrote " << bytes_written << " bytes")
+			APP_INFO("Wrote " << final_path << " (" << bytes_written << " bytes)")
 
 			putki::package::debug(package, packaging->bdb);
 

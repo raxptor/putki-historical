@@ -350,7 +350,7 @@ namespace putki
 			for (unsigned int i=0; i<pp.ptrs.size(); i++)
 				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
 
-			APP_INFO("Package ready: wrote " << (ptr - buffer) << " bytes.")
+			APP_DEBUG("Package ready: wrote " << (ptr - buffer) << " bytes.")
 
 			return ptr - buffer;
 		}
