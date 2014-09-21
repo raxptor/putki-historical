@@ -15,6 +15,7 @@ namespace putki
 	
 	void print_log_multi(const char *indent, LogType *levels, const char **messages, unsigned int count);
 	void print_log(const char *indent, LogType level, const char *message);
+	void set_loglevel(LogType loglevel);
 	bool check_filter(LogType);
 	
 	inline bool show_line(LogType lt)

@@ -33,7 +33,8 @@ namespace putki
 			virtual bool handle(data *builder, build_db::record *record, db::data *input, const char *path, instance_t obj, db::data *output, int obj_phase) = 0;
 		};
 
-		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db, const char *build_config);
+		// num_threads=0 => auto
+		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db, const char *build_config, int num_threads=0);
 		void free(data *builder);
 
 		runtime::descptr runtime(builder::data *data);
