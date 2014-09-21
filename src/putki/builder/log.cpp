@@ -95,5 +95,4 @@ namespace putki
 		std::cout << buf.str() << std::endl;
 		mtx.unlock();
 	}
-
 }

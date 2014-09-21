@@ -87,12 +87,21 @@ namespace putki
 			db::free(d);
 		}
 
-		void free(data *d)
+		void free(data *d, data *unres_target)
 		{
 			// all the strdup:ed strings
-			for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
-				::free(const_cast<char*>(*i));
-
+			if (unres_target)
+			{
+				sys::scoped_maybe_lock _lk(unres_target->mtx);
+				for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
+					unres_target->unresolved.insert((*i));
+			}
+			else
+			{
+				for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
+					::free(const_cast<char*>(*i));
+			}
+			
 			for (std::vector<on_destroy>::iterator i = d->ondestroy.begin(); i != d->ondestroy.end(); i++)
 				i->fn(i->userptr);
 
@@ -238,6 +247,11 @@ namespace putki
 			}
 
 			std::cout << "DB FAILED TO COPY OBJ " << path << " BECAUSE DID NOT EXIST" << std::endl;
+		}
+
+		void copy_unresolved(data *source, data *target)
+		{
+		
 		}
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)

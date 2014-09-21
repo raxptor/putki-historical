@@ -11,6 +11,7 @@
 #include <putki/sys/thread.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -529,7 +530,6 @@ namespace putki
 			work_item *parent;
 			int num_children;
 			build_db::record *br;
-			bool commit;
 			bool from_cache;
 			prebuild_info prebuild;
 			sys::mutex data;
@@ -546,9 +546,9 @@ namespace putki
 			sys::condition cnd_items;
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
-			
 			std::vector<sys::thread*> threads;
 			sys::mutex everything;
+			std::set<std::string> added;
 		};
 
 		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
@@ -564,16 +564,50 @@ namespace putki
 		void context_add_to_build(build_context *context, const char *path)
 		{
 			sys::scoped_maybe_lock lk0(&context->mtx_items);
-			work_item *wi = new work_item();
-			wi->input = context->input;
-			wi->output = 0;
-			wi->path = path;
-			wi->num_children = 0;
-			wi->parent = 0;
-			wi->br = 0;
-			wi->commit = false;
-			wi->from_cache = false;
-			context->items.push_back(wi);
+			if (!context->added.count(path))
+			{
+				work_item *wi = new work_item();
+				wi->input = context->input;
+				wi->output = 0;
+				wi->path = path;
+				wi->num_children = 0;
+				wi->parent = 0;
+				wi->br = 0;
+				wi->from_cache = false;
+				context->items.push_back(wi);
+				context->cnd_items.broadcast();
+				context->added.insert(path);
+			}
+		}
+
+		void context_add_build_record_pointers(build_context *context, const char *path)
+		{
+			build_db::record *r = build_db::find(context->builder->build_db, path);
+			if (!r)
+				APP_ERROR("Build db broken")
+
+			std::vector<std::string> ptrs, final;
+
+			for (unsigned long i=0;;i++)
+			{
+				const char *path = build_db::get_pointer(r, i);
+				if (!path) break;
+
+				char buf[SIG_BUF_SIZE];
+				if (inputset::get_object_sig(context->builder->input_set, path, buf))
+					ptrs.push_back(path);
+			}
+			
+			sys::scoped_maybe_lock lk0(&context->mtx_items);
+			for (unsigned int i=0;i!=ptrs.size();i++)
+			{
+				if (!context->added.count(ptrs[i]))
+					final.push_back(ptrs[i]);
+			}
+			lk0.unlock();
+			
+			for (unsigned int i=0;i!=final.size();i++)
+				context_add_to_build(context, final[i].c_str());
 		}
 
 		void post_process_item(build_context *context, work_item *item)
@@ -590,25 +624,33 @@ namespace putki
 				RECORD_DEBUG(item->br, "Merging to world output")
 				id.unlock();
 
-				flush_log(item->br);
-
 				build::post_build_merge_database(item->output, context->output, context->trash);
-				db::free(item->output);
+				build_db::commit_record(context->builder->build_db, item->br);
+
+				if (!item->from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+
+				context_add_build_record_pointers(context, item->path.c_str());
+				flush_log(item->br);
 				
-				item->commit = true;
+				db::free(item->output, context->output);
 			}
 			if (item->parent)
 			{
 				sys::scoped_maybe_lock lk(&item->parent->data);
 			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
-				flush_log(item->br);				
 				
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
+				build_db::commit_record(context->builder->build_db, item->br);
+
+				if (!item->from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
+
+				context_add_build_record_pointers(context, item->path.c_str());
+				flush_log(item->br);
 				
-				db::free(item->output);
-				
-				item->commit = true;
+				db::free(item->output, item->parent->output);
 
 				if (!--item->parent->num_children)
 				{
@@ -650,7 +692,7 @@ namespace putki
 			
 			std::vector<work_item *> sub_items;
 
-			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
+			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -665,7 +707,7 @@ namespace putki
 						continue;
 					}
 
-					if (!from_cache)
+					if (!item->from_cache)
 					{
 						// this is a tmp obj, store.
 						type_handler_i *_th;
@@ -688,7 +730,7 @@ namespace putki
 							BUILD_ERROR(context->builder, "Could not read output " << cr_path_ptr)
 						}
 					}
-
+					
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
 					wi->input = item->output; // where the object is
@@ -696,13 +738,12 @@ namespace putki
 					wi->num_children = 0;
 					wi->parent = item;
 					wi->br = 0;
-					wi->commit = false;
-					wi->from_cache = from_cache;
 					sub_items.push_back(wi);
-									
+					wi->from_cache = item->from_cache;
+
 					std::string cr_path = cr_path_ptr;
 
-					if (!from_cache)
+					if (!item->from_cache)
 					{
 						RECORD_INFO(item->br, "Build created [" << cr_path << "]")
 					}
@@ -710,12 +751,14 @@ namespace putki
 					outpos++;
 				}
 			}
-			
-			item->num_children += sub_items.size();
-			
+
+			APP_DEBUG("Adding " << sub_items.size() << " children for " << item->path);
+
 			context->mtx_items.lock();
 			for (unsigned int i=0;i<sub_items.size();i++)
 				context->items.push_back(sub_items[i]);
+			item->num_children += sub_items.size();
+			context->cnd_items.broadcast();
 			context->mtx_items.unlock();
 
 			post_process_item(context, item);
@@ -799,27 +842,6 @@ namespace putki
 			}
 			
 			APP_INFO("Finished build, total of " << context->items.size() << " build records")
-
-			// All records are such that the parent will come first, so we go back wards.
-			for (int i=context->items.size()-1;i>=0;i--)
-			{
-				work_item *item = context->items[i];
-				if (!item->commit)
-				{
-					APP_WARNING("item[" << i << "] path=" << item->path << " not flagged for commit?!")
-					continue;
-				}
-
-				if (item->parent)
-				{
-					build_db::commit_record(context->builder->build_db, item->br);
-				}
-				else
-				{
-					build_db::commit_record(context->builder->build_db, item->br);
-				}
-
-			}
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
