@@ -49,7 +49,7 @@ int run_putki_builder(int argc, char **argv)
 {
 #if defined(USE_WINSOCK)
 	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 	{
 		std::cerr << "WSA init failure" << std::endl;
 		return 1;
