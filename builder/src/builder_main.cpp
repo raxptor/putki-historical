@@ -63,6 +63,7 @@ int run_putki_builder(int argc, char **argv)
 	const char *single_asset = 0;
 	const char *build_config = "Default";
 	bool incremental = false;
+	int threads = 0;
 
 	for (int i=1; i<argc; i++)
 	{
@@ -89,10 +90,46 @@ int run_putki_builder(int argc, char **argv)
 		{
 			incremental = true;
 		}
+		else if (!strcmp(argv[i], "--threads"))
+		{
+			if (i+1 < argc)
+				threads = atoi(argv[i+1]);
+		}
+		else if (!strcmp(argv[i], "--loglevel"))
+		{
+			bool match = false;
+			if (i+1 < argc)
+			{
+				struct lvl {
+					const char *name;
+					putki::LogType type;
+				} levels[] = {
+					{"debug", putki::LOG_DEBUG},
+					{"info", putki::LOG_INFO},
+					{"warning", putki::LOG_WARNING},
+					{"error", putki::LOG_ERROR}
+				};
+
+				for (int q=0;q<4;q++)
+				{
+					if (!strcmp(argv[i+1], levels[q].name))
+					{
+						putki::set_loglevel(levels[q].type);
+						match = true;
+					}
+				}
+			}
+
+			if (!match)
+			{
+				std::cerr << "--loglevel debug/info/warning/error" << std::endl;
+				exit(1);
+			}
+		}
 	}
 
 	// reload build database if incremental build
-	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental, build_config);
+	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental, build_config, threads);
 
 	if (single_asset)
 	{

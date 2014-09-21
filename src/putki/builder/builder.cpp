@@ -40,6 +40,7 @@ namespace putki
 			BuildersMap handlers;
 			runtime::descptr runtime;
 			std::string config;
+			unsigned int num_threads;
 			std::string obj_path, res_path, out_path, tmpobj_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 			inputset::data *input_set;
@@ -85,11 +86,12 @@ namespace putki
 			info->require_outputs.push_back(path);
 		}
 
-		data* create(runtime::descptr rt, const char *path, bool reset_build_db, const char *build_config)
+		data* create(runtime::descptr rt, const char *path, bool reset_build_db, const char *build_config, int numthreads)
 		{
 			data *d = new data();
 			d->runtime = rt;
 			d->config = build_config;
+			d->num_threads = numthreads ? numthreads : 4;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->tmpobj_path = d->built_obj_path = path;
 
@@ -779,10 +781,9 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 20;
-			APP_INFO("Starting build with " << threads << " threads..")
+			APP_INFO("Starting build with " << context->builder->num_threads << " threads..")
 			
-			for (int i=0;i<threads;i++)
+			for (int i=0;i<context->builder->num_threads;i++)
 			{
 				buildthread *bt = new buildthread();
 				bt->id = i;
@@ -790,7 +791,7 @@ namespace putki
 				context->threads.push_back(sys::thread_create(build_thread, bt));
 			}
 			
-			for (int i=0;i<threads;i++)
+			for (int i=0;i!=context->threads.size();i++)
 			{
 				sys::thread_join(context->threads[i]);
 				APP_DEBUG("Thread " << i << " completed")

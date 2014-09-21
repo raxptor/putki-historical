@@ -10,9 +10,19 @@ namespace putki
 	namespace
 	{
 		bool tty_out = isatty(1);
+		LogType loglevel = LOG_INFO;
 		sys::mutex mtx;
 	}
 
+	void set_loglevel(LogType level)
+	{
+		loglevel = level;
+	}
+
+	bool check_filter(LogType level)
+	{
+		return level >= loglevel;
+	}
 	
 	void print_log(const char *indent, LogType level, const char *message)
 	{
@@ -86,10 +96,4 @@ namespace putki
 		mtx.unlock();
 	}
 
-	bool check_filter(LogType level)
-	{
-//		if (level == LOG_DEBUG)
-//			return false;
-		return true;
-	}
 }
