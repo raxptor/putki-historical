@@ -263,11 +263,11 @@ namespace putki
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
 		{
-			db::data *input = putki::db::create();
+			sys::mutex in_db_mtx, out_db_mtx;
+			db::data *input = putki::db::create(0, &in_db_mtx);
+			db::data *output = putki::db::create(0, &out_db_mtx);
+			
 			load_tree_into_db(builder::obj_path(builder), input);
-
-			db::data *output = putki::db::create();
-			db::data *junk = db::create();
 
 			builder::build_context *ctx = builder::create_context(builder, input, output);
 
@@ -352,7 +352,6 @@ namespace putki
 			// there should be no objects outside these database now.
 			db::free_and_destroy_objs(input);
 			db::free_and_destroy_objs(output);
-			db::free_and_destroy_objs(junk);
 			builder::context_destroy(ctx);
 		}
 
