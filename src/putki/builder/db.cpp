@@ -92,6 +92,7 @@ namespace putki
 			// all the strdup:ed strings
 			if (unres_target)
 			{
+				sys::scoped_maybe_lock _lk(unres_target->mtx);
 				for (std::set<const char*>::iterator i = d->unresolved.begin(); i!=d->unresolved.end(); i++)
 					unres_target->unresolved.insert((*i));
 			}

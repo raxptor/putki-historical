@@ -820,7 +820,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 20;
+			const int threads = 1;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)
