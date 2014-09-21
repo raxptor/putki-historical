@@ -124,7 +124,7 @@ namespace putki
 	}
 
 	// adds unresolved pointer to the db through resolve_pointer.
-	void load_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0)
+	void load_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0, sys::mutex *insert_mtx = 0)
 	{
 		//
 		std::string asset_name(name);
@@ -146,6 +146,8 @@ namespace putki
 			return;
 		}
 		
+		sys::mutex *lk_mtx = 0;
+		
 		parse::data *pd = parse::parse(fullpath);
 		if (pd)
 		{
@@ -162,6 +164,13 @@ namespace putki
 				d.objpath = asset_name;
 				d.db = db;
 				h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
+				
+				if (insert_mtx)
+				{
+					insert_mtx->lock();
+					lk_mtx = insert_mtx;
+				}
+					
 				db::insert(db, asset_name.c_str(), h, rootobj);
 			}
 			else
@@ -198,8 +207,13 @@ namespace putki
 					}
 				}
 			}
-			putki::parse::free(pd);
 			
+			if (lk_mtx)
+			{
+				lk_mtx->unlock();
+			}
+			
+			putki::parse::free(pd);
 		}
 		else
 		{
@@ -257,10 +271,7 @@ namespace putki
 			return true;
 		}
 
-		{
-			sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
-			load_into_db(db, fullpath.c_str(), fpath.c_str());
-		}
+		load_into_db(db, fullpath.c_str(), fpath.c_str(), 0, &loader->resolve_mtx);
 
 		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
 		//  target database itself.
@@ -318,10 +329,7 @@ namespace putki
 							continue;
 						}
 					
-						{
-							sys::scoped_maybe_lock lk0(&loader->resolve_mtx);	
-							load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str());
-						}
+						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str(), 0, &loader->resolve_mtx);
 
 						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
 						{

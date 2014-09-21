@@ -573,6 +573,7 @@ namespace putki
 				wi->br = 0;
 				wi->from_cache = false;
 				context->items.push_back(wi);
+				context->cnd_items.broadcast();
 				context->added.insert(path);
 			}
 		}
@@ -583,6 +584,8 @@ namespace putki
 			if (!r)
 				APP_ERROR("Build db broken")
 
+			std::vector<std::string> ptrs, final;
+
 			for (unsigned long i=0;;i++)
 			{
 				const char *path = build_db::get_pointer(r, i);
@@ -592,15 +595,21 @@ namespace putki
 				if (inputset::get_object_sig(context->builder->input_set, path, buf))
 				{
 					RECORD_DEBUG(r, "dep for ptr[" << i << "] = " << path)
-					context_add_to_build(context, path);
+					ptrs.push_back(path);
 				}
-				else
-				{
-					if (inputset::get_object_sig(context->builder->tmp_input_set, path, buf))
-						RECORD_DEBUG(r, "dep for ptr[" << i << "] (tmp) " << path)
-					else
-						RECORD_WARNING(r, "dep for ptr[" << i << "] = unresolved ptr to " << path)
-				}
+			}
+			
+			sys::scoped_maybe_lock lk0(&context->mtx_items);
+			for (unsigned int i=0;i!=ptrs.size();i++)
+			{
+				if (!context->added.count(ptrs[i]))
+					final.push_back(ptrs[i]);
+			}
+			lk0.unlock();
+			
+			for (unsigned int i=0;i!=final.size();i++)
+			{
+				context_add_to_build(context, final[i].c_str());
 			}
 		}
 
@@ -618,17 +627,15 @@ namespace putki
 				RECORD_DEBUG(item->br, "Merging to world output")
 				id.unlock();
 
-				flush_log(item->br);
-
 				build::post_build_merge_database(item->output, context->output, context->trash);
-
 				build_db::commit_record(context->builder->build_db, item->br);
 
 				if (!item->from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
 
 				context_add_build_record_pointers(context, item->path.c_str());
-
+				flush_log(item->br);
+				
 				db::free(item->output, context->output);
 			}
 			if (item->parent)
@@ -636,18 +643,17 @@ namespace putki
 				sys::scoped_maybe_lock lk(&item->parent->data);
 			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
-				flush_log(item->br);				
 				
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
-
-				db::free(item->output, item->parent->output);
-
 				build_db::commit_record(context->builder->build_db, item->br);
 
 				if (!item->from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
 
 				context_add_build_record_pointers(context, item->path.c_str());
+				flush_log(item->br);
+				
+				db::free(item->output, item->parent->output);
 
 				if (!--item->parent->num_children)
 				{
@@ -727,7 +733,7 @@ namespace putki
 							BUILD_ERROR(context->builder, "Could not read output " << cr_path_ptr)
 						}
 					}
-
+					
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
 					wi->input = item->output; // where the object is
@@ -736,7 +742,6 @@ namespace putki
 					wi->parent = item;
 					wi->br = 0;
 					sub_items.push_back(wi);
-									
 					wi->from_cache = item->from_cache;
 
 					std::string cr_path = cr_path_ptr;
@@ -754,7 +759,10 @@ namespace putki
 			
 			context->mtx_items.lock();
 			for (unsigned int i=0;i<sub_items.size();i++)
+			{	
+				APP_INFO("Adding CHILD " << sub_items[i]->path)
 				context->items.push_back(sub_items[i]);
+			}
 			context->mtx_items.unlock();
 
 			post_process_item(context, item);
@@ -820,7 +828,7 @@ namespace putki
 			context->builder->grand_input = context->input;
 			context->item_pos = context->items_finished = 0;
 
-			const int threads = 1;
+			const int threads = 10;
 			APP_INFO("Starting build with " << threads << " threads..")
 			
 			for (int i=0;i<threads;i++)
