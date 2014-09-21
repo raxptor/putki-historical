@@ -830,7 +830,6 @@ namespace putki
 				bt->context = context;
 				context->threads.push_back(sys::thread_create(build_thread, bt));
 			}
-<<<<<<< HEAD
 			
 			for (int i=0;i<threads;i++)
 			{
@@ -840,27 +839,6 @@ namespace putki
 			}
 			
 			APP_INFO("Finished build, total of " << context->items.size() << " build records")
-
-			// All records are such that the parent will come first, so we go back wards.
-			for (int i=context->items.size()-1;i>=0;i--)
-			{
-				work_item *item = context->items[i];
-				if (!item->commit)
-				{
-					APP_WARNING("item[" << i << "] path=" << item->path << " not flagged for commit?!")
-					continue;
-				}
-
-				if (item->parent)
-				{
-					build_db::commit_record(context->builder->build_db, item->br);
-				}
-				else
-				{
-					build_db::commit_record(context->builder->build_db, item->br);
-				}
-
-			}
 		}
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)

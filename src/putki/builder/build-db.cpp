@@ -464,7 +464,7 @@ namespace putki
 				rec->second->md.pointers.clear();
 				depwalker dw;
 				dw.db = db;
-				dw.out = &rec->second.md;
+				dw.out = &rec->second->md;
 				th->walk_dependencies(obj, &dw, true);
 			}
 			else

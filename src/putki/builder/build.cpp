@@ -238,25 +238,6 @@ namespace putki
 
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
 		{
-<<<<<<< HEAD
-			if (single_asset)
-			{
-				APP_INFO("Single-object build " << single_asset)
-			}
-			else
-			{
-				APP_INFO("Full build")
-			}
-			
-			sys::mutex db_mtx;
-
-			db::data *input = putki::db::create(0, &db_mtx);
-			load_tree_into_db(builder::obj_path(builder), input);
-
-			APP_INFO("Prepared source db")
-
-			db::data *output = putki::db::create(0, &db_mtx);
-=======
 			pkg_conf pk;
 			pk.pkg = package;
 			pk.path = out_path;
