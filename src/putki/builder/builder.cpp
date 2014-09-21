@@ -593,10 +593,7 @@ namespace putki
 
 				char buf[SIG_BUF_SIZE];
 				if (inputset::get_object_sig(context->builder->input_set, path, buf))
-				{
-					RECORD_DEBUG(r, "dep for ptr[" << i << "] = " << path)
 					ptrs.push_back(path);
-				}
 			}
 			
 			sys::scoped_maybe_lock lk0(&context->mtx_items);
@@ -608,9 +605,7 @@ namespace putki
 			lk0.unlock();
 			
 			for (unsigned int i=0;i!=final.size();i++)
-			{
 				context_add_to_build(context, final[i].c_str());
-			}
 		}
 
 		void post_process_item(build_context *context, work_item *item)

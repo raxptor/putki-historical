@@ -121,7 +121,7 @@ namespace
 		{
 			// if we happen to overwrite an object (when merging outputs into parent records with tmp objects),
 			// we would like to know that it must be trashed.
-			APP_DEBUG("Copying " << path)
+			// APP_DEBUG("Copying " << path)
 			if (trash)
 			{
 				putki::type_handler_i *_th;
