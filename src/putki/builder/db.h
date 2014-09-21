@@ -4,6 +4,8 @@
 
 namespace putki
 {
+	namespace sys { struct mutex; }
+	
 	namespace db
 	{
 		struct data;
@@ -17,7 +19,7 @@ namespace putki
 		};
 
 		// parent db will be used for forwarding path lookups
-		data * create(data *parent=0);
+		data * create(data *parent=0, sys::mutex *mtx=0);
 
 		void register_on_destroy(data *d, on_destroy_fn fn, void *userptr);
 		void free_and_destroy_objs(data *d);
@@ -26,12 +28,14 @@ namespace putki
 		void insert_deferred(data *d, const char *path, deferred_load_fn, void *userptr);
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i);
 		void copy_obj(data *source, data *dest, const char *path);
+		bool start_loading(data *d, const char *path);
+		void done_loading(data *d, const char *path);
 		
 		// includes deferred loads
 		bool exists(data *d, const char *path);
 		
 		// will trigger deferred load to execute if not loaded
-		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred=true);
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred=true, bool iamtheloader=false);
 		
 		const char *auxref(data *d, const char *path, unsigned int index);
 		const char *pathof(data *d, instance_t obj);

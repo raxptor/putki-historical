@@ -8,10 +8,12 @@
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -38,6 +40,7 @@ namespace putki
 			BuildersMap handlers;
 			runtime::descptr runtime;
 			std::string config;
+			unsigned int num_threads;
 			std::string obj_path, res_path, out_path, tmpobj_path, tmp_path, built_obj_path;
 			build_db::data *build_db;
 			inputset::data *input_set;
@@ -83,11 +86,12 @@ namespace putki
 			info->require_outputs.push_back(path);
 		}
 
-		data* create(runtime::descptr rt, const char *path, bool reset_build_db, const char *build_config)
+		data* create(runtime::descptr rt, const char *path, bool reset_build_db, const char *build_config, int numthreads)
 		{
 			data *d = new data();
 			d->runtime = rt;
 			d->config = build_config;
+			d->num_threads = numthreads ? numthreads : 4;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->tmpobj_path = d->built_obj_path = path;
 
@@ -257,15 +261,14 @@ namespace putki
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
 						const char *builder_name = build_db::deplist_builder(dlist, i);
-						const char *inputsig = inputset::get_object_sig(builder->input_set, entrypath);
-
-						if (!inputsig)
+						char inputsig[SIG_BUF_SIZE];
+						
+						if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
 						{
-							inputsig = inputset::get_object_sig(builder->tmp_input_set, entrypath);
-							if (!inputsig)
+							if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
 							{
 								BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
-								inputsig = "bonkers";
+								strcpy(inputsig, "bonkers");
 							}
 						}
 
@@ -295,7 +298,15 @@ namespace putki
 					else
 					{
 						RECORD_DEBUG(newrecord, "=> ext: " << entrypath << " old:" << signature)
-						if (strcmp(resource::signature(builder, entrypath).c_str(), signature))
+						char cursig[SIG_BUF_SIZE];
+						if ( (entrypath[0] != '%' && !inputset::get_res_sig(builder->input_set, entrypath, cursig)) ||
+						     (entrypath[0] == '%' && !inputset::get_res_sig(builder->tmp_input_set, entrypath+1, cursig) ))
+						{
+							RECORD_DEBUG(newrecord, "Could not get input sig for " << entrypath)
+							strcpy(cursig, "missing");
+						}
+						
+						if (strcmp(cursig, signature))
 						{
 							return "external source data has been modified";
 						}
@@ -338,12 +349,10 @@ namespace putki
 							// only the main object is pulled from output
 							if (!strcmp(path, rpath))
 							{
-								RECORD_DEBUG(newrecord, "	deferred insert on " << rpath << " cache")
-								load_file_deferred(builder->cache_loader, output, rpath, builder->grand_input);
+								load_file_deferred(builder->cache_loader, output, rpath, 0);
 							}
 							else
 							{
-								RECORD_DEBUG(newrecord, "	deferred tmp insert on " << rpath << " cache")
 								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
 							}
 						}
@@ -443,6 +452,7 @@ namespace putki
 						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
+							APP_INFO("Builing [" << path << "]")
 							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
@@ -522,6 +532,7 @@ namespace putki
 			bool commit;
 			bool from_cache;
 			prebuild_info prebuild;
+			sys::mutex data;
 		};
 
 		struct build_context
@@ -530,7 +541,14 @@ namespace putki
 			db::data *input;
 			db::data *output;
 			db::data *trash;
+			
+			sys::mutex mtx_items, mtx_output, mtx_trash;
+			sys::condition cnd_items;
+			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
+			
+			std::vector<sys::thread*> threads;
+			sys::mutex everything;
 		};
 
 		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
@@ -539,12 +557,13 @@ namespace putki
 			ctx->builder = builder;
 			ctx->input = input;
 			ctx->output = output;
-			ctx->trash = db::create();
+			ctx->trash = db::create(0, &ctx->mtx_trash);
 			return ctx;
 		}
 
 		void context_add_to_build(build_context *context, const char *path)
 		{
+			sys::scoped_maybe_lock lk0(&context->mtx_items);
 			work_item *wi = new work_item();
 			wi->input = context->input;
 			wi->output = 0;
@@ -559,59 +578,67 @@ namespace putki
 
 		void post_process_item(build_context *context, work_item *item)
 		{
+                	sys::scoped_maybe_lock id(&item->data);
 			if (item->num_children)
 			{
+				id.unlock();
 				return;
 			}
 
 			if (!item->parent)
 			{
 				RECORD_DEBUG(item->br, "Merging to world output")
+				id.unlock();
+
+				flush_log(item->br);
+
 				build::post_build_merge_database(item->output, context->output, context->trash);
 				db::free(item->output);
+				
 				item->commit = true;
 			}
 			if (item->parent)
 			{
+				sys::scoped_maybe_lock lk(&item->parent->data);
+			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
+				flush_log(item->br);				
+				
 				build::post_build_merge_database(item->output, item->parent->output, context->trash);
+				
 				db::free(item->output);
+				
 				item->commit = true;
 
 				if (!--item->parent->num_children)
 				{
+					lk.unlock();
 					post_process_item(context, item->parent);
 				}
 			}
 		}
-
-		struct aux_ptr_add
-		{
-
-		};
 
 		void context_process_record(build_context *context, work_item *item)
 		{
 			type_handler_i *th;
 			instance_t obj;
 
-			BUILD_INFO(context->builder, "Record: " << item->path)
+			BUILD_DEBUG(context->builder, "Record: " << item->path)
 
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
-				BUILD_ERROR(context->builder, "Fetch failed");
+				BUILD_ERROR(context->builder, "Fetch failed on " << item->path);
 				return;
 			}
-
+			
 			// We use db::signature
-			const char *sig = inputset::get_object_sig(context->builder->input_set, item->path.c_str());
-			if (!sig)
+			char sig[SIG_BUF_SIZE];
+			if (!inputset::get_object_sig(context->builder->input_set, item->path.c_str(), sig))
 			{
-				sig = inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str());
-				if (!sig)
+				if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
 				{
 					BUILD_ERROR(context->builder, "No signature");
-					sig = "tmp-obj-sig";
+					strcpy(sig, "tmp-obj-sig");
 				}
 			}
 
@@ -620,11 +647,14 @@ namespace putki
 			build_db::add_input_dependency(item->br, item->path.c_str());
 
 			item->output = putki::db::create(item->input);
+			
+			std::vector<work_item *> sub_items;
 
 			const bool from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
+				
 
 				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
 				{
@@ -668,10 +698,8 @@ namespace putki
 					wi->br = 0;
 					wi->commit = false;
 					wi->from_cache = from_cache;
-					context->items.push_back(wi);
-
-					item->num_children++;
-
+					sub_items.push_back(wi);
+									
 					std::string cr_path = cr_path_ptr;
 
 					if (!from_cache)
@@ -682,6 +710,13 @@ namespace putki
 					outpos++;
 				}
 			}
+			
+			item->num_children += sub_items.size();
+			
+			context->mtx_items.lock();
+			for (unsigned int i=0;i<sub_items.size();i++)
+				context->items.push_back(sub_items[i]);
+			context->mtx_items.unlock();
 
 			post_process_item(context, item);
 		}
@@ -689,18 +724,80 @@ namespace putki
 		void context_finalize(build_context *context)
 		{
 			APP_INFO("Finalizing build context with " << context->items.size() << " records.")
+			std::random_shuffle(context->items.begin(), context->items.end());
+		}
+		
+		struct buildthread
+		{
+			build_context *context;
+			int id;
+		};
+		
+		void* build_thread(void *userptr)
+		{
+			buildthread *bt = (buildthread *)userptr;
+			build_context *context = bt->context;
+			int id = bt->id;
+			
+			bool has_built = false;
+			
+			while (true)
+			{
+				// get an item
+				work_item *item;
+				context->mtx_items.lock();
+				
+				if (has_built)
+				{
+					context->items_finished++;
+					context->cnd_items.broadcast();
+				}
+				
+				while (true)
+				{
+					if (context->item_pos < context->items.size())
+					{
+						item = context->items[context->item_pos++];
+						APP_DEBUG("Thread " << id << " picked item " << item->path)
+						context->mtx_items.unlock();
+						break;
+					}
+					if (context->items_finished == context->item_pos)
+					{
+						context->mtx_items.unlock();
+						delete bt;
+						return 0;
+					}
+					context->cnd_items.wait(&context->mtx_items);
+				}
+				
+				context_process_record(context, item);
+				has_built = true;
+			}
 		}
 
 		void context_build(build_context *context)
 		{
 			context->builder->grand_input = context->input;
-			
-			APP_INFO("Starting build...")
-			for (int i=0;i<context->items.size();i++)
-			{
-				context_process_record(context, context->items[i]);
-			}
+			context->item_pos = context->items_finished = 0;
 
+			APP_INFO("Starting build with " << context->builder->num_threads << " threads..")
+			
+			for (int i=0;i<context->builder->num_threads;i++)
+			{
+				buildthread *bt = new buildthread();
+				bt->id = i;
+				bt->context = context;
+				context->threads.push_back(sys::thread_create(build_thread, bt));
+			}
+			
+			for (int i=0;i!=context->threads.size();i++)
+			{
+				sys::thread_join(context->threads[i]);
+				APP_DEBUG("Thread " << i << " completed")
+				delete context->threads[i];
+			}
+			
 			APP_INFO("Finished build, total of " << context->items.size() << " build records")
 
 			// All records are such that the parent will come first, so we go back wards.
@@ -803,7 +900,7 @@ namespace putki
 
 		void record_log(data *builder, LogType type, const char *text)
 		{
-			putki::print_log(type, "BUILD", text);
+			putki::print_log("BUILD", type, text);
 		}
 	}
 

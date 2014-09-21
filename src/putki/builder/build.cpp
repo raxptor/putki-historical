@@ -19,7 +19,9 @@
 #include <putki/builder/log.h>
 
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -89,7 +91,6 @@ namespace
 				if (*on != obj)
 				{
 					*on = obj;
-					APP_DEBUG("Updating pointer to [" << path << "]")
 				}
 
 				return;
@@ -104,50 +105,6 @@ namespace
 				depwalker dp;
 				dp.parent = this;
 				dp.source = obj;
-				th->walk_dependencies(obj, &dp, false);
-			}
-		}
-	};
-
-	struct unresolver : public putki::db::enum_i
-	{
-		putki::db::data *input;
-
-		struct depwalker : public putki::depwalker_i
-		{
-			unresolver *parent;
-
-			bool pointer_pre(putki::instance_t *on)
-			{
-				return true;
-			}
-
-			void pointer_post(putki::instance_t *on)
-			{
-				if (!*on) {
-					return;
-				}
-
-				const char *path = putki::db::pathof_including_unresolved(parent->input, *on);
-				if (!path)
-				{
-					APP_ERROR("!!! A wild object appears! [" << *on << "] during unresolve")
-					return;
-				}
-
-				APP_DEBUG("Unresolving pointer to " << path)
-				*on = putki::db::create_unresolved_pointer(parent->input, path);
-				return;
-			}
-		};
-
-		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
-		{
-			// ignore deferred objects.
-			if (obj && th)
-			{
-				depwalker dp;
-				dp.parent = this;
 				th->walk_dependencies(obj, &dp, false);
 			}
 		}
@@ -267,7 +224,7 @@ namespace putki
 			dsw.input = source;
 			dsw.output = target;
 			dsw.create_unresolved = false;
-			db::read_all_no_fetch(target, &dsw);
+			db::read_all_no_fetch(source, &dsw);
 		}
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
@@ -280,13 +237,15 @@ namespace putki
 			{
 				APP_INFO("Full build")
 			}
+			
+			sys::mutex db_mtx;
 
-			db::data *input = putki::db::create();
+			db::data *input = putki::db::create(0, &db_mtx);
 			load_tree_into_db(builder::obj_path(builder), input);
 
 			APP_INFO("Prepared source db")
 
-			db::data *output = putki::db::create();
+			db::data *output = putki::db::create(0, &db_mtx);
 			builder::build_context *ctx = builder::create_context(builder, input, output);
 
 			// insert all source files into the build context's records.
@@ -410,10 +369,10 @@ namespace putki
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
 		{
 			std::string final_path = packaging->package_path + out_path;
-			APP_INFO("Saving package to [" << final_path << "] ...")
+			APP_DEBUG("Saving package to [" << final_path << "] ...")
 
 			long bytes_written = putki::package::write(package, packaging->rt, xbuf, xbufSize);
-			APP_INFO("Wrote " << bytes_written << " bytes")
+			APP_INFO("Wrote " << final_path << " (" << bytes_written << " bytes)")
 
 			putki::package::debug(package, packaging->bdb);
 

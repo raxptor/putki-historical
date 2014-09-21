@@ -13,6 +13,11 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <sys/time.h>
+#include <unistd.h>
+
+#include <putki/sys/thread.h>
+
 // #define PARSE_DEBUG(x) std::cout << x;
 #define PARSE_DEBUG(x) {}
 
@@ -131,15 +136,18 @@ namespace putki
 
 			std::cout << std::endl;
 		}
+		
+		sys::mutex r_mtx;
 
 
 		data * parse(const char *full_path)
 		{
+			sys::scoped_maybe_lock lk(&r_mtx);
 			FILE *fp = ::fopen(full_path, "rb");
 			if (!fp) {
 				return 0;
 			}
-
+			
 			::fseek(fp, 0, SEEK_END);
 			long size = ftell(fp); // get current file pointer
 			::fseek(fp, 0, SEEK_SET);
@@ -159,10 +167,11 @@ namespace putki
 			jsmn_init(&p);
 
 			const unsigned int maxtok = 32*1024*1024;
-			static jsmntok_t tok[maxtok];
+			jsmntok_t *tok = new jsmntok_t[maxtok];
 			jsmnerr_t err = jsmn_parse(&p, tmp, tok, maxtok);
 			if (err != JSMN_SUCCESS)
 			{
+				delete [] tok;
 				delete [] tmp;
 				std::cout << "Parse failure! Maybe [" << full_path << "] contains more than " << maxtok << " tokens?" << std::endl;
 				return 0;
@@ -170,6 +179,7 @@ namespace putki
 
 			if (tok[0].type != JSMN_OBJECT)
 			{
+				delete [] tok;
 				delete [] tmp;
 				std::cout << "First element is not object!" << std::endl;
 				return 0;
@@ -252,6 +262,7 @@ namespace putki
 			} while (!pst.empty());
 
 			PARSE_DEBUG("Parse success!" << std::endl);
+			delete [] tok;
 			delete [] tmp;
 
 			pd->root = root;

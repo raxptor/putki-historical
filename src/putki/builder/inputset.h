@@ -12,7 +12,9 @@ namespace putki
 		void write(data *d);
 		void release(data *);
 		
-		const char *get_object_sig(data *d, const char *path);
+		#define SIG_BUF_SIZE 64
+		bool get_object_sig(data *d, const char *path, char *buffer);
+		bool get_res_sig(data *d, const char *path, char *buffer);
 	}
 }
 

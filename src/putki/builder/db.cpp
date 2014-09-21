@@ -11,8 +11,10 @@
 #include <cstdio>
 
 #include <putki/sys/compat.h>
+#include <putki/sys/thread.h>
 
 #include <putki/builder/write.h>
+#include <putki/builder/log.h>
 
 extern "C" {
 	#include <md5/md5.h>
@@ -33,6 +35,9 @@ namespace putki
 
 		struct deferred
 		{
+			sys::condition cond;
+			bool loading;
+			int waiting;
 			deferred_load_fn fn;
 			void *userptr;
 		};
@@ -49,16 +54,21 @@ namespace putki
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
-			std::map<std::string, deferred> deferred;
 			std::vector<on_destroy> ondestroy;
+			sys::mutex *mtx;
+			std::map<std::string, struct deferred> deferred;
+			
+			sys::condition isloading_cond;
+			std::set<std::string> isloading;
 			char auxpathbuf[256];
 			data *parent;
 		};
 
-		db::data * create(data *parent)
+		db::data * create(data *parent, sys::mutex *mtx)
 		{
 			data *d = new data();
 			d->parent = parent;
+			d->mtx = mtx;
 			return d;
 		}
 
@@ -127,6 +137,7 @@ namespace putki
 
 		const char *auxref(data *d, const char *path, unsigned int index)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
@@ -138,6 +149,7 @@ namespace putki
 
 		const char *pathof(data *d, instance_t obj)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<instance_t, std::string>::iterator i = d->paths.find(obj);
 			if (i != d->paths.end()) {
 				return i->second.c_str();
@@ -145,6 +157,7 @@ namespace putki
 
 			if (d->parent)
 			{
+				_lk.unlock();
 				return pathof(d->parent, obj);
 			}
 
@@ -162,11 +175,15 @@ namespace putki
 
 		const char *signature(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end())
 			{
+				entry e = i->second;
+				_lk.unlock();
+				
 				std::stringstream ss;
-				write::write_object_into_stream(ss, d, i->second.th, i->second.obj);
+				write::write_object_into_stream(ss, d, e.th, e.obj);
 
 				char signature[16];
 				static char signature_string[64];
@@ -182,14 +199,20 @@ namespace putki
 		
 		void insert_deferred(data *data, const char *path, deferred_load_fn fn, void *userptr)
 		{
+			sys::scoped_maybe_lock _lk(data->mtx);
 			deferred d;
 			d.fn = fn;
 			d.userptr = userptr;
+			d.loading = false;
+			d.waiting = 0;
 			data->deferred[path] = d;
 		}
 
 		void copy_obj(data *source, data *dest, const char *path)
 		{
+			sys::scoped_maybe_lock _lk0(source->mtx);
+			sys::scoped_maybe_lock _lk1(dest->mtx);
+		
 			std::map<std::string, entry>::iterator i = source->objs.find(path);
 			if (i != source->objs.end())
 			{
@@ -207,7 +230,10 @@ namespace putki
 					dest->objs.erase(i);
 
 //				std::cout << " +++ Copy deferred " << path << std::endl;
-				dest->deferred[path] = j->second;
+				dest->deferred[path].fn = j->second.fn;
+				dest->deferred[path].userptr = j->second.userptr;
+				dest->deferred[path].loading = false;
+				dest->deferred[path].waiting = 0;
 				return;
 			}
 
@@ -216,7 +242,8 @@ namespace putki
 
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
-//			std::cout << "DB:" << d << " db insert on path [" << path << "] obj " << i << std::endl;
+			sys::scoped_maybe_lock _lk(d->mtx);
+//			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj ");
 			entry e;
 			e.th = th;
 			e.obj = i;
@@ -244,6 +271,7 @@ namespace putki
 
 		const char *make_aux_path(data *d, instance_t onto)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);		
 			std::map<instance_t, std::string>::iterator i = d->paths.find(onto);
 			if (i != d->paths.end())
 			{
@@ -260,41 +288,136 @@ namespace putki
 		
 		bool exists(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
 		}
-
-		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred)
-		{		
-			std::map<std::string, entry>::iterator i = d->objs.find(path);
-			if (i != d->objs.end())
-			{
-				*th = i->second.th;
-				*obj = i->second.obj;
-				return true;
-			}
-
-			if (!allow_execute_deferred)
+		
+		bool start_loading(data *d, const char *path)
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			
+			// already loaded
+			if (d->objs.find(path) != d->objs.end())
 				return false;
 			
-			std::map<std::string, deferred>::iterator j = d->deferred.find(path);
-			if (j != d->deferred.end())
+			// If still loading and not inserted, it is being processed by a loader
+			// We are thus waiting for disk I/O
+			bool was_loading = false;
+			while (d->isloading.count(path) && d->objs.find(path) == d->objs.end())
 			{
-				bool succ = j->second.fn(d, path, th, obj, j->second.userptr);
-				d->deferred.erase(j);
+				d->isloading_cond.wait(d->mtx);
+				was_loading = true;
+			}
+			
+			if (was_loading || d->objs.find(path) != d->objs.end())
+			{
+				// load completed with fail, or we see the object in the db.
+				return false;
+			}
+			else
+			{
+				// object either existed or was not being loaded.
+				d->isloading.insert(path);
+				return true;
+			}
+		}
+		
+		void done_loading(data *d, const char *path)
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			d->isloading.erase(d->isloading.find(path));
+			std::map<std::string, entry>::iterator i = d->objs.find(path);
+			if (i != d->objs.end()) 
+			{
+				// clear loads for all auxrefs
+				for (unsigned int k=0;k!=i->second.auxrefs.size();k++)
+				{
+					std::string & str = i->second.auxrefs[k];
+					d->isloading.erase(d->isloading.find(std::string(path) + str));
+				}
+			}
+			
+			d->isloading_cond.broadcast();
+//			APP_DEBUG("erased from load queue " << path);
+		}
+
+		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred, bool iamtheloader)
+		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+			while (true)
+			{
+				if (!iamtheloader)
+				{
+					if (d->isloading.count(path))
+					{
+						d->isloading_cond.wait(d->mtx);
+						continue;
+					}
+				}
+
+				std::map<std::string, entry>::iterator i = d->objs.find(path);
+				if (i != d->objs.end())
+				{
+					*th = i->second.th;
+					*obj = i->second.obj;
+					return true;
+				}
+
+				if (!allow_execute_deferred)
+					return false;
+			
+				std::map<std::string, deferred>::iterator j = d->deferred.find(path);
+				if (j == d->deferred.end())
+				{
+					return false;
+				}
+					
+				if (j != d->deferred.end())
+				{
+					if (j->second.loading)
+					{
+						j->second.waiting++;
+						j->second.cond.wait(d->mtx);
+						if (!-- j->second.waiting)
+							d->deferred.erase(j);
+						continue;
+					}
+				}
 				
+				j->second.loading = true;
+				
+				deferred_load_fn fn = j->second.fn;
+				void *userptr = j->second.userptr;
+				
+				if (d->mtx)
+					d->mtx->unlock();
+					
+				bool succ = fn(d, path, th, obj, userptr);
+				
+				if (d->mtx)
+					d->mtx->lock();
+			
+				j = d->deferred.find(path);
+				if (!j->second.loading)
+					APP_ERROR("Not loading any more");
+				
+				j->second.cond.broadcast();
+				
+				if (!j->second.waiting)
+					d->deferred.erase(j);
+					
 				if (!succ)
 				{
-					std::cout << "DEFERRED LOAD OF " << path << " FAILED!" << std::endl;
+					APP_WARNING("DEFERRED LOAD OF " << path << " FAILED!");
 				}
 				
 				return succ;
 			}
-		
-			return false;
 		}
 
 		instance_t ptr_to_allow_unresolved(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
 			if (i != d->objs.end()) {
 				return i->second.obj;
@@ -304,11 +427,20 @@ namespace putki
 
 		void read_all_no_fetch(data *d, enum_i *eobj)
 		{
-			// actually loaded
+			std::vector< std::pair<std::string, entry> > objs;
+			std::vector< std::string > defs;
+
+			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{
-				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
+				if (d->isloading.count(i->first))
+				{
+					i++;
+					continue;
+				}
+			
+				objs.push_back(std::make_pair(i->first, i->second));
 				++i;
 			}
 			
@@ -316,31 +448,64 @@ namespace putki
 			std::map<std::string, deferred>::iterator j = d->deferred.begin();
 			while (j != d->deferred.end())
 			{
-				eobj->record(j->first.c_str(), 0, 0);
-				++j;
+				if (d->isloading.count(j->first))
+				{
+					j++;
+					continue;
+				}
+				defs.push_back((j)->first);
+				j++;
 			}
+			
+			_lk.unlock();
+			
+			
+			for (unsigned int k=0;k<objs.size();k++)
+				eobj->record(objs[k].first.c_str(), objs[k].second.th, objs[k].second.obj);
+			for (unsigned int k=0;k<defs.size();k++)
+				eobj->record(defs[k].c_str(), 0, 0);
 		}
 
 		void read_all(data *d, enum_i *eobj)
 		{
-			if (!d->deferred.empty())
+			std::set<std::string> paths;
+	
+			// insert all deferred
+			sys::scoped_maybe_lock _lk(d->mtx);
+			std::map<std::string, deferred>::iterator i = d->deferred.begin();
+			while (i != d->deferred.end())
 			{
-				std::cout << "db::read_all forced to realize reads! (" << d->deferred.size() << " entries)" << std::endl;
-				while (!d->deferred.empty())
+				if (d->isloading.count(i->first))
 				{
-					std::string name = d->deferred.begin()->first.c_str();
-					type_handler_i *th;
-					instance_t obj;
-					// this will erase from the map
-					db::fetch(d, name.c_str(), &th, &obj);
+					i++;
+					continue;
 				}
+				paths.insert((i++)->first);
 			}
-		
-			std::map<std::string, entry>::iterator i = d->objs.begin();
-			while (i != d->objs.end())
+			
+			// and
+			std::map<std::string, entry>::iterator j = d->objs.begin();
+			while (j != d->objs.end())
 			{
-				eobj->record(i->first.c_str(), i->second.th, i->second.obj);
-				++i;
+				if (d->isloading.count(j->first))
+				{
+					j++;
+					continue;
+				}
+			
+				paths.insert((j++)->first);
+			}
+	
+			_lk.unlock();
+		
+			for (std::set<std::string>::iterator i=paths.begin();i!=paths.end();i++)
+			{
+				type_handler_i *th;
+				instance_t obj;
+				if (db::fetch(d, (*i).c_str(), &th, &obj))
+				{
+					eobj->record((*i).c_str(), th, obj);
+				}
 			}
 		}
 
@@ -351,6 +516,8 @@ namespace putki
 
 		instance_t create_unresolved_pointer(data *d, const char *path)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+		
 			std::map<std::string, const char *>::iterator i = d->strpool.find(path);
 			if (i != d->strpool.end()) {
 				return (instance_t) i->second;
@@ -365,6 +532,8 @@ namespace putki
 
 		const char *is_unresolved_pointer(data *d, void *p)
 		{
+			sys::scoped_maybe_lock _lk(d->mtx);
+		
 			if (d->unresolved.count((const char*)p) != 0)
 			{
 				return (const char*) p;
@@ -373,13 +542,12 @@ namespace putki
 			{
 				if (d->parent)
 				{
+					_lk.unlock();
 					return is_unresolved_pointer(d->parent, p);
 				}
 				return 0;
 			}
 		}
-
-
 	}
 }
 
