@@ -749,15 +749,14 @@ namespace putki
 					outpos++;
 				}
 			}
-			
-			item->num_children += sub_items.size();
-			
+
+			APP_DEBUG("Adding " << sub_items.size() << " children for " << item->path);
+
 			context->mtx_items.lock();
 			for (unsigned int i=0;i<sub_items.size();i++)
-			{	
-				APP_INFO("Adding CHILD " << sub_items[i]->path)
 				context->items.push_back(sub_items[i]);
-			}
+			item->num_children += sub_items.size();
+			context->cnd_items.broadcast();
 			context->mtx_items.unlock();
 
 			post_process_item(context, item);

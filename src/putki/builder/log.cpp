@@ -88,8 +88,8 @@ namespace putki
 
 	bool check_filter(LogType level)
 	{
-//		if (level == LOG_DEBUG)
-//			return false;
+		if (level == LOG_DEBUG)
+			return false;
 		return true;
 	}
 }

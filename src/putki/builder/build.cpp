@@ -251,7 +251,7 @@ namespace putki
 			 APP_DEBUG("Saving package to [" << final_path << "]...")
 
 			 long bytes_written = putki::package::write(pk->pkg, packaging->rt, xbuf, xbufSize);
-			 APP_INFO("Wrote " << final_path << " (" << bytes_written << " bytes")
+			 APP_INFO("Wrote " << final_path << " (" << bytes_written << ") bytes")
 
 			 putki::package::debug(pk->pkg, packaging->bdb);
 
