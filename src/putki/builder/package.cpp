@@ -52,17 +52,6 @@ namespace putki
 					return true;
 				}
 
-				if (already_added->find(path) != already_added->end())
-				{
-					return false;
-				}
-
-				// already visited.
-				if (deps.find(path) != deps.end())
-				{
-					return false;
-				}
-
 				if (db::is_unresolved_pointer(db, *on))
 				{
 					// fix it up
@@ -77,6 +66,17 @@ namespace putki
 						APP_DEBUG("Ignoring unresolved asset with path [" << path << "]")
 						return false;
 					}
+				}
+				
+				if (already_added->find(path) != already_added->end())
+				{
+					return false;
+				}
+
+				// already visited.
+				if (deps.find(path) != deps.end())
+				{
+					return false;
 				}
 
 				deps.insert(path);
