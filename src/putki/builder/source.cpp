@@ -82,8 +82,11 @@ namespace putki
 					{
 						*on = obj;
 					}
-					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj, false, true))
+					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj, true, false))
 					{
+						// above arguments true, false are because that wil be a different db which we are not loader fur,
+						// but we might enjoy triggering a load. note that if input sets cross referenc then this will lead
+						// to a deadlock.
 						*on = obj;
 					}
 					else
