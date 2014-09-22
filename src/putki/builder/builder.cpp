@@ -48,7 +48,6 @@ namespace putki
 			inputset::data *tmp_input_set;
 			deferred_loader *cache_loader;
 			deferred_loader *tmp_loader;
-
 			bool liveupdates;
 			
 			// fix this
@@ -571,7 +570,7 @@ namespace putki
 			build_db::record *br;
 			bool from_cache;
 			prebuild_info prebuild;
-			sys::mutex data;
+			sys::mutex data, db_mtx;
 		};
 
 		struct build_context
@@ -586,7 +585,6 @@ namespace putki
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
 			std::vector<sys::thread*> threads;
-			sys::mutex everything;
 			std::set<std::string> added;
 		};
 
@@ -735,7 +733,7 @@ namespace putki
 
 			item->br = build_db::create_record(item->path.c_str(), sig);
 			build_db::add_input_dependency(item->br, item->path.c_str());
-			item->output = putki::db::create(item->input);
+			item->output = putki::db::create(item->input, &item->db_mtx);
 			std::vector<work_item *> sub_items;
 
 			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
