@@ -121,17 +121,28 @@ namespace putki
 			jsmn_parser p;
 			jsmn_init(&p);
 
-			const unsigned int maxtok = 32*1024*1024;
-			jsmntok_t *tok = new jsmntok_t[maxtok];
-			jsmnerr_t err = jsmn_parse(&p, tmp, tok, maxtok);
+			unsigned int maxtok = 1024;
+			jsmntok_t *tok;
+			jsmnerr_t err;
+			
+			while (maxtok < 64*1024*1024)
+			{
+				tok = new jsmntok_t[maxtok];
+				err = jsmn_parse(&p, tmp, tok, maxtok);
+				if (err == JSMN_SUCCESS)
+					break;
+					
+				// try again with more!
+				delete [] tok;
+				maxtok *= 2;
+			}
+
 			if (err != JSMN_SUCCESS)
 			{
-				delete [] tok;
 				delete [] tmp;
 				std::cout << "Parse failure! Maybe [" << full_path << "] contains more than " << maxtok << " tokens?" << std::endl;
 				return 0;
 			}
-
 			if (tok[0].type != JSMN_OBJECT)
 			{
 				delete [] tok;
