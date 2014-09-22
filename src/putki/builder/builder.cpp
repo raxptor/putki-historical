@@ -251,8 +251,19 @@ namespace putki
 		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
 		{
 			// Time to hunt for cached object.
-			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path, false);
+			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
 			destroy_deplist destroy(dlist);
+			
+			build_db::record *record = build_db::find(builder::get_build_db(builder), path);
+			if (!record)
+				return "No build recor by find()";
+				
+			const char *old_builder = build_db::get_builder(record);
+			if (strcmp(old_builder, handler_name))
+			{
+				RECORD_DEBUG(newrecord, "Old builder=" << old_builder << " current=" << handler_name)
+				return "Builders are diffeent";
+			}
 
 			if (dlist)
 			{
@@ -273,7 +284,6 @@ namespace putki
 					const char *signature = build_db::deplist_signature(dlist, i);
 					if (!build_db::deplist_is_external_resource(dlist, i))
 					{
-						const char *builder_name = build_db::deplist_builder(dlist, i);
 						char inputsig[SIG_BUF_SIZE];
 
 						if (builder->liveupdates)
@@ -297,23 +307,14 @@ namespace putki
 						RECORD_DEBUG(newrecord, "=> i: " << entrypath << " old:" << signature << " new " << inputsig)
 
 						// only care for builder match when the input is going to be built with this builder
-						bool buildermatch = strcmp(path, entrypath) || !strcmp(builder_name, handler_name);
-						if (sigmatch && buildermatch)
+						if (sigmatch)
 						{
 							matches++;
 						}
 						else
 						{
-							if (!buildermatch)
-							{
-								return "builder version is different";
-							}
-							else
-							{
-								RECORD_DEBUG(newrecord, "!! Detected modification in [" << entrypath << "]")
-							}
-
-							return "input or builder has been modified";
+							RECORD_DEBUG(newrecord, "!! Detected modification in [" << entrypath << "]")
+							return "input or has been modified";
 						}
 					}
 					else
@@ -744,6 +745,19 @@ namespace putki
 
 				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
 				{
+					// ignore what we just built.
+					if (!strcmp(cr_path_ptr, item->path.c_str()))
+					{
+						outpos++;
+						continue;
+					}
+
+					if (db::is_aux_path(cr_path_ptr))
+					{
+						outpos++;
+						continue;
+					}
+					
 					if (!item->from_cache && !db::is_aux_path(cr_path_ptr))
 					{
 						// this is a tmp obj, store.
@@ -766,19 +780,6 @@ namespace putki
 						{
 							BUILD_ERROR(context->builder, "Could not read output " << cr_path_ptr)
 						}
-					}
-					
-					// ignore what we just built.
-					if (!strcmp(cr_path_ptr, item->path.c_str()))
-					{
-						outpos++;
-						continue;
-					}
-
-					if (db::is_aux_path(cr_path_ptr))
-					{
-						outpos++;
-						continue;
 					}
 
 					work_item *wi = new work_item();

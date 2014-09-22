@@ -26,12 +26,13 @@ namespace putki
 		const char *get_pointer(record *r, unsigned int index);
 		const char *get_type(record *r);
 		const char *get_signature(record *r);
+		const char *get_builder(record *r);
 
 		bool copy_existing(data *d, record *target, const char *path);
 
 		void set_builder(record *r, const char *builder);
 		void add_output(record *r, const char *output_path, const char *builder);
-		void add_input_dependency(record *r, const char *dependency);
+		void add_input_dependency(record *r, const char *dependency, const char *signature=0);
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature);
 		void insert_metadata(data *data, db::data *db, const char *path);
 		void record_log(record *r, LogType type, const char *msg);
@@ -46,7 +47,7 @@ namespace putki
 
 		const char *enum_outputs(record *r, unsigned int pos);
 
-		deplist* inputdeps_get(data *d, const char *path, bool paths_only);
+		deplist* inputdeps_get(data *d, const char *path);
 
 		deplist* deplist_get(data *d, const char *path);
 
@@ -54,7 +55,6 @@ namespace putki
 		bool deplist_is_external_resource(deplist *d, unsigned int index);
 		const char *deplist_path(deplist *d, unsigned int index);
 		const char *deplist_signature(deplist *d, unsigned int index);
-		const char *deplist_builder(deplist *d, unsigned int index);
 
 		void deplist_free(deplist *);
 	}

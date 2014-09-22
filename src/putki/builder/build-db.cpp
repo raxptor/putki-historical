@@ -28,7 +28,7 @@ namespace putki
 
 		struct record
 		{
-			struct external_dep
+			struct dep_entry
 			{
 				std::string path;
 				std::string signature;
@@ -37,8 +37,8 @@ namespace putki
 			std::string source_path;
 			std::string source_sig;
 			std::string builder;
-			std::vector<std::string> input_dependencies;
-			std::vector<external_dep> external_dependencies;
+			std::vector<dep_entry> input_dependencies;
+			std::vector<dep_entry> dependencies;
 			std::vector<std::string> outputs;
 			std::vector<std::string> builders;
 			
@@ -105,7 +105,7 @@ namespace putki
 						}
 						else if (line[0] == 'i')
 						{
-							add_input_dependency(cur, path);
+							add_input_dependency(cur, path, extra.c_str());
 						}
 						else if (line[0] == 'o')
 						{
@@ -155,9 +155,19 @@ namespace putki
 				dbtxt << "#:" << i->first << "@" << r.source_sig << "*" << r.builder << "\n";
 
 				for (unsigned int j=0; j!=r.input_dependencies.size(); j++)
-					dbtxt << "i:" << r.input_dependencies[j] << "\n";
-				for (unsigned int k=0; k!=r.external_dependencies.size(); k++)
-					dbtxt << "f:" << r.external_dependencies[k].path << "@" << r.external_dependencies[k].signature << std::endl;
+				{
+					// update source signature here
+					RM::iterator q = d->records.find(r.input_dependencies[j].path);
+					if (q != d->records.end())
+						r.input_dependencies[j].signature = q->second->source_sig;
+					else
+						APP_ERROR("Could not find build entry for sig update " << r.input_dependencies[j].path)
+						
+					dbtxt << "i:" << r.input_dependencies[j].path << "@" << r.input_dependencies[j].signature;
+					dbtxt << "\n";
+				}
+				for (unsigned int k=0; k!=r.dependencies.size(); k++)
+					dbtxt << "f:" << r.dependencies[k].path << "@" << r.dependencies[k].signature << std::endl;
 				for (unsigned int j=0; j!=r.outputs.size(); j++)
 					dbtxt << "o:" << r.outputs[j] << "@" << r.builders[j] << "\n";
 
@@ -202,6 +212,11 @@ namespace putki
 				it++;
 
 			return (*it).c_str();
+		}
+		
+		const char *get_builder(record *r)
+		{
+			return r->builder.c_str();
 		}
 
 		const char *get_type(record *r)
@@ -286,7 +301,7 @@ namespace putki
 			r->builders.push_back(builder);
 		}
 
-		void add_input_dependency(record *r, const char *dependency)
+		void add_input_dependency(record *r, const char *dependency, const char *signature)
 		{
 			// aux filter.
 			char tmp[1024];
@@ -298,30 +313,35 @@ namespace putki
 			// don't add same twice.
 			for (unsigned int i=0; i<r->input_dependencies.size(); i++)
 			{
-				if (!strcmp(r->input_dependencies[i].c_str(), dependency)) 
+				if (!strcmp(r->input_dependencies[i].path.c_str(), dependency)) 
 				{
+					if (signature)
+						r->input_dependencies[i].signature = signature;
 					return;
 				}
 			}
-
-			r->input_dependencies.push_back(dependency);
+				
+			record::dep_entry de;
+			de.path = dependency;
+			de.signature = (signature ? signature : "");
+			r->input_dependencies.push_back(de);
 		}
 
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature)
 		{
-			for (int i=0; i<r->external_dependencies.size(); i++)
+			for (int i=0; i<r->dependencies.size(); i++)
 			{
-				if (!strcmp(r->external_dependencies[i].path.c_str(), filepath))
+				if (!strcmp(r->dependencies[i].path.c_str(), filepath))
 				{
-					r->external_dependencies[i].signature = signature;
+					r->dependencies[i].signature = signature;
 					break;
 				}
 			}
 
-			record::external_dep ed;
+			record::dep_entry ed;
 			ed.path = filepath;
 			ed.signature = signature;
-			r->external_dependencies.push_back(ed);
+			r->dependencies.push_back(ed);
 		}
 
 		void copy_input_dependencies(record *copy_to, record *copy_from)
@@ -332,9 +352,9 @@ namespace putki
 		void merge_input_dependencies(record *target, record *source)
 		{
 			for (int i=0; i<source->input_dependencies.size(); i++)
-				add_input_dependency(target, source->input_dependencies[i].c_str());
-			for (int i=0; i<source->external_dependencies.size(); i++)
-				add_external_resource_dependency(target, source->external_dependencies[i].path.c_str(), source->external_dependencies[i].signature.c_str());
+				add_input_dependency(target, source->input_dependencies[i].path.c_str(), source->input_dependencies[i].signature.c_str());
+			for (int i=0; i<source->dependencies.size(); i++)
+				add_external_resource_dependency(target, source->dependencies[i].path.c_str(), source->dependencies[i].signature.c_str());
 		}
 
 		void append_extra_outputs(record *target, record *source)
@@ -362,12 +382,11 @@ namespace putki
 			int count = 0;
 			for (unsigned int i=0; i!=r->input_dependencies.size(); i++)
 			{
-				std::pair<RevDepMap::iterator, RevDepMap::iterator> range = d->depends.equal_range(r->input_dependencies[i]);
+				std::pair<RevDepMap::iterator, RevDepMap::iterator> range = d->depends.equal_range(r->input_dependencies[i].path);
 				for (RevDepMap::iterator j=range.first; j!=range.second; )
 				{
 					if (j->second == r->source_path)
 					{
-						// std::cout << "erasing " << j->first << " -> " << j->second << std::endl;
 						count++;
 						d->depends.erase(j++);
 					}
@@ -395,7 +414,7 @@ namespace putki
 
 			for (unsigned int i=0; i!=r->input_dependencies.size(); i++)
 			{
-				d->depends.insert(std::make_pair(r->input_dependencies[i], r->source_path));
+				d->depends.insert(std::make_pair(r->input_dependencies[i].path, r->source_path));
 				// std::cout << "Inserting extra record on " << r->input_dependencies[i] << " i am " << d << std::endl;
 			}
 
@@ -483,33 +502,10 @@ namespace putki
 			{
 				std::string path;
 				std::string signature;
-				std::string builder;
 				bool is_external_resource; // file such as .png on disk
 			};
 			std::vector<entry> entries;
 		};
-
-		bool fill_entry_lked(data *d, const char *path, deplist::entry *out)
-		{
-			out->path = path;
-			out->is_external_resource = false;
-
-			RM::iterator q = d->records.find(path);
-			if (q != d->records.end())
-			{
-				out->signature = q->second->source_sig;
-				out->builder = q->second->builder;
-				return true;
-			}
-
-			// these will not have any records, only main objects.
-			if (!db::is_aux_path(path))
-			{
-				APP_WARNING("OOPS! Could not find [" << path << "] in build record!")
-			}
-
-			return false;
-		}
 
 		deplist* deplist_get(data *d, const char *path)
 		{
@@ -520,10 +516,8 @@ namespace putki
 			for (RevDepMap::iterator i=range.first; i!=range.second; i++)
 			{
 				deplist::entry e;
-				if (!fill_entry_lked(d, i->second.c_str(), &e)) {
-					return 0;
-				}
-
+				e.path = i->second;
+				e.is_external_resource = false;
 				dl->entries.push_back(e);
 			}
 
@@ -531,7 +525,7 @@ namespace putki
 			return dl;
 		}
 
-		deplist* inputdeps_get(data *d, const char *path, bool paths_only)
+		deplist* inputdeps_get(data *d, const char *path)
 		{
 			sys::scoped_maybe_lock lk(&d->mtx);
 		
@@ -543,28 +537,18 @@ namespace putki
 				for (unsigned int i=0; i<q->second->input_dependencies.size(); i++)
 				{
 					deplist::entry e;
-					if (paths_only)
-					{
-						e.path = q->second->input_dependencies[i];
-						e.is_external_resource = false;
-						dl->entries.push_back(e);
-
-					}
-					else
-					{
-						// fetch full
-						if (fill_entry_lked(d, q->second->input_dependencies[i].c_str(), &e)) {
-							dl->entries.push_back(e);
-						}
-					}
+					e.path = q->second->input_dependencies[i].path;
+					e.signature = q->second->input_dependencies[i].signature;
+					e.is_external_resource = false;
+					dl->entries.push_back(e);
 				}
-				for (unsigned int i=0; i<q->second->external_dependencies.size(); i++)
+				for (unsigned int i=0; i<q->second->dependencies.size(); i++)
 				{
 					// file entry
 					deplist::entry e;
 					e.is_external_resource = true;
-					e.path = q->second->external_dependencies[i].path;
-					e.signature = q->second->external_dependencies[i].signature;
+					e.path = q->second->dependencies[i].path;
+					e.signature = q->second->dependencies[i].signature;
 					dl->entries.push_back(e);
 				}
 			}
@@ -597,14 +581,6 @@ namespace putki
 		{
 			if (index < d->entries.size()) {
 				return d->entries[index].signature.c_str();
-			}
-			return 0;
-		}
-
-		const char *deplist_builder(deplist *d, unsigned int index)
-		{
-			if (index < d->entries.size()) {
-				return d->entries[index].builder.c_str();
 			}
 			return 0;
 		}
