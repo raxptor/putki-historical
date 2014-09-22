@@ -25,6 +25,7 @@ namespace putki
 		struct o_record
 		{
 			std::string path;
+			std::string type;
 			std::string objname;
 			sys::file_info info;
 			std::string content_sig;
@@ -123,10 +124,12 @@ namespace putki
 					sig = db::signature(tmp, i->first.c_str(), buffer);
 					record.info.size = info.size;
 					record.info.mtime = info.mtime;
+					record.type = th->name();
 				}
 				else
 				{
 					sig = "<broken>";
+					record.type = "-unloadable-";
 				}
 				db::free_and_destroy_objs(tmp);
 			}
@@ -252,21 +255,24 @@ namespace putki
 
 				int spl[64], spls = 0;
 				for (int i = 0;i < line.size();i++)
+				{
 					if (line[i] == ':')
 					{
 						spl[spls++] = i;
 					}
+				}
 
 				spl[spls++] = line.size();
 
 				if (spls >= 4)
 				{
-					if (line[0] == 'i')
+					if (line[0] == 'i' && spls >= 5)
 					{
 						o_record tmp;
 						tmp.info.size = atoi(line.substr(spl[1] + 1, spl[2] - spl[1] - 1).c_str());
 						tmp.info.mtime = atoi(line.substr(spl[2] + 1, spl[3] - spl[2] - 1).c_str());
 						tmp.content_sig = line.substr(spl[3] + 1, spl[4] - spl[3] - 1);
+						tmp.type = line.substr(spl[4] + 1, spl[5] - spl[4] - 1);
 						tmp.exists = false;
 						d->objs.insert(std::make_pair(line.substr(spl[0] + 1, spl[1] - spl[0] - 1), tmp));
 					}
@@ -290,7 +296,7 @@ namespace putki
 			ObjMap::iterator i = d->objs.begin();
 			while (i != d->objs.end())
 			{
-				f << "i:" << i->first << ":" << i->second.info.size << ":" << i->second.info.mtime << ":" << i->second.content_sig << "\n";
+				f << "i:" << i->first << ":" << i->second.info.size << ":" << i->second.info.mtime << ":" << i->second.content_sig << ":" << i->second.type << "\n";
 				++i;
 			}
 			ResMap::iterator j = d->res.begin();
@@ -302,10 +308,11 @@ namespace putki
 			f.close();
 		}
 
-		void force_obj(data *d, const char *path, const char *signature)
+		void force_obj(data *d, const char *path, const char *signature, const char *type)
 		{
 			sys::scoped_maybe_lock lk(&d->mtx);
 			d->objs[path].content_sig = signature;
+			d->objs[path].type = type;
 			sys::stat(obj_path(d->objpath.c_str(), path).c_str(), &d->objs[path].info);
 		}
 
@@ -364,6 +371,17 @@ namespace putki
 		void release(data *d)
 		{
 			delete d;
+		}
+		
+		const char *get_object_type(data *d, const char *path)
+		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+			ObjMap::iterator i = d->objs.find(path);
+			if (i != d->objs.end())
+			{
+				return i->second.type.c_str();
+			}
+			return 0;
 		}
 
 		bool get_object_sig(data *d, const char *path, char *buffer)

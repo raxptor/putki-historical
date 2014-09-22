@@ -247,7 +247,7 @@ namespace putki
 
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
-		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th, db::data *output)
 		{
 			// Time to hunt for cached object.
 			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
@@ -470,10 +470,11 @@ namespace putki
 
 
 		// return true if was built, false if cached.
-		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, instance_t obj, type_handler_i *th, db::data *output)
+		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
-			bool built_by_any = false;
+			instance_t obj = 0;
+			
 			BuildersMap::iterator i = builder->handlers.find(th->name());
 			if (i != builder->handlers.end())
 			{
@@ -482,13 +483,16 @@ namespace putki
 					const builder_entry *e = &i->second.handlers[j];
 					if (e->obj_phase_mask & phase)
 					{
-						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
+						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, th, output);
 						if (reason)
 						{
 							APP_INFO("Building [" << path << "]")
 							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
+							if (!db::fetch(input, path, &th, &obj))
+								APP_ERROR("Could not fetch but it existed before? " << path);
+							
 							if (input == builder->grand_input)
 							{
 								APP_INFO("Cloning [" << path << "]")
@@ -496,7 +500,6 @@ namespace putki
 							}
 
 							e->handler->handle(builder, record, input, path, obj, output, phase);
-							built_by_any = true;
 						}
 						else
 						{
@@ -523,7 +526,7 @@ namespace putki
 
 				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
 				// only actually to see if it needs to be rewritten
-				if (!fetch_cached_build(builder, record, default_name, input, path, obj, th, output))
+				if (!fetch_cached_build(builder, record, default_name, input, path, th, output))
 				{
 					RECORD_DEBUG(record, "Using from cache")
 					return false;
@@ -536,16 +539,39 @@ namespace putki
 
 			if (!db::exists(output, path))
 			{
-				// items that go to output must always be clones. if they weren't built,
-				// they weren't cloned.
-				if (!built_by_any && input == builder->grand_input)
-					obj = th->clone(obj);
-
-				db::insert(output, path, th, obj);
+				// if it has been sucked into input (check without triggering delayed load),
+				// then a clone must be inserted
+				if (!obj) 
+				{
+					if (db::fetch(input, path, &th, &obj, false))
+					{
+						db::insert(output, path, th, th->clone(obj));
+					}
+					else
+					{
+						db::copy_obj(input, output, path);
+						RECORD_INFO(record, "Cheap copy")
+					}
+				}
+				else
+				{
+					// if we have the ptr already it was processed/cloned
+					db::insert(output, path, th, obj);
+				}
 			}
 
 			// add aux objects directly pointed by this object.. no children
 			// because other objects need to take care of themselves.
+			if (!obj)
+			{
+				// maybe this sux.
+				if (!db::fetch(output, path, &th, &obj))
+				{
+					RECORD_ERROR(record, "could not read back from output");
+					return true;
+				}
+			}
+			
 			get_aux_deps ad;
 			ad.input = input;
 			ad.output = output;
@@ -703,11 +729,8 @@ namespace putki
 
 		void context_process_record(build_context *context, work_item *item)
 		{
-			type_handler_i *th;
-			instance_t obj;
-
 			BUILD_DEBUG(context->builder, "Record: " << item->path)
-			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
+			if (!db::exists(item->input, item->path.c_str()))
 			{
 				BUILD_ERROR(context->builder, "Fetch failed on " << item->path);
 				return;
@@ -715,14 +738,19 @@ namespace putki
 
 			// We use db::signature
 			char sig[SIG_BUF_SIZE];
+			type_handler_i *th;
+			const char *type_name = 0;
+			
 			if (db::is_aux_path(item->path.c_str()))
 			{
 				strcpy(sig, "aux-no-sig");
 			}
 			else
 			{
+				type_name = inputset::get_object_type(context->builder->input_set, item->path.c_str());
 				if (!inputset::get_object_sig(context->builder->input_set, item->path.c_str(), sig))
 				{
+					type_name = inputset::get_object_type(context->builder->tmp_input_set, item->path.c_str());
 					if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
 					{
 						BUILD_ERROR(context->builder, "No signature");
@@ -730,13 +758,17 @@ namespace putki
 					}
 				}
 			}
+			
+			if (!type_name) BUILD_ERROR(context->builder, "I cannot build because " << item->path << " has unknown type!");	
+			th = typereg_get_handler(type_name);
+			if (!th) BUILD_ERROR(context->builder, "No type handler for [" << type_name << "]");
 
 			item->br = build_db::create_record(item->path.c_str(), sig);
 			build_db::add_input_dependency(item->br, item->path.c_str());
 			item->output = putki::db::create(item->input, &item->db_mtx);
 			std::vector<work_item *> sub_items;
 
-			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
+			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -767,7 +799,7 @@ namespace putki
 							BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(item->output, cr_path_ptr, buffer))
 							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, item->output, _th, _obj, fn))
 							{
-								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr, buffer));
+								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr, buffer), _th->name());
 							}
 							else
 							{

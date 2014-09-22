@@ -95,45 +95,6 @@ namespace putki
 
 			return (float) atof(node->value.c_str());
 		}
-
-		void print_tree(node *n, int ilevel)
-		{
-			for (int i=0; i<ilevel; i++)
-				std::cout << " ";
-
-			if (n->token->type == JSMN_OBJECT)
-			{
-				std::cout << "[OBJECT]" << std::endl;
-				std::map<std::string, node*>::iterator i = n->object.begin();
-				while (i != n->object.end())
-				{
-					for (int j=0; j<ilevel; j++)
-						std::cout << " ";
-
-					std::cout << i->first << " => " << std::endl;
-					print_tree(i->second, ilevel + i->first.size() + 4);
-					++i;
-				}
-			}
-			else if (n->token->type == JSMN_ARRAY)
-			{
-				std::cout << "<array>" << std::endl;
-				for (unsigned int i=0; i<n->arr.size(); i++)
-				{
-					for (int j=0; j<ilevel; j++)
-						std::cout << " ";
-
-					std::cout << "[" << i << "] => " << std::endl;
-					print_tree(n->arr[i], ilevel + 8);
-				}
-			}
-			else
-			{
-				std::cout << n->value;
-			}
-
-			std::cout << std::endl;
-		}
 		
 		data * parse(const char *full_path)
 		{

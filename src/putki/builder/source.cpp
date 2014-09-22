@@ -329,6 +329,7 @@ namespace putki
 							continue;
 						}
 					
+						APP_DEBUG("Loading dependency " << file << " from disk")
 						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str(), 0, &loader->resolve_mtx);
 
 						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
@@ -338,7 +339,6 @@ namespace putki
 						}
 						else
 						{
-							APP_DEBUG("Dependency " << path << " -> " << dep << " loaded")
 							i_loaded.insert(resolver.to_load[i]);
 						}
 					}
