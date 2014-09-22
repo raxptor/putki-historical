@@ -447,7 +447,7 @@ namespace putki
 
 		void read_all_no_fetch(data *d, enum_i *eobj)
 		{
-			std::vector< std::pair<std::string, entry> > objs;
+			std::vector< std::pair<std::string, std::pair<type_handler_i*, instance_t> > > objs;
 			std::vector< std::string > defs;
 
 			sys::scoped_maybe_lock _lk(d->mtx);
@@ -460,7 +460,7 @@ namespace putki
 					continue;
 				}
 			
-				objs.push_back(std::make_pair(i->first, i->second));
+				objs.push_back(std::make_pair(i->first, std::make_pair(i->second.th, i->second.obj)));
 				++i;
 			}
 			
@@ -481,7 +481,7 @@ namespace putki
 			
 			
 			for (unsigned int k=0;k<objs.size();k++)
-				eobj->record(objs[k].first.c_str(), objs[k].second.th, objs[k].second.obj);
+				eobj->record(objs[k].first.c_str(), objs[k].second.first, objs[k].second.second);
 			for (unsigned int k=0;k<defs.size();k++)
 				eobj->record(defs[k].c_str(), 0, 0);
 		}
