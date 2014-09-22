@@ -160,8 +160,12 @@ namespace putki
 
 		void free(data *builder)
 		{
-			inputset::write(builder->input_set);
-			inputset::write(builder->tmp_input_set);
+			// keep it all in memory!
+			if (!builder->liveupdates)
+			{
+				inputset::write(builder->input_set);
+				inputset::write(builder->tmp_input_set);
+			}
 
 			build_db::release(builder->build_db);
 			inputset::release(builder->input_set);
