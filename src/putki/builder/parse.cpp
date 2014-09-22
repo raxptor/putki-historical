@@ -119,7 +119,6 @@ namespace putki
 			tmp[rd] = 0;
 
 			jsmn_parser p;
-			jsmn_init(&p);
 
 			unsigned int maxtok = 1024;
 			jsmntok_t *tok;
@@ -128,6 +127,8 @@ namespace putki
 			while (maxtok < 64*1024*1024)
 			{
 				tok = new jsmntok_t[maxtok];
+				
+				jsmn_init(&p);
 				err = jsmn_parse(&p, tmp, tok, maxtok);
 				if (err == JSMN_SUCCESS)
 					break;
