@@ -28,6 +28,7 @@ namespace putki
 			std::string path;
 			type_handler_i *th;
 			instance_t obj;
+			unsigned int written_size;
 		};
 
 		typedef std::map<std::string, entry> blobmap_t;
@@ -130,9 +131,15 @@ namespace putki
 			unsigned int pos = 0;
 			while (pos < queue.size())
 			{
+				// just for now because it is nice to see size
+				int bytes = -1;
+				blobmap_t::const_iterator b = data->blobs.find(queue[pos]);
+				if (b != data->blobs.end())
+					bytes = b->second.written_size;
+			
 				if (db::is_aux_path(queue[pos].c_str()))
 				{
-					APP_DEBUG("    + " << queue[pos])
+					APP_DEBUG("    + " << queue[pos] << " - " << bytes << " bytes")
 					pos++;
 					continue;
 				}
@@ -145,7 +152,8 @@ namespace putki
 					continue;
 				}
 
-				APP_DEBUG("  entry:" << queue[pos] << " [" << build_db::get_type(r) << "] built_sig=" << build_db::get_signature(r))
+					 
+				APP_DEBUG("  entry:" << queue[pos] << " [" << build_db::get_type(r) << "] - " << bytes << " bytes - built_sig=" << build_db::get_signature(r))
 
 				for (int j = 0;;j++)
 				{
@@ -224,6 +232,7 @@ namespace putki
 				{
 					e.path = path;
 					e.save_path = storepath;
+					e.written_size = 0;
 					data->blobs[path] = e;
 				}
 				else
@@ -332,7 +341,7 @@ namespace putki
 
 			// create a pack list and save where each entry goes.
 			std::map<std::string, int> packorder;
-			std::vector<const entry*> packlist;
+			std::vector<entry*> packlist;
 
 			// we put the data that was asked for first.
 			for (int k=0;k!=data->list.size();k++)
@@ -340,7 +349,7 @@ namespace putki
 				if (!data->list[k].save_path)
 					continue;
 
-				blobmap_t::const_iterator i = data->blobs.find(data->list[k].path);
+				blobmap_t::iterator i = data->blobs.find(data->list[k].path);
 				if (i == data->blobs.end())
 					continue;
 
@@ -349,7 +358,7 @@ namespace putki
 			}
 
 			// then the rest
-			blobmap_t::const_iterator i = data->blobs.begin();
+			blobmap_t::iterator i = data->blobs.begin();
 			while (i != data->blobs.end())
 			{
 				if (packorder.find(i->first) == packorder.end())
@@ -445,11 +454,16 @@ namespace putki
 				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
 				if (!ptr)
 				{
+					packlist[i]->written_size = 0;
 					std::cout << "HELP! Wrote 0 bytes after packing " << i << " objects!" << std::endl;
 					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
 					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
 					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
 					APP_ERROR("HELP")
+				}
+				else
+				{
+					packlist[i]->written_size = ptr - start;
 				}
 			}
 
