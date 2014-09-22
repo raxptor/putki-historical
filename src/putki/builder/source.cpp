@@ -94,7 +94,6 @@ namespace putki
 							return false;
 						}
 
-						APP_WARNING("Unresolved reference to [" << path << "] when loading [" << parent->path << "]")
 						parent->unresolved++;
 						
 						if (parent->zero_unresolved)
@@ -176,6 +175,7 @@ namespace putki
 			else
 			{
 				APP_WARNING("Unrecognized type [" << objtype << "]")
+				putki::parse::free(pd);
 				return;
 			}
 
@@ -457,10 +457,6 @@ namespace putki
 				if (loaded.count(file) == 0)
 				{
 					ld++;
-					//
-					// std::cout << "Loading additional [" << file << "] into db " << d << std::endl;
-					//
-					
 					db::start_loading(d, path);
 					load_into_db(d, (std::string(sourcepath) + "/" + file).c_str(), file.c_str());
 					loaded.insert(file);
