@@ -424,7 +424,10 @@ namespace putki
 
 				// ignore aux paths since they are included implicitly.
 				if (db::is_aux_path(path))
+				{
+					out->pointers.insert(path);
 					return true;
+				}
 
 				if (db::is_unresolved_pointer(db, *on))
 				{

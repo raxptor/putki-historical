@@ -384,36 +384,44 @@ namespace putki
 		// gets aux pointers to the input, adding to output.
 		struct get_aux_deps : public putki::depwalker_i
 		{
-			std::vector<std::string> objects;
+			std::vector<std::string> aux_outs;
 			db::data *input, *output;
 			build_db::record *record;
 			const char *name;
 
 			bool pointer_pre(putki::instance_t *on)
 			{
+				if (!*on)
+					return false;
+
+				const char *path = putki::db::pathof_including_unresolved(output, *on);
+				if (!path)
+					return false;
+
+				if (!putki::db::is_aux_path(path))
+					return false;
+
+				aux_outs.push_back(path);
 				return true;
 			}
 
 			void pointer_post(putki::instance_t *on)
 			{
 				if (!*on)
-				{
 					return;
-				}
 
-				const char *path = putki::db::pathof(input, *on);
-				if (!path)
+				putki::type_handler_i *th;
+				putki::instance_t obj = 0;
+
+				const char *path = putki::db::pathof_including_unresolved(output, *on);
+				if (!path && !(path = putki::db::pathof_including_unresolved(input, *on)))
 				{
+					RECORD_ERROR(record, "No path on non-null pointer")
 					return;
 				}
 
 				if (!putki::db::is_aux_path(path))
-				{
 					return;
-				}
-
-				putki::type_handler_i *th;
-				putki::instance_t obj = 0;
 
 				if (putki::db::fetch(output, path, &th, &obj))
 				{
@@ -517,6 +525,9 @@ namespace putki
 			ad.record = record;
 			ad.name = default_name;
 			th->walk_dependencies(obj, &ad, false);
+
+			for (unsigned int i=0;i<ad.aux_outs.size();i++)
+				build_db::add_output(record, ad.aux_outs[i].c_str(), default_name);
 
 			build_db::add_output(record, path, default_name);
 			return true;
