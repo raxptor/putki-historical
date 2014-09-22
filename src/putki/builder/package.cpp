@@ -256,10 +256,9 @@ namespace putki
 						next_add.push_back(*i++);
 					}
 
-					// This breaks end of the line for live update client, since it will not
-					// know what package was for what asset when -all- have paths. Otherwise
-					// it bases everything on that the firstly stored ones are important.
-					const bool store_path_for_dependencies = false;
+					// should be false but is interesting until package manifest is
+					// implemented
+					const bool store_path_for_dependencies = true;
 					add(data, 0, &next_add, store_path_for_dependencies, true);
 				}
 			}
@@ -328,7 +327,6 @@ namespace putki
 		{
 			for (unsigned int i = 0;i < data->list.size();i++)
 				add(data, data->list[i].path.c_str(), 0, data->list[i].save_path, true);
-			data->list.clear();
 
 			APP_DEBUG("Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs.")
 
@@ -336,20 +334,33 @@ namespace putki
 			std::map<std::string, int> packorder;
 			std::vector<const entry*> packlist;
 
-			for (int pass = 0;pass < 2;pass++)
+			// we put the data that was asked for first.
+			for (int k=0;k!=data->list.size();k++)
 			{
-				blobmap_t::const_iterator i = data->blobs.begin();
-				while (i != data->blobs.end())
-				{
-					// store all with paths first
-					if ((pass == 0) == i->second.save_path)
-					{
-						packorder[i->first] = packlist.size();
-						packlist.push_back(&(i->second));
-					}
-					++i;
-				}
+				if (!data->list[k].save_path)
+					continue;
+
+				blobmap_t::const_iterator i = data->blobs.find(data->list[k].path);
+				if (i == data->blobs.end())
+					continue;
+
+				packorder[i->first] = packlist.size();
+				packlist.push_back(&(i->second));
 			}
+
+			// then the rest
+			blobmap_t::const_iterator i = data->blobs.begin();
+			while (i != data->blobs.end())
+			{
+				if (packorder.find(i->first) == packorder.end())
+				{
+					packorder[i->first] = packlist.size();
+					packlist.push_back(&(i->second));
+				}
+				++i;
+			}
+
+			data->list.clear();
 
 			// the packlist is now doomed if we manipulate with the blobmap
 			// pack all pointers so they point into the slot list.
