@@ -10,7 +10,7 @@ namespace putki
 	namespace
 	{
 		bool tty_out = isatty(1);
-		LogType loglevel = LOG_DEBUG;
+		LogType loglevel = LOG_INFO;
 		sys::mutex mtx;
 	}
 
