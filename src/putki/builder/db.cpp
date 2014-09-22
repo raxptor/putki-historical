@@ -196,18 +196,17 @@ namespace putki
 				write::write_object_into_stream(ss, d, e.th, e.obj);
 
 				char signature[16];
-				static char signature_string[64];
+				static char unsafe_buffer[64];
 
 				if (!buffer)
 				{
 					APP_WARNING("Not using buffer for db::signature")
-					buffer = signature_string;
+					buffer = unsafe_buffer;
 				}
 
 				md5_buffer(ss.str().c_str(), ss.str().size(), signature);
-				md5_sig_to_string(signature, signature_string, 64);
-
-				return signature_string;
+				md5_sig_to_string(signature, buffer, 64);
+				return buffer;
 
 			}
 			return "NO-SIG";
