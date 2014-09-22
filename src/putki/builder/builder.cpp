@@ -48,6 +48,8 @@ namespace putki
 			inputset::data *tmp_input_set;
 			deferred_loader *cache_loader;
 			deferred_loader *tmp_loader;
+
+			bool liveupdates;
 			
 			// fix this
 			db::data *grand_input;
@@ -93,6 +95,7 @@ namespace putki
 			d->runtime = rt;
 			d->config = build_config;
 			d->num_threads = numthreads ? numthreads : 4;
+			d->liveupdates = false;
 
 			d->obj_path = d->res_path = d->out_path = d->tmp_path = d->tmpobj_path = d->built_obj_path = path;
 
@@ -167,6 +170,11 @@ namespace putki
 			loader_decref(builder->tmp_loader);
 
 			delete builder;
+		}
+
+		void enable_liveupdate_builds(builder::data *data)
+		{
+			data->liveupdates = true;
 		}
 
 		build_db::data *get_build_db(builder::data *d)
@@ -263,13 +271,21 @@ namespace putki
 					{
 						const char *builder_name = build_db::deplist_builder(dlist, i);
 						char inputsig[SIG_BUF_SIZE];
-						
-						if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
+
+						if (builder->liveupdates)
 						{
-							if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
+							char buffer[128];
+							strcpy(inputsig, db::signature(input, entrypath, buffer));
+						}
+						else
+						{
+							if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
 							{
-								BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
-								strcpy(inputsig, "bonkers");
+								if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
+								{
+									BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
+									strcpy(inputsig, "bonkers");
+								}
 							}
 						}
 
@@ -342,6 +358,10 @@ namespace putki
 						}
 						
 						RECORD_DEBUG(newrecord, "	output[" << j << "] is " << rpath)
+
+						// auxes will not be inserted.
+						if (db::is_aux_path(rpath))
+							continue;
 
 						// We want to carefully load these files, and not overwrite any which might have been built
 						// this time.
@@ -461,12 +481,15 @@ namespace putki
 						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, obj, th, output);
 						if (reason)
 						{
-							APP_INFO("Builing [" << path << "]")
+							APP_INFO("Building [" << path << "]")
 							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
 							if (input == builder->grand_input)
+							{
+								APP_INFO("Cloning [" << path << "]")
 								obj = th->clone(obj);
+							}
 
 							e->handler->handle(builder, record, input, path, obj, output, phase);
 							built_by_any = true;
@@ -641,7 +664,9 @@ namespace putki
 				if (!item->from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
 
-				context_add_build_record_pointers(context, item->path.c_str());
+				if (!context->builder->liveupdates)
+					context_add_build_record_pointers(context, item->path.c_str());
+
 				flush_log(item->br);
 				
 				db::free(item->output, context->output);
@@ -658,7 +683,9 @@ namespace putki
 				if (!item->from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
 
-				context_add_build_record_pointers(context, item->path.c_str());
+				if (!context->builder->liveupdates)
+					context_add_build_record_pointers(context, item->path.c_str());
+
 				flush_log(item->br);
 				
 				db::free(item->output, item->parent->output);
@@ -677,59 +704,54 @@ namespace putki
 			instance_t obj;
 
 			BUILD_DEBUG(context->builder, "Record: " << item->path)
-
 			if (!db::fetch(item->input, item->path.c_str(), &th, &obj))
 			{
 				BUILD_ERROR(context->builder, "Fetch failed on " << item->path);
 				return;
 			}
-			
+
 			// We use db::signature
 			char sig[SIG_BUF_SIZE];
-			if (!inputset::get_object_sig(context->builder->input_set, item->path.c_str(), sig))
+			if (db::is_aux_path(item->path.c_str()))
 			{
-				if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
+				strcpy(sig, "aux-no-sig");
+			}
+			else
+			{
+				if (!inputset::get_object_sig(context->builder->input_set, item->path.c_str(), sig))
 				{
-					BUILD_ERROR(context->builder, "No signature");
-					strcpy(sig, "tmp-obj-sig");
+					if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
+					{
+						BUILD_ERROR(context->builder, "No signature");
+						strcpy(sig, "tmp-obj-sig");
+					}
 				}
 			}
 
 			item->br = build_db::create_record(item->path.c_str(), sig);
-
 			build_db::add_input_dependency(item->br, item->path.c_str());
-
 			item->output = putki::db::create(item->input);
-			
 			std::vector<work_item *> sub_items;
 
 			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), obj, th, item->output);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
-				
 
 				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
 				{
-					// ignore what we just built.
-					if (!strcmp(cr_path_ptr, item->path.c_str()))
-					{
-						outpos++;
-						continue;
-					}
-
-					if (!item->from_cache)
+					if (!item->from_cache && !db::is_aux_path(cr_path_ptr))
 					{
 						// this is a tmp obj, store.
 						type_handler_i *_th;
 						instance_t _obj;
 						if (db::fetch(item->output, cr_path_ptr, &_th, &_obj))
 						{
-							char fn[1024];
-							// BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(item->output, cr_path_ptr))
+							char fn[1024], buffer[128];
+							BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(item->output, cr_path_ptr, buffer))
 							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, item->output, _th, _obj, fn))
 							{
-								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr));
+								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr, buffer));
 							}
 							else
 							{
@@ -742,6 +764,19 @@ namespace putki
 						}
 					}
 					
+					// ignore what we just built.
+					if (!strcmp(cr_path_ptr, item->path.c_str()))
+					{
+						outpos++;
+						continue;
+					}
+
+					if (db::is_aux_path(cr_path_ptr))
+					{
+						outpos++;
+						continue;
+					}
+
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
 					wi->input = item->output; // where the object is
@@ -861,6 +896,7 @@ namespace putki
 			context_add_to_build(ctx, path);
 			context_finalize(ctx);
 			context_build(ctx);
+			build::post_build_ptr_update(input, output);
 			context_destroy(ctx);
 		}
 

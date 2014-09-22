@@ -16,6 +16,9 @@ namespace putki
 
 		void full_build(builder::data *builder);
 		void single_build(builder::data *builder, const char *path);
+		
+		// make sure it is all resolved
+		void resolve_object(db::data *source, const char *path);
 
 		void post_build_ptr_update(db::data *input, db::data *output);
 		void post_build_merge_database(putki::db::data *source, db::data *target, db::data *trash);

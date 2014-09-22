@@ -10,6 +10,8 @@
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/sys/compat.h>
 #include <putki/sys/files.h>
+#include <putki/sys/sstream.h>
+#include <putki/sys/thread.h>
 
 #include <string>
 #include <iostream>
@@ -94,10 +96,11 @@ namespace putki
 		db::data *_db;
 		std::string _path;
 		liveupdate::data *_lu;
+		sys::mutex _db_mtx;
 
 		data_dll(const char *path)
 		{
-			_db = db::create();
+			_db = db::create(0, &_db_mtx);
 			_path = path;
 			_path.append("/data/objs");
 
@@ -206,7 +209,7 @@ namespace putki
 		void disk_save(mem_instance *mi_)
 		{
 			mem_instance_real *mi = (mem_instance_real*)mi_;
-			std::stringstream tmp;
+			putki::sstream tmp;
 			putki::write::write_object_into_stream(tmp, _db, mi->th, mi->inst);
 
 			std::string outpath = (_path + "/" + mi->path) + ".json";

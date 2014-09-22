@@ -36,6 +36,8 @@ namespace putki
 		// num_threads=0 => auto
 		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db, const char *build_config, int num_threads=0);
 		void free(data *builder);
+		
+		void enable_liveupdate_builds(builder::data *data);
 
 		runtime::descptr runtime(builder::data *data);
 		const char *config(builder::data *data);

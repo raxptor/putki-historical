@@ -21,6 +21,7 @@ namespace putki
 
 	namespace parse { struct node; }
 	namespace db { struct data; }
+	struct sstream;
 
 	struct load_resolver_i
 	{
@@ -53,7 +54,7 @@ namespace putki
 
 		// reading / writing
 		virtual void fill_from_parsed(parse::node *pn, instance_t target, load_resolver_i *resolver) = 0;
-		virtual void write_json(putki::db::data *ref_source, instance_t source, std::ostream & out, int indent) = 0;
+		virtual void write_json(putki::db::data *ref_source, instance_t source, putki::sstream & out, int indent) = 0;
 
 		virtual char* write_into_buffer(runtime::descptr rt, instance_t source, char *beg, char *end) = 0;
 

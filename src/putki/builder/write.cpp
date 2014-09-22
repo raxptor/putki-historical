@@ -8,6 +8,7 @@
 #include <string>
 
 #include <putki/sys/files.h>
+#include <putki/sys/sstream.h>
 
 namespace putki
 {
@@ -66,14 +67,13 @@ namespace putki
 		};
 
 
-		void write_object_into_stream(std::ostream& out, db::data *ref_source, type_handler_i *th, instance_t obj)
+		void write_object_into_stream(putki::sstream & out, db::data *ref_source, type_handler_i *th, instance_t obj)
 		{
-			out.precision(30);
-			out << "{" << std::endl;
-			out << "	type: "<< json_str(th->name()) << "," << std::endl;
+			out << "{\n";
+			out << "	type: "<< json_str(th->name()) << ",\n";
 			out << "	data: {\n";
 			th->write_json(ref_source, obj, out, 1);
-			out << "	},"<< std::endl;
+			out << "	},\n";
 
 			// collect all aux objects.
 			std::vector<std::string> paths;
@@ -89,11 +89,11 @@ namespace putki
 			for (unsigned int i=0; i<aw.subpaths.size(); i++)
 				aw.paths.push_back(aw.subpaths[i]);
 
-			out << "	aux: ["<< std::endl;
+			out << "	aux: [\n";
 			for (unsigned int i=0; i<aw.paths.size(); i++)
 			{
 				if (i > 0) {
-					out << "		,"<< std::endl;
+					out << "		,\n";
 				}
 
 				type_handler_i *th;
@@ -102,20 +102,20 @@ namespace putki
 
 				int sp = aw.paths[i].find_first_of('#');
 
-				out << "		{"<< std::endl;
-				out << "			ref: \""<< aw.paths[i].substr(sp, aw.paths[i].size() - sp) << "\"," << std::endl;
-				out << "			type: "<< json_str(th->name()) << "," << std::endl;
+				out << "		{\n";
+				out << "			ref: \""<< aw.paths[i].substr(sp, aw.paths[i].size() - sp) << "\",\n";
+				out << "			type: "<< json_str(th->name()) << ",\n";
 				out << "			data: {\n";
 				th->write_json(ref_source, obj, out, 4);
-				out << "			}"<< std::endl;
-				out << "		}"<< std::endl;
+				out << "			}\n";
+				out << "		}\n";
 			}
 
-			out << "	]"<< std::endl;
+			out << "	]\n";
 
 			// now all the aux
 
-			out << "}" << std::endl;
+			out << "}\n";
 		}
 
 		bool write_object_to_fs(const char *basedir, const char *path, db::data *ref_source, type_handler_i *th, instance_t obj, char *fn_out)
@@ -124,14 +124,10 @@ namespace putki
 			out_path.append("/");
 			out_path.append(path);
 			out_path.append(".json");
-			std::stringstream ts;
+			putki::sstream ts;
 			write::write_object_into_stream(ts, ref_source, th, obj);
 			sys::mk_dir_for_path(out_path.c_str());
-			std::ofstream f(out_path.c_str());
-			f << ts.str();
-			f.close();
-			strcpy(fn_out, out_path.c_str());
-			return true;
+			return sys::write_file(out_path.c_str(), ts.str().c_str(), ts.str().size());
 		}
 
 		std::string json_str(const char *input)
@@ -140,12 +136,16 @@ namespace putki
 				return "\"\"";
 			}
 
+			const char *hex = "0123456789abcdef";
 			std::string s(input);
-			std::stringstream ss;
+
+			putki::sstream ss;
 			ss << "\"";
 			for (size_t i = 0; i < s.length(); ++i) {
 				if (unsigned(s[i]) < '\x20' || s[i] == '\\' || s[i] == '"') {
-					ss << "\\u" << std::setfill('0') << std::setw(4) << std::hex << unsigned(s[i]);
+					ss << "\\u";
+					for (int k=0;k<4;k++)
+						ss << hex[(s[i] >> 4*(3-i)) & 0xf];
 				}
 				else{
 					ss << s[i];
@@ -155,9 +155,8 @@ namespace putki
 			return ss.str();
 		}
 
-		const char *json_indent(int level)
+		const char *json_indent(char *buf, int level)
 		{
-			static char buf[256];
 			int i;
 			for (i=0; i<level; i++)
 				buf[i] = '\t';

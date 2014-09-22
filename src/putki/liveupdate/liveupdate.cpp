@@ -4,8 +4,11 @@
 #include <putki/builder/builder.h>
 #include <putki/builder/source.h>
 #include <putki/builder/build.h>
+#include <putki/builder/write.h>
 #include <putki/builder/build-db.h>
 #include <putki/builder/package.h>
+#include <putki/sys/thread.h>
+#include <putki/sys/sstream.h>
 
 #include <iostream>
 #include <string>
@@ -200,10 +203,11 @@ namespace putki
 			int accepted_updates = 0;
 
 			builder::data *builder = 0;
-			runtime::descptr rt;
+			runtime::descptr rt = 0;
+			std::string config = "Default";
 
-			db::data *input = db::create();
-
+			sys::mutex db_mtx, output_db_mtx;
+			db::data *input = db::create(0, &db_mtx);
 
 			while ((bytes = recv(skt, buf, sizeof(buf), 0)) > 0)
 			{
@@ -238,16 +242,41 @@ namespace putki
 				while (!lines.empty())
 				{
 					std::string cmd = lines.front();
-					std::string arg0;
+					std::string argstring;
 
+					std::vector<std::string> args;
 					int del = cmd.find_first_of(' ');
 					if (del != std::string::npos)
 					{
-						arg0 = cmd.substr(del+1, cmd.size() - del);
+						argstring = cmd.substr(del+1, cmd.size() - del);
 						cmd = cmd.substr(0, del);
 					}
 
-//					std::cout << "client [" << cmd << "] arg0 [" << arg0 << "]" << std::endl;
+					while (!argstring.empty())
+					{
+						del = argstring.find_first_of(' ');
+						if (del == std::string::npos)
+						{
+							args.push_back(argstring);
+							break;
+						}
+						
+						args.push_back(argstring.substr(0, del));
+						argstring.erase(0, del + 1);
+					}
+
+					if (cmd != "poll")
+					{
+						std::cout << "client [" << cmd << "]";
+						if (args.size() > 0)
+							std::cout << " arg0=[" << args[0] << "]";
+						if (args.size() > 1)
+							std::cout << " arg1=[" << args[1] << "]";
+						if (args.size() > 2)
+							std::cout << " arg2=[" << args[2] << "]";
+						std::cout << std::endl;
+					}
+
 					if (cmd == "init")
 					{
 						// see what runtime it is.
@@ -257,18 +286,19 @@ namespace putki
 							if (!p) {
 								break;
 							}
-							if (!strcmp(arg0.c_str(), runtime::desc_str(p))) {
+							if (!strcmp(args[0].c_str(), runtime::desc_str(p))) {
 								rt = p;
 							}
 						}
+						
+						if (args.size() > 1)
+							config = args[1];
 
 						if (!builder)
 						{
-							// TODO: Fix this!! Client should detect (from built data maybe) and
-							//       report what it wants.
-							builder = builder::create(rt, sourcepath, false, "Default");
-
+							builder = builder::create(rt, sourcepath, false, config.c_str());
 							if (builder) {
+								builder::enable_liveupdate_builds(builder);
 								std::cout << "Created builder for client." << std::endl;
 							}
 						}
@@ -283,23 +313,38 @@ namespace putki
 						while (accepted_updates < (int)lu->_assets_updates.size())
 						{
 							const char *orgpath = lu->_assets_updates[accepted_updates++].c_str();
-							std::cout << "Client gets [" << orgpath << "] accepted_updates = " << accepted_updates << std::endl;
+
+							char main_object[1024];
+							if (!db::base_asset_path(orgpath, main_object, sizeof(main_object)))
+								strcpy(main_object, orgpath);
+
+							std::cout << "Client gets [" << main_object << "] (original: " << orgpath << " accepted_updates = " << accepted_updates << std::endl;
 
 							build_db::data *bdb = builder::get_build_db(builder);
-							build_db::deplist *dl = build_db::deplist_get(bdb, orgpath);
-							for (unsigned int i=0;; i++)
+							build_db::deplist *dl = build_db::deplist_get(bdb, main_object);
+							for (int i=-1;; i++)
 							{
-								const char *path = build_db::deplist_entry(dl, i);
+								const char *path = (i == -1) ? main_object : build_db::deplist_entry(dl, i);
 								if (!path) {
 									break;
 								}
 
-								std::cout << " -> Adding object from deplist [" << path << "]" << std::endl;
-								if (!already.count(path))
+								// main object always -1
+								if (i != -1 && !strcmp(path, main_object))
+									continue;
+
+								std::string path_str(path);
+								if (!already.count(path_str))
 								{
 									// need to be found in any of the output dbs.
-									buildforclient.push_back(path);
-									already.insert(path);
+									buildforclient.push_back(path_str);
+									already.insert(path_str);
+								}
+								
+								if (!dl)
+								{
+									std::cout << "deplist_get(build, '" << main_object << "') returned 0!" << std::endl;
+									break;
 								}
 							}
 						}
@@ -307,13 +352,14 @@ namespace putki
 						leave_lock(lu);
 					}
 
-					if (cmd == "build") {
-						buildforclient.push_back(arg0);
+					if (cmd == "build" && !args.empty()) {
+						buildforclient.push_back(args[0]);
 					}
 
 					while (builder && !buildforclient.empty())
 					{
 						std::string & tobuild = buildforclient.front();
+						std::cout << " i want to build " << tobuild << std::endl;
 
 						enter_lock(lu);
 
@@ -336,12 +382,12 @@ namespace putki
 							continue;
 						}
 
-						db::data *output = db::create();
+						build::resolve_object(lu->source_db, tobuild.c_str());
+
+						db::data *output = db::create(input, &output_db_mtx);
 
 						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
-
 						builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
-
 						build::post_build_ptr_update(lu->source_db, output);
 
 						// should be done with this now.

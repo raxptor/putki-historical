@@ -233,21 +233,22 @@ namespace putki
 				}
 			}
 
-			if (scandep)
+			depwalker dw;
+			dw.already_added = &data->blobs;
+			dw.db = data->source;
+
+			for (unsigned int k = 0;k < 1 || (bulkadd && k < bulkadd->size());k++)
 			{
-				depwalker dw;
-				dw.already_added = &data->blobs;
-				dw.db = data->source;
-
-				for (unsigned int k = 0;k < 1 || (bulkadd && k < bulkadd->size());k++)
+				if (bulkadd)
 				{
-					if (bulkadd)
-					{
-						path = (*bulkadd)[k].c_str();
-					}
+					path = (*bulkadd)[k].c_str();
+				}
 
-					data->blobs[path].th->walk_dependencies(data->blobs[path].obj, &dw, true);
+				// run the walk_dependencies fn always to make sure pointers are resolved.
+				data->blobs[path].th->walk_dependencies(data->blobs[path].obj, &dw, true);
 
+				if (scandep)
+				{
 					std::set<std::string>::iterator i = dw.deps.begin();
 					std::vector<std::string> next_add;
 					while (i != dw.deps.end())
@@ -255,7 +256,10 @@ namespace putki
 						next_add.push_back(*i++);
 					}
 
-					const bool store_path_for_dependencies = true;
+					// This breaks end of the line for live update client, since it will not
+					// know what package was for what asset when -all- have paths. Otherwise
+					// it bases everything on that the firstly stored ones are important.
+					const bool store_path_for_dependencies = false;
 					add(data, 0, &next_add, store_path_for_dependencies, true);
 				}
 			}

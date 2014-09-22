@@ -3,15 +3,16 @@
 
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
+#include <putki/sys/sstream.h>
 #include <string>
 
 namespace putki
 {
 	namespace write
 	{
-		void write_object_into_stream(std::ostream & out, db::data *ref_source, type_handler_i *th, instance_t obj);
+		void write_object_into_stream(putki::sstream & out, db::data *ref_source, type_handler_i *th, instance_t obj);
 		std::string json_str(const char *input);
-		const char *json_indent(int level);
+		const char *json_indent(char *buf, int level);
 		
 		bool write_object_to_fs(const char *basedir, const char *path, db::data *ref_source, type_handler_i *th, instance_t obj, char *fn_out);
 	}

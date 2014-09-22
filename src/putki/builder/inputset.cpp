@@ -119,7 +119,8 @@ namespace putki
 				instance_t obj;
 				if (db::fetch(tmp, i->first.c_str(), &th, &obj))
 				{
-					sig = db::signature(tmp, i->first.c_str());
+					char buffer[128];
+					sig = db::signature(tmp, i->first.c_str(), buffer);
 					record.info.size = info.size;
 					record.info.mtime = info.mtime;
 				}

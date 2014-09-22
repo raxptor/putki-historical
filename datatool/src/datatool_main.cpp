@@ -2,6 +2,7 @@
 #include <putki/builder/builder.h>
 #include <putki/builder/typereg.h>
 #include <putki/builder/write.h>
+#include <putki/sys/sstream.h>
 #include <putki/builder/db.h>
 #include <putki/liveupdate/liveupdate.h>
 #include <putki/runtime.h>
@@ -21,7 +22,10 @@ void make_data(const char *name)
 	const char *path = "tmp_path";
 	putki::db::data *db = putki::db::create();
 	putki::db::insert(db, path, type, obj);
-	putki::write::write_object_into_stream(std::cout, db, type, obj);
+
+	putki::sstream tmp;
+	putki::write::write_object_into_stream(tmp, db, type, obj);
+	std::cout << tmp.str();
 
 	putki::db::free_and_destroy_objs(db);
 }

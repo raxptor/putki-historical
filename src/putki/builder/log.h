@@ -1,7 +1,7 @@
 #ifndef __BUILDER_LOG_H__
 #define __BUILDER_LOG_H__
 
-#include <sstream>
+#include <putki/sys/sstream.h>
 
 namespace putki
 {
@@ -28,7 +28,7 @@ namespace putki
 }
 
 #define BUILD_LOG(target, type, stmt) { \
-	std::ostringstream __DPRINT_LINE; \
+	putki::sstream __DPRINT_LINE; \
 	if (putki::check_filter(type)) \
 	{ \
 		if (putki::show_line(type)) \
@@ -41,7 +41,7 @@ namespace putki
 #define RECORD_LOG(target, type, stmt) { \
 	if (putki::check_filter(type)) \
 	{ \
-		std::ostringstream __DPRINT_LINE; \
+		putki::sstream __DPRINT_LINE; \
 		if (putki::show_line(type)) \
 			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
 		__DPRINT_LINE << stmt; \
@@ -52,7 +52,7 @@ namespace putki
 #define APP_LOG(type, stmt) { \
 	if (putki::check_filter(type)) \
 	{ \
-		std::ostringstream __DPRINT_LINE; \
+		putki::sstream __DPRINT_LINE; \
 		if (putki::show_line(type)) \
 			__DPRINT_LINE << __FILE__ << " (" << __LINE__ << "): "; \
 		__DPRINT_LINE << stmt; \

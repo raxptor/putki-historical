@@ -139,8 +139,6 @@ namespace putki
 			char tmp[256];
 			sprintf(tmp, "init %s %s", runtime::desc_str(), get_build_config());
 			command(d, tmp);
-
-			command(d, "build haspointer");
 			return d;
 		}
 

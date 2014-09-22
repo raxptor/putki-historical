@@ -39,10 +39,12 @@ namespace
 	{
 		putki::db::data *input, *output;
 		bool create_unresolved;
+		bool traverse_children;
 	
 		domain_switch()
 		{
 			create_unresolved = true;
+			traverse_children = false;
 		}
 
 		struct depwalker : public putki::depwalker_i
@@ -52,14 +54,9 @@ namespace
 
 			bool pointer_pre(putki::instance_t *on)
 			{
-				return true;
-			}
-
-			void pointer_post(putki::instance_t *on)
-			{
 				// ignore nulls.
 				if (!*on) {
-					return;
+					return false;
 				}
 
 				putki::type_handler_i *th;
@@ -73,7 +70,7 @@ namespace
 					{
 						APP_ERROR("!!! A wild object appears! [" << *on << "]")
 					}
-					return;
+					return false;
 				}
 
 				if (!putki::db::fetch(parent->output, path, &th, &obj))
@@ -81,11 +78,12 @@ namespace
 					if (parent->create_unresolved)
 					{
 						*on = putki::db::create_unresolved_pointer(parent->output, path);
-						return;
+						return false;
 					}
 					else
 					{
-						return;
+						APP_WARNING("domain_switch: could not find [" << path << " in neither source nor output")
+						return false;
 					}
 				}
 
@@ -94,7 +92,11 @@ namespace
 					*on = obj;
 				}
 
-				return;
+				return true;
+			}
+
+			void pointer_post(putki::instance_t *on)
+			{
 			}
 		};
 
@@ -106,7 +108,7 @@ namespace
 				depwalker dp;
 				dp.parent = this;
 				dp.source = obj;
-				th->walk_dependencies(obj, &dp, false);
+				th->walk_dependencies(obj, &dp, traverse_children);
 			}
 		}
 	};
@@ -180,12 +182,11 @@ namespace
 			out_path.append(path);
 			out_path.append(".json");
 
-			std::stringstream tmp;
+			putki::sstream tmp;
 			putki::write::write_object_into_stream(tmp, db, th, obj);
 
 			putki::sys::mk_dir_for_path(out_path.c_str());
-			std::ofstream f(out_path.c_str());
-			f << tmp.str();
+			putki::sys::write_file(out_path.c_str(), tmp.str().c_str(), tmp.str().size());
 			written++;
 		}
 	};
@@ -218,6 +219,22 @@ namespace putki
 			dsw.input = input;
 			dsw.output = output;
 			db::read_all_no_fetch(output, &dsw);
+		}
+
+		void resolve_object(putki::db::data *source, const char *path)
+		{
+			type_handler_i *th;
+			instance_t obj;
+			if (!fetch(source, path, &th, &obj))
+			{
+				APP_WARNING("resolve[" << path << "] could not find object")
+				return;
+			}
+			domain_switch dsw;
+			dsw.input = source;
+			dsw.output = source;
+			dsw.traverse_children = true;
+			dsw.record(path, th, obj);
 		}
 
 		// merges objects from source into target.
@@ -328,6 +345,9 @@ namespace putki
 				if (!path)
 					break;
 
+				if (db::is_aux_path(path))
+					continue;
+				
 				type_handler_i *th;
 				instance_t obj;
 				if (db::fetch(output, path, &th, &obj, false))

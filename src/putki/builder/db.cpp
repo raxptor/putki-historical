@@ -12,6 +12,7 @@
 
 #include <putki/sys/compat.h>
 #include <putki/sys/thread.h>
+#include <putki/sys/sstream.h>
 
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
@@ -182,7 +183,7 @@ namespace putki
 			return pathof(d, obj);
 		}
 
-		const char *signature(data *d, const char *path)
+		const char *signature(data *d, const char *path, char *buffer=0)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
 			std::map<std::string, entry>::iterator i = d->objs.find(path);
@@ -191,11 +192,17 @@ namespace putki
 				entry e = i->second;
 				_lk.unlock();
 				
-				std::stringstream ss;
+				putki::sstream ss;
 				write::write_object_into_stream(ss, d, e.th, e.obj);
 
 				char signature[16];
 				static char signature_string[64];
+
+				if (!buffer)
+				{
+					APP_WARNING("Not using buffer for db::signature")
+					buffer = signature_string;
+				}
 
 				md5_buffer(ss.str().c_str(), ss.str().size(), signature);
 				md5_sig_to_string(signature, signature_string, 64);
@@ -538,7 +545,6 @@ namespace putki
 			}
 
 			char *str = strdup(path);
-
 			d->unresolved.insert(str);
 			d->strpool[path] = str;
 			return (instance_t) str;
@@ -547,7 +553,6 @@ namespace putki
 		const char *is_unresolved_pointer(data *d, void *p)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
-		
 			if (d->unresolved.count((const char*)p) != 0)
 			{
 				return (const char*) p;

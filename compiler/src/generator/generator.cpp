@@ -874,6 +874,7 @@ namespace putki
 	void write_json_writer(putki::parsed_struct *s, putki::indentedwriter out)
 	{
 		out.line() << s->name << " * input = (" << s->name << " *)source;";
+		out.line() << "char ibuf[128];";
 
 		// copy and massage a little.
 		std::vector<putki::parsed_field> copy = s->fields;
@@ -897,7 +898,7 @@ namespace putki
 			std::string ref = "input->" + fd.name;
 			std::string delim = "";
 
-			out.line() << "out << putki::write::json_indent(indent+1) << \"\\\"" << fd.name << "\\\": \";";
+			out.line() << "out << putki::write::json_indent(ibuf, indent+1) << \"\\\"" << fd.name << "\\\": \";";
 
 			if (fd.is_array)
 			{
@@ -940,7 +941,7 @@ namespace putki
 				out.line(1) << "putki::type_handler_i *thandler = inki::get_" << fd.ref_type << "_type_handler();";
 				out.line(1) << "thandler->write_json(ref_source, &" << ref << ", out, indent + 1);";
 				out.line() << "}";
-				out.line() << "out << putki::write::json_indent(indent+1) << \"}\";";
+				out.line() << "out << putki::write::json_indent(ibuf, indent+1) << \"}\";";
 			}
 			else
 			{
@@ -960,7 +961,7 @@ namespace putki
 			if (j < s->fields.size()-1)
 				out.line() << "out << \",\";";
 
-			out.line() << "out << std::endl;";
+			out.line() << "out << \"\\n\";";
 		}
 	}
 
@@ -972,6 +973,7 @@ namespace putki
 		out.line() << "#include <putki/builder/write.h>";
 		out.line() << "#include <putki/builder/db.h>";
 		out.line() << "#include <putki/runtime.h>";
+		out.line() << "#include <putki/sys/sstream.h>";
 		out.line();
 		out.line() << "namespace inki {";
 		out.indent(1);
@@ -1004,7 +1006,7 @@ namespace putki
 			out.line() << "}";
 			out.line();
 			out.line() << "// json writer";
-			out.line() << "void write_json(putki::db::data *ref_source, putki::instance_t source, std::ostream & out, int indent)";
+			out.line() << "void write_json(putki::db::data *ref_source, putki::instance_t source, putki::sstream & out, int indent)";
 			out.line() << "{";
 			out.indent(1);
 			write_json_writer(s, out);
@@ -1154,8 +1156,8 @@ namespace putki
 		out.line() << "#include \"" << file->filename << ".h\"";
 		out.line() << "#include <putki/blob.h>";
 		out.line() << "#include <putki/builder/typereg.h>";
+		out.line() << "#include <putki/sys/sstream.h>";
 		out.line() << "#include <putki/runtime.h>";
-		out.line() << "#include <iostream>";
 
 		out.line();
 

@@ -1,13 +1,16 @@
 #if !defined(_WIN32)
 
 #include <putki/sys/files.h>
+#include <putki/sys/thread.h>
 #include <string.h>
 #include <string>
+#include <cstdio>
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 namespace putki
 {
@@ -86,6 +89,27 @@ namespace putki
 				// std::cout << "Creating [" << fp << "]" << std::endl;
 				i++;
 			}
+		}
+
+		bool write_file(const char *path, const char *str, unsigned long size)
+		{
+			int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRGRP | S_IWUSR | S_IRUSR | S_IROTH);
+			if (fd == -1)
+			{
+				perror("write_file error");
+				return false;
+			}
+			
+			int ret = write(fd, (const char*)str, size);
+			if (ret != size)
+			{
+				std::cerr << "ERROR IS " << ret << std::endl;
+				close(fd);
+				return false;
+			}
+			
+			close(fd);		
+			return true;
 		}
 	}
 }

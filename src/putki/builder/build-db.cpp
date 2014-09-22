@@ -461,8 +461,9 @@ namespace putki
 			instance_t obj;
 			if (db::fetch(db, path, &th, &obj))
 			{
+				char buffer[128];
 				rec->second->md.type = th->name();
-				rec->second->md.signature = db::signature(db, path);
+				rec->second->md.signature = db::signature(db, path, buffer);
 				rec->second->md.pointers.clear();
 				depwalker dw;
 				dw.db = db;

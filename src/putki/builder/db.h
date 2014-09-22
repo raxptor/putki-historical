@@ -40,7 +40,7 @@ namespace putki
 		const char *auxref(data *d, const char *path, unsigned int index);
 		const char *pathof(data *d, instance_t obj);
 		const char *pathof_including_unresolved(data *d, instance_t obj);
-		const char *signature(data *d, const char *path);
+		const char *signature(data *d, const char *path, char *buffer);
 
 		void read_all_no_fetch(data *d, enum_i *); // this can return empty th/obj for deferred loads
 		void read_all(data *d, enum_i *);
