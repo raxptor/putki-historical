@@ -26,7 +26,6 @@ namespace putki
 	{
 		struct builder_entry
 		{
-			int obj_phase_mask;
 			handler_i *handler;
 		};
 
@@ -58,6 +57,35 @@ namespace putki
 		struct prebuild_info
 		{
 			std::vector<std::string> require_outputs;
+		};
+
+		struct work_item
+		{
+			db::data *input;
+			db::data *output;
+			std::string path;
+			work_item *parent;
+			int num_children;
+			build_db::record *br;
+			bool from_cache;
+			prebuild_info prebuild;
+			sys::mutex data, db_mtx;
+		};
+
+		struct build_context
+		{
+			builder::data *builder;
+			db::data *input;
+			db::data *output;
+			db::data *tmp;
+			db::data *trash;
+
+			sys::mutex mtx_items, mtx_output, mtx_trash, mtx_tmp;
+			sys::condition cnd_items;
+			unsigned int item_pos, items_finished;
+			std::vector<work_item*> items;
+			std::vector<sys::thread*> threads;
+			std::set<std::string> added;
 		};
 
 		namespace
@@ -218,19 +246,18 @@ namespace putki
 			return data->runtime;
 		}
 
-		void add_data_builder(builder::data *builder, type_t type, int obj_phase_mask, handler_i *handler)
+		void add_data_builder(builder::data *builder, type_t type, handler_i *handler)
 		{
 			BuildersMap::iterator i = builder->handlers.find(type);
 			if (i == builder->handlers.end())
 			{
 				type_entry t;
 				builder->handlers[type] = t;
-				add_data_builder(builder, type, obj_phase_mask, handler);
+				add_data_builder(builder, type, handler);
 				return;
 			}
 
 			builder_entry b;
-			b.obj_phase_mask = obj_phase_mask;
 			b.handler = handler;
 			i->second.handlers.push_back(b);
 		}
@@ -243,10 +270,21 @@ namespace putki
 			build_db::deplist *_dl;
 		};
 
+		// This adds a newly created input object from the handler. It is an output from the handler's point of view, but really an input.
+		// Maybe we could support adding final objects too.
+		void add_handler_output(build_context *ctx, build_db::record *record, const char *path, type_handler_i *type, instance_t obj, const char *handler_version)
+		{
+			// add input object to tmp
+			db::insert(ctx->tmp, path, type, obj);
+			putki::build_db::add_output(record, path, handler_version);
+		}
+
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
-		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th, db::data *output)
+		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th)
 		{
+			return "apa";
+			/*
 			// Time to hunt for cached object.
 			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
 			destroy_deplist destroy(dlist);
@@ -401,6 +439,7 @@ namespace putki
 			}
 
 			return "no previous build records";
+			*/
 		}
 
 		// gets aux pointers to the input, adding to output.
@@ -468,46 +507,43 @@ namespace putki
 
 
 		// return true if was built, false if cached.
-		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, type_handler_i *th, db::data *output)
+		bool build_object(build_context *context, build_db::record * record, db::data *input, const char *path, type_handler_i *th)
 		{
 			bool handled = false;
 			instance_t input_obj = 0;
 			instance_t output_obj = 0;
 			
-			BuildersMap::iterator i = builder->handlers.find(th->name());
-			if (i != builder->handlers.end())
+			BuildersMap::iterator i = context->builder->handlers.find(th->name());
+			if (i != context->builder->handlers.end())
 			{
 				for (std::vector<builder_entry>::size_type j=0;j!=i->second.handlers.size();j++)
 				{
 					const builder_entry *e = &i->second.handlers[j];
-					if (e->obj_phase_mask & phase)
+					const char *reason = fetch_cached_build(context->builder, record, e->handler->version(), input, path, th);
+					if (reason)
 					{
-						const char *reason = fetch_cached_build(builder, record, e->handler->version(), input, path, th, output);
-						if (reason)
-						{
-							APP_INFO("Building [" << path << "]")
-							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
+						APP_INFO("Building [" << path << "]")
+						RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
-							// now need to build, clone it before the builder gets to it.
-							if (!db::fetch(input, path, &th, &input_obj))
-								APP_ERROR("Could not fetch but it existed before? " << path);
+						// now need to build, clone it before the builder gets to it.
+						if (!db::fetch(input, path, &th, &input_obj))
+							APP_ERROR("Could not fetch but it existed before? " << path);
 
-							verify_obj(input, 0, th, input_obj, REQUIRE_RESOLVED | REQUIRE_HAS_PATHS, true, true);
-							output_obj = th->clone(input_obj);
-							e->handler->handle(builder, record, input, path, output_obj, output, phase);
-						}
-						else
-						{
-							// build record has been rewritten from cache, can't go modify it more now.
-							RECORD_DEBUG(record, "Using from cache")
-							return false;
-						}
-
-						// we only support one builder per object
-						handled = true;
-						build_db::set_builder(record, e->handler->version());
-						break;
+						verify_obj(input, 0, th, input_obj, REQUIRE_RESOLVED | REQUIRE_HAS_PATHS, true, true);
+						output_obj = th->clone(input_obj);
+						e->handler->handle(context, context->builder, record, input, path, output_obj);
 					}
+					else
+					{
+						// build record has been rewritten from cache, can't go modify it more now.
+						RECORD_DEBUG(record, "Using from cache")
+						return false;
+					}
+
+					// we only support one builder per object
+					handled = true;
+					build_db::set_builder(record, e->handler->version());
+					break;
 				}
 			}
 
@@ -521,7 +557,7 @@ namespace putki
 
 				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
 				// only actually to see if it needs to be rewritten
-				if (!fetch_cached_build(builder, record, default_name, input, path, th, output))
+				if (!fetch_cached_build(context->builder, record, default_name, input, path, th))
 				{
 					RECORD_DEBUG(record, "Using from cache")
 					return false;
@@ -532,14 +568,16 @@ namespace putki
 				}
 			}
 
-			if (!db::exists(output, path))
+			db::data *outputdb = context->output;
+
+			if (!db::exists(outputdb, path))
 			{
 				// if it has been sucked into input (check without triggering delayed load),
 				// then a clone must be inserted
 				if (output_obj)
 				{
 					// if we have the ptr already it was processed/cloned
-					db::insert(output, path, th, output_obj);
+					db::insert(outputdb, path, th, output_obj);
 				}
 				else
 				{
@@ -549,13 +587,13 @@ namespace putki
 					}
 
 					output_obj = th->clone(input_obj);
-					db::insert(output, path, th, output_obj);
+					db::insert(outputdb, path, th, output_obj);
 				}
 			}
 
 			get_aux_deps ad;
 			ad.input = input;
-			ad.output = output;
+			ad.output = outputdb;
 			ad.record = record;
 			ad.name = default_name;
 			th->walk_dependencies(output_obj, &ad, false);
@@ -568,35 +606,6 @@ namespace putki
 			build_db::add_output(record, path, default_name);
 			return true;
 		}
-
-		struct work_item
-		{
-			db::data *input;
-			db::data *output;
-			std::string path;
-			work_item *parent;
-			int num_children;
-			build_db::record *br;
-			bool from_cache;
-			prebuild_info prebuild;
-			sys::mutex data, db_mtx;
-		};
-
-		struct build_context
-		{
-			builder::data *builder;
-			db::data *input;
-			db::data *output;
-			db::data *tmp;
-			db::data *trash;
-			
-			sys::mutex mtx_items, mtx_output, mtx_trash, mtx_tmp;
-			sys::condition cnd_items;
-			unsigned int item_pos, items_finished;
-			std::vector<work_item*> items;
-			std::vector<sys::thread*> threads;
-			std::set<std::string> added;
-		};
 
 		build_context *create_context(builder::data *builder, db::data *input, db::data *tmp, db::data *output)
 		{
@@ -753,10 +762,10 @@ namespace putki
 
 			item->br = build_db::create_record(item->path.c_str(), sig);
 			build_db::add_input_dependency(item->br, item->path.c_str());
-			item->output = putki::db::create(item->input, &item->db_mtx);
+
 			std::vector<work_item *> sub_items;
 
-			item->from_cache = !build_source_object(context->builder, item->br, PHASE_INDIVIDUAL, item->input, item->path.c_str(), th, item->output);
+			item->from_cache = !build_object(context, item->br, item->input, item->path.c_str(), th);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -793,6 +802,8 @@ namespace putki
 							{
 								APP_ERROR("Failed to write " << cr_path_ptr)
 							}
+
+							db::insert(context->tmp, cr_path_ptr, _th, _obj);
 						}
 						else
 						{
