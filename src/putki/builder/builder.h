@@ -17,7 +17,19 @@ namespace putki
 		struct data;
 		struct prebuild_info;
 		struct record_data;
-
+		
+		// num_threads=0 => auto
+		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db, const char *build_config, int num_threads=0);
+		void free(data *builder);
+		
+		// runtime
+		runtime::descptr runtime(builder::data *data);
+		const char *config(builder::data *data);
+		
+		// live update functionality
+		void build_source_object(data *builder, db::data *input, db::data *tmp, db::data *output, const char *path);
+		void enable_liveupdate_builds(builder::data *data);
+	
 		// new api
 		struct build_context;
 		build_context *create_context(data *builder, db::data *input, db::data *tmp, db::data *output);
@@ -29,8 +41,6 @@ namespace putki
 		// enumerating items in the build list after _build
 		const char* context_get_built_object(build_context *context, unsigned int i);
 		bool context_was_read_from_cache(build_context *context, unsigned int i);
-
-		void add_handler_output(build_context *ctx, build_db::record *record, const char *path, type_handler_i *type, instance_t obj, const char *handler_version);
 
 		struct handler_i
 		{
@@ -47,20 +57,9 @@ namespace putki
 				add_handler_output(ctx, record, path, T::th(), obj, version());
 			}
 		};
-
-		// num_threads=0 => auto
-		data* create(runtime::descptr rt, const char *basepath, bool reset_build_db, const char *build_config, int num_threads=0);
-		void free(data *builder);
 		
-		void enable_liveupdate_builds(builder::data *data);
-
-		runtime::descptr runtime(builder::data *data);
-		const char *config(builder::data *data);
-
 		void add_data_builder(builder::data *builder, type_t type, handler_i *handler);
-
-		void build_source_object(data *builder, db::data *input, db::data *tmp, db::data *output, const char *path);
-		void build_global_pass(data *builder, db::data *input, db::data *output);
+		void add_handler_output(build_context *ctx, build_db::record *record, const char *path, type_handler_i *type, instance_t obj, const char *handler_version);
 
 		void record_log(data *builder, LogType, const char *text);
 		

@@ -303,17 +303,7 @@ namespace putki
 
 			post_build_ptr_update(input, output);
 
-			/*
-			// GLOBAL PASS
-			{
-				db::data *global_out = db::create();
-				builder::build_global_pass(builder, output, global_out);
-				build::post_build_merge_database(global_out, output, junk);
-				db::free(global_out);
-			}
-			post_build_ptr_update(input, output);
-			*/
-
+			// save built objects.
 			write_cache_json js;
 			js.path_base = builder::built_obj_path(builder);
 			js.db = output;

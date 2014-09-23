@@ -63,9 +63,7 @@ namespace putki
 		{
 			db::data *input;
 			std::string path;
-			work_item *parent;
 			bool from_cache;
-			build_db::record *br;
 			prebuild_info prebuild;
 		};
 
@@ -75,9 +73,8 @@ namespace putki
 			db::data *input;
 			db::data *output;
 			db::data *tmp;
-			db::data *trash;
 
-			sys::mutex mtx_items, mtx_output, mtx_trash, mtx_tmp;
+			sys::mutex mtx_items, mtx_output, mtx_tmp;
 			sys::condition cnd_items;
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
@@ -580,7 +577,6 @@ namespace putki
 			ctx->input = input;
 			ctx->tmp = tmp;
 			ctx->output = output;
-			ctx->trash = db::create(0, &ctx->mtx_trash);
 
 			builder->output_loader = create_loader(builder->built_obj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, output, builder->built_obj_path.c_str());
@@ -605,8 +601,6 @@ namespace putki
 				work_item *wi = new work_item();
 				wi->input = context->input;
 				wi->path = path;
-				wi->parent = 0;
-				wi->br = 0;
 				context->items.push_back(wi);
 				context->cnd_items.broadcast();
 				context->added.insert(path);
@@ -679,17 +673,17 @@ namespace putki
 			th = typereg_get_handler(type_name);
 			if (!th) BUILD_ERROR(context->builder, "No type handler for [" << type_name << "]");
 
-			item->br = build_db::create_record(item->path.c_str(), sig);
-			build_db::add_input_dependency(item->br, item->path.c_str());
+			build_db::record *record = build_db::create_record(item->path.c_str(), sig);
+			build_db::add_input_dependency(record, item->path.c_str());
 
 			std::vector<work_item *> sub_items;
 
-			bool from_cache = item->from_cache = !build_object(context, item->br, item->input, item->path.c_str(), th);
+			bool from_cache = item->from_cache = !build_object(context, record, item->input, item->path.c_str(), th);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
 
-				while (const char *cr_path_ptr = build_db::enum_outputs(item->br, outpos))
+				while (const char *cr_path_ptr = build_db::enum_outputs(record, outpos))
 				{
 					// ignore what we just built.
 					if (!strcmp(cr_path_ptr, item->path.c_str()))
@@ -706,7 +700,7 @@ namespace putki
 					
 					if (!from_cache && !db::is_aux_path(cr_path_ptr))
 					{
-						RECORD_INFO(item->br, "Build created [" << cr_path_ptr << "]")
+						RECORD_INFO(record, "Build created [" << cr_path_ptr << "]")
 
 						// Write out temp object cache
 						type_handler_i *_th;
@@ -733,8 +727,6 @@ namespace putki
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
 					wi->input = context->tmp;
-					wi->parent = item;
-					wi->br = 0;
 					sub_items.push_back(wi);
 					outpos++;
 				}
@@ -742,25 +734,23 @@ namespace putki
 
 			APP_DEBUG("Post-processing item")
 
-			build_db::commit_record(context->builder->build_db, item->br);
+			build_db::commit_record(context->builder->build_db, record);
 
 			if (!context->builder->liveupdates)
 			{
 				if (!from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+
 				context_add_build_record_pointers(context, item->path.c_str());
 			}
 
-			flush_log(item->br);
-
-			APP_DEBUG("Adding " << sub_items.size() << " children for " << item->path);
+			flush_log(record);
 
 			context->mtx_items.lock();
 			for (unsigned int i=0;i<sub_items.size();i++)
 				context->items.push_back(sub_items[i]);
 			context->cnd_items.broadcast();
 			context->mtx_items.unlock();
-
 		}
 
 		void context_finalize(build_context *context)
@@ -863,8 +853,6 @@ namespace putki
 			}
 			
 			wi->path = path;
-			wi->parent = 0;
-			wi->br = 0;
 			
 			build_context *ctx = create_context(builder, input, tmp, output);
 			ctx->items.push_back(wi);
@@ -897,49 +885,11 @@ namespace putki
 		{
 			for (unsigned int i=0;i<context->items.size();i++)
 				delete context->items[i];
-
-			APP_DEBUG("Trash size: " << db::size(context->trash))
-			db::free_and_destroy_objs(context->trash);
 			delete context;
 		}
-
-		struct global_pass_builder : public db::enum_i
-		{
-			data *builder;
-			db::data *input, *output;
-			int phase;
-
-			virtual void record(const char *path, type_handler_i *th, instance_t i)
-			{
-				/*
-				   buildrecord::data br;
-				   build_source_object(builder, &br, phase, input, path, i, th, output);
-				 */
-			}
-		};
-
-		void build_global_pass(data *builder, db::data *input, db::data *output)
-		{
-			/*
-			global_pass_builder gb;
-			gb.builder = builder;
-			gb.input = input;
-			gb.output = output;
-			gb.phase = PHASE_GLOBAL;
-			std::cout << "Doing global build pass." << std::endl;
-			db::read_all_no_fetch(input, &gb);
-			std::cout << "Global build pass done." << std::endl;
-			*/
-		}
-
 		void write_build_db(builder::data *d)
 		{
 			build_db::store(d->build_db);
-		}
-
-		void build_error(data *builder, const char *str)
-		{
-			std::cout << "!!! BUILD ERROR: " << str << std::endl;
 		}
 
 		void record_log(data *builder, LogType type, const char *text)
