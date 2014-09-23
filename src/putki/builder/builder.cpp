@@ -64,11 +64,9 @@ namespace putki
 			db::data *input;
 			std::string path;
 			work_item *parent;
-			int num_children;
-			build_db::record *br;
 			bool from_cache;
+			build_db::record *br;
 			prebuild_info prebuild;
-			sys::mutex data, db_mtx;
 		};
 
 		struct build_context
@@ -629,10 +627,8 @@ namespace putki
 				work_item *wi = new work_item();
 				wi->input = context->input;
 				wi->path = path;
-				wi->num_children = 0;
 				wi->parent = 0;
 				wi->br = 0;
-				wi->from_cache = false;
 				context->items.push_back(wi);
 				context->cnd_items.broadcast();
 				context->added.insert(path);
@@ -667,23 +663,6 @@ namespace putki
 			
 			for (unsigned int i=0;i!=final.size();i++)
 				context_add_to_build(context, final[i].c_str());
-		}
-
-		void post_process_item(build_context *context, work_item *item)
-		{
-                	sys::scoped_maybe_lock id(&item->data);
-			RECORD_DEBUG(item->br, "Finishing object")
-			id.unlock();
-
-			build_db::commit_record(context->builder->build_db, item->br);
-
-			if (!item->from_cache)
-				build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
-
-			if (!context->builder->liveupdates)
-				context_add_build_record_pointers(context, item->path.c_str());
-
-			flush_log(item->br);
 		}
 
 		void context_process_record(build_context *context, work_item *item)
@@ -727,7 +706,7 @@ namespace putki
 
 			std::vector<work_item *> sub_items;
 
-			item->from_cache = !build_object(context, item->br, item->input, item->path.c_str(), th);
+			bool from_cache = item->from_cache = !build_object(context, item->br, item->input, item->path.c_str(), th);
 			{
 				// create new build records for the sub outputs
 				unsigned int outpos = 0;
@@ -747,8 +726,10 @@ namespace putki
 						continue;
 					}
 					
-					if (!item->from_cache && !db::is_aux_path(cr_path_ptr))
+					if (!from_cache && !db::is_aux_path(cr_path_ptr))
 					{
+						RECORD_INFO(item->br, "Build created [" << cr_path_ptr << "]")
+
 						// Write out temp object cache
 						type_handler_i *_th;
 						instance_t _obj;
@@ -777,29 +758,30 @@ namespace putki
 					wi->parent = item;
 					wi->br = 0;
 					sub_items.push_back(wi);
-					wi->from_cache = item->from_cache;
-
-					std::string cr_path = cr_path_ptr;
-
-					if (!item->from_cache)
-					{
-						RECORD_INFO(item->br, "Build created [" << cr_path << "]")
-					}
-
 					outpos++;
 				}
 			}
+
+			APP_DEBUG("Post-processing item")
+
+			build_db::commit_record(context->builder->build_db, item->br);
+
+			if (!from_cache)
+				build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+
+			if (!context->builder->liveupdates)
+				context_add_build_record_pointers(context, item->path.c_str());
+
+			flush_log(item->br);
 
 			APP_DEBUG("Adding " << sub_items.size() << " children for " << item->path);
 
 			context->mtx_items.lock();
 			for (unsigned int i=0;i<sub_items.size();i++)
 				context->items.push_back(sub_items[i]);
-			item->num_children += sub_items.size();
 			context->cnd_items.broadcast();
 			context->mtx_items.unlock();
 
-			post_process_item(context, item);
 		}
 
 		void context_finalize(build_context *context)
