@@ -336,8 +336,6 @@ namespace putki
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
 
-				out.line() << "// field " << s->fields[j].name;
-
 				std::string fref = std::string("d->") + s->fields[j].name;
 
 				if (s->fields[j].is_array)
@@ -534,8 +532,6 @@ namespace putki
 				if (j > 0)
 					out.line();
 
-				out.line() << "// field " << s->fields[j].name;
-				
 				std::string cont = s->fields[j].name + ";";
 				if (s->fields[j].is_build_config)
 				{
@@ -619,8 +615,6 @@ namespace putki
 
 	void write_putki_field_parse(putki::parsed_field *f, putki::indentedwriter out)
 	{
-		out.line() << "// parse field " << f->name;
-
 		std::string ref = "target->" + f->name;
 		std::string node = "putki::parse::get_object_item(pn, \"" + f->name + "\")";
 
@@ -653,7 +647,6 @@ namespace putki
 
 
 		out.line() << "if (" << node << ")";
-		out.line() << "{";
 		out.indent(1);
 
 		if (f->type == FIELDTYPE_STRING || f->type == FIELDTYPE_FILE || f->type == FIELDTYPE_PATH)
@@ -690,9 +683,7 @@ namespace putki
 			out.line(2) << "resolver->resolve_pointer((putki::instance_t *)&" << ref << ", putki::parse::get_value_string(" << node << "));";
 			out.line() << "}";
 		}
-
 		out.indent(-1);
-		out.line() << "}";
 
 		if (f->is_array)
 		{
@@ -805,9 +796,12 @@ namespace putki
 				if (fd.is_build_config)
 					continue;
 
-				if (runtime)
-					if (!(fd.domains & putki::DOMAIN_RUNTIME))
-						continue;
+				if (runtime && !(fd.domains & putki::DOMAIN_RUNTIME))
+					continue;
+					
+				// only these two can have dependencies.
+				if (fd.type != putki::FIELDTYPE_STRUCT_INSTANCE && fd.type != putki::FIELDTYPE_POINTER)
+					continue;
 
 				std::string ref = "input->" + fd.name;
 
@@ -847,19 +841,12 @@ namespace putki
 					out.line() << "}";
 					out.line() << "walker->pointer_post((putki::instance_t *)&" << ref << ");";
 				}
-				else
-				{
-					if (fd.is_array)
-						out.line() << "{ } // do nothing loop implementation";
-
-				}
 
 				if (fd.is_array)
 				{
 					out.indent(-1);
 					out.line() << "} // end array loop";
 				}
-
 			}
 
 			out.indent(-1);
@@ -893,7 +880,6 @@ namespace putki
 				continue;
 
 			out.line();
-			out.line() << "// field " << fd.name;
 
 			std::string ref = "input->" + fd.name;
 			std::string delim = "";
@@ -953,8 +939,8 @@ namespace putki
 				out.line() << "delim = \", \";";
 				out.indent(-1);
 				out.line() << "} // end for";
-				out.indent(-1);
 				out.line() << "out << \"]\";";
+				out.indent(-1);
 				out.line() << "} // end array";
 			}
 
@@ -1077,8 +1063,6 @@ namespace putki
 				if (!(fd.domains & putki::DOMAIN_RUNTIME))
 					continue;
 
-				out.line() << "// field " << fd.name;
-
 				std::string srcd = "in->" + fd.name;
 				std::string outd = "d->" + fd.name;
 
@@ -1092,8 +1076,6 @@ namespace putki
 					out.line();
 					out.line() << "{";
 					out.indent(1);
-					out.line() << "// array construct for field '" << fd.name << "'";
-					out.line() << "// gen::ft = " << ft << " for rt " << runtime::desc_str(rt);
 					out.line() << ft << " *inp = reinterpret_cast<" << ft << " *>(out_beg);";
 					out.line() << "out_beg += sizeof(" << ft << ") * " << outd << "_size;";
 					out.line() << "for (unsigned int i=0;i<" << outd << "_size;i++)";
