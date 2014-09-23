@@ -583,6 +583,7 @@ namespace putki
 			ctx->trash = db::create(0, &ctx->mtx_trash);
 
 			builder->output_loader = create_loader(builder->built_obj_path.c_str());
+			loader_add_resolve_src(builder->output_loader, output, builder->built_obj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, tmp, builder->tmpobj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, input, builder->obj_path.c_str());
 
