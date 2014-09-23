@@ -5,6 +5,7 @@
 #include <putki/runtime.h>
 
 #include <stdint.h>
+#include <cstdlib>
 
 #if defined(USE_WINSOCK)
 	#pragma comment(lib, "ws2_32.lib")

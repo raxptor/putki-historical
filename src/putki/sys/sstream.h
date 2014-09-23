@@ -2,6 +2,7 @@
 #define __PUTKISYS_SSTREAM_H__
 
 #include <string>
+#include <cstdio>
 
 namespace putki
 {
@@ -31,7 +32,7 @@ namespace putki
 			if (!ptr)
 				buf.append("<nullptr>");
 			else
-				*this << ((int)ptr);
+				*this << ((long long)ptr);
 			return *this;
 		}
 
