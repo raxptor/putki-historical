@@ -584,6 +584,9 @@ namespace putki
 
 			builder->output_loader = create_loader(builder->built_obj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, output, builder->built_obj_path.c_str());
+			
+			// TODO: Should these be here? When would we want to resolve pointers to here...
+			//       Not in packaging at least!
 			loader_add_resolve_src(builder->output_loader, tmp, builder->tmpobj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, input, builder->obj_path.c_str());
 
