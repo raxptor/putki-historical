@@ -278,165 +278,144 @@ namespace putki
 
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
-		const char* fetch_cached_build(data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th)
+		const char* fetch_cached_build(build_context *context, data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th)
 		{
-			return "apa";
-			/*
 			// Time to hunt for cached object.
-			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
-			destroy_deplist destroy(dlist);
-			
 			build_db::record *record = build_db::find(builder::get_build_db(builder), path);
 			if (!record)
-				return "No build recor by find()";
+				return "no build record found";
 				
 			const char *old_builder = build_db::get_builder(record);
 			if (strcmp(old_builder, handler_name))
 			{
 				RECORD_DEBUG(newrecord, "Old builder=" << old_builder << " current=" << handler_name)
-				return "Builders are diffeent";
+				return "builders are diffeent";
 			}
 
-			if (dlist)
+			build_db::deplist *dlist = build_db::inputdeps_get(builder::get_build_db(builder), path);
+			destroy_deplist destroy(dlist);
+
+			if (!dlist)
 			{
-				int matches = 0;
-				for (int i=0;;i++)
+				return "no dlist";
+			}
+
+			bool gotmatch = false;
+
+			for (int i=0;;i++)
+			{
+				const char *entrypath = build_db::deplist_path(dlist, i);
+				if (!entrypath)
 				{
-					const char *entrypath = build_db::deplist_path(dlist, i);
-					if (!entrypath)
+					break;
+				}
+			
+				if (!i)
+				{
+					RECORD_DEBUG(newrecord, "Examining cache...")
+				}
+
+				const char *signature = build_db::deplist_signature(dlist, i);
+				if (!build_db::deplist_is_external_resource(dlist, i))
+				{
+					char inputsig[SIG_BUF_SIZE];
+
+					if (builder->liveupdates)
 					{
-						break;
-					}
-				
-					if (!i)
-					{
-						RECORD_DEBUG(newrecord, "Examining cache...")
-					}
-
-					const char *signature = build_db::deplist_signature(dlist, i);
-					if (!build_db::deplist_is_external_resource(dlist, i))
-					{
-						char inputsig[SIG_BUF_SIZE];
-
-						if (builder->liveupdates)
-						{
-							char buffer[128];
-							strcpy(inputsig, db::signature(input, entrypath, buffer));
-						}
-						else
-						{
-							if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
-							{
-								if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
-								{
-									BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
-									strcpy(inputsig, "bonkers");
-								}
-							}
-						}
-
-						bool sigmatch = !strcmp(inputsig, signature);
-						RECORD_DEBUG(newrecord, "=> i: " << entrypath << " old:" << signature << " new " << inputsig)
-
-						// only care for builder match when the input is going to be built with this builder
-						if (sigmatch)
-						{
-							matches++;
-						}
-						else
-						{
-							RECORD_DEBUG(newrecord, "!! Detected modification in [" << entrypath << "]")
-							return "input or has been modified";
-						}
+						db::signature(input, entrypath, inputsig);
 					}
 					else
 					{
-						RECORD_DEBUG(newrecord, "=> ext: " << entrypath << " old:" << signature)
-						char cursig[SIG_BUF_SIZE];
-						if ( (entrypath[0] != '%' && !inputset::get_res_sig(builder->input_set, entrypath, cursig)) ||
-						     (entrypath[0] == '%' && !inputset::get_res_sig(builder->tmp_input_set, entrypath+1, cursig) ))
+						if (!inputset::get_object_sig(builder->input_set, entrypath, inputsig))
 						{
-							RECORD_DEBUG(newrecord, "Could not get input sig for " << entrypath)
-							strcpy(cursig, "missing");
-						}
-						
-						if (strcmp(cursig, signature))
-						{
-							return "external source data has been modified";
-						}
-						else
-						{
-							matches++;
-						}
-					}
-				}
-
-				if (matches)
-				{
-					// Replace the build record from the cache.
-					//
-					// NOTE: This needs to be an atomic operation as it might pull in dependencies
-					//       that are/will be rebuilt... objects that are pointed to but not registered as
-					//       dependencies might cause that object to be rebuilt, and then we load a cached object here
-					//       which pulls in an 'old' version into the database... no good!
-					RECORD_DEBUG(newrecord, "Loading from cache...")
-					if (!build_db::copy_existing(builder::get_build_db(builder), newrecord, path))
-					{
-						BUILD_ERROR(builder, "Failed to copy existing FAILED")
-					}
-
-					// first pass is outputs, second is pointer (which need to be loaded!)
-					for (int j=0;;j++)
-					{
-						const char *rpath = build_db::enum_outputs(newrecord, j);
-						if (!rpath)
-						{
-							break;
-						}
-						
-						RECORD_DEBUG(newrecord, "	output[" << j << "] is " << rpath)
-
-						// auxes will not be inserted.
-						if (db::is_aux_path(rpath))
-							continue;
-
-						// We want to carefully load these files, and not overwrite any which might have been built
-						// this time.
-						if (!db::exists(output, rpath))
-						{
-							// only the main object is pulled from output
-							if (!strcmp(path, rpath))
+							if (!inputset::get_object_sig(builder->tmp_input_set, entrypath, inputsig))
 							{
-								load_file_deferred(builder->cache_loader, output, rpath);
-							}
-							else
-							{
-								load_file_deferred(builder->tmp_loader, output, rpath);
+								BUILD_ERROR(builder, "Signature missing weirdness [" << entrypath << "]")
+								strcpy(inputsig, "bonkers");
 							}
 						}
-						else
-						{
-							BUILD_ERROR(builder, "WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]")
-						}
 					}
 
-					if (!db::exists(output, path))
+					RECORD_DEBUG(newrecord, "=> i: " << entrypath << " old:" << signature << " new " << inputsig)
+
+					// only care for builder match when the input is going to be built with this builder
+					if (strcmp(inputsig, signature))
 					{
-						BUILD_ERROR(builder, "ERROR! Wanted to load cached object [" << path << "] but it did not work!")
+						RECORD_DEBUG(newrecord, "!! Detected modification in [" << entrypath << "]")
+						return "input or has been modified";
 					}
 
-					// Now we hope for the best since these files came from disk and should be OK unless the user
-					// has touched them.
-					return 0;
+					gotmatch = true;
 				}
 				else
 				{
-					return "resource has not been built";
+					RECORD_DEBUG(newrecord, "=> ext: " << entrypath << " old:" << signature)
+
+					char cursig[SIG_BUF_SIZE];
+					if ( (entrypath[0] != '%' && !inputset::get_res_sig(builder->input_set, entrypath, cursig)) ||
+					     (entrypath[0] == '%' && !inputset::get_res_sig(builder->tmp_input_set, entrypath+1, cursig) ))
+					{
+						RECORD_DEBUG(newrecord, "Could not get input sig for " << entrypath)
+						return "failed to read signature on existing resource";
+					}
+					
+					if (strcmp(cursig, signature))
+						return "external source data has been modified";
+
+					gotmatch = true;
 				}
 			}
 
-			return "no previous build records";
-			*/
+			if (!gotmatch)
+				return "there was a record but no matches nor mismatches";
+
+			// Replace the build record from the cache.
+
+			RECORD_DEBUG(newrecord, "Loading from cache...")
+			if (!build_db::copy_existing(builder::get_build_db(builder), newrecord, path))
+			{
+				BUILD_ERROR(builder, "Failed to copy existing FAILED")
+			}
+
+			// first pass is outputs, second is pointer (which need to be loaded!)
+			for (int j=0;;j++)
+			{
+				const char *rpath = build_db::enum_outputs(newrecord, j);
+				if (!rpath)
+				{
+					break;
+				}
+				
+				RECORD_DEBUG(newrecord, "	output[" << j << "] is " << rpath)
+
+				// auxes will not be inserted.
+				if (db::is_aux_path(rpath))
+					continue;
+
+				// We want to carefully load these files, and not overwrite any which might have been built
+				// this time.
+				if (!db::exists(context->output, rpath))
+				{
+					// only the main object is an output object, the rest are tmp inputs
+					if (!strcmp(path, rpath))
+						load_file_deferred(builder->cache_loader, context->output, rpath);
+					else
+						load_file_deferred(builder->tmp_loader, context->tmp, rpath);
+				}
+				else
+				{
+					BUILD_ERROR(builder, "WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]")
+				}
+			}
+
+			if (!db::exists(context->output, path, true))
+			{
+				BUILD_ERROR(builder, "ERROR! Wanted to load cached object [" << path << "] but it did not work!")
+			}
+
+			// Now we hope for the best since these files came from disk and should be OK unless the user
+			// has touched them.
+			return 0;
 		}
 
 		// gets aux pointers to the input, adding to output.
@@ -516,7 +495,7 @@ namespace putki
 				for (std::vector<builder_entry>::size_type j=0;j!=i->second.handlers.size();j++)
 				{
 					const builder_entry *e = &i->second.handlers[j];
-					const char *reason = fetch_cached_build(context->builder, record, e->handler->version(), input, path, th);
+					const char *reason = fetch_cached_build(context, context->builder, record, e->handler->version(), input, path, th);
 					if (reason)
 					{
 						APP_INFO("Building [" << path << "]")
@@ -549,12 +528,11 @@ namespace putki
 			if (!handled)
 			{
 				// Just moving into output
-
 				build_db::set_builder(record, default_name);
 
 				// can only come here if no builder was triggered. need to see if cached (though will be same) is available,
 				// only actually to see if it needs to be rewritten
-				if (!fetch_cached_build(context->builder, record, default_name, input, path, th))
+				if (!fetch_cached_build(context, context->builder, record, default_name, input, path, th))
 				{
 					RECORD_DEBUG(record, "Using from cache")
 					return false;
