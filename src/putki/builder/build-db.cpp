@@ -269,7 +269,7 @@ namespace putki
 		void record_log(record *r, LogType type, const char *msg)
 		{
 			r->logs.push_back(logentry_t(type, msg));
-			if (type == LOG_ERROR)
+			// if (type == LOG_ERROR)
 			{
 				flush_log(r);
 			}

@@ -21,7 +21,7 @@ namespace putki
 		void resolve_object(db::data *source, const char *path);
 
 		void post_build_ptr_update(db::data *input, db::data *output);
-		void post_build_merge_database(putki::db::data *source, db::data *target, db::data *trash);
+		void post_build_merge_database(putki::db::data *source, db::data *target);
 
 		// can be called from user functions.
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path);

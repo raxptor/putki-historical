@@ -28,6 +28,12 @@ namespace putki
 		std::set<void *> visited;
 	};
 
+	void depwalker_i::reset_visited()
+	{
+		if (_visited)
+			_visited->visited.clear();
+	}
+
 	depwalker_i::depwalker_i()
 	{
 		_visited = 0;

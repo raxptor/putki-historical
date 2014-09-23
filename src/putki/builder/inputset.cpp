@@ -114,7 +114,7 @@ namespace putki
 				}
 
 				db::data *tmp = db::create();
-				load_file_into_db(d->objpath.c_str(), i->first.c_str(), tmp, false, 0);
+				load_file_into_db(d->objpath.c_str(), i->first.c_str(), tmp, false);
 
 				type_handler_i *th;
 				instance_t obj;

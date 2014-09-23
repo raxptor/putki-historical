@@ -164,22 +164,23 @@ namespace putki
 			if (i != d->paths.end()) {
 				return i->second.c_str();
 			}
+			_lk.unlock();
 
 			if (d->parent)
 			{
-				_lk.unlock();
 				return pathof(d->parent, obj);
 			}
-
 			return 0;
 		}
 
 		const char *pathof_including_unresolved(data *d, instance_t obj)
 		{
 			const char *unres = is_unresolved_pointer(d, obj);
-			if (unres) {
-				return unres;
-			}
+			if (unres) return unres;
+
+			if (d->parent) unres = is_unresolved_pointer(d->parent, obj);
+			if (unres) return unres;
+
 			return pathof(d, obj);
 		}
 
@@ -306,12 +307,16 @@ namespace putki
 			return "<INVALID-AUX-PATH>";
 		}
 		
-		bool exists(data *d, const char *path)
+		bool exists(data *d, const char *path, bool include_loading)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
+
+			if (!include_loading && d->isloading.count(path))
+				return false;
+
 			return d->objs.find(path) != d->objs.end() || d->deferred.find(path) != d->deferred.end();
 		}
-		
+
 		bool start_loading(data *d, const char *path)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
@@ -337,6 +342,7 @@ namespace putki
 			else
 			{
 				// object either existed or was not being loaded.
+				if (d->isloading.count(path)) APP_ERROR("Logic erorr because is loading already");
 				d->isloading.insert(path);
 				return true;
 			}

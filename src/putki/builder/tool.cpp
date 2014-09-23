@@ -83,7 +83,7 @@ namespace putki
 					if (db::is_aux_path(path_unres))
 					{
 						type_handler_i *th;
-						if (!db::fetch(db, path_unres, &th, on))
+						if (!db::fetch(db, path_unres, &th, on, false, true))
 						{
 							APP_WARNING("Could not resolve aux path [" << path_unres << "]")
 						}
@@ -108,10 +108,11 @@ namespace putki
 		aux_resolver dc;
 		type_handler_i *th;
 		instance_t obj;
-		if (!db::fetch(db, path, &th, &obj))
+		if (!db::fetch(db, path, &th, &obj, false, true))
 		{
 			APP_ERROR("Could not load [" << path << "]")
 		}
+		dc.db = db;
 		th->walk_dependencies(obj, &dc, true);
 	}
 

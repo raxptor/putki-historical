@@ -37,6 +37,7 @@ namespace putki
 		visited_set *_visited;
 		bool pointer_pre_filter(instance_t *on);
 
+		void reset_visited();
 		virtual bool pointer_pre(instance_t *on) = 0; // pre descending into pointer.
 		virtual void pointer_post(instance_t *on) = 0; // post descending into pointer.
 	};

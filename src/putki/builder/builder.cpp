@@ -7,6 +7,7 @@
 #include <putki/builder/inputset.h>
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
+#include <putki/builder/tool.h>
 #include <putki/sys/files.h>
 #include <putki/sys/thread.h>
 
@@ -150,9 +151,6 @@ namespace putki
 			d->input_set = inputset::open(d->obj_path.c_str(), d->res_path.c_str(), input_db_path.c_str());
 			d->tmp_input_set = inputset::open(d->tmpobj_path.c_str(), d->tmp_path.c_str(), tmp_db_path.c_str());
 
-			d->cache_loader = create_loader(d->built_obj_path.c_str());
-			d->tmp_loader = create_loader(d->tmpobj_path.c_str());
-			
 			d->grand_input = 0;
 			return d;
 		}
@@ -374,11 +372,11 @@ namespace putki
 							// only the main object is pulled from output
 							if (!strcmp(path, rpath))
 							{
-								load_file_deferred(builder->cache_loader, output, rpath, 0);
+								load_file_deferred(builder->cache_loader, output, rpath);
 							}
 							else
 							{
-								load_file_deferred(builder->tmp_loader, output, rpath, builder->grand_input);
+								load_file_deferred(builder->tmp_loader, output, rpath);
 							}
 						}
 						else
@@ -473,7 +471,8 @@ namespace putki
 		bool build_source_object(data *builder, build_db::record * record, int phase, db::data *input, const char *path, type_handler_i *th, db::data *output)
 		{
 			bool handled = false;
-			instance_t obj = 0;
+			instance_t input_obj = 0;
+			instance_t output_obj = 0;
 			
 			BuildersMap::iterator i = builder->handlers.find(th->name());
 			if (i != builder->handlers.end())
@@ -490,16 +489,12 @@ namespace putki
 							RECORD_INFO(record, "Building with <" << e->handler->version() << "> because " << reason);
 
 							// now need to build, clone it before the builder gets to it.
-							if (!db::fetch(input, path, &th, &obj))
+							if (!db::fetch(input, path, &th, &input_obj))
 								APP_ERROR("Could not fetch but it existed before? " << path);
-							
-							if (input == builder->grand_input)
-							{
-								APP_INFO("Cloning [" << path << "]")
-								obj = th->clone(obj);
-							}
 
-							e->handler->handle(builder, record, input, path, obj, output, phase);
+							verify_obj(input, 0, th, input_obj, REQUIRE_RESOLVED | REQUIRE_HAS_PATHS, true, true);
+							output_obj = th->clone(input_obj);
+							e->handler->handle(builder, record, input, path, output_obj, output, phase);
 						}
 						else
 						{
@@ -541,46 +536,34 @@ namespace putki
 			{
 				// if it has been sucked into input (check without triggering delayed load),
 				// then a clone must be inserted
-				if (!obj) 
+				if (output_obj)
 				{
-					if (db::fetch(input, path, &th, &obj, false))
-					{
-						db::insert(output, path, th, th->clone(obj));
-					}
-					else
-					{
-						db::copy_obj(input, output, path);
-						RECORD_INFO(record, "Cheap copy")
-					}
+					// if we have the ptr already it was processed/cloned
+					db::insert(output, path, th, output_obj);
 				}
 				else
 				{
-					// if we have the ptr already it was processed/cloned
-					db::insert(output, path, th, obj);
+					if (!input_obj && !db::fetch(input, path, &th, &input_obj, true))
+					{
+						APP_ERROR("Could not fetch")
+					}
+
+					output_obj = th->clone(input_obj);
+					db::insert(output, path, th, output_obj);
 				}
 			}
 
-			// add aux objects directly pointed by this object.. no children
-			// because other objects need to take care of themselves.
-			if (!obj)
-			{
-				// maybe this sux.
-				if (!db::fetch(output, path, &th, &obj))
-				{
-					RECORD_ERROR(record, "could not read back from output");
-					return true;
-				}
-			}
-			
 			get_aux_deps ad;
 			ad.input = input;
 			ad.output = output;
 			ad.record = record;
 			ad.name = default_name;
-			th->walk_dependencies(obj, &ad, false);
+			th->walk_dependencies(output_obj, &ad, false);
 
 			for (unsigned int i=0;i<ad.aux_outs.size();i++)
+			{
 				build_db::add_output(record, ad.aux_outs[i].c_str(), default_name);
+			}
 
 			build_db::add_output(record, path, default_name);
 			return true;
@@ -604,9 +587,10 @@ namespace putki
 			builder::data *builder;
 			db::data *input;
 			db::data *output;
+			db::data *tmp;
 			db::data *trash;
 			
-			sys::mutex mtx_items, mtx_output, mtx_trash;
+			sys::mutex mtx_items, mtx_output, mtx_trash, mtx_tmp;
 			sys::condition cnd_items;
 			unsigned int item_pos, items_finished;
 			std::vector<work_item*> items;
@@ -614,13 +598,17 @@ namespace putki
 			std::set<std::string> added;
 		};
 
-		build_context *create_context(builder::data *builder, db::data *input, db::data *output)
+		build_context *create_context(builder::data *builder, db::data *input, db::data *tmp, db::data *output)
 		{
 			build_context *ctx = new build_context();
 			ctx->builder = builder;
 			ctx->input = input;
+			ctx->tmp = tmp;
 			ctx->output = output;
 			ctx->trash = db::create(0, &ctx->mtx_trash);
+
+			builder->cache_loader = create_loader(builder->built_obj_path.c_str(), tmp, input);
+			builder->tmp_loader = create_loader(builder->tmpobj_path.c_str(), tmp, input);
 			return ctx;
 		}
 
@@ -687,7 +675,7 @@ namespace putki
 				RECORD_DEBUG(item->br, "Merging to world output")
 				id.unlock();
 
-				build::post_build_merge_database(item->output, context->output, context->trash);
+				build::post_build_merge_database(item->output, context->output);
 				build_db::commit_record(context->builder->build_db, item->br);
 
 				if (!item->from_cache)
@@ -706,7 +694,7 @@ namespace putki
 			
 				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
 				
-				build::post_build_merge_database(item->output, item->parent->output, context->trash);
+				build::post_build_merge_database(item->output, item->parent->output);
 				build_db::commit_record(context->builder->build_db, item->br);
 
 				if (!item->from_cache)
@@ -927,7 +915,10 @@ namespace putki
 
 		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
 		{
-			build_context *ctx = create_context(builder, input, output);
+			// TODO FIX
+			APP_ERROR("Fixme")
+			build_context *ctx = create_context(builder, input, db::create(input, 0), output);
+
 			context_add_to_build(ctx, path);
 			context_finalize(ctx);
 			context_build(ctx);

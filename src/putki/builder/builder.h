@@ -53,7 +53,7 @@ namespace putki
 		
 		// new api
 		struct build_context;
-		build_context *create_context(data *builder, db::data *input, db::data *output);
+		build_context *create_context(data *builder, db::data *input, db::data *tmp, db::data *output);
 		void context_add_to_build(build_context *context, const char *path);
 		void context_finalize(build_context *context);
 		void context_build(build_context *context);

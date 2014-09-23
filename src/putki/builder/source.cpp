@@ -13,9 +13,19 @@
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
 #include <putki/builder/log.h>
+#include <putki/builder/tool.h>
 
 namespace putki
 {
+	struct deferred_loader
+	{
+		std::string sourcepath;
+		int refcount;
+
+		unsigned int source_db_count;
+		db::data *source_db[2];
+	};
+
 	namespace
 	{
 		struct load_resolver_store_db_ref : public load_resolver_i
@@ -37,107 +47,21 @@ namespace putki
 				}
 			}
 		};
-
-		struct enum_db_entries_resolve : public db::enum_i
-		{
-			db::data *db;
-			db::data *extra_resolve_db;
-			std::string path;
-
-			bool traverse_children;
-			bool add_to_load;
-			bool zero_unresolved;
-			std::vector<std::string> to_load;
-			int unresolved;
-
-			enum_db_entries_resolve()
-			{
-				traverse_children = false;
-				db = extra_resolve_db = 0;
-				unresolved = 0;
-				add_to_load = false;
-				zero_unresolved = true;
-			}
-
-			struct process_ptr : public putki::depwalker_i
-			{
-				enum_db_entries_resolve *parent;
-
-				bool pointer_pre(instance_t *on)
-				{
-					if (!*on) {
-						return true;
-					}
-
-					// see if it is an unresolved pointer.
-					const char *path = db::is_unresolved_pointer(parent->db, *on);
-					if (!path) {
-						return true;
-					}
-					
-					type_handler_i *th;
-					instance_t obj;
-					
-					if (db::fetch(parent->db, path, &th, &obj, false, true))
-					{
-						*on = obj;
-					}
-					else if (parent->extra_resolve_db && db::fetch(parent->extra_resolve_db, path, &th, &obj, true, false))
-					{
-						// above arguments true, false are because that wil be a different db which we are not loader fur,
-						// but we might enjoy triggering a load. note that if input sets cross referenc then this will lead
-						// to a deadlock.
-						*on = obj;
-					}
-					else
-					{
-						if (parent->add_to_load)
-						{
-							parent->to_load.push_back(path);
-							return false;
-						}
-
-						parent->unresolved++;
-						
-						if (parent->zero_unresolved)
-						{
-							*on = 0;
-						}
-						return false;
-					}
-					
-					return true;
-				}
-
-				void pointer_post(instance_t *on)
-				{
-
-				}
-			};
-
-			void record(const char *path, type_handler_i *th, instance_t i)
-			{
-				// only go for the pointers directly stored here.
-				process_ptr p;
-				p.parent = this;
-				th->walk_dependencies(i, &p, traverse_children);
-			}
-		};
 	}
 
 	// adds unresolved pointer to the db through resolve_pointer.
-	void load_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0, sys::mutex *insert_mtx = 0)
+	bool load_json_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0, sys::mutex *insert_mtx = 0)
 	{
 		//
 		std::string asset_name(name);
 		int p = asset_name.find_last_of('.');
 		if (p == std::string::npos) {
-			return;
+			return false;
 		}
 
 		std::string ending = asset_name.substr(p, asset_name.size() - p);
 		if (ending != ".json") {
-			return;
+			return false;
 		}
 
 		asset_name = asset_name.substr(0, p);
@@ -145,98 +69,171 @@ namespace putki
 		if (loader)
 		{
 			load_file_deferred(loader, db, asset_name.c_str());
-			return;
+			return true;
 		}
 		
 		sys::mutex *lk_mtx = 0;
 		
 		parse::data *pd = parse::parse(fullpath);
-		if (pd)
+		if (!pd)
 		{
+			APP_WARNING("Failed to parse into db <" << fullpath << "> <" << name << ">")
+			return false;
+		}
 
-			parse::node *root = parse::get_root(pd);
-			std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
-			instance_t rootobj;
+		parse::node *root = parse::get_root(pd);
+		std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
+		instance_t rootobj;
 
-			type_handler_i *h = typereg_get_handler(objtype.c_str());
-			if (h)
+		type_handler_i *h = typereg_get_handler(objtype.c_str());
+		if (h)
+		{
+			rootobj = h->alloc();
+			load_resolver_store_db_ref d;
+			d.objpath = asset_name;
+			d.db = db;
+			h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
+			
+			if (insert_mtx)
 			{
-				rootobj = h->alloc();
-				load_resolver_store_db_ref d;
-				d.objpath = asset_name;
-				d.db = db;
-				h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
+				insert_mtx->lock();
+				lk_mtx = insert_mtx;
+			}
 				
-				if (insert_mtx)
-				{
-					insert_mtx->lock();
-					lk_mtx = insert_mtx;
-				}
-					
-				db::insert(db, asset_name.c_str(), h, rootobj);
-			}
-			else
-			{
-				APP_WARNING("Unrecognized type [" << objtype << "]")
-				putki::parse::free(pd);
-				return;
-			}
-
-			// go grab all the auxs
-			parse::node *aux = parse::get_object_item(root, "aux");
-			if (aux) {
-				for (int i=0;; i++)
-				{
-					parse::node *aux_obj = parse::get_array_item(aux, i);
-					if (!aux_obj) {
-						break;
-					}
-
-					std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
-					std::string refpath = asset_name + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
-
-					type_handler_i *h = typereg_get_handler(objtype.c_str());
-					if (h)
-					{
-						instance_t obj = h->alloc();
-
-						load_resolver_store_db_ref d;
-						d.objpath = asset_name;
-						d.db = db;
-						h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
-
-						db::start_loading(db, refpath.c_str());
-						db::insert(db, refpath.c_str(), h, obj);
-					}
-				}
-			}
-			
-			if (lk_mtx)
-			{
-				lk_mtx->unlock();
-			}
-			
-			putki::parse::free(pd);
+			db::insert(db, asset_name.c_str(), h, rootobj);
 		}
 		else
 		{
-			APP_WARNING("Failed to load into db <" << fullpath << "> <" << name << ">")
+			APP_WARNING("Unrecognized type [" << objtype << "]")
+			putki::parse::free(pd);
+			return false;
 		}
+
+		// go grab all the auxs
+		parse::node *aux = parse::get_object_item(root, "aux");
+		if (aux)
+		{
+			for (int i=0;; i++)
+			{
+				parse::node *aux_obj = parse::get_array_item(aux, i);
+				if (!aux_obj)
+				{
+					break;
+				}
+
+				std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
+				std::string refpath = asset_name + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
+
+				type_handler_i *h = typereg_get_handler(objtype.c_str());
+
+				if (h)
+				{
+					instance_t obj = h->alloc();
+
+					load_resolver_store_db_ref d;
+					d.objpath = asset_name;
+					d.db = db;
+					h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
+
+					db::start_loading(db, refpath.c_str());
+					db::insert(db, refpath.c_str(), h, obj);
+				}
+			}
+		}
+		
+		if (lk_mtx)
+		{
+			lk_mtx->unlock();
+		}
+		
+		putki::parse::free(pd);
+		return true;
 	}
-	
-	struct deferred_loader
+
+	namespace
 	{
-		std::string sourcepath;
-		int refcount;
-		sys::mutex resolve_mtx;
-		std::map<std::string, db::data*> resolve_db;
-	};
-	
-	deferred_loader *create_loader(const char *sourcepath)
+		typedef std::map<std::string, db::data*> DepsToLoad;
+		typedef std::set<std::string> PathSet;
+
+		struct object_resolver : public putki::depwalker_i
+		{
+			deferred_loader *loader;
+			db::data *db;
+			DepsToLoad deps_required;
+			unsigned int unresolved_count;
+
+			bool pointer_pre(instance_t *on)
+			{
+				if (!*on)
+				{
+					return true;
+				}
+
+				const char *path = db::is_unresolved_pointer(db, *on);
+				if (!path)
+				{
+					return true;
+				}
+
+				// Now look through the loader's resolve chain. We are only going to
+				// be pointing to input objects here, so resolve according to the input
+				// chain.
+				bool is_resolved = false;
+				for (unsigned int i=0;i!=loader->source_db_count;i++)
+				{
+					if (db::exists(loader->source_db[i], path, true))
+					{
+						// Do not allow triggering of load yet, do it later.
+						type_handler_i *th;
+						if (!db::fetch(loader->source_db[i], path, &th, on, false, true))
+						{
+							// no duplicates
+							deps_required.insert(std::make_pair(path, loader->source_db[i]));
+							unresolved_count++;
+							return false;
+						}
+						else
+						{
+							APP_DEBUG("Resolved pointer to [" << path << "] through chain " << i)
+							is_resolved = true;
+							return true;
+						}
+					}
+				}
+
+				unresolved_count++;
+				APP_ERROR("Permanent resolve failure on path [" << path << "]")
+				return false;
+			}
+
+			void pointer_post(instance_t *on)
+			{
+
+			}
+		};
+	}
+
+	sys::mutex resolve_mtx;
+
+	deferred_loader *create_loader(const char *sourcepath, db::data *resolve0, db::data *resolve1)
 	{
 		deferred_loader *n = new deferred_loader();
 		n->sourcepath = sourcepath;
 		n->refcount = 1;
+
+		n->source_db_count = 0;
+
+		if (resolve0)
+		{
+			n->source_db[n->source_db_count++] = resolve0;
+		}
+
+		if (resolve1)
+		{
+			n->source_db[n->source_db_count++] = resolve1;
+		}
+
+		APP_DEBUG("Created loader with " << n->source_db_count << " resolve steps")
 		return n;
 	}
 
@@ -253,13 +250,12 @@ namespace putki
 			delete loader;
 		}
 	}
-	
-	bool do_deferred_load(db::data *db, const char *path, type_handler_i **th, instance_t *obj, void *userptr)
+
+	// The end-all, be all
+	bool do_load_into_db(db::data *db, const char *path, type_handler_i **th, instance_t *obj, deferred_loader *loader, bool do_resolve)
 	{
-		deferred_loader *loader = (deferred_loader *)userptr;
-		
-		// 1. Load the json file raw into the database. 
-		APP_DEBUG("deferred: loading " << path << " from [" << loader->sourcepath << "]")
+		// 1. Load the json file raw into the database.
+		APP_DEBUG("deferred_loader: loading " << path << " from [" << loader->sourcepath << "]")
 		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
@@ -274,21 +270,8 @@ namespace putki
 			return true;
 		}
 
-		load_into_db(db, fullpath.c_str(), fpath.c_str(), 0, &loader->resolve_mtx);
+		load_json_into_db(db, fullpath.c_str(), fpath.c_str(), 0, &resolve_mtx);
 
-		//  Now the database object will contain only unresolved pointers, so attempt to resolve it with the 
-		//  target database itself.
-		enum_db_entries_resolve resolver;
-		resolver.add_to_load = true;
-		resolver.db = db;
-	
-		{
-			sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
-			resolver.extra_resolve_db = loader->resolve_db[path];
-		}
-		
-		resolver.traverse_children = true;
-		
 		if (!db::fetch(db, path, th, obj, false, true))
 		{
 			APP_ERROR("Failed to load object " << path)
@@ -297,62 +280,73 @@ namespace putki
 			return false;
 		}
 
-		std::set<std::string> loaded;
-		std::set<std::string> i_loaded;
+		{
+			sys::scoped_maybe_lock lk0(&resolve_mtx);
+			resolve_object_aux_pointers(db, path);
+		}
+
+		// End of the line for when not resolving object external pointers
+		if (!do_resolve)
+		{
+			db::done_loading(db, path);
+			return true;
+		}
+
+		// Resolve and load additional dependencies
+		object_resolver resolver;
+		resolver.db = db;
+		resolver.loader = loader;
+
+		PathSet loaded;
+		DepsToLoad loaded_here;
 
 		while (true)
 		{
-			resolver.path = path;
-			resolver.to_load.clear();
-			resolver.unresolved = 0;
-			
+			resolver.unresolved_count = 0;
+
 			{
-				sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
-				resolver.record(path, *th, *obj);
+				sys::scoped_maybe_lock lk0(&resolve_mtx);
+				resolver.reset_visited();
+				(*th)->walk_dependencies(*obj, &resolver, true);
 			}
 
-			unsigned int ld = 0;
-			for (unsigned int i=0; i<resolver.to_load.size(); i++)
+			if (!resolver.unresolved_count)
 			{
-				std::string file = resolver.to_load[i] + ".json";
-				if (loaded.count(resolver.to_load[i]) == 0)
+				APP_DEBUG("Resolving of object [" << path << "] completed")
+				break;
+			}
+
+			int new_loads = 0;
+
+			for (DepsToLoad::const_iterator i=resolver.deps_required.begin();i!=resolver.deps_required.end();i++)
+			{
+				// Don't do it again
+				if (loaded.count(i->first))
+					continue;
+
+				loaded.insert(i->first);
+				new_loads++;
+
+				if (!db::start_loading(db, i->first.c_str()))
 				{
-					loaded.insert(resolver.to_load[i]);
-					ld++;
-					const char *dep = resolver.to_load[i].c_str();
-					if (db::start_loading(db, dep))
-					{
-						type_handler_i *xth;
-						instance_t xobj;
+					APP_DEBUG("Lost the race for loading " << i->first)
+					continue;
+				}
 
-						if (db::fetch(db, dep, &xth, &xobj, false, true))
-						{
-							APP_ERROR("Dependency " << path << " -> " << dep << " raced! start_loading returned true, but object exists in db")
-							db::done_loading(db, dep);
-							continue;
-						}
-					
-						APP_DEBUG("Loading dependency " << file << " from disk")
-						load_into_db(db, (std::string(loader->sourcepath) + "/" + file).c_str(), file.c_str(), 0, &loader->resolve_mtx);
-
-						if (!db::fetch(db, resolver.to_load[i].c_str(), &xth, &xobj, false, true))
-						{
-							APP_WARNING("Dependency " << path << " -> " << dep << " FAILED!")
-							db::done_loading(db, dep);
-						}
-						else
-						{
-							i_loaded.insert(resolver.to_load[i]);
-						}
-					}
-					else
-					{
-						APP_DEBUG("Dependency " << path << " -> " << dep << " inserted by other")
-					}
+				APP_DEBUG("Loading dependency " << path << " from disk into " << i->second)
+				if (!load_json_into_db(i->second, (loader->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
+				{
+					APP_WARNING("Dependency " << path << " -> " << i->first << " FAILED!")
+					db::done_loading(db, i->first.c_str());
+				}
+				else
+				{
+					APP_DEBUG("Dependency " << i->first.c_str() << " loaded from disk into " << i->second)
+					loaded_here.insert(std::make_pair(i->first, i->second));
 				}
 			}
-			
-			if (!ld)
+
+			if (!new_loads)
 			{
 				break;
 			}
@@ -360,31 +354,51 @@ namespace putki
 
 		// everything that could be loaded is loaded, do a final pass which will clear
 		// out any invalid pointers.
-		
-		resolver.add_to_load = false;
-		resolver.unresolved = 0;
+		if (resolver.unresolved_count != 0)
 		{
-			sys::scoped_maybe_lock lk0(&loader->resolve_mtx);
-			resolver.record(path, *th, *obj);
+			sys::scoped_maybe_lock lk0(&resolve_mtx);
+			clear_unresolved_pointers(db, *th, *obj);
 		}
-				
-		std::set<std::string>::iterator i = i_loaded.begin();
-		while (i != i_loaded.end())
+
+		DepsToLoad::iterator i = loaded_here.begin();
+		while (i != loaded_here.end())
 		{
-			db::done_loading(db, i->c_str());
+			type_handler_i *_th;
+			instance_t _obj;
+
+			if (!db::fetch(i->second, i->first.c_str(), &_th, &_obj, false, true))
+				APP_ERROR("loaded_here says it was loaded, but apparently not!")
+
+			if (resolver.unresolved_count != 0)
+			{
+				sys::scoped_maybe_lock lk0(&resolve_mtx);
+				clear_unresolved_pointers(i->second, _th, _obj);
+			}
+
 			i++;
 		}
-		
+
+		i = loaded_here.begin();
+		while (i != loaded_here.end())
+		{
+			db::done_loading(i->second, i->first.c_str());
+			i++;
+		}
+
+		APP_DEBUG("Doing verify " << resolver.unresolved_count);
+		verify_obj(db, 0, *th, *obj, REQUIRE_HAS_PATHS | REQUIRE_RESOLVED, true, true);
+
 		db::done_loading(db, path);
 		return true;
 	}
-	
-	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path, db::data *resolve)
+
+	bool do_deferred_load(db::data *db, const char *path, type_handler_i **th, instance_t *obj, void *userptr)
 	{
-		loader->resolve_mtx.lock();
-		loader->resolve_db[path] = resolve;
-		loader->resolve_mtx.unlock();
-		
+		return do_load_into_db(db, path, th, obj, (deferred_loader *) userptr, true);
+	}
+
+	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path)
+	{
 		db::insert_deferred(target, path, &do_deferred_load, loader);
 	}
 
@@ -401,7 +415,7 @@ namespace putki
 		{
 			add *a = (add*) userptr;
 			a->count++;
-			load_into_db(a->db, fullpath, name, a->loader);
+			load_json_into_db(a->db, fullpath, name, a->loader);
 		}
 	}
 
@@ -415,7 +429,7 @@ namespace putki
 	{
 		add *a = new add();
 		a->db = d;
-		a->loader = create_loader(sourcepath);
+		a->loader = create_loader(sourcepath, d);
 		a->count = 0;
 		putki::sys::search_tree(sourcepath, add_file, a);
 		db::register_on_destroy(d, on_destroy_db, a->loader);
@@ -423,55 +437,15 @@ namespace putki
 		delete a;
 	}
 
-	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve, db::data *resolve_db)
+	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve)
 	{
-		std::string fpath = std::string(path) + ".json";
-		std::string fullpath = std::string(sourcepath) + "/" + fpath;
-		std::set<std::string> loaded;
-		
-		db::start_loading(d, path);
-		load_into_db(d, fullpath.c_str(), fpath.c_str());
-		db::done_loading(d, path);
-		
-		while (true)
-		{
-			// resolve
-			enum_db_entries_resolve resolver;
-			resolver.add_to_load = resolve;
-			resolver.db = d;
-			resolver.path = path;
-			resolver.extra_resolve_db = resolve_db;
-			resolver.zero_unresolved = resolve;
-			
-			type_handler_i *th;
-			instance_t obj;
-			if (!db::fetch(d, path, &th, &obj))
-			{
-				APP_WARNING("Failed to load " << fullpath)
-				return;
-			}
-			
-			resolver.record(path, th, obj);
-			
-			unsigned int ld = 0;
-			for (unsigned int i=0; i<resolver.to_load.size(); i++)
-			{
-				std::string file = resolver.to_load[i] + ".json";
-				if (loaded.count(file) == 0)
-				{
-					ld++;
-					db::start_loading(d, path);
-					load_into_db(d, (std::string(sourcepath) + "/" + file).c_str(), file.c_str());
-					loaded.insert(file);
-					db::done_loading(d, path);
-				}
-			}
+		type_handler_i *th;
+		instance_t obj;
 
-			if (!ld) {
-				break;
-			}
-		}
-
+		// everything through the deferred loader now.
+		deferred_loader *loader = create_loader(sourcepath);
+		do_load_into_db(d, path, &th, &obj, loader, resolve);
+		loader_decref(loader);
 	}
 
 }

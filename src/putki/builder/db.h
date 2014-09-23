@@ -32,7 +32,7 @@ namespace putki
 		void done_loading(data *d, const char *path);
 		
 		// includes deferred loads
-		bool exists(data *d, const char *path);
+		bool exists(data *d, const char *path, bool include_loading=false);
 		
 		// will trigger deferred load to execute if not loaded
 		bool fetch(data *d, const char *path, type_handler_i **th, instance_t *obj, bool allow_execute_deferred=true, bool iamtheloader=false);

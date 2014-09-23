@@ -117,30 +117,9 @@ namespace
 	{
 		putki::db::data *input;
 		putki::db::data *output;
-		putki::db::data *trash;
 
 		void record(const char *path, putki::type_handler_i* th, putki::instance_t obj)
 		{
-			// if we happen to overwrite an object (when merging outputs into parent records with tmp objects),
-			// we would like to know that it must be trashed.
-			// APP_DEBUG("Copying " << path)
-			if (trash)
-			{
-				putki::type_handler_i *_th;
-				putki::instance_t _obj = 0;
-
-				if (putki::db::fetch(output, path, &_th, &_obj, false))
-				{
-					// if we are overwriting with a deferred object, current object will be lost
-					// if we are overwriting with a different object, current object will be lost
-					if (!obj || obj != _obj)
-					{
-						APP_DEBUG("Trashing object " << path << " src=" << obj << " replacing=" << _obj)
-						putki::db::insert(trash, path, _th, _obj);
-					}
-				}
-			}
-
 			putki::db::copy_obj(input, output, path);
 		}
 	};
@@ -238,12 +217,11 @@ namespace putki
 		}
 
 		// merges objects from source into target.
-		void post_build_merge_database(putki::db::data *source, db::data *target, db::data *trash)
+		void post_build_merge_database(putki::db::data *source, db::data *target)
 		{
 			db_record_inserter ri;
 			ri.input = source;
 			ri.output = target;
-			ri.trash = trash;
 			putki::db::read_all_no_fetch(source, &ri);
 
 			domain_switch dsw;
@@ -280,13 +258,14 @@ namespace putki
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
 		{
-			sys::mutex in_db_mtx, out_db_mtx;
+			sys::mutex in_db_mtx, tmp_db_mtx, out_db_mtx;
 			db::data *input = putki::db::create(0, &in_db_mtx);
-			db::data *output = putki::db::create(0, &out_db_mtx);
-			
+			db::data *tmp = putki::db::create(input, &tmp_db_mtx);
+			db::data *output = putki::db::create(input, &out_db_mtx);
+
 			load_tree_into_db(builder::obj_path(builder), input);
 
-			builder::build_context *ctx = builder::create_context(builder, input, output);
+			builder::build_context *ctx = builder::create_context(builder, input, tmp, output);
 
 			APP_INFO("Application packager...")
 
@@ -371,6 +350,7 @@ namespace putki
 
 			// there should be no objects outside these database now.
 			db::free_and_destroy_objs(input);
+			db::free_and_destroy_objs(tmp);
 			db::free_and_destroy_objs(output);
 			builder::context_destroy(ctx);
 		}
