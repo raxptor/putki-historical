@@ -652,9 +652,9 @@ namespace putki
 		void context_process_record(build_context *context, work_item *item)
 		{
 			BUILD_DEBUG(context->builder, "Record: " << item->path)
-			if (!db::exists(item->input, item->path.c_str()))
+			if (!db::exists(item->input, item->path.c_str(), true))
 			{
-				BUILD_ERROR(context->builder, "Fetch failed on " << item->path);
+				BUILD_ERROR(context->builder, "db::exists check failed on " << item->path << " " << item->input);
 				return;
 			}
 

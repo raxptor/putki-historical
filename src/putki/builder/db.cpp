@@ -264,7 +264,7 @@ namespace putki
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
-//			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj ");
+			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj ");
 			entry e;
 			e.th = th;
 			e.obj = i;
@@ -390,7 +390,9 @@ namespace putki
 				}
 
 				if (!allow_execute_deferred)
+				{
 					return false;
+				}
 			
 				std::map<std::string, deferred>::iterator j = d->deferred.find(path);
 				if (j == d->deferred.end())
@@ -434,7 +436,7 @@ namespace putki
 					
 				if (!succ)
 				{
-					APP_WARNING("DEFERRED LOAD OF " << path << " FAILED!");
+					APP_WARNING("Deferred loading of " << path << " failed!");
 				}
 				
 				return succ;

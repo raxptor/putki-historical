@@ -329,11 +329,11 @@ namespace putki
 
 				if (!db::start_loading(i->second->db, i->first.c_str()))
 				{
-					APP_DEBUG("Lost the race for loading " << i->first)
+					APP_DEBUG("Lost the race for loading " << i->first << " " << i->second->sourcepath)
 					continue;
 				}
 
-				APP_DEBUG("Depload " << path << " => " << i->first << " from disk")
+				APP_DEBUG("Depload " << path << " => " << i->first << " from disk at " << i->second->sourcepath)
 				if (!load_json_into_db(i->second->db, (i->second->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
 				{
 					APP_WARNING("Dependency " << path << " -> " << i->first << " FAILED!")
@@ -342,6 +342,7 @@ namespace putki
 				}
 				else
 				{
+					APP_WARNING("Dependency " << path << " -> " << i->first << " loaded " << i->second->sourcepath)
 					loaded_here.insert(std::make_pair(i->first, i->second));
 				}
 			}
