@@ -59,9 +59,7 @@ namespace putki
 
 		void add_data_builder(builder::data *builder, type_t type, handler_i *handler);
 
-		void build_references(data *builder, db::data *input, db::data *output, type_handler_i *type, int obj_phase, instance_t obj);
-
-		void build_source_object(data *builder, db::data *input, const char *path, db::data *output);
+		void build_source_object(data *builder, db::data *input, db::data *tmp, db::data *output, const char *path);
 		void build_global_pass(data *builder, db::data *input, db::data *output);
 
 		void record_log(data *builder, LogType, const char *text);

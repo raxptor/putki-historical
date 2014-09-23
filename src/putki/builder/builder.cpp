@@ -593,6 +593,7 @@ namespace putki
 			ctx->trash = db::create(0, &ctx->mtx_trash);
 
 			builder->output_loader = create_loader(builder->built_obj_path.c_str());
+			loader_add_resolve_src(builder->output_loader, output, builder->built_obj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, tmp, builder->tmpobj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, input, builder->obj_path.c_str());
 
@@ -750,11 +751,12 @@ namespace putki
 
 			build_db::commit_record(context->builder->build_db, item->br);
 
-			if (!from_cache)
-				build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
-
 			if (!context->builder->liveupdates)
+			{
 				context_add_build_record_pointers(context, item->path.c_str());
+				if (!from_cache)
+					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+			}
 
 			flush_log(item->br);
 
@@ -848,12 +850,9 @@ namespace putki
 			APP_INFO("Finished build, total of " << context->items.size() << " build records")
 		}
 
-		void build_source_object(data *builder, db::data *input, const char *path, db::data *output)
+		void build_source_object(data *builder, db::data *input, db::data *tmp, db::data *output, const char *path)
 		{
-			// TODO FIX
-			APP_ERROR("Fixme")
-			build_context *ctx = create_context(builder, input, db::create(input, 0), output);
-
+			build_context *ctx = create_context(builder, input, tmp, output);
 			context_add_to_build(ctx, path);
 			context_finalize(ctx);
 			context_build(ctx);

@@ -2,6 +2,7 @@
 
 #include <putki/builder/db.h>
 #include <putki/builder/builder.h>
+#include <putki/builder/log.h>
 #include <putki/builder/source.h>
 #include <putki/builder/build.h>
 #include <putki/builder/write.h>
@@ -144,6 +145,8 @@ namespace putki
 
 			pthread_mutex_init(&d->mtx, 0);
 			std::cout << "Started listening for live updates on socket " << s << std::endl;
+
+			putki::set_loglevel(LOG_DEBUG);
 			return d;
 		}
 
@@ -206,8 +209,8 @@ namespace putki
 			runtime::descptr rt = 0;
 			std::string config = "Default";
 
-			sys::mutex db_mtx, output_db_mtx;
-			db::data *input = db::create(0, &db_mtx);
+			sys::mutex db_mtx, output_db_mtx, tmp_db_mtx;
+			db::data *tmp = db::create(lu->source_db, &tmp_db_mtx);
 
 			while ((bytes = recv(skt, buf, sizeof(buf), 0)) > 0)
 			{
@@ -363,6 +366,16 @@ namespace putki
 
 						enter_lock(lu);
 
+						char b[1024];
+						if (db::is_aux_path(tobuild.c_str()))
+						{
+							if (db::base_asset_path(tobuild.c_str(), b, 1024))
+							{
+								std::cout << "so it will be " << tobuild << std::endl;
+								tobuild = b;
+							}
+						}
+
 						// load asset into source db if missing.
 						type_handler_i *th;
 						instance_t obj;
@@ -384,10 +397,11 @@ namespace putki
 
 						build::resolve_object(lu->source_db, tobuild.c_str());
 
-						db::data *output = db::create(input, &output_db_mtx);
+						db::data *output = db::create(tmp, &output_db_mtx);
 
 						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
-						builder::build_source_object(builder, lu->source_db, tobuild.c_str(), output);
+
+						builder::build_source_object(builder, lu->source_db, tmp, output, tobuild.c_str());
 						build::post_build_ptr_update(lu->source_db, output);
 
 						// should be done with this now.
@@ -411,7 +425,8 @@ namespace putki
 						}
 						send(skt, buf, bytes, 0);
 
-						db::free(output);
+						db::free_and_destroy_objs(output);
+
 						delete [] buf;
 
 						buildforclient.erase(buildforclient.begin());
@@ -425,7 +440,7 @@ namespace putki
 				builder::free(builder);
 			}
 
-			db::free(input);
+			db::free(tmp);
 		}
 
 	}

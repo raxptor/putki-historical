@@ -237,7 +237,7 @@ namespace putki
 				}
 				else
 				{
-					APP_ERROR("Trying to add [" << path << "] to package, but not found!")
+					// APP_ERROR("Trying to add [" << path << "] to package, but not found!")
 					return;
 				}
 			}
