@@ -194,7 +194,7 @@ namespace putki
 						}
 						else
 						{
-							APP_DEBUG("Resolved pointer to [" << path << "] through chain " << i)
+							// APP_DEBUG("Resolved pointer to [" << path << "] through chain " << i)
 							is_resolved = true;
 							return true;
 						}
@@ -255,7 +255,7 @@ namespace putki
 	bool do_load_into_db(db::data *db, const char *path, type_handler_i **th, instance_t *obj, deferred_loader *loader, bool do_resolve)
 	{
 		// 1. Load the json file raw into the database.
-		APP_DEBUG("deferred_loader: loading " << path << " from [" << loader->sourcepath << "]")
+		APP_DEBUG("deferred_loader: loading " << loader->sourcepath << "/" << path << ".json")
 		
 		std::string fpath = std::string(path) + ".json";
 		std::string fullpath = std::string(loader->sourcepath) + "/" + fpath;
@@ -327,13 +327,13 @@ namespace putki
 				loaded.insert(i->first);
 				new_loads++;
 
-				if (!db::start_loading(db, i->first.c_str()))
+				if (!db::start_loading(i->second, i->first.c_str()))
 				{
 					APP_DEBUG("Lost the race for loading " << i->first)
 					continue;
 				}
 
-				APP_DEBUG("Loading dependency " << path << " from disk into " << i->second)
+				APP_DEBUG("Depload " << path << " => " << i->first << " from disk")
 				if (!load_json_into_db(i->second, (loader->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
 				{
 					APP_WARNING("Dependency " << path << " -> " << i->first << " FAILED!")
@@ -341,7 +341,6 @@ namespace putki
 				}
 				else
 				{
-					APP_DEBUG("Dependency " << i->first.c_str() << " loaded from disk into " << i->second)
 					loaded_here.insert(std::make_pair(i->first, i->second));
 				}
 			}
@@ -385,7 +384,6 @@ namespace putki
 			i++;
 		}
 
-		APP_DEBUG("Doing verify " << resolver.unresolved_count);
 		verify_obj(db, 0, *th, *obj, REQUIRE_HAS_PATHS | REQUIRE_RESOLVED, true, true);
 
 		db::done_loading(db, path);
