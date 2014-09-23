@@ -379,17 +379,10 @@ namespace putki
 						// load asset into source db if missing.
 						type_handler_i *th;
 						instance_t obj;
-						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
+						
+						if (!db::exists(tmp, tobuild.c_str(), true) && !db::exists(lu->source_db, tobuild.c_str(), true))
 						{
-							std::string file_path = sourcepath + tobuild;
-							std::cout << "Loading into source db because it is missing [" << file_path << "]" << std::endl;
-							load_file_into_db(sourcepath, tobuild.c_str(), lu->source_db, true);
-						}
-
-						if (!db::fetch(lu->source_db, tobuild.c_str(), &th, &obj))
-						{
-							//
-							std::cout << "Failed to resolve path." << std::endl;
+							std::cout << "Object is missing! " << tobuild << " Can't be built!" << std::endl;
 							leave_lock(lu);
 							buildforclient.erase(buildforclient.begin());
 							continue;

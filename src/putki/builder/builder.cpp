@@ -391,21 +391,11 @@ namespace putki
 				// auxes will not be inserted.
 				if (db::is_aux_path(rpath))
 					continue;
-
-				// We want to carefully load these files, and not overwrite any which might have been built
-				// this time.
-				if (!db::exists(context->output, rpath))
-				{
-					// only the main object is an output object, the rest are tmp inputs
-					if (!strcmp(path, rpath))
-						load_file_deferred(builder->output_loader, context->output, rpath);
-					else
-						load_file_deferred(builder->tmp_loader, context->tmp, rpath);
-				}
+					
+				if (!strcmp(path, rpath))
+					load_file_deferred(builder->output_loader, context->output, rpath);
 				else
-				{
-					BUILD_ERROR(builder, "WHY AM I INSERTING ALREADY EXISTING OUTPUTS?! [" << path << "]")
-				}
+					load_file_deferred(builder->tmp_loader, context->tmp, rpath);
 			}
 
 			if (!db::exists(context->output, path, true))
@@ -593,7 +583,6 @@ namespace putki
 			ctx->trash = db::create(0, &ctx->mtx_trash);
 
 			builder->output_loader = create_loader(builder->built_obj_path.c_str());
-			loader_add_resolve_src(builder->output_loader, output, builder->built_obj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, tmp, builder->tmpobj_path.c_str());
 			loader_add_resolve_src(builder->output_loader, input, builder->obj_path.c_str());
 
@@ -753,9 +742,9 @@ namespace putki
 
 			if (!context->builder->liveupdates)
 			{
-				context_add_build_record_pointers(context, item->path.c_str());
 				if (!from_cache)
 					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+				context_add_build_record_pointers(context, item->path.c_str());
 			}
 
 			flush_log(item->br);
@@ -852,8 +841,30 @@ namespace putki
 
 		void build_source_object(data *builder, db::data *input, db::data *tmp, db::data *output, const char *path)
 		{
+			work_item *wi = new work_item();
+			
+			if (db::exists(input, path))
+			{
+				wi->input = input;
+			}
+			else if (db::exists(tmp, path))
+			{
+				wi->input = tmp;
+			}
+			else
+			{
+				APP_WARNING("Tried to build object not in input or tmp! [" << path << "]")
+				delete wi;
+				return;
+			}
+			
+			wi->path = path;
+			wi->parent = 0;
+			wi->br = 0;
+			
 			build_context *ctx = create_context(builder, input, tmp, output);
-			context_add_to_build(ctx, path);
+			ctx->items.push_back(wi);
+			
 			context_finalize(ctx);
 			context_build(ctx);
 			build::post_build_ptr_update(input, output);
