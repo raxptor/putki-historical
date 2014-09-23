@@ -10,7 +10,8 @@ namespace putki
 	void load_file_into_db(const char *sourcepath, const char *path, db::data *d, bool resolve);
 
 	// resolve order is resolve0, resolve1
-	deferred_loader *create_loader(const char *sourcepath, db::data *resolve0 = 0, db::data *resolve1 = 0);
+	deferred_loader *create_loader(const char *sourcepath);
+	void loader_add_resolve_src(deferred_loader *loader, db::data *resolve, const char *sourcepath);
 
 	void load_file_deferred(deferred_loader *loader, db::data *target, const char *path);
 	void loader_incref(deferred_loader *loader);

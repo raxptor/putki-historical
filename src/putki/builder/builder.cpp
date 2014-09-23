@@ -46,8 +46,8 @@ namespace putki
 			build_db::data *build_db;
 			inputset::data *input_set;
 			inputset::data *tmp_input_set;
-			deferred_loader *cache_loader;
 			deferred_loader *tmp_loader;
+			deferred_loader *output_loader;
 			bool liveupdates;
 			
 			// fix this
@@ -192,7 +192,7 @@ namespace putki
 			build_db::release(builder->build_db);
 			inputset::release(builder->input_set);
 			inputset::release(builder->tmp_input_set);
-			loader_decref(builder->cache_loader);
+			loader_decref(builder->output_loader);
 			loader_decref(builder->tmp_loader);
 
 			delete builder;
@@ -398,7 +398,7 @@ namespace putki
 				{
 					// only the main object is an output object, the rest are tmp inputs
 					if (!strcmp(path, rpath))
-						load_file_deferred(builder->cache_loader, context->output, rpath);
+						load_file_deferred(builder->output_loader, context->output, rpath);
 					else
 						load_file_deferred(builder->tmp_loader, context->tmp, rpath);
 				}
@@ -592,8 +592,14 @@ namespace putki
 			ctx->output = output;
 			ctx->trash = db::create(0, &ctx->mtx_trash);
 
-			builder->cache_loader = create_loader(builder->built_obj_path.c_str(), tmp, input);
-			builder->tmp_loader = create_loader(builder->tmpobj_path.c_str(), tmp, input);
+			builder->output_loader = create_loader(builder->built_obj_path.c_str());
+			loader_add_resolve_src(builder->output_loader, tmp, builder->tmpobj_path.c_str());
+			loader_add_resolve_src(builder->output_loader, input, builder->obj_path.c_str());
+
+			builder->tmp_loader = create_loader(builder->tmpobj_path.c_str());
+			loader_add_resolve_src(builder->tmp_loader, tmp, builder->tmpobj_path.c_str());
+			loader_add_resolve_src(builder->tmp_loader, input, builder->obj_path.c_str());
+
 			return ctx;
 		}
 

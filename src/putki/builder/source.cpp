@@ -17,13 +17,19 @@
 
 namespace putki
 {
+	struct source_db_def
+	{
+		std::string sourcepath;
+		db::data *db;
+	};
+
 	struct deferred_loader
 	{
 		std::string sourcepath;
 		int refcount;
 
 		unsigned int source_db_count;
-		db::data *source_db[2];
+		source_db_def source_db[4];
 	};
 
 	namespace
@@ -152,7 +158,7 @@ namespace putki
 
 	namespace
 	{
-		typedef std::map<std::string, db::data*> DepsToLoad;
+		typedef std::map<std::string, source_db_def* > DepsToLoad;
 		typedef std::set<std::string> PathSet;
 
 		struct object_resolver : public putki::depwalker_i
@@ -181,14 +187,14 @@ namespace putki
 				bool is_resolved = false;
 				for (unsigned int i=0;i!=loader->source_db_count;i++)
 				{
-					if (db::exists(loader->source_db[i], path, true))
+					if (db::exists(loader->source_db[i].db, path, true))
 					{
 						// Do not allow triggering of load yet, do it later.
 						type_handler_i *th;
-						if (!db::fetch(loader->source_db[i], path, &th, on, false, true))
+						if (!db::fetch(loader->source_db[i].db, path, &th, on, false, true))
 						{
 							// no duplicates
-							deps_required.insert(std::make_pair(path, loader->source_db[i]));
+							deps_required.insert(std::make_pair(path, &loader->source_db[i]));
 							unresolved_count++;
 							return false;
 						}
@@ -215,26 +221,20 @@ namespace putki
 
 	sys::mutex resolve_mtx;
 
-	deferred_loader *create_loader(const char *sourcepath, db::data *resolve0, db::data *resolve1)
+	deferred_loader *create_loader(const char *sourcepath)
 	{
 		deferred_loader *n = new deferred_loader();
 		n->sourcepath = sourcepath;
 		n->refcount = 1;
-
 		n->source_db_count = 0;
-
-		if (resolve0)
-		{
-			n->source_db[n->source_db_count++] = resolve0;
-		}
-
-		if (resolve1)
-		{
-			n->source_db[n->source_db_count++] = resolve1;
-		}
-
-		APP_DEBUG("Created loader with " << n->source_db_count << " resolve steps")
 		return n;
+	}
+
+	void loader_add_resolve_src(deferred_loader *loader, db::data *resolve, const char *sourcepath)
+	{
+		loader->source_db[loader->source_db_count].db = resolve;
+		loader->source_db[loader->source_db_count].sourcepath = sourcepath;
+		loader->source_db_count++;
 	}
 
 	void loader_incref(deferred_loader *loader)
@@ -327,17 +327,18 @@ namespace putki
 				loaded.insert(i->first);
 				new_loads++;
 
-				if (!db::start_loading(i->second, i->first.c_str()))
+				if (!db::start_loading(i->second->db, i->first.c_str()))
 				{
 					APP_DEBUG("Lost the race for loading " << i->first)
 					continue;
 				}
 
 				APP_DEBUG("Depload " << path << " => " << i->first << " from disk")
-				if (!load_json_into_db(i->second, (loader->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
+				if (!load_json_into_db(i->second->db, (i->second->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
 				{
 					APP_WARNING("Dependency " << path << " -> " << i->first << " FAILED!")
-					db::done_loading(db, i->first.c_str());
+					APP_ERROR("blaha!")
+					db::done_loading(i->second->db, i->first.c_str());
 				}
 				else
 				{
@@ -365,13 +366,13 @@ namespace putki
 			type_handler_i *_th;
 			instance_t _obj;
 
-			if (!db::fetch(i->second, i->first.c_str(), &_th, &_obj, false, true))
+			if (!db::fetch(i->second->db, i->first.c_str(), &_th, &_obj, false, true))
 				APP_ERROR("loaded_here says it was loaded, but apparently not!")
 
 			if (resolver.unresolved_count != 0)
 			{
 				sys::scoped_maybe_lock lk0(&resolve_mtx);
-				clear_unresolved_pointers(i->second, _th, _obj);
+				clear_unresolved_pointers(i->second->db, _th, _obj);
 			}
 
 			i++;
@@ -380,7 +381,7 @@ namespace putki
 		i = loaded_here.begin();
 		while (i != loaded_here.end())
 		{
-			db::done_loading(i->second, i->first.c_str());
+			db::done_loading(i->second->db, i->first.c_str());
 			i++;
 		}
 
@@ -427,7 +428,8 @@ namespace putki
 	{
 		add *a = new add();
 		a->db = d;
-		a->loader = create_loader(sourcepath, d);
+		a->loader = create_loader(sourcepath);
+		loader_add_resolve_src(a->loader, d, sourcepath);
 		a->count = 0;
 		putki::sys::search_tree(sourcepath, add_file, a);
 		db::register_on_destroy(d, on_destroy_db, a->loader);
