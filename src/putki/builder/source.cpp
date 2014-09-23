@@ -337,12 +337,11 @@ namespace putki
 				if (!load_json_into_db(i->second->db, (i->second->sourcepath + "/" + i->first + ".json").c_str(), (i->first + ".json").c_str(), 0, &resolve_mtx))
 				{
 					APP_WARNING("Dependency " << path << " -> " << i->first << " FAILED!")
-					APP_ERROR("blaha!")
 					db::done_loading(i->second->db, i->first.c_str());
 				}
 				else
 				{
-					APP_WARNING("Dependency " << path << " -> " << i->first << " loaded " << i->second->sourcepath)
+					APP_DEBUG("Dependency " << path << " -> " << i->first << " loaded " << i->second->sourcepath)
 					loaded_here.insert(std::make_pair(i->first, i->second));
 				}
 			}
