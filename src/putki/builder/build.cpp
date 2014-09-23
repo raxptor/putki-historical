@@ -261,7 +261,7 @@ namespace putki
 			sys::mutex in_db_mtx, tmp_db_mtx, out_db_mtx;
 			db::data *input = putki::db::create(0, &in_db_mtx);
 			db::data *tmp = putki::db::create(input, &tmp_db_mtx);
-			db::data *output = putki::db::create(input, &out_db_mtx);
+			db::data *output = putki::db::create(tmp, &out_db_mtx);
 
 			load_tree_into_db(builder::obj_path(builder), input);
 

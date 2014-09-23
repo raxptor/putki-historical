@@ -62,7 +62,6 @@ namespace putki
 		struct work_item
 		{
 			db::data *input;
-			db::data *output;
 			std::string path;
 			work_item *parent;
 			int num_children;
@@ -446,7 +445,7 @@ namespace putki
 		struct get_aux_deps : public putki::depwalker_i
 		{
 			std::vector<std::string> aux_outs;
-			db::data *input, *output;
+			db::data *input, *tmp, *output;
 			build_db::record *record;
 			const char *name;
 
@@ -474,8 +473,8 @@ namespace putki
 				putki::type_handler_i *th;
 				putki::instance_t obj = 0;
 
-				const char *path = putki::db::pathof_including_unresolved(output, *on);
-				if (!path && !(path = putki::db::pathof_including_unresolved(input, *on)))
+				const char *path = putki::db::pathof_including_unresolved(input, *on);
+				if (!path && !(path = putki::db::pathof_including_unresolved(tmp, *on)))
 				{
 					RECORD_ERROR(record, "No path on non-null pointer")
 					return;
@@ -592,8 +591,9 @@ namespace putki
 			}
 
 			get_aux_deps ad;
-			ad.input = input;
-			ad.output = outputdb;
+			ad.input = context->input;
+			ad.tmp = context->tmp;
+			ad.output = context->output;
 			ad.record = record;
 			ad.name = default_name;
 			th->walk_dependencies(output_obj, &ad, false);
@@ -628,7 +628,6 @@ namespace putki
 			{
 				work_item *wi = new work_item();
 				wi->input = context->input;
-				wi->output = 0;
 				wi->path = path;
 				wi->num_children = 0;
 				wi->parent = 0;
@@ -673,55 +672,18 @@ namespace putki
 		void post_process_item(build_context *context, work_item *item)
 		{
                 	sys::scoped_maybe_lock id(&item->data);
-			if (item->num_children)
-			{
-				id.unlock();
-				return;
-			}
+			RECORD_DEBUG(item->br, "Finishing object")
+			id.unlock();
 
-			if (!item->parent)
-			{
-				RECORD_DEBUG(item->br, "Merging to world output")
-				id.unlock();
+			build_db::commit_record(context->builder->build_db, item->br);
 
-				build::post_build_merge_database(item->output, context->output);
-				build_db::commit_record(context->builder->build_db, item->br);
+			if (!item->from_cache)
+				build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
 
-				if (!item->from_cache)
-					build_db::insert_metadata(builder::get_build_db(context->builder), context->output, item->path.c_str());
+			if (!context->builder->liveupdates)
+				context_add_build_record_pointers(context, item->path.c_str());
 
-				if (!context->builder->liveupdates)
-					context_add_build_record_pointers(context, item->path.c_str());
-
-				flush_log(item->br);
-				
-				db::free(item->output, context->output);
-			}
-			if (item->parent)
-			{
-				sys::scoped_maybe_lock lk(&item->parent->data);
-			
-				RECORD_DEBUG(item->br, "Merging to parent set " << item->parent->path)
-				
-				build::post_build_merge_database(item->output, item->parent->output);
-				build_db::commit_record(context->builder->build_db, item->br);
-
-				if (!item->from_cache)
-					build_db::insert_metadata(builder::get_build_db(context->builder), item->parent->output, item->path.c_str());
-
-				if (!context->builder->liveupdates)
-					context_add_build_record_pointers(context, item->path.c_str());
-
-				flush_log(item->br);
-				
-				db::free(item->output, item->parent->output);
-
-				if (!--item->parent->num_children)
-				{
-					lk.unlock();
-					post_process_item(context, item->parent);
-				}
-			}
+			flush_log(item->br);
 		}
 
 		void context_process_record(build_context *context, work_item *item)
@@ -787,23 +749,21 @@ namespace putki
 					
 					if (!item->from_cache && !db::is_aux_path(cr_path_ptr))
 					{
-						// this is a tmp obj, store.
+						// Write out temp object cache
 						type_handler_i *_th;
 						instance_t _obj;
-						if (db::fetch(item->output, cr_path_ptr, &_th, &_obj))
+						if (db::fetch(context->tmp, cr_path_ptr, &_th, &_obj))
 						{
 							char fn[1024], buffer[128];
-							BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(item->output, cr_path_ptr, buffer))
-							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, item->output, _th, _obj, fn))
+							BUILD_DEBUG(context->builder, "Writing output to tmp [" << cr_path_ptr << "] and recording signature " << db::signature(context->tmp, cr_path_ptr, buffer))
+							if (write::write_object_to_fs(context->builder->tmpobj_path.c_str(), cr_path_ptr, context->tmp, _th, _obj, fn))
 							{
-								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(item->output, cr_path_ptr, buffer), _th->name());
+								inputset::force_obj(context->builder->tmp_input_set, cr_path_ptr, db::signature(context->tmp, cr_path_ptr, buffer), _th->name());
 							}
 							else
 							{
 								APP_ERROR("Failed to write " << cr_path_ptr)
 							}
-
-							db::insert(context->tmp, cr_path_ptr, _th, _obj);
 						}
 						else
 						{
@@ -813,9 +773,7 @@ namespace putki
 
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
-					wi->input = item->output; // where the object is
-					wi->output = 0;
-					wi->num_children = 0;
+					wi->input = context->tmp;
 					wi->parent = item;
 					wi->br = 0;
 					sub_items.push_back(wi);
