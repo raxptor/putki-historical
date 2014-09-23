@@ -45,8 +45,7 @@ namespace putki
 			std::ifstream f(full_path.c_str(), std::ios::binary);
 			if (!f.good())
 			{
-				std::string error = "Failed to load resource [" + full_path + "]";
-				builder::build_error(bld, error.c_str());
+				APP_WARNING("Failed to load resource [" << full_path << "]")
 				return false;
 			}
 
