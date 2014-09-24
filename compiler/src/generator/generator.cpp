@@ -765,6 +765,8 @@ namespace putki
 		for (int i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
+			if (runtime && !(s->domains & putki::DOMAIN_RUNTIME))
+				continue;
 			
 			if (runtime)
 				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker)";
@@ -1005,12 +1007,15 @@ namespace putki
 
 			out.indent(1);
 
-			for (int p=0;; p++)
+			if (s->domains & putki::DOMAIN_RUNTIME)
 			{
-				// blob writers for all runtimes.
-				runtime::descptr t = runtime::get(p);
-				if (!t) break;
-				write_blob_writer_call(t, s->name.c_str(), out);
+				for (int p=0;; p++)
+				{
+					// blob writers for all runtimes.
+					runtime::descptr t = runtime::get(p);
+					if (!t) break;
+					write_blob_writer_call(t, s->name.c_str(), out);
+				}
 			}
 
 			out.line() << "return 0;";
@@ -1183,6 +1188,9 @@ namespace putki
 		for (unsigned int i=0; i<file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
+			if (!(s->domains & putki::DOMAIN_RUNTIME))
+				continue;
+
 			out.line() << "case " << s->unique_id << ":";
 			out.line() << "	{ char *out = post_blob_load_" << s->name << "((" << s->name << "*)begin, begin + sizeof(" << s->name << "), end);";
 			out.line() << "	  if (out) walk_dependencies_" << s->name << "((" << s->name << "*)begin, ptr_reg);"<< std::endl;

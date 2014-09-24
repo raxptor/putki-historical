@@ -87,7 +87,7 @@ namespace putki
 			WSADATA wsaData;
 			if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0)
 			{
-				std::cerr << "WSA init failure" << std::endl;
+				PTK_WARNING("WSA init failure")
 				return;
 			}
 			#endif
@@ -153,7 +153,7 @@ namespace putki
 			d->socket = socket(AF_INET, SOCK_STREAM, 0);
 			if (connect(d->socket, (sockaddr*)&addrLocal, sizeof(addrLocal)) < 0)
 			{
-				std::cerr << "Could not connect socket" << std::endl;
+				PTK_WARNING("Could not connect to live update socket")
 				closesocket(d->socket);
 				delete d;
 				return 0;
@@ -161,7 +161,7 @@ namespace putki
 
 			d->connected = true;
 			d->readpos = 0;
-			std::cout << "Connected to live update on socket " << d->socket << "!" << std::endl;
+			PTK_DEBUG("Connected to live update on socket " << d->socket << "!");
 
 			char tmp[256];
 			sprintf(tmp, "init %s %s", runtime::desc_str(), get_build_config());
@@ -176,7 +176,7 @@ namespace putki
 
 		void disconnect(data *d)
 		{
-			std::cout << "Disconnected from live update server." << std::endl;
+			PTK_WARNING("Disconnected from live update server.");
 			closesocket(d->socket);
 			delete d;
 		}

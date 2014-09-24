@@ -65,6 +65,10 @@ namespace putki
 			{
 				out->permit_as_auxptr = false;
 			}
+			else if (!strcmp(tok, "no-out"))
+			{
+				out->domains = putki::DOMAIN_INPUT;
+			}
 			else if (!strcmp(tok, "non-instantiable"))
 			{
 				out->permit_as_asset = false;
