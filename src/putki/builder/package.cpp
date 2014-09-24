@@ -159,6 +159,12 @@ namespace putki
 					continue;
 				}
 
+				type_handler_i *i = typereg_get_handler(build_db::get_type(r));
+				if (!i->in_output())
+				{
+					pos++;
+					continue;
+				}
 					 
 				APP_DEBUG("  entry:" << queue[pos] << " [" << build_db::get_type(r) << "] - " << bytes << " bytes - built_sig=" << build_db::get_signature(r))
 
@@ -386,7 +392,7 @@ namespace putki
 			// get all pointerts rewritten to be pure indices.
 			for (unsigned int i = 0;i < packlist.size();i++)
 			{
-				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true);
+				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true, true);
 			}
 
 			// change pointers and add pending strings.

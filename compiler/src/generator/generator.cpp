@@ -510,7 +510,10 @@ namespace putki
 						case FIELDTYPE_BYTE:
 						case FIELDTYPE_FLOAT:
 						case FIELDTYPE_POINTER:
-							out.line() << s->fields[j].name << " = 0;";
+							if (!strcmp(s->fields[j].name.c_str(), "_rtti_type"))
+								out.line() << s->fields[j].name << " = " << s->unique_id << ";";
+							else
+								out.line() << s->fields[j].name << " = 0;";
 							break;
 						case FIELDTYPE_ENUM:
 							out.line() << s->fields[j].name << " = (" << s->fields[j].ref_type << ")0;";
@@ -587,7 +590,7 @@ namespace putki
 				out.line() << "char *write_" << s->name << "_into_blob(inki::" << s->name << " *in, char *out_beg, char *out_end);";
 			}
 
-			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren, bool rttiDispatch);";
+			out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren, bool skipInputOnly, bool rttiDispatch);";
 		}
 
 		out.line();
@@ -771,7 +774,7 @@ namespace putki
 			if (runtime)
 				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker)";
 			else
-				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren, bool rttiDispatch)";
+				out.line() << "void walk_dependencies_" << s->name << "(" << s->name << " *input, putki::depwalker_i *walker, bool traverseChildren, bool skipInputOnly, bool rttiDispatch)";
 					
 			out.line() << "{";
 			out.indent(1);
@@ -783,7 +786,7 @@ namespace putki
 				out.line() << "if (!rttiDispatch) {";
 				out.line(1) << "putki::typereg_get_handler(input->rtti_type_ref())->walk_dependencies(input, walker";
 				if (!runtime)
-					out.cont() << ", traverseChildren, true";
+					out.cont() << ", traverseChildren, skipInputOnly, true";
 				out.cont() << ");";
 				out.line(1) << "return;";
 				out.line() << "}";
@@ -822,24 +825,24 @@ namespace putki
 					out.indent(1);
 				}
 				
-				std::string rttiDispatchArg;
+				std::string inkiArgs;
 				if (!runtime)
 				{
-					rttiDispatchArg = (fd.name == "parent") ? ", true" : ", false";
+					inkiArgs = (fd.name == "parent") ? ", skipInputOnly, true" : ", skipInputOnly, false";
 				}
 				
 				if (fd.type == putki::FIELDTYPE_STRUCT_INSTANCE)
 				{
 					// structs are not considered chlidren
 					out.line() << "walk_dependencies_" << fd.ref_type << "(&" << ref << ", walker";
-					out.cont() << traverseArgs << rttiDispatchArg << ");";
+					out.cont() << traverseArgs << inkiArgs << ");";
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
 					out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << "))";
 					out.line() << "{";
 					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker "
-					            << (runtime ? "" : ",true ") << rttiDispatchArg << "); }";
+					            << (runtime ? "" : ", true ") << inkiArgs << "); }";
 					out.line() << "}";
 					out.line() << "walker->pointer_post((putki::instance_t *)&" << ref << ");";
 				}
@@ -974,9 +977,9 @@ namespace putki
 			out.line() << "struct " << s->name << "_handler : public putki::type_handler_i {";
 			out.indent(1);
 			out.line();
-			out.line() << "// alloc/free";
+			out.line() << "// parent=" << s->parent << " is_type_root=" << s->is_type_root;;
 
-			if (!s->parent.empty() || s->is_type_root)
+			if ((!s->parent.empty()) || s->is_type_root)
 				out.line() << "putki::instance_t alloc() { " << s->name << " *tmp = new " << s->name << "; tmp->rtti_type_ref() = " << s->unique_id << "; return tmp; }";
 			else
 				out.line() << "putki::instance_t alloc() { return new " << s->name << "; }";
@@ -990,8 +993,8 @@ namespace putki
 			out.line() << "bool in_output() { return " << (s->domains & putki::DOMAIN_RUNTIME ? "true" : "false") << "; }";
 			out.line();
 			out.line() << "// deps";
-			out.line() << "void walk_dependencies(putki::instance_t source, putki::depwalker_i *walker, bool traverseChildren, bool rttiDispatch) {";
-			out.line(1) << "walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker, traverseChildren, rttiDispatch);";
+			out.line() << "void walk_dependencies(putki::instance_t source, putki::depwalker_i *walker, bool traverseChildren, bool skipInputOnly, bool rttiDispatch) {";
+			out.line(1) << "walk_dependencies_" << s->name << "( (" << s->name << " *) source, walker, traverseChildren, skipInputOnly, rttiDispatch);";
 			out.line() << "}";
 			out.line();
 			out.line() << "// json writer";
