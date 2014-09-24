@@ -450,6 +450,7 @@ namespace putki
 			if (i != d->objs.end()) {
 				return i->second.obj;
 			}
+			_lk.unlock();
 			return create_unresolved_pointer(d, path);
 		}
 

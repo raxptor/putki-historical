@@ -808,6 +808,14 @@ namespace putki
 				if (fd.type != putki::FIELDTYPE_STRUCT_INSTANCE && fd.type != putki::FIELDTYPE_POINTER)
 					continue;
 
+				bool skip_check = false;
+				if (!runtime)
+				{
+					out.line() << "if (!skipInputOnly || putki::typereg_get_handler(\"" << fd.ref_type << "\")->in_output())";
+					out.line() << "{";
+					skip_check = true;
+				}
+
 				std::string ref = "input->" + fd.name;
 
 				if (fd.is_array)
@@ -851,6 +859,12 @@ namespace putki
 				{
 					out.indent(-1);
 					out.line() << "} // end array loop";
+				}
+				
+				if (skip_check)
+				{
+					out.indent(-1);
+					out.line() << "}";
 				}
 			}
 
