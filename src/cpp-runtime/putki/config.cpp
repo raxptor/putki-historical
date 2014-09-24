@@ -10,7 +10,7 @@ namespace putki
 	namespace 
 	{
 		const char *build_config = "Default";
-		const char *package_path = "out";
+		const char *output_path = "out";
 	}
 	
 	// which config to use to load paths. is 'Default' unless
@@ -25,10 +25,10 @@ namespace putki
 		return build_config;
 	}
 	
-	// package path prefix, defaults to 'out/'
-	void set_package_path_prefix(const char *path_prefix)
+	// output path prefix, defaults to 'out/'
+	void set_output_path_prefix(const char *path_prefix)
 	{
-		package_path = path_prefix;
+		output_path = path_prefix;
 	}
 	
 	// buffer must be at least 128 bytes
@@ -39,7 +39,18 @@ namespace putki
 		for (int i=0;i<127;i++)
 			tmp[i] = ::tolower(tmp[i]);
 		
-		sprintf(outbuf, "%s/%s/packages/%s", package_path, tmp, name);
+		sprintf(outbuf, "%s/%s/packages/%s", output_path, tmp, name);
 	}
+
+	void format_file_path(const char *name, char *outbuf)
+	{
+		char tmp[128];
+		sprintf(tmp, "%s-%s", runtime::desc_str(), build_config);
+		for (int i=0;i<127;i++)
+			tmp[i] = ::tolower(tmp[i]);
+
+		sprintf(outbuf, "%s/%s/%s", output_path, tmp, name);
+	}
+
 }
 

@@ -5,6 +5,7 @@
 #include <putki/runtime.h>
 #include <putki/pkgmgr.h>
 #include <putki/config.h>
+#include <putki/log/log.h>
 
 #include <map>
 #include <iostream>
@@ -31,6 +32,8 @@
 	#include <unistd.h>
 	#include <netinet/in.h>
 #endif
+
+#define LIVEUPDATE_DEBUG(x) PTK_DEBUG(x)
 
 namespace putki
 {
@@ -99,10 +102,7 @@ namespace putki
 			}
 
 			s_pathid_counter++;
-
 			s_path2id.insert(std::make_pair<std::string, pathid_t>(path, s_pathid_counter));
-			std::cout << "[" << path << "] has id " << s_pathid_counter;
-
 			return s_pathid_counter;
 		}
 
@@ -111,8 +111,6 @@ namespace putki
 			if (!strcmp(path, "N/A")) {
 				return;
 			}
-
-			std::cout << "hookup [" << path << "] " << ptr << std::endl;
 
 			pathid_t path_id = get_path_id(path);
 			s_path2ptr[path_id] = ptr;
@@ -127,8 +125,11 @@ namespace putki
 				PathMap::const_iterator j = s_path2ptr.find(i->second);
 				if (j != s_path2ptr.end())
 				{
-					*ptr = j->second;
-					return true;
+					if (*ptr != j->second)
+					{
+						*ptr = j->second;
+						return true;
+					}
 				}
 			}
 			return false;
@@ -200,8 +201,9 @@ namespace putki
 			for (unsigned int i=0;; i++)
 			{
 				const char *objpath = pkgmgr::path_in_package_slot(p->pkg, i);
-				if (objpath) {
-					std::cout << "Object [" << objpath << "] live-updated." << std::endl;
+				if (objpath)
+				{
+					LIVEUPDATE_DEBUG("Object [" << objpath << "] live-updated.")
 				}
 				else{
 					break;
@@ -221,12 +223,12 @@ namespace putki
 			// attempt cross-resolve.
 			for(unsigned int i=0; i<d->pending.size(); i++)
 			{
-				std::cout << "Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0) << std::endl;
+				LIVEUPDATE_DEBUG("Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0))
 
 				// if there are no unresolved references, send directly.
 				if (!pkgmgr::unresolved_reference(d->pending[i].pkg, 0))
 				{
-					std::cout << " -> No unresolved references." << std::endl;
+					LIVEUPDATE_DEBUG(" -> No unresolved references.")
 					d->pending[i].resolved = true;
 					continue;
 				}
@@ -238,7 +240,7 @@ namespace putki
 							if (attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]))
 							{
 								d->pending[i].resolved = true;
-								std::cout << "Resolved with pending package" << std::endl;
+								LIVEUPDATE_DEBUG("Resolved with pending package")
 							}
 						}
 					}
@@ -249,13 +251,13 @@ namespace putki
 				{
 					if (attempt_resolve_with_aux(d, &d->pending[i], &d->stash[j]))
 					{
-						std::cout << "Resolved from stash" << std::endl;
+						LIVEUPDATE_DEBUG("Resolved from stash")
 						d->pending[i].resolved = true;
 					}
 				}
 
 				if (d->pending[i].resolved) {
-					std::cout << " -> It is now resolved." << std::endl;
+					LIVEUPDATE_DEBUG(" -> It is now resolved.")
 				}
 			}
 
@@ -267,7 +269,7 @@ namespace putki
 				if (d->pending[i].resolved)
 				{
 					made_progress = true;
-					std::cout << "Fully resolved package at slot " << i << ", moving to stash." << std::endl;
+					LIVEUPDATE_DEBUG("Fully resolved package at slot " << i << ", moving to stash.")
 
 					// clean out stashed with same base object as this, move them to
 					// the end of the line
@@ -282,7 +284,7 @@ namespace putki
 						}
 					}
 
-					std::cout << "Erasing package " << i << std::endl;
+					LIVEUPDATE_DEBUG("Erasing package " << i)
 					d->stash.push_back(d->pending[i]);
 					d->pending.erase(d->pending.begin() + i);
 
@@ -343,7 +345,7 @@ namespace putki
 				pe.resolved = false;
 				if (!pe.pkg)
 				{
-					std::cerr << "! Read broken package !" << std::endl;
+					LIVEUPDATE_DEBUG("! Read broken package !")
 					pkgmgr::free_resolve_status(pe.rs);
 				}
 				else
@@ -355,7 +357,7 @@ namespace putki
 						if (!objpath) {
 							break;
 						}
-						std::cout << " slot[" << i << "] is [" << objpath << "]" << std::endl;
+						LIVEUPDATE_DEBUG(" slot[" << i << "] is [" << objpath << "]")
 					}
 
 					bool replaced = false;
@@ -367,7 +369,7 @@ namespace putki
 							pkgmgr::free_resolve_status(d->pending[i].rs);
 							d->pending[i] = pe;
 							replaced = true;
-							std::cout << "Cleaned out package" << std::endl;
+							LIVEUPDATE_DEBUG("Cleaned out package")
 						}
 					}
 

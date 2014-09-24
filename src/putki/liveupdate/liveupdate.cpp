@@ -146,7 +146,7 @@ namespace putki
 			pthread_mutex_init(&d->mtx, 0);
 			std::cout << "Started listening for live updates on socket " << s << std::endl;
 
-			putki::set_loglevel(LOG_DEBUG);
+			putki::set_loglevel(LOG_WARNING);
 			return d;
 		}
 
@@ -299,7 +299,7 @@ namespace putki
 
 						if (!builder)
 						{
-							builder = builder::create(rt, sourcepath, false, config.c_str());
+							builder = builder::create(rt, sourcepath, false, config.c_str(), 1);
 							if (builder) {
 								builder::enable_liveupdate_builds(builder);
 								std::cout << "Created builder for client." << std::endl;
@@ -376,13 +376,28 @@ namespace putki
 							}
 						}
 
+						//
+						while (true)
+						{
+							if (db::exists(tmp, tobuild.c_str(), true) || db::exists(lu->source_db, tobuild.c_str(), true))
+								break;
+
+							build_db::record *rec = build_db::find(builder::get_build_db(builder), tobuild.c_str());
+							if (!rec || !build_db::get_parent(rec))
+								break;
+
+
+							tobuild = build_db::get_parent(rec);
+						}
+
+
 						// load asset into source db if missing.
 						type_handler_i *th;
 						instance_t obj;
 						
 						if (!db::exists(tmp, tobuild.c_str(), true) && !db::exists(lu->source_db, tobuild.c_str(), true))
 						{
-							std::cout << "Object is missing! " << tobuild << " Can't be built!" << std::endl;
+							std::cout << "Can't be built!" << std::endl;
 							leave_lock(lu);
 							buildforclient.erase(buildforclient.begin());
 							continue;

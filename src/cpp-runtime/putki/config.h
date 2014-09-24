@@ -9,11 +9,15 @@ namespace putki
 	
 	const char *get_build_config();
 	
-	// package path prefix, defaults to 'out/'
-	void set_package_path_prefix(const char *path_prefix);
+	// output path prefix, defaults to 'out/'
+	void set_output_path_prefix(const char *path_prefix);
 	
 	// buffer must be at least 128 bytes
 	void format_package_path(const char *name, char *outbuf);
+
+	// buffer must be at least 512 bytes
+	void format_file_path(const char *name, char *outbuf);
+
 }
 
 #endif

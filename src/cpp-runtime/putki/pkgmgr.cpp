@@ -3,6 +3,7 @@
 #include "types.h"
 #include "blob.h"
 #include "liveupdate/liveupdate.h"
+#include "log/log.h"
 
 #include <string>
 #include <iostream>
@@ -153,7 +154,7 @@ namespace putki
 				char *next = post_load_by_type(type_id, &ptrs, ptr, end);
 				if (!next)
 				{
-					std::cout << "failed loading blob!" << std::endl;
+					PTK_ERROR("failed loading blob!")
 					release(lp);
 					return 0;
 				}
@@ -187,19 +188,19 @@ namespace putki
 						if (ptrs.entries[i].index != 0)
 						{
 
-							std::cout << "Unresolved to " << lp->unresolved[(-ptrs.entries[i].index) - 1] << std::endl;
+							PTK_DEBUG("Unresolved to " << lp->unresolved[(-ptrs.entries[i].index) - 1]);
 							unresolved++;
 						}
 					}
 				}
 
 				if (unresolved) {
-					std::cerr << " => Package loaded with unresolved ptrs! Count:" << unresolved << std::endl;
+					PTK_DEBUG("Package loaded with unresolved ptrs! Count:" << unresolved);
 				}
 			}
 			else
 			{
-				std::cerr << "Loaded with spare bytes! " << (end - ptr) <<  " bytes remaining." << std::endl;
+				PTK_DEBUG("Loaded with spare bytes! " << (end - ptr) <<  " bytes remaining.");
 			}
 
 			return lp;

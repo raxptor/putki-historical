@@ -37,6 +37,7 @@ namespace putki
 			std::string source_path;
 			std::string source_sig;
 			std::string builder;
+			std::string parent_object;
 			std::vector<dep_entry> input_dependencies;
 			std::vector<dep_entry> dependencies;
 			std::vector<std::string> outputs;
@@ -127,6 +128,10 @@ namespace putki
 						{
 							cur->md.type = path;
 						}
+						else if (line[0] == 'c')
+						{
+							cur->parent_object = path;
+						}
 						else
 						{
 							APP_WARNING("UNPARSED " << line)
@@ -153,6 +158,9 @@ namespace putki
 
 				// sources have extra argument signature, outputs have extra argument builder
 				dbtxt << "#:" << i->first << "@" << r.source_sig << "*" << r.builder << "\n";
+
+				if (!r.parent_object.empty())
+					dbtxt << "c:" << r.parent_object << "\n";
 
 				for (unsigned int j=0; j!=r.input_dependencies.size(); j++)
 				{
@@ -214,20 +222,10 @@ namespace putki
 			return (*it).c_str();
 		}
 		
-		const char *get_builder(record *r)
-		{
-			return r->builder.c_str();
-		}
-
-		const char *get_type(record *r)
-		{
-			return r->md.type.c_str();
-		}
-
-		const char *get_signature(record *r)
-		{
-			return r->md.signature.c_str();
-		}
+		const char *get_builder(record *r) { return r->builder.c_str(); }
+		const char *get_type(record *r) { return r->md.type.c_str(); }
+		const char *get_signature(record *r) { return r->md.signature.c_str(); }
+		const char *get_parent(record *r) { return r->parent_object.empty() ? 0 : r->parent_object.c_str(); }
 
 		record *create_record(const char *input_path, const char *input_signature, const char *builder)
 		{
@@ -287,6 +285,11 @@ namespace putki
 				return true;
 			}
 			return false;
+		}
+
+		void set_parent(record *r, const char *parent)
+		{
+			r->parent_object = parent;
 		}
 
 		void set_builder(record *r, const char *builder)

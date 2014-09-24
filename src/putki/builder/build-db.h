@@ -27,10 +27,13 @@ namespace putki
 		const char *get_type(record *r);
 		const char *get_signature(record *r);
 		const char *get_builder(record *r);
+		const char *get_parent(record *r);
 
 		bool copy_existing(data *d, record *target, const char *path);
 
 		void set_builder(record *r, const char *builder);
+		void set_parent(record *r, const char *parent);
+
 		void add_output(record *r, const char *output_path, const char *builder);
 		void add_input_dependency(record *r, const char *dependency, const char *signature=0);
 		void add_external_resource_dependency(record *r, const char *filepath, const char *signature);

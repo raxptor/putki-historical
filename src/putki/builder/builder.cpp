@@ -62,7 +62,7 @@ namespace putki
 		struct work_item
 		{
 			db::data *input;
-			std::string path;
+			std::string path, parent_path;
 			bool from_cache;
 			prebuild_info prebuild;
 		};
@@ -675,6 +675,7 @@ namespace putki
 
 			build_db::record *record = build_db::create_record(item->path.c_str(), sig);
 			build_db::add_input_dependency(record, item->path.c_str());
+			build_db::set_parent(record, item->parent_path.c_str());
 
 			std::vector<work_item *> sub_items;
 
@@ -726,6 +727,7 @@ namespace putki
 
 					work_item *wi = new work_item();
 					wi->path = cr_path_ptr;
+					wi->parent_path = item->path;
 					wi->input = context->tmp;
 					sub_items.push_back(wi);
 					outpos++;
