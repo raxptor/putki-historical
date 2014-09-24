@@ -21,7 +21,10 @@ namespace putki
 	void write_pointer_set(putki::indentedwriter out, putki::parsed_struct *s, size_t j, std::string const &field_ref)
 	{
 		out.line() << "putki::mem_instance_real *mir = (putki::mem_instance_real *) obj;";
-		out.line() << "((inki::" << s->name << " *)(mir->inst))->" << field_ref << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
+		out.line() << "if (!value || !value[0])";
+		out.line() << "\t((inki::" << s->name << " *)(mir->inst))->" << field_ref << " = 0;";
+		out.line() << "else";
+		out.line() << "\t((inki::" << s->name << " *)(mir->inst))->" << field_ref << " = (inki::" << s->fields[j].ref_type << " *) putki::db::ptr_to_allow_unresolved(mir->refs_db, value);";
 	}
 
 	void write_set_get(putki::indentedwriter out, const char *name, const char *type_name, putki::parsed_struct *s, size_t j, std::string const &field_ref, putki::field_type ft)
