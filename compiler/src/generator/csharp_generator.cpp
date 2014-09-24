@@ -375,8 +375,6 @@ namespace putki
 		for (size_t i=0; i!=file->structs.size(); i++)
 		{
 			putki::parsed_struct *s = &file->structs[i];
-			if (!(s->domains & putki::DOMAIN_RUNTIME))
-				continue;
 
 			std::string expr_size_add = "";
 
