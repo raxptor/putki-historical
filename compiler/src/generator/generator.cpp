@@ -987,6 +987,7 @@ namespace putki
 			out.line() << "// info";
 			out.line() << "const char *name() { return \"" << s->name << "\"; }";
 			out.line() << "int id() { return " << s->unique_id << "; }";
+			out.line() << "bool in_output() { return " << (s->domains & putki::DOMAIN_RUNTIME ? "true" : "false") << "; }";
 			out.line();
 			out.line() << "// deps";
 			out.line() << "void walk_dependencies(putki::instance_t source, putki::depwalker_i *walker, bool traverseChildren, bool rttiDispatch) {";

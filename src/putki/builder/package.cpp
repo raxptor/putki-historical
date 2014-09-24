@@ -53,11 +53,12 @@ namespace putki
 					return true;
 				}
 
+				type_handler_i *_th = 0;
+				instance_t _obj = 0;
+
 				if (db::is_unresolved_pointer(db, *on))
 				{
 					// fix it up
-					type_handler_i *_th;
-					instance_t _obj;
 					if (db::fetch(db, path, &_th, &_obj))
 					{
 						*on = _obj;
@@ -78,6 +79,12 @@ namespace putki
 				if (deps.find(path) != deps.end())
 				{
 					return false;
+				}
+
+				if (_th || db::fetch(db, path, &_th, &_obj))
+				{
+					if (!_th->in_output())
+						return false;
 				}
 
 				deps.insert(path);

@@ -47,6 +47,7 @@ namespace putki
 		// info
 		virtual const char *name() = 0;
 		virtual int id() = 0; // unique type id
+		virtual bool in_output() = 0;
 
 		// instantiate / destruct.
 		virtual instance_t alloc() = 0;
