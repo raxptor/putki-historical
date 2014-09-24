@@ -15,7 +15,7 @@ namespace putki
 	void set_loglevel(LogType filter);
 }
 
-#if true || defined(PUTKI_LOGENABLE)
+#if true || defined(PUTKI_ENABLE_LOG)
 
 	#include <sstream>
 
