@@ -357,6 +357,7 @@ int main (int argc, char *argv[])
 			g_ignore_config_typeid = true;
 	}
 	
+	int first = 1;
 	while (true)
 	{
 		compile_context ctx;
@@ -371,6 +372,9 @@ int main (int argc, char *argv[])
 		if (s_additional_paths.empty())
 			return 0;
 
+		if (!first)
+			putki::sys::chdir_pop();
+		first = 0;
 		putki::sys::chdir_push(s_additional_paths.front().c_str());
 		s_additional_paths.pop_front();
 	}
