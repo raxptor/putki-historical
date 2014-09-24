@@ -396,6 +396,7 @@ namespace putki
 
 						builder::build_source_object(builder, lu->source_db, tmp, output, tobuild.c_str());
 						build::post_build_ptr_update(lu->source_db, output);
+						build::post_build_ptr_update(tmp, output);
 
 						// should be done with this now.
 						leave_lock(lu);

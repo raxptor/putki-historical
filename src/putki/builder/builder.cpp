@@ -815,13 +815,19 @@ namespace putki
 
 			APP_INFO("Starting build with " << context->builder->num_threads << " threads..")
 			
-			for (int i=0;i<context->builder->num_threads;i++)
+			for (int i=0;i<(context->builder->num_threads-1);i++)
 			{
 				buildthread *bt = new buildthread();
 				bt->id = i;
 				bt->context = context;
 				context->threads.push_back(sys::thread_create(build_thread, bt));
 			}
+
+			// join the build self.
+			buildthread *self = new buildthread();
+			self->context = context;
+			self->id = -1;
+			build_thread(self);
 			
 			for (int i=0;i!=context->threads.size();i++)
 			{

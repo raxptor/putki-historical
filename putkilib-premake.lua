@@ -6,6 +6,33 @@
 	PUTKI_LIB_INCLUDES = { PUTKI_PATH .. "/src/", PUTKI_PATH .. "/src/data-dll" }
 	PUTKI_RT_INCLUDES = { PUTKI_PATH .. "/src/cpp-runtime" }
 	PUTKI_LIB_LINKS = { "putki-lib", "jsmn", "libz" }
+	
+	function putki_use_builder_lib()
+		includedirs ( PUTKI_LIB_INCLUDES )
+		links (PUTKI_LIB_LINKS)
+	end
+	
+	function putki_use_runtime_lib()
+		includedirs (PUTKI_RT_INCLUDES)
+		links {"putki-runtime-lib"}
+	end
+	
+	function putki_typedefs_builder(path, use_impls)
+		includedirs ("_gen")
+		files { path .. "/**.typedef" }
+		if use_impls == true then
+			files { "_gen/*putki-master.cpp", "_gen/inki/**.h", "_gen/data-dll/**.h" }
+		end
+	end
+	
+	function putki_typedefs_runtime(path, use_impls)
+		includedirs ("_gen")
+		if use_impls == true then
+			files { "_gen/outki/**.cpp" }
+		end
+		files { "_gen/outki/**.h" }
+		files { path .. "/**.typedef" }
+	end
 
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}

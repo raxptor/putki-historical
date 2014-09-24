@@ -36,10 +36,18 @@ namespace putki
 {
 	namespace
 	{
+		typedef unsigned int pathid_t;
+
 		typedef std::map<instance_t, instance_t> RewriteMap;
-		typedef std::map<std::string, instance_t> PathMap;
+		typedef std::map<pathid_t, instance_t> PathMap;
+		typedef std::map<instance_t, pathid_t> PtrToPath;
+		typedef std::map<std::string, pathid_t> PathToId;
+
 		RewriteMap s_rewrite;
+		PtrToPath s_ptr2path;
 		PathMap s_path2ptr;
+		PathToId s_path2id;
+		pathid_t s_pathid_counter = 100;
 	}
 
 	namespace liveupdate
@@ -82,28 +90,46 @@ namespace putki
 			#endif
 		}
 
+		pathid_t get_path_id(const char *path)
+		{
+			PathToId::iterator i = s_path2id.find(path);
+			if (i != s_path2id.end())
+			{
+				return i->second;
+			}
+
+			s_pathid_counter++;
+
+			s_path2id.insert(std::make_pair<std::string, pathid_t>(path, s_pathid_counter));
+			std::cout << "[" << path << "] has id " << s_pathid_counter;
+
+			return s_pathid_counter;
+		}
+
 		void hookup_object(instance_t ptr, const char *path)
 		{
 			if (!strcmp(path, "N/A")) {
 				return;
 			}
 
-			// redirect the old if such exists.
-			PathMap::iterator i = s_path2ptr.find(path);
-			if (i != s_path2ptr.end()) {
-				s_rewrite[i->second] = ptr;
-			}
+			std::cout << "hookup [" << path << "] " << ptr << std::endl;
 
-			s_path2ptr[path] = ptr;
+			pathid_t path_id = get_path_id(path);
+			s_path2ptr[path_id] = ptr;
+			s_ptr2path[ptr] = path_id;
 		}
 
 		bool update_ptr(instance_t *ptr)
 		{
-			RewriteMap::const_iterator i = s_rewrite.find(*ptr);
-			if (i != s_rewrite.end())
+			PtrToPath::const_iterator i = s_ptr2path.find(*ptr);
+			if (i != s_ptr2path.end())
 			{
-				*ptr = i->second;
-				return true;
+				PathMap::const_iterator j = s_path2ptr.find(i->second);
+				if (j != s_path2ptr.end())
+				{
+					*ptr = j->second;
+					return true;
+				}
 			}
 			return false;
 		}
