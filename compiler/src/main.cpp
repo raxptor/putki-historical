@@ -373,8 +373,5 @@ int main (int argc, char *argv[])
 
 		putki::sys::chdir_push(s_additional_paths.front().c_str());
 		s_additional_paths.pop_front();
-
-
-	} while (!s_additional_paths.empty()) ;
-
+	}
 }
