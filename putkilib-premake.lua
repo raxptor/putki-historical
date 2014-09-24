@@ -17,21 +17,27 @@
 		links {"putki-runtime-lib"}
 	end
 	
-	function putki_typedefs_builder(path, use_impls)
-		includedirs ("_gen")
-		files { path .. "/**.typedef" }
+	function putki_typedefs_builder(path, use_impls, pathbase)
+		if pathbase == nil then
+			pathbase = "."
+		end
+		includedirs (pathbase .. "/_gen")
+		files { pathbase .. "/" .. path .. "/**.typedef" }
 		if use_impls == true then
-			files { "_gen/*putki-master.cpp", "_gen/inki/**.h", "_gen/data-dll/**.h" }
+			files { pathbase .. "/_gen/*putki-master.cpp", pathbase .. "/_gen/inki/**.h", pathbase ..  "/_gen/data-dll/**.h" }
 		end
 	end
 	
-	function putki_typedefs_runtime(path, use_impls)
-		includedirs ("_gen")
-		if use_impls == true then
-			files { "_gen/outki/**.cpp" }
+	function putki_typedefs_runtime(path, use_impls, pathbase)
+		if pathbase == nil then
+			pathbase = "."
 		end
-		files { "_gen/outki/**.h" }
-		files { path .. "/**.typedef" }
+		includedirs (pathbase .. "/_gen")
+		if use_impls == true then
+			files {pathbase .. "/_gen/outki/**.cpp" }
+		end
+		files { pathbase .. "/_gen/outki/**.h" }
+		files { pathbase .. "/" .. path .. "/**.typedef" }
 	end
 
 	configuration {"windows"}
