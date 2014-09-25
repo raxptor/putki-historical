@@ -316,6 +316,12 @@ namespace putki
 			sys::stat(obj_path(d->objpath.c_str(), path).c_str(), &d->objs[path].info);
 		}
 
+		void touched_resource(data *d, const char *path)
+		{
+			std::string full_path = d->respath + "/" + (path+1);
+			res_file(full_path.c_str(), (path+1), d);
+		}
+
 		data *open(const char *objpath, const char *respath, const char *dbfile)
 		{
 			data *d = new data();

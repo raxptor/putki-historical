@@ -60,6 +60,7 @@ namespace putki
 		
 		void add_data_builder(builder::data *builder, type_t type, handler_i *handler);
 		void add_handler_output(build_context *ctx, build_db::record *record, const char *path, type_handler_i *type, instance_t obj, const char *handler_version);
+		void touched_temp_resource(data *builder, const char *path);
 
 		void record_log(data *builder, LogType, const char *text);
 		

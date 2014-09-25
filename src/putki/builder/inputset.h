@@ -9,6 +9,8 @@ namespace putki
 		
 		data *open(const char *objpath, const char *respath, const char *dbfile);
 		void force_obj(data *d, const char *objpath, const char *signature, const char *type);
+		void touched_resource(data *d, const char *path);
+
 		void write(data *d);
 		void release(data *);
 		

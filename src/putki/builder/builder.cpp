@@ -273,6 +273,11 @@ namespace putki
 			putki::build_db::add_output(record, path, handler_version);
 		}
 
+		void touched_temp_resource(data *builder, const char *path)
+		{
+			inputset::touched_resource(builder->tmp_input_set, path);
+		}
+
 		// returns either 0 (loaded from cache)
 		// or a reason to rebuild.
 		const char* fetch_cached_build(build_context *context, data *builder, build_db::record * newrecord, const char *handler_name, db::data *input, const char *path, type_handler_i *th)
