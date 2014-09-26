@@ -161,7 +161,7 @@ namespace putki
 					buf[0] = '\\';
 					buf[1] = 'u';
 					for (int k=0;k<4;k++)
-						buf[2+k] = hex[(val >> 4*(3-i)) & 0xf];
+						buf[2+k] = hex[(val >> 4*(3-k)) & 0xf];
 					buf[6] = 0;
 					ss << buf;
 				}
