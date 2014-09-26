@@ -135,12 +135,12 @@ namespace putki
 			static const char *hex = "0123456789abcdef";
 		}
 
-		void json_hexstream(putki::sstream & out, std::vector<unsigned char> const &bytes)
+		void json_stringencode_byte_array(putki::sstream & out, std::vector<unsigned char> const &bytes)
 		{
 			for (unsigned int i=0;i<bytes.size();i++)
 			{
-				out << (hex[((bytes[i] >> 4) & 0xf)]);
-				out << (hex[(bytes[i] & 0xf)]);
+				out << (char)('a' + ((bytes[i] >> 4) & 0xf));
+				out << (char)('a' + ((bytes[i]) & 0xf));
 			}
 		}
 

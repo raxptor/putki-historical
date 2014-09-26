@@ -625,7 +625,7 @@ namespace putki
 		{
 			if (f->type == FIELDTYPE_BYTE)
 			{
-				out.line() << "if (!putki::parse::parse_hexstream_bytes(" << node << ", " << ref << "))";
+				out.line() << "if (!putki::parse::parse_stringencoded_byte_array(" << node << ", " << ref << "))";
 				out.line() << "{";
 				out.indent(1); 
 			}
@@ -921,7 +921,7 @@ namespace putki
 
 			if (fd.is_array && fd.type == FIELDTYPE_BYTE)
 			{
-				out.line() << "out << \"\\\"\"; putki::write::json_hexstream(out, " << ref << "); out << \"\\\"\";";
+				out.line() << "out << \"\\\"\"; putki::write::json_stringencode_byte_array(out, " << ref << "); out << \"\\\"\";";
 				if (j < copy.size()-1)
 					out.line() << "out << \",\";";
 				out.line() << "out << \"\\n\";";

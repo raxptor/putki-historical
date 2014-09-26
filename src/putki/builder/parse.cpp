@@ -78,7 +78,7 @@ namespace putki
 			return node->value.c_str();
 		}
 
-		bool parse_hexstream_bytes(node *node, std::vector<unsigned char> & out)
+		bool parse_stringencoded_byte_array(node *node, std::vector<unsigned char> & out)
 		{
 			if (!node)
 				return true;
@@ -91,7 +91,7 @@ namespace putki
 
 			// hexstream
 			for (int i=0;i<(node->value.size()-1);i+=2)
-				out.push_back(16 * (node->value[i] - '0') + (node->value[i+1] & 0xf));
+				out.push_back(16 * (unsigned int)(node->value[i] - 'a') + (node->value[i+1] - 'a'));
 
 			return true;
 		}

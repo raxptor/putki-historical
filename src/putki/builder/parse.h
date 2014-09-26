@@ -21,6 +21,6 @@ namespace putki
 		int get_value_int(node *node);
 		float get_value_float(node *node);
 
-		bool parse_hexstream_bytes(node *node, std::vector<unsigned char> & out);
+		bool parse_stringencoded_byte_array(node *node, std::vector<unsigned char> & out);
 	}
 }
