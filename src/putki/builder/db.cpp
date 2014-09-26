@@ -205,7 +205,7 @@ namespace putki
 					buffer = unsafe_buffer;
 				}
 
-				md5_buffer(ss.str().c_str(), ss.str().size(), signature);
+				md5_buffer(ss.c_str(), ss.size(), signature);
 				md5_sig_to_string(signature, buffer, 64);
 				return buffer;
 

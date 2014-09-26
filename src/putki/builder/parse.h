@@ -1,6 +1,7 @@
 #pragma once
 
 #include <putki/builder/typereg.h>
+#include <vector>
 
 namespace putki
 {
@@ -19,5 +20,7 @@ namespace putki
 		const char *get_value_string(node *node);
 		int get_value_int(node *node);
 		float get_value_float(node *node);
+
+		bool parse_hexstream_bytes(node *node, std::vector<unsigned char> & out);
 	}
 }

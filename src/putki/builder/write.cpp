@@ -130,29 +130,48 @@ namespace putki
 			return sys::write_file(out_path.c_str(), ts.str().c_str(), ts.str().size());
 		}
 
+		namespace
+		{
+			static const char *hex = "0123456789abcdef";
+		}
+
+		void json_hexstream(putki::sstream & out, std::vector<unsigned char> const &bytes)
+		{
+			for (unsigned int i=0;i<bytes.size();i++)
+			{
+				out << (hex[((bytes[i] >> 4) & 0xf)]);
+				out << (hex[(bytes[i] & 0xf)]);
+			}
+		}
+
 		std::string json_str(const char *input)
 		{
 			if (!input) {
 				return "\"\"";
 			}
 
-			const char *hex = "0123456789abcdef";
-			std::string s(input);
+			const int len = strlen(input);
 
 			putki::sstream ss;
 			ss << "\"";
-			for (size_t i = 0; i < s.length(); ++i) {
-				if (unsigned(s[i]) < '\x20' || s[i] == '\\' || s[i] == '"') {
-					ss << "\\u";
+			for (size_t i = 0; i < len; ++i) {
+				char val = input[i];
+				if (unsigned(val) < '\x20' || val == '\\' || val == '"') {
+					char buf[16];
+					buf[0] = '\\';
+					buf[1] = 'u';
 					for (int k=0;k<4;k++)
-						ss << hex[(s[i] >> 4*(3-i)) & 0xf];
+						buf[2+k] = hex[(val >> 4*(3-i)) & 0xf];
+					buf[6] = 0;
+					ss << buf;
 				}
-				else{
-					ss << s[i];
+				else
+				{
+					ss << val;
 				}
 			}
 			ss << "\"";
-			return ss.str();
+			return ss.c_str();
 		}
 
 		const char *json_indent(char *buf, int level)

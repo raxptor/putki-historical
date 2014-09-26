@@ -78,6 +78,24 @@ namespace putki
 			return node->value.c_str();
 		}
 
+		bool parse_hexstream_bytes(node *node, std::vector<unsigned char> & out)
+		{
+			if (!node)
+				return true;
+
+			if (node->value.empty())
+				return false;
+
+			if (!strcmp(node->value.c_str(), "<empty>"))
+				return true;
+
+			// hexstream
+			for (int i=0;i<(node->value.size()-1);i+=2)
+				out.push_back(16 * (node->value[i] - '0') + (node->value[i+1] & 0xf));
+
+			return true;
+		}
+
 		int get_value_int(node *node)
 		{
 			if (!node) {

@@ -228,8 +228,8 @@ namespace putki
 
 			sys::mk_dir_for_path(outpath.c_str());
 
-			std::ofstream f(outpath.c_str());
-			f << tmp.str();
+			std::ofstream f(outpath.c_str(), std::ios::binary);
+			f.write(tmp.c_str(), tmp.size());
 
 			putki::db::insert(_db, mi->path, mi->th, mi->inst);
 			return;

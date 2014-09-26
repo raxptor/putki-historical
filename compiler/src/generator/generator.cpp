@@ -623,6 +623,13 @@ namespace putki
 
 		if (f->is_array)
 		{
+			if (f->type == FIELDTYPE_BYTE)
+			{
+				out.line() << "if (!putki::parse::parse_hexstream_bytes(" << node << ", " << ref << "))";
+				out.line() << "{";
+				out.indent(1); 
+			}
+			
 			out.line();
 			out.line() << "{";
 			out.indent(1);
@@ -643,6 +650,7 @@ namespace putki
 			out.line() << "while (putki::parse::node * n = putki::parse::get_array_item(arr, i)) {";
 			out.indent(1);
 			out.line() << type << " & fixed_mem_obj = target->" << f->name << "[i];";
+			
 
 			ref = "fixed_mem_obj";
 			node = "n";
@@ -695,6 +703,12 @@ namespace putki
 			out.line() << "}";
 			out.indent(-1);
 			out.line() << "} // end array parse block";
+			
+			if (f->type == FIELDTYPE_BYTE)
+			{
+				out.indent(-1);
+				out.line() << "} // hex";
+			}
 		}
 	}
 
@@ -905,6 +919,15 @@ namespace putki
 
 			out.line() << "out << putki::write::json_indent(ibuf, indent+1) << \"\\\"" << fd.name << "\\\": \";";
 
+			if (fd.is_array && fd.type == FIELDTYPE_BYTE)
+			{
+				out.line() << "out << \"\\\"\"; putki::write::json_hexstream(out, " << ref << "); out << \"\\\"\";";
+				if (j < copy.size()-1)
+					out.line() << "out << \",\";";
+				out.line() << "out << \"\\n\";";
+				continue;
+			}
+
 			if (fd.is_array)
 			{
 				out.line() << "{";
@@ -963,7 +986,7 @@ namespace putki
 				out.line() << "} // end array";
 			}
 
-			if (j < s->fields.size()-1)
+			if (j < copy.size()-1)
 				out.line() << "out << \",\";";
 
 			out.line() << "out << \"\\n\";";

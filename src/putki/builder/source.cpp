@@ -184,7 +184,6 @@ namespace putki
 				// Now look through the loader's resolve chain. We are only going to
 				// be pointing to input objects here, so resolve according to the input
 				// chain.
-				bool is_resolved = false;
 				for (unsigned int i=0;i!=loader->source_db_count;i++)
 				{
 					if (db::exists(loader->source_db[i].db, path, true))
@@ -200,8 +199,6 @@ namespace putki
 						}
 						else
 						{
-							// APP_DEBUG("Resolved pointer to [" << path << "] through chain " << i)
-							is_resolved = true;
 							return true;
 						}
 					}

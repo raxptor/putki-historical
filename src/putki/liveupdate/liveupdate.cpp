@@ -392,9 +392,6 @@ namespace putki
 
 
 						// load asset into source db if missing.
-						type_handler_i *th;
-						instance_t obj;
-						
 						if (!db::exists(tmp, tobuild.c_str(), true) && !db::exists(lu->source_db, tobuild.c_str(), true))
 						{
 							std::cout << "Can't be built!" << std::endl;

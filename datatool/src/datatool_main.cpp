@@ -25,7 +25,7 @@ void make_data(const char *name)
 
 	putki::sstream tmp;
 	putki::write::write_object_into_stream(tmp, db, type, obj);
-	std::cout << tmp.str();
+	std::cout << tmp.c_str();
 
 	putki::db::free_and_destroy_objs(db);
 }
