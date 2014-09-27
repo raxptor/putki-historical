@@ -6,11 +6,17 @@
 #include <putki/builder/log.h>
 #include <putki/blob.h>
 
+extern "C"
+{
+#include <md5/md5.h>
+}
+
 #include <set>
 #include <map>
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 namespace putki
 {
@@ -28,10 +34,173 @@ namespace putki
 			std::string path;
 			type_handler_i *th;
 			instance_t obj;
-			unsigned int written_size;
+			
+			int file_index, file_slot_index;
+			unsigned int ofs_begin;
+			unsigned int ofs_end;
+			std::string bytes_signature;
+			build_db::record *r;
+		};
+		
+		struct manifest_pointer
+		{
+			std::string path;
+			int slot_index;
+		};
+		
+		struct manifest_slot
+		{
+			std::string type;
+			std::string signature;
+			std::string file;
+			std::string path;
+			int begin, end;
+			std::vector<int> deps;
+		};
+		
+		typedef std::map<std::string, int> path2slot_t;
+		
+		struct previous_pkg
+		{
+			std::string path;
+			std::string file;
+			path2slot_t path_to_slot;
+			std::vector<manifest_slot> slots;
 		};
 
+		typedef std::map<std::string, previous_pkg> previous_t;
 		typedef std::map<std::string, entry> blobmap_t;
+		
+		struct use_previous
+		{
+			previous_pkg *previous;
+			std::vector<int> slots_i_want;
+			std::map<int, int> slot_remapping;
+		};
+
+		struct data
+		{
+			db::data *source;
+			blobmap_t blobs;
+			previous_t previous;
+			std::vector<preliminary> list;
+			std::vector<use_previous> previous2use;
+		};
+		
+		void add_previous_package(package::data *data, const char *basepath, const char *path)
+		{
+			previous_t::iterator i = data->previous.find(path);
+			if (i != data->previous.end())
+				return;
+		
+			std::string real_path(basepath);
+			real_path.append("/");
+			real_path.append(path);
+			
+			APP_INFO("Loading previous package " << path << " (" << real_path << ")");
+			
+			std::string manifest_name = (real_path + ".manifest");
+			std::ifstream mf(manifest_name.c_str());
+
+			previous_pkg tmppkg;
+			data->previous.insert(previous_t::value_type(path, tmppkg));
+			i = data->previous.find(path);
+		
+			previous_pkg *pkg = &i->second;
+			manifest_slot *slot = 0;
+			
+			pkg->file = path;
+			
+			while (mf.good())
+			{
+				std::string line;
+				std::getline(mf, line);
+				if (line.empty())
+					continue;
+					
+				if (line[0] == 'p')
+				{
+					if (slot)
+					{
+						line.erase(0, 2);
+						int split = line.find_first_of(':');
+						slot->deps.push_back(
+							atoi(
+								line.substr(0, split).c_str()
+							)
+						);
+					}
+					else
+					{
+						APP_WARNING("Manifest is malformatted because slot = null when i get p:");
+					}
+				}
+				else if (line[0] == '#')
+				{
+					manifest_slot tmp;
+					
+					int split = line.find_first_of(':');
+					std::string slotnum = line.substr(1, split - 1);
+					int slotidx = atoi(slotnum.c_str());
+					if (slotidx != pkg->slots.size())
+					{
+						APP_WARNING("Slot index mis-match at " << slotidx << " but " << pkg->slots.size());
+					}
+					pkg->slots.push_back(tmp);
+					slot = &pkg->slots.back();
+					
+					line.erase(0, split + 1);
+					for (int i=0;i<6;i++)
+					{
+						split = line.find_first_of(':');
+						std::string value;
+						if (split == std::string::npos)
+						{
+							value = line;
+						}
+						else
+						{
+							value = line.substr(0, split);
+							line.erase(0, split + 1);
+						}
+						
+						switch (i)
+						{
+							case 0:
+								slot->type = value;
+								break;
+							case 1:
+								slot->path = value;
+								break;
+							case 2:
+								slot->signature = value;
+								break;
+							case 3:
+								slot->file = value;
+								if (value != "!self")
+								{
+									add_previous_package(data, basepath, value.c_str());
+								}
+								break;
+							case 4:
+								slot->begin = atoi(value.c_str());
+								break;
+							case 5:
+								slot->end = atoi(value.c_str());
+								break;
+						}
+					}
+				}
+			}
+			
+			// make mapping table
+			for (int i=0;i<pkg->slots.size();i++)
+				pkg->path_to_slot[pkg->slots[i].path] = i;
+
+			APP_INFO("Loaded previous package with " << pkg->slots.size() << " slots!")
+		
+		}
+		
 
 		struct depwalker : putki::depwalker_i
 		{
@@ -97,13 +266,6 @@ namespace putki
 			}
 		};
 
-		struct data
-		{
-			db::data *source;
-			blobmap_t blobs;
-			std::vector<preliminary> list;
-		};
-
 		data * create(db::data *db)
 		{
 			data *d = new data;
@@ -115,81 +277,72 @@ namespace putki
 		{
 			delete package;
 		}
-
-		void debug(package::data *data, build_db::data *bdb)
+		
+		bool pick_from_previous(package::data *data, const char *path, const char *type, const char *signature, entry *fill)
 		{
-			blobmap_t::iterator i = data->blobs.begin();
-			APP_DEBUG("Package contents:")
-			std::set<std::string> included;
-			std::vector<std::string> queue;
-
-			while (i != data->blobs.end())
+			previous_t::iterator p = data->previous.begin();
+			while (p != data->previous.end())
 			{
-				if (included.count(i->first))
+				// any with this path?
+				path2slot_t::iterator m = p->second.path_to_slot.find(path);
+				if (m == p->second.path_to_slot.end())
 				{
-					++i;
+					p++;
 					continue;
 				}
-				queue.push_back(i->first);
-				included.insert(i->first);
-				++i;
-			}
-
-			unsigned int pos = 0;
-			while (pos < queue.size())
-			{
-				// just for now because it is nice to see size
-				int bytes = -1;
-				blobmap_t::const_iterator b = data->blobs.find(queue[pos]);
-				if (b != data->blobs.end())
-					bytes = b->second.written_size;
 			
-				if (db::is_aux_path(queue[pos].c_str()))
+				// match type & built sig
+				manifest_slot *slot = &p->second.slots[m->second];
+				
+				// not matching always on type, when aux & sig match then manifest contains the type.
+				if ((type && strcmp(slot->type.c_str(), type)) || strcmp(slot->signature.c_str(), signature))
 				{
-					APP_DEBUG("    + " << queue[pos] << " - " << bytes << " bytes")
-					pos++;
+					p++;
 					continue;
 				}
-
-				build_db::record *r = build_db::find(bdb, queue[pos].c_str());
-				if (!r)
+				
+				// ok we can use this.
+				use_previous *prev = 0;
+				for (int i=0;i!=data->previous2use.size();i++)
 				{
-					APP_ERROR("Pointer to non built object, i want to package [" << queue[pos] << "]")
-					pos++;
-					continue;
-				}
-
-				type_handler_i *i = typereg_get_handler(build_db::get_type(r));
-				if (!i->in_output())
-				{
-					pos++;
-					continue;
-				}
-					 
-				APP_DEBUG("  entry:" << queue[pos] << " [" << build_db::get_type(r) << "] - " << bytes << " bytes - built_sig=" << build_db::get_signature(r))
-
-				for (int j = 0;;j++)
-				{
-					const char *ptr = build_db::get_pointer(r, j);
-					if (!ptr)
+					if (data->previous2use[i].previous == &p->second)
 					{
+						prev = &data->previous2use[i];
+						fill->file_index = i;
+						fill->file_slot_index = m->second;
 						break;
 					}
-					if (included.count(ptr))
-					{
-						continue;
-					}
-					APP_DEBUG("    pointer to [" << ptr << "]")
-					queue.push_back(ptr);
-					included.insert(ptr);
 				}
+				
+				if (!prev)
+				{
+					use_previous up;
+					up.previous = &p->second;
+					data->previous2use.push_back(up);
+					prev = &data->previous2use.back();
+					
+					fill->file_index = data->previous2use.size() - 1;
+					fill->file_slot_index = m->second;
+				}
+				
+				fill->ofs_begin = slot->begin;
+				fill->ofs_end = slot->end;
+				fill->th = typereg_get_handler(slot->type.c_str());
+				
+				APP_DEBUG("Found match in " << p->first << " in slot " << m->second << " for [" << path << "]")
+				prev->slots_i_want.push_back(m->second);
 
-				pos++;
+				return true;
 			}
+			return false;
 		}
 
-		void add(package::data *data, const char *path, std::vector<std::string> *bulkadd, bool storepath, bool scandep)
+		void add(package::data *data, const char *path, std::vector<std::string> *bulkadd, bool storepath, bool scandep, build_db::data *bdb)
 		{
+			// should be false but is interesting until package manifest is
+			// implemented
+			const bool store_path_for_dependencies = true;
+		
 			if (path)
 			{
 				APP_DEBUG("Adding single [" << path << "] to package")
@@ -207,13 +360,20 @@ namespace putki
 				APP_ERROR("Both path and bulkadd are null")
 			}
 
+			// filter away those already added.
 			for (unsigned int k = 0;k < 1 || (bulkadd && k < bulkadd->size());k++)
 			{
+				const char *addpath = path;
+		
 				if (bulkadd)
 				{
-					path = (*bulkadd)[k].c_str();
+					if (bulkadd->empty())
+						break;
+		
+					addpath = (*bulkadd)[k].c_str();
 				}
-				blobmap_t::iterator i = data->blobs.find(path);
+				
+				blobmap_t::iterator i = data->blobs.find(addpath);
 				if (i != data->blobs.end())
 				{
 					// adding with dep scan assumes
@@ -232,28 +392,113 @@ namespace putki
 					}
 				}
 			}
-
+			
+			if (bulkadd && bulkadd->empty())
+				return;
+			
+			// verify that all exist, we can error out here completely.
+			
 			for (unsigned int i = 0;i < 1 || (bulkadd && i < bulkadd->size());i++)
 			{
+				const char *addpath = path;
+		
 				if (bulkadd)
 				{
-					path = (*bulkadd)[i].c_str();
-				}
+					if (bulkadd->empty())
+						break;
 
+					addpath = (*bulkadd)[i].c_str();
+				}
+				
+				if (!db::exists(data->source, addpath))
+				{
+					APP_WARNING("Trying to add [" << addpath << "] to package, but not found!")
+					continue;
+				}
+				
+				build_db::record *r = build_db::find(bdb, addpath);
+				if (!r)
+				{
+					if (!db::is_aux_path(addpath))
+						APP_ERROR("Item exists in output db but not in build_db!")
+				}
+				
 				entry e;
-				if (db::fetch(data->source, path, &e.th, &e.obj))
+				e.path = addpath;
+				e.save_path = storepath;
+		
+				// Now is time to check if it can be picked from an old manifest.
+				if (r && pick_from_previous(data, addpath, build_db::get_type(r), build_db::get_signature(r), &e))
 				{
-					e.path = path;
-					e.save_path = storepath;
-					e.written_size = 0;
-					data->blobs[path] = e;
+					data->blobs[addpath] = e;
+		
+					// now it might have a few auxes, then they are in the source too.
+					int p = 0;
+					
+					std::vector<std::string> deps_to_add;
+					while (true)
+					{
+						const char *auxpath = build_db::get_pointer(r, p++);
+						if (!auxpath)
+							break;
+						
+						if (!db::is_aux_path(auxpath))
+						{
+							build_db::record * tr = build_db::find(bdb, auxpath);
+							if (!tr)
+							{
+								APP_ERROR("No own record for " << auxpath)
+								continue;
+							}
+							
+							if (!typereg_get_handler(build_db::get_type(tr))->in_output())
+								continue;
+	
+							APP_DEBUG("Adding deps to include [" << auxpath << "]")
+							deps_to_add.push_back(auxpath);
+							continue;
+						}
+												
+						entry e;
+						e.path = auxpath;
+						e.save_path = storepath;
+						if (pick_from_previous(data, auxpath, 0, build_db::get_signature(r), &e))
+							data->blobs[auxpath] = e;
+					}
+					
+					if (!deps_to_add.empty())
+						add(data, 0, &deps_to_add, store_path_for_dependencies, true, bdb);
+				
+					if (bulkadd)
+					{
+						bulkadd->erase(bulkadd->begin() + i);
+						i--;
+						continue;
+					}
+					else
+					{
+						return;
+					}
 				}
-				else
-				{
-					APP_WARNING("Trying to add [" << path << "] to package, but not found!")
-					return;
-				}
+				
+				// add entry.
+				e.path = addpath;
+				e.ofs_begin = 0;
+				e.ofs_end = 0;
+				e.file_index = e.file_slot_index = -1;
+			
+				if (!db::fetch(data->source, addpath, &e.th, &e.obj))
+					APP_ERROR("db::exist said " << addpath << " exists, but it could not be loaded!")
+
+				data->blobs[addpath] = e;
 			}
+			
+			if (bulkadd && bulkadd->empty())
+				return;
+			
+			// All that remains are objects that could not be loaded from previous file,
+			// so these must be scanned here. We could use the build record pointer list...
+			// but not much gain?
 
 			depwalker dw;
 			dw.already_added = &data->blobs;
@@ -261,13 +506,15 @@ namespace putki
 
 			for (unsigned int k = 0;k < 1 || (bulkadd && k < bulkadd->size());k++)
 			{
+				const char *addpath = path;
+				
 				if (bulkadd)
 				{
-					path = (*bulkadd)[k].c_str();
+					addpath = (*bulkadd)[k].c_str();
 				}
 
 				// run the walk_dependencies fn always to make sure pointers are resolved.
-				data->blobs[path].th->walk_dependencies(data->blobs[path].obj, &dw, true);
+				data->blobs[addpath].th->walk_dependencies(data->blobs[addpath].obj, &dw, true);
 
 				if (scandep)
 				{
@@ -278,10 +525,7 @@ namespace putki
 						next_add.push_back(*i++);
 					}
 
-					// should be false but is interesting until package manifest is
-					// implemented
-					const bool store_path_for_dependencies = true;
-					add(data, 0, &next_add, store_path_for_dependencies, true);
+					add(data, 0, &next_add, store_path_for_dependencies, true, bdb);
 				}
 			}
 		}
@@ -345,10 +589,10 @@ namespace putki
 
 		};
 
-		long write(data *data, runtime::descptr rt, char *buffer, long available)
+		long write(data *data, runtime::descptr rt, char *buffer, long available, build_db::data *build_db, sstream & manifest)
 		{
 			for (unsigned int i = 0;i < data->list.size();i++)
-				add(data, data->list[i].path.c_str(), 0, data->list[i].save_path, true);
+				add(data, data->list[i].path.c_str(), 0, data->list[i].save_path, true, build_db);
 
 			APP_DEBUG("Writing " << runtime::desc_str(rt) << " package with " << data->blobs.size() << " blobs.")
 
@@ -392,7 +636,8 @@ namespace putki
 			// get all pointerts rewritten to be pure indices.
 			for (unsigned int i = 0;i < packlist.size();i++)
 			{
-				packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true, true);
+				if (packlist[i]->file_slot_index == -1)
+					packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true, true);
 			}
 
 			// change pointers and add pending strings.
@@ -462,21 +707,84 @@ namespace putki
 				{
 					ptr = pack_int32_field(ptr, packlist[i]->th->id());
 				}
-
+				
 				char *start = ptr;
-				ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
+				
+				if (packlist[i]->file_slot_index != -1)
+				{
+					ptr++;
+					APP_DEBUG("slot " << i << " is from file " << packlist[i]->file_slot_index << "!")
+				}
+				else
+				{
+					ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
+				}
+				
 				if (!ptr)
 				{
-					packlist[i]->written_size = 0;
 					std::cout << "HELP! Wrote 0 bytes after packing " << i << " objects!" << std::endl;
 					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
 					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
 					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
 					APP_ERROR("HELP")
+					packlist[i]->ofs_begin = 0;
+					packlist[i]->ofs_end = 0;
 				}
 				else
 				{
-					packlist[i]->written_size = ptr - start;
+					if (packlist[i]->file_index == -1)
+					{
+						packlist[i]->ofs_begin = start - buffer;
+						packlist[i]->ofs_end = ptr - buffer;
+					}
+					
+					build_db::record *r = 0;
+					
+					char buf[2048];
+					if (db::is_aux_path(packlist[i]->path.c_str()))
+					{
+						db::base_asset_path(packlist[i]->path.c_str(), buf, sizeof(buf));
+						r = build_db::find(build_db, buf);
+					}
+					else
+					{
+						r = build_db::find(build_db, packlist[i]->path.c_str());
+					}
+					
+					if (!r)
+					{
+						APP_ERROR("Could not grab signature for " << packlist[i]->path << "!")
+					}
+
+					// write manifest entry
+					manifest << "#" << i << ":" << packlist[i]->th->name() << ":" <<
+						   packlist[i]->path << ":" << build_db::get_signature(r) << ":";
+					
+					if (packlist[i]->file_slot_index == -1)
+						manifest << "!self";
+					else
+						manifest << data->previous2use[packlist[i]->file_index].previous->file;
+						
+					manifest << ":" << packlist[i]->ofs_begin << ":" << packlist[i]->ofs_end << "\n";
+						   
+					int p = 0;
+					while (r)
+					{
+						const char *ptr = build_db::get_pointer(r, p);
+						if (ptr)
+						{
+							blobmap_t::iterator b = data->blobs.find(ptr);
+							if (b != data->blobs.end())
+								manifest << "p:" << packorder[ptr] << ":" << ptr << "\n";
+							else
+								manifest << "p:?:" << ptr << "\n";
+							p++;
+						}
+						else
+						{
+							break;
+						}
+					}
 				}
 			}
 

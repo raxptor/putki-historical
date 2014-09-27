@@ -415,10 +415,11 @@ namespace putki
 
 						package::data *pkg = package::create(output);
 						package::add(pkg, tobuild.c_str(), true);
+						putki::sstream mf;
 
 						const unsigned int sz = 10*1024*1024;
 						char *buf = new char[sz];
-						long bytes = package::write(pkg, rt, buf, sz);
+						long bytes = package::write(pkg, rt, buf, sz, builder::get_build_db(builder), mf);
 
 						std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
 

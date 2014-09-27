@@ -180,6 +180,8 @@ namespace putki
 		{
 			package::data *pkg;
 			std::string path;
+			std::string final_path;
+			std::string final_manifest_path;
 		};
 
 		struct packaging_config
@@ -189,6 +191,7 @@ namespace putki
 			build_db::data *bdb;
 			builder::build_context *context;
 			std::vector<pkg_conf> packages;
+			bool make_patch;
 		};
 
 		void post_build_ptr_update(db::data *input, db::data *output)
@@ -234,6 +237,62 @@ namespace putki
 		void commit_package(putki::package::data *package, packaging_config *packaging, const char *out_path)
 		{
 			pkg_conf pk;
+			
+			bool make_patch = packaging->make_patch;
+		
+			// expect old packages to be there.
+			pk.final_path = packaging->package_path + out_path;
+			pk.final_manifest_path = packaging->package_path + out_path + ".manifest";
+
+			std::vector<std::string> old_ones;
+			if (make_patch)
+			{
+				for (int i=0;;i++)
+				{
+					sstream pkg_name;
+					pkg_name << out_path;
+					if (i > 0)
+					{
+						pkg_name << ".patch" << i;
+					}
+	
+					std::string manifest_name(pkg_name.c_str());
+					manifest_name.append(".manifest");
+					
+					pk.final_path = packaging->package_path + pkg_name.c_str();
+					pk.final_manifest_path = packaging->package_path + manifest_name.c_str();
+
+					std::ifstream f0(pk.final_path.c_str());
+					std::ifstream f1(pk.final_manifest_path.c_str());
+					
+					// check for previous files.
+					if (f0.good() && f1.good())
+					{
+						APP_DEBUG("Previous at " << pkg_name.c_str() << " and " << manifest_name);
+						old_ones.push_back(pkg_name.c_str());
+					}
+					else
+					{
+						break;
+					}
+				}
+				
+				if (old_ones.empty())
+				{
+					APP_DEBUG("Wanted to make patch for " << out_path << " but previous package does not exist!");
+					make_patch = false;
+				}
+			}
+			
+			if (make_patch)
+			{
+				for (int i=old_ones.size()-1;i>=0;i--)
+				{
+					package::add_previous_package(package, packaging->package_path.c_str(), old_ones[i].c_str());
+				}
+				APP_DEBUG("Registered package " << out_path << " and it will be a patch [" << pk.final_path << "] with " << old_ones.size() << " previous files to use");
+			}
+					
 			pk.pkg = package;
 			pk.path = out_path;
 			packaging->packages.push_back(pk);
@@ -242,18 +301,20 @@ namespace putki
 
 		void write_package(pkg_conf *pk, packaging_config *packaging)
 		{
-			 std::string final_path = packaging->package_path + pk->path;
-			 APP_DEBUG("Saving package to [" << final_path << "]...")
+			APP_DEBUG("Saving package to [" << pk->final_path << "]...")
 
-			 long bytes_written = putki::package::write(pk->pkg, packaging->rt, xbuf, xbufSize);
-			 APP_INFO("Wrote " << final_path << " (" << bytes_written << ") bytes")
+			sstream mf;
+			long bytes_written = putki::package::write(pk->pkg, packaging->rt, xbuf, xbufSize, packaging->bdb, mf);
 
-			 putki::package::debug(pk->pkg, packaging->bdb);
+			APP_INFO("Wrote " << pk->final_path << " (" << bytes_written << ") bytes")
 
-			 putki::sys::mk_dir_for_path(final_path.c_str());
+			putki::sys::mk_dir_for_path(pk->final_path.c_str());
+			putki::sys::mk_dir_for_path(pk->final_manifest_path.c_str());
 
-			 std::ofstream pkg(final_path.c_str(), std::ios::binary);
-			 pkg.write(xbuf, bytes_written);
+			std::ofstream pkg(pk->final_path.c_str(), std::ios::binary);
+			pkg.write(xbuf, bytes_written);
+			std::ofstream pkg_mf(pk->final_manifest_path.c_str(), std::ios::binary);
+			pkg_mf.write(mf.c_str(), mf.size());
 		}
 
 		void do_build(putki::builder::data *builder, const char *single_asset)
@@ -276,6 +337,7 @@ namespace putki
 			pconf.rt = builder::runtime(builder);
 			pconf.bdb = builder::get_build_db(builder);
 			pconf.context = ctx;
+			pconf.make_patch = true;
 			putki::builder::invoke_packager(output, &pconf);
 
 			// Required assets

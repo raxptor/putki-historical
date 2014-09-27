@@ -1,6 +1,7 @@
 #pragma once
 
 #include <putki/runtime.h>
+#include <putki/sys/sstream.h>
 
 namespace putki
 {
@@ -11,15 +12,15 @@ namespace putki
 	{
 		struct data;
 
-		data * create(db::data *source);
+		data * create(db::data *db);
 		void free(data *);
 
 		// need storepath = true to be able to look it up from the package in runtime.
 		void add(package::data *data, const char *path, bool storepath);
 		const char *get_needed_asset(data *d, unsigned int i);
 		
-		void debug(package::data *data, build_db::data *bdb);
-
-		long write(data *data, runtime::descptr rt, char *buffer, long available);
+		void add_previous_package(package::data *data, const char *basepath, const char *path);
+		
+		long write(data *data, runtime::descptr rt, char *buffer, long available, build_db::data *build_db, sstream & manifest);
 	}
 }
