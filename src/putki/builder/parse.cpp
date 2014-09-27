@@ -1,5 +1,6 @@
 
 #include "parse.h"
+#include "log.h"
 
 #include <jsmn/jsmn.h>
 
@@ -12,11 +13,12 @@
 #include <stack>
 #include <cstdio>
 #include <cstdlib>
+#include <unordered_map>
 
 #include <sys/time.h>
 #include <unistd.h>
 
-// #define PARSE_DEBUG(x) std::cout << x;
+//#define PARSE_DEBUG(x) std::cout << x;
 #define PARSE_DEBUG(x) {}
 
 namespace putki
@@ -27,19 +29,26 @@ namespace putki
 		{
 			node *root;
 			std::vector<node*> allnodes;
+			const char *alloc;
 		};
+
+		typedef std::unordered_map<std::string, node*> objmap_t;
 
 		struct node
 		{
 			node()
 			{
 				key = 0;
+				decoded = false;
 			}
 
 			jsmntok_t *token;
 
-			std::string value;
-			std::map<std::string, node*> object;
+			char *value;
+			int length;
+			bool decoded;
+			
+			objmap_t object;
 			std::vector<node*> arr;
 			node *key;
 			int children_left;
@@ -62,20 +71,74 @@ namespace putki
 			if (!obj) {
 				return 0;
 			}
+			
+			objmap_t::iterator i = obj->object.find(field);
+			if (i != obj->object.end())
+				return i->second;
 
-			if (obj->object.count(field)) {
-				return obj->object[field];
-			}
+			return 0;
+		}
+		
+		inline unsigned int unhex(char c)
+		{
+			if (c >= '0' && c <= '9')
+				return c - '0';
+			if (c >= 'a' && c <= 'f')
+				return 10 + c - 'a';
 			return 0;
 		}
 
 		const char *get_value_string(node *node)
 		{
-			if (!node) {
+			if (!node || !node->length) {
 				return "";
 			}
+			
+			if (node->decoded)
+				return node->value;
+			
+			// un-parse the \u0000
+			char *str = node->value;
+			char *out = node->value; // original null terminator
+			
+			bool shortened = false;
+			int p = 0;
+			while (p < (node->length-5))
+			{
+				if (str[p] == '\\' && str[p+1] == 'u')
+				{
+					if (str[p+2] != '0' || str[p+3] != '0')
+					{
+							APP_WARNING("Error in string \"" << node->value << "\". Will not properly decode this \\uXXXX encoded character because it contains character > 256, and only 8-bit values are supported. The escape sequences must be encodings of the original encoded string bytes.");
+					}
+					
+					*out++ = (char)(16 * unhex(str[p+4]) + unhex(str[p+5]));
+					p += 6;
+					
+					// shorten string..
+					shortened = true;
+				}
+				else if (shortened)
+				{
+					// ..need to continue writing!
+					*out++ = str[p++];
+				}
+				else
+				{
+					p++;
+					out++;
+				}
+			}
+			
+			while (p < node->length)
+				*out++ = str[p++];
 
-			return node->value.c_str();
+			*out = 0;
+			
+			node->decoded = true;
+			node->length = out - node->value;
+
+			return node->value;
 		}
 
 		bool parse_stringencoded_byte_array(node *node, std::vector<unsigned char> & out)
@@ -83,14 +146,14 @@ namespace putki
 			if (!node)
 				return true;
 
-			if (node->value.empty())
+			if (node->length == 0)
 				return false;
 
-			if (!strcmp(node->value.c_str(), "<empty>"))
+			if (!strcmp(node->value, "<empty>"))
 				return true;
 
 			// hexstream
-			for (int i=0;i<(node->value.size()-1);i+=2)
+			for (int i=0;i<node->length;i+=2)
 				out.push_back(16 * (unsigned int)(node->value[i] - 'a') + (node->value[i+1] - 'a'));
 
 			return true;
@@ -102,7 +165,7 @@ namespace putki
 				return 0;
 			}
 
-			return atoi(node->value.c_str());
+			return atoi(node->value);
 		}
 
 		float get_value_float(node *node)
@@ -111,7 +174,7 @@ namespace putki
 				return 0;
 			}
 
-			return (float) atof(node->value.c_str());
+			return (float) atof(node->value);
 		}
 		
 		data * parse(const char *full_path)
@@ -138,35 +201,38 @@ namespace putki
 
 			jsmn_parser p;
 
-			unsigned int maxtok = 1024;
+			int maxtok = 1024;
 			jsmntok_t *tok;
-			jsmnerr_t err;
 			
-			while (maxtok < 64*1024*1024)
-			{
-				tok = new jsmntok_t[maxtok];
-				
-				jsmn_init(&p);
-				err = jsmn_parse(&p, tmp, tok, maxtok);
-				if (err == JSMN_SUCCESS)
-					break;
-					
-				// try again with more!
-				delete [] tok;
-				maxtok *= 2;
-			}
+			tok = new jsmntok_t[maxtok];
 
-			if (err != JSMN_SUCCESS)
+			jsmn_init(&p);
+			int ret = jsmn_parse(&p, tmp, rd, tok, maxtok);
+			if (ret == JSMN_ERROR_NOMEM)
 			{
-				delete [] tmp;
-				std::cout << "Parse failure! Maybe [" << full_path << "] contains more than " << maxtok << " tokens?" << std::endl;
+				jsmn_init(&p);
+				ret = jsmn_parse(&p, tmp, rd, 0, 0);
+				if (ret > maxtok)
+				{
+					maxtok = ret;
+					delete [] tok;
+					tok = new jsmntok_t[maxtok];
+					jsmn_init(&p);
+					ret = jsmn_parse(&p, tmp, rd, tok, maxtok);
+				}
+			}
+			
+			if (ret <= 0)
+			{
+				APP_ERROR("Failed to parse " << full_path << " with jsmn err:" << ret);
+				delete [] tok;
 				return 0;
 			}
+
 			if (tok[0].type != JSMN_OBJECT)
 			{
 				delete [] tok;
-				delete [] tmp;
-				std::cout << "First element is not object!" << std::endl;
+				APP_ERROR("First element is not object in " << full_path);
 				return 0;
 			}
 
@@ -175,9 +241,6 @@ namespace putki
 			int loc = 0;
 
 			node *root = 0;
-
-			std::string org_string(tmp);
-
 
 			data *pd = new data;
 
@@ -198,7 +261,10 @@ namespace putki
 				current->token = &tok[loc];
 				current->children_left = tok[loc].size;
 
-				current->value = org_string.substr(current->token->start, current->token->end - current->token->start);
+				// chop chop!
+				current->value = &tmp[current->token->start];
+				tmp[current->token->end] = 0;
+				current->length = current->token->end - current->token->start;
 
 				if (top)
 				{
@@ -230,11 +296,6 @@ namespace putki
 					PARSE_DEBUG("STARTING OBJECT [" << current->value << "]" << std::endl);
 					pst.push(current);
 				}
-				else
-				{
-					current->value = org_string.substr(current->token->start, current->token->end - current->token->start);
-				}
-
 
 				while (!pst.empty() && pst.top()->children_left == 0)
 				{
@@ -248,9 +309,9 @@ namespace putki
 
 			PARSE_DEBUG("Parse success!" << std::endl);
 			delete [] tok;
-			delete [] tmp;
 
 			pd->root = root;
+			pd->alloc = tmp;
 			return pd;
 		}
 
@@ -263,6 +324,7 @@ namespace putki
 		{
 			for (unsigned i=0; i<d->allnodes.size(); i++)
 				delete d->allnodes[i];
+			delete [] d->alloc;
 			delete d;
 		}
 

@@ -40,6 +40,8 @@
 		files { pathbase .. "/" .. path .. "/**.typedef" }
 	end
 
+	defines { "JSMN_PARENT_LINKS" }
+
 	configuration {"windows"}
 		defines {"USE_WINSOCK"}
 		
