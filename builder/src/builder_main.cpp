@@ -64,6 +64,7 @@ int run_putki_builder(int argc, char **argv)
 	const char *single_asset = 0;
 	const char *build_config = "Default";
 	bool incremental = false;
+	bool patch = false;
 	int threads = 0;
 
 	for (int i=1; i<argc; i++)
@@ -86,6 +87,10 @@ int run_putki_builder(int argc, char **argv)
 		{
 			if (i+1 < argc)
 				build_config = argv[++i];
+		}
+		else if (!strcmp(argv[i], "--patch"))
+		{
+			patch = true;
 		}
 		else if (!strcmp(argv[i], "--incremental"))
 		{
@@ -139,7 +144,7 @@ int run_putki_builder(int argc, char **argv)
 	}
 	else
 	{
-		putki::build::full_build(builder);
+		putki::build::full_build(builder, patch);
 		putki::builder::write_build_db(builder);
 	}
 

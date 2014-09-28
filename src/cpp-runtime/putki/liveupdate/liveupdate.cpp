@@ -339,7 +339,7 @@ namespace putki
 				char *buf = new char[sz];
 				memcpy(buf, &d->readbuf[5], sz);
 
-				pe.pkg = pkgmgr::parse(buf, buf + sz, pe.rs);
+				pe.pkg = pkgmgr::parse(buf, buf + sz, 0, pe.rs);
 				pkgmgr::free_on_release(pe.pkg);
 
 				pe.resolved = false;

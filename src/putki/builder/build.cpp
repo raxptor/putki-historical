@@ -182,6 +182,8 @@ namespace putki
 			std::string path;
 			std::string final_path;
 			std::string final_manifest_path;
+			std::string ptr_file;
+			std::string ptr_file_content;
 		};
 
 		struct packaging_config
@@ -241,6 +243,8 @@ namespace putki
 			bool make_patch = packaging->make_patch;
 		
 			// expect old packages to be there.
+			pk.ptr_file = packaging->package_path + out_path + ".ptr";
+			pk.ptr_file_content = out_path;
 			pk.final_path = packaging->package_path + out_path;
 			pk.final_manifest_path = packaging->package_path + out_path + ".manifest";
 
@@ -273,6 +277,7 @@ namespace putki
 					}
 					else
 					{
+						pk.ptr_file_content = pkg_name.c_str();
 						break;
 					}
 				}
@@ -292,6 +297,8 @@ namespace putki
 				}
 				APP_DEBUG("Registered package " << out_path << " and it will be a patch [" << pk.final_path << "] with " << old_ones.size() << " previous files to use");
 			}
+			
+			
 					
 			pk.pkg = package;
 			pk.path = out_path;
@@ -313,11 +320,18 @@ namespace putki
 
 			std::ofstream pkg(pk->final_path.c_str(), std::ios::binary);
 			pkg.write(xbuf, bytes_written);
+			pkg.close();
+			
 			std::ofstream pkg_mf(pk->final_manifest_path.c_str(), std::ios::binary);
 			pkg_mf.write(mf.c_str(), mf.size());
+			pkg_mf.close();
+			
+			std::ofstream ptr(pk->ptr_file.c_str());
+			ptr << pk->ptr_file_content;
+			ptr.close();
 		}
 
-		void do_build(putki::builder::data *builder, const char *single_asset)
+		void do_build(putki::builder::data *builder, const char *single_asset, bool make_patch)
 		{
 			sys::mutex in_db_mtx, tmp_db_mtx, out_db_mtx;
 			db::data *input = putki::db::create(0, &in_db_mtx);
@@ -337,7 +351,7 @@ namespace putki
 			pconf.rt = builder::runtime(builder);
 			pconf.bdb = builder::get_build_db(builder);
 			pconf.context = ctx;
-			pconf.make_patch = true;
+			pconf.make_patch = make_patch;
 			putki::builder::invoke_packager(output, &pconf);
 
 			// Required assets
@@ -407,14 +421,14 @@ namespace putki
 			builder::context_destroy(ctx);
 		}
 
-		void full_build(putki::builder::data *builder)
+		void full_build(putki::builder::data *builder, bool make_patch)
 		{
-			do_build(builder, 0);
+			do_build(builder, 0, make_patch);
 		}
 
 		void single_build(putki::builder::data *builder, const char *single_asset)
 		{
-			do_build(builder, single_asset);
+			do_build(builder, single_asset, false);
 		}
 	}
 }

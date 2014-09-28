@@ -142,7 +142,7 @@ namespace putki
 		}
 		
 		// parse from buffer
-		loaded_package * parse(char *header, char *data, resolve_status *out)
+		loaded_package * parse(char *header, char *data, load_external_file_fn ext_loader, resolve_status *opt_out)
 		{
 			char *hdr_rp = header;
 			const int16_t max_imports = 256;
@@ -179,9 +179,9 @@ namespace putki
 				imp->remap_table = hdr_rp + name_length;
 				
 				hdr_rp += name_length;
-				hdr_rp += 2 * imp->remaps_count;
+				hdr_rp += 4 * imp->remaps_count;
 				
-				PTK_DEBUG("Import " << i << ", name:" << imp->import_path << " remaps:" << imp->remap_table);
+				PTK_DEBUG("Import " << i << ", name:" << imp->import_path << " remaps:" << imp->remaps_count);
 			}
 			
 			PTK_DEBUG("File has " << num_imports << " external imports, and it will be " << data_sz << " when loaded");
@@ -199,7 +199,10 @@ namespace putki
 			lp->slots = new package_slot[slot_count];
 			
 			pkg_ptrs _out_internal;
-			pkg_ptrs &ptrs = out ? out->ptrs : _out_internal;
+			pkg_ptrs &ptrs = opt_out ? opt_out->ptrs : _out_internal;
+			
+			char *fake_base = 0;
+			char *tail_ptr = data;
 			
 			for (int i=0;i!=slot_count;i++)
 			{
@@ -224,6 +227,8 @@ namespace putki
 					lp->slots[i].file_index = parse_int16(&hdr_rp);
 					lp->slots[i].file_slot_index = parse_int16(&hdr_rp);
 					lp->slots[i].type_id = parse_int16(&hdr_rp);
+					lp->slots[i].obj = fake_base + parse_int32(&hdr_rp);
+					lp->slots[i].obj_end = fake_base + parse_int32(&hdr_rp);
 				}
 				else if (flags & PKG_FLAG_INTERNAL)
 				{
@@ -231,6 +236,10 @@ namespace putki
 					lp->slots[i].obj = data + (parse_int32(&hdr_rp) - hdr_sz);
 					lp->slots[i].obj_end = data + (parse_int32(&hdr_rp) - hdr_sz);
 					lp->slots[i].type_id = parse_int16(&hdr_rp);
+					
+					// where to insert the external references.
+					if (lp->slots[i].obj_end > tail_ptr)
+						tail_ptr = (char*)lp->slots[i].obj_end;
 				}
 				else
 				{
@@ -250,17 +259,76 @@ namespace putki
 				PTK_DEBUG("Slot " << i << " path:" << lp->slots[i].path << " file:" << lp->slots[i].file_index << " obj:" << lp->slots[i].obj << " type:" << lp->slots[i].type_id);
 			}
 			
+			// -- schedule loads and allocate them.
+			int ext_loads = 0;
+			for (unsigned int i=0;i!=slot_count;i++)
+			{
+				if (lp->slots[i].file_index != -1)
+				{
+					// Allocate at tail_ptr and fire off load call.
+					ext_loader(lp->slots[i].file_index, parsed_imports[lp->slots[i].file_index].import_path,
+					           (char*)lp->slots[i].obj - fake_base,
+						     (char*)lp->slots[i].obj_end - fake_base,
+						     tail_ptr);
+						     
+					lp->slots[i].obj_end = tail_ptr + ((char*)lp->slots[i].obj_end - (char*)lp->slots[i].obj);
+					lp->slots[i].obj = tail_ptr;
+					tail_ptr = (char*)lp->slots[i].obj_end;
+					ext_loads++;
+				}
+			}
+						
+			// flush loads
+			if (ext_loads)
+				ext_loader(0, 0, 0, 0, 0);
+			
 			// resolve objects
 			for (unsigned int i=0;i!=slot_count;i++)
 			{
 				if (lp->slots[i].obj)
 				{
-					 if (post_load_by_type(lp->slots[i].type_id, &ptrs, (char*) lp->slots[i].obj, (char*) lp->slots[i].obj_end) != lp->slots[i].obj_end)
-					 {
-						PTK_WARNING("Post load by type (" << lp->slots[i].type_id << " did not consume all data.")
-					 }
+					const size_t ps0 = ptrs.entries.size();
+					
+					if (post_load_by_type(lp->slots[i].type_id, &ptrs, (char*) lp->slots[i].obj, (char*) lp->slots[i].obj_end) != lp->slots[i].obj_end)
+					{
+						PTK_WARNING("Post load by type (" << lp->slots[i].type_id << ") did not consume all data.")
+					}
+					
+					if (lp->slots[i].file_index >= 0)
+					{
+						import *ip = &parsed_imports[lp->slots[i].file_index];
+						if (ip >= parsed_imports + max_imports)
+						{
+							PTK_ERROR("Reading out of bounds for import table. file_index is broken.")
+							continue;
+						}
+							
+						size_t ps1 = ptrs.entries.size();
+						for (size_t i=ps0;i!=ps1;i++)
+						{
+							// remap all the pointers.
+							//
+							// TODO: Maybe make this faster than this.
+							short ptr = ptrs.entries[i].index;
+							if (!ptr)
+								continue;
+							
+							ptr = ptr - 1; // real slot ofs
+							char *remap_table = ip->remap_table;
+							for (int j=0;j!=ip->remaps_count;j++)
+							{
+								int16_t from = parse_int16(&remap_table);
+								int16_t to = parse_int16(&remap_table);
+								if (ptr == from)
+								{
+									PTK_WARNING("Remapping slot " << from << " to " << to)
+									ptrs.entries[i].index = to + 1;
+									break;
+								}
+							}
+						}
+					}
 				}
-					 
 			}
 
 			int resolved = 0, unresolved = 0;

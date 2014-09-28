@@ -5,7 +5,7 @@ namespace putki
 {
 	namespace
 	{
-		LogType s_level = LOG_DEBUG;
+		LogType s_level = LOG_WARNING;
 	}
 
 	void set_loglevel(LogType filter)

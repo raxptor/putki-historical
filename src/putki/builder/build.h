@@ -14,7 +14,7 @@ namespace putki
 	{
 		struct packaging_config;
 
-		void full_build(builder::data *builder);
+		void full_build(builder::data *builder, bool make_patch);
 		void single_build(builder::data *builder, const char *path);
 		
 		// make sure it is all resolved

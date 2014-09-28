@@ -105,6 +105,11 @@ namespace putki
 						APP_WARNING("I originally wanted to pack " << slot.path << " and this was a dependency.")
 						continue;
 					}
+					
+					// don't remap same slots (waste of space).
+					if (slot.deps[j] == m->second.pack_slot_index)
+						continue;
+					
 					out->slot_remapping[slot.deps[j]] = m->second.pack_slot_index;
 				}
 			}
@@ -127,7 +132,7 @@ namespace putki
 			real_path.append("/");
 			real_path.append(path);
 			
-			APP_INFO("Loading previous package " << path << " (" << real_path << ")");
+			APP_DEBUG("Loading previous package " << path << " (" << real_path << ")");
 			
 			std::string manifest_name = (real_path + ".manifest");
 			std::ifstream mf(manifest_name.c_str());
@@ -227,8 +232,7 @@ namespace putki
 			for (int i=0;i<pkg->slots.size();i++)
 				pkg->path_to_slot[pkg->slots[i].path] = i;
 
-			APP_INFO("Loaded previous package with " << pkg->slots.size() << " slots!")
-		
+			APP_DEBUG("Loaded previous package with " << pkg->slots.size() << " slots!")
 		}
 		
 
@@ -742,7 +746,7 @@ namespace putki
 				const char *name = prev->file.c_str();
 				const size_t len = prev->file.size() + 1;
 				ptr = pack_int16_field(ptr, (short)len);
-				ptr = pack_int32_field(ptr, (short)use->slot_remapping.size());
+				ptr = pack_int16_field(ptr, (short)use->slot_remapping.size());
 				
 				memcpy(ptr, name, len);
 				ptr += len;
@@ -750,8 +754,8 @@ namespace putki
 				std::map<int, int>::iterator j = use->slot_remapping.begin();
 				while (j != use->slot_remapping.end())
 				{
-					ptr = pack_int32_field(ptr, (short)j->first);
-					ptr = pack_int32_field(ptr, (short)j->second);
+					ptr = pack_int16_field(ptr, (short)j->first);
+					ptr = pack_int16_field(ptr, (short)j->second);
 					j++;
 				}
 			}
@@ -806,6 +810,9 @@ namespace putki
 					ptr = pack_int16_field(ptr, packlist[i]->file_index);
 					ptr = pack_int16_field(ptr, packlist[i]->file_slot_index);
 					ptr = pack_int16_field(ptr, packlist[i]->th->id());
+					ptr = pack_int32_field(ptr, packlist[i]->ofs_begin);
+					ptr = pack_int32_field(ptr, packlist[i]->ofs_end);
+					
 				}
 				else if (flags & PKG_FLAG_INTERNAL)
 				{
