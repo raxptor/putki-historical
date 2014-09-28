@@ -6,26 +6,8 @@
 
 #include <stdint.h>
 #include <cstdlib>
-
-#include <pthread.h>
-
 #include <iostream>
 
-putki::liveupdate::data *s_live_update = 0;
-
-void liveupdate_thread_real(int socket)
-{
-	std::cout << "Hello from the thread, socket=" << socket << std::endl;
-	putki::liveupdate::service_client(s_live_update, "data/", socket);
-
-	std::cout << "Client exiting" << std::endl;
-}
-
-void* liveupdate_thread(void *arg)
-{
-	liveupdate_thread_real((intptr_t) arg);
-	return 0;
-}
 
 int run_putki_builder(int argc, char **argv)
 {
@@ -130,7 +112,9 @@ int run_putki_builder(int argc, char **argv)
 
 	if (liveupdate)
 	{
-		putki::liveupdate::editor_listen_thread();
+		putki::liveupdate::data *lu = putki::liveupdate::create();
+		putki::liveupdate::run_server(lu);
+		putki::liveupdate::free(lu);
 	}
 
 	return 0;

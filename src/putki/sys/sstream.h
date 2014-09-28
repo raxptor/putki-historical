@@ -146,11 +146,21 @@ namespace putki
 			}
 		}
 		
-		inline void need_x_more(unsigned int more, unsigned int allocmult=4, unsigned int allocadd=0)
+		inline void need_x_more(unsigned int more, unsigned int allocmult=4, unsigned int allocadd=256)
 		{
-			if ((_writeptr - _buf) + more > _len)
+			const unsigned int need = (_writeptr - _buf) + more;
+			if (need > _len)
 			{
-				_len = _len * allocmult + allocadd;
+				_len = _len * allocmult;
+
+				// if multiple wasn't enough
+				if (_len < need)
+					_len = need;
+					
+				// always add extra on what is needed
+				_len += allocadd;
+				
+				// copy
 				char *n = (char*) malloc(_len);
 				memcpy(n, _buf, _writeptr - _buf);
 				if (_buf != _static)
@@ -165,9 +175,15 @@ namespace putki
 			return _writeptr - _buf;
 		}
 		
+		void clear()
+		{
+			_writeptr = _buf;
+		}
+		
 		const char *c_str()
 		{
-			need_x_more(1, 256);
+			// needs terminator.
+			need_x_more(1, 0, 256);
 			*_writeptr = 0;
 			return _buf;
 		}
@@ -218,36 +234,41 @@ namespace putki
 
 		inline sstream & operator<<(std::string const & str)
 		{
-			return *this << str.c_str();
+			*this << str.c_str();
+			return *this;
 		} 
 		
 		inline sstream & operator<<(int val)
 		{
-			need_x_more(24);
+			need_x_more(32);
 			_writeptr = format_dec<int>(_writeptr, val);
 			return *this;
 		}
 
 		inline sstream & operator<<(unsigned int val)
 		{
+			need_x_more(32);
 			_writeptr = format_dec<int>(_writeptr, val);
 			return *this;
 		}
 
 		inline sstream & operator<<(unsigned long val)
 		{
+			need_x_more(32);
 			_writeptr = format_dec<unsigned long>(_writeptr, val);
 			return *this;
 		}
 
 		inline sstream & operator<<(long val)
 		{
+			need_x_more(32);
 			_writeptr = format_dec<long>(_writeptr, val);
 			return *this;
 		}
 
 		inline sstream & operator<<(long long val)
 		{
+			need_x_more(32);
 			_writeptr = format_dec<long long>(_writeptr, val);
 			return *this;
 		}

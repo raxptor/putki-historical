@@ -4,16 +4,20 @@ namespace putki
 
 	namespace liveupdate
 	{
+		enum {
+			EDITOR_PORT      = 5555
+		};
+	
 		struct data;
+		data *create();
+		void free(data *);
+		void run_server(data *d);
 		
-		void editor_listen_thread();
-
-		data* start_server(db::data *use_this_db);
-		int accept(data *which);
-		void stop_server(data *which);
-		
-		
-		void service_client(data *lu, const char *sourcepath, int socket);
-		void send_update(data *lu, const char *path);
+		struct ed_client;
+		ed_client *create_editor_connection();
+		void run_editor_connection(ed_client *conn);
+		void release_editor_connection(ed_client *conn);
+	
+		void editor_on_edited(ed_client *conn, db::data *db, const char *path);
 	}
 }

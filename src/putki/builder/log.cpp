@@ -4,6 +4,7 @@
 
 #include <putki/builder/log.h>
 #include <putki/sys/thread.h>
+#include <putki/sys/sstream.h>
 
 namespace putki
 {
@@ -31,7 +32,7 @@ namespace putki
 
 	void print_log_multi(const char *indent, LogType *levels, const char **messages, unsigned int count)
 	{
-		std::stringstream buf;
+		sstream buf;
 
 		for (unsigned int i=0;i!=count;i++)
 		{
@@ -80,19 +81,19 @@ namespace putki
 			{
 				// flush.
 				mtx.lock();
-				std::cout << buf.str() << std::endl;
+				std::cout.write(buf.c_str(), buf.size());
+				std::cout << std::endl;
 				mtx.unlock();
 				// crash
 				int *p = (int *) 0x23414;
 				*p = 234124;
 			}
 			
-			if (i != (count-1))
-				buf << "\n";
+			buf << "\n";
 		}
 		
 		mtx.lock();
-		std::cout << buf.str() << std::endl;
+		std::cout.write(buf.c_str(), buf.size());
 		mtx.unlock();
 	}
 }

@@ -8,6 +8,7 @@
 #include <putki/builder/build.h>
 #include <putki/builder/builder.h>
 #include <putki/builder/log.h>
+#include <putki/liveupdate/liveupdate.h>
 #include <putki/sys/compat.h>
 #include <putki/sys/files.h>
 #include <putki/sys/sstream.h>
@@ -27,16 +28,35 @@ namespace putki
 	{
 
 	}
+	
+	void* connection_thread(void *arg)
+	{
+		liveupdate::ed_client *ed = (liveupdate::ed_client *) arg;
+		liveupdate::run_editor_connection(ed);
+		liveupdate::release_editor_connection(ed);
+		return 0;
+	}
 
 	struct data_dll : public data_dll_i
 	{
 		db::data *_db;
 		sys::mutex _db_mtx;
 		std::string _path;
-
+		
+		liveupdate::ed_client *_client;
+		
 		data_dll(const char *path)
 		{
+			_path = path;
+			
+			// hax.
+			_path.append("/data/objs");
+			
 			_db = db::create(0, &_db_mtx);
+			_client = liveupdate::create_editor_connection();
+			sys::thread_create(connection_thread, _client);
+			
+			set_loglevel(LOG_DEBUG);
 		}
 
 		~data_dll()
@@ -180,7 +200,7 @@ namespace putki
 
 		virtual void on_object_modified(const char *path)
 		{
-			//
+			liveupdate::editor_on_edited(_client, _db, path);
 		}
 
 		const char *path_of(mem_instance *mi)
