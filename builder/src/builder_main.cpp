@@ -7,13 +7,7 @@
 #include <stdint.h>
 #include <cstdlib>
 
-#if defined(USE_WINSOCK)
-	#pragma comment(lib, "ws2_32.lib")
-	#pragma comment(lib, "wsock32.lib")
-	#include <windows.h>
-#else
-	#include <pthread.h>
-#endif
+#include <pthread.h>
 
 #include <iostream>
 
@@ -27,35 +21,14 @@ void liveupdate_thread_real(int socket)
 	std::cout << "Client exiting" << std::endl;
 }
 
-
-#if defined(USE_WINSOCK)
-
-DWORD WINAPI liveupdate_thread(LPVOID arg)
-{
-	liveupdate_thread_real((int)arg);
-	return 0;
-}
-
-#else
-
 void* liveupdate_thread(void *arg)
 {
 	liveupdate_thread_real((intptr_t) arg);
 	return 0;
 }
 
-#endif
-
 int run_putki_builder(int argc, char **argv)
 {
-#if defined(USE_WINSOCK)
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		std::cerr << "WSA init failure" << std::endl;
-		return 1;
-	}
-#endif
 
 	// configure builder with app handlers.
 
@@ -66,6 +39,7 @@ int run_putki_builder(int argc, char **argv)
 	bool incremental = false;
 	bool patch = false;
 	int threads = 0;
+	bool liveupdate = false;
 
 	for (int i=1; i<argc; i++)
 	{
@@ -100,6 +74,10 @@ int run_putki_builder(int argc, char **argv)
 		{
 			if (i+1 < argc)
 				threads = atoi(argv[i+1]);
+		}
+		else if (!strcmp(argv[i], "--liveupdate"))
+		{
+			liveupdate = true;
 		}
 		else if (!strcmp(argv[i], "--loglevel"))
 		{
@@ -150,24 +128,9 @@ int run_putki_builder(int argc, char **argv)
 
 	putki::builder::free(builder);
 
-	if (argc > 1 && !strcmp(argv[1], "--liveupdate"))
+	if (liveupdate)
 	{
-		s_live_update = putki::liveupdate::start_server(0);
-		while (true)
-		{
-			int s = putki::liveupdate::accept(s_live_update);
-
-			intptr_t skt = s;
-
-#if defined(USE_WINSOCK)
-			CreateThread(0, 0, &liveupdate_thread, (void*)skt, 0, 0);
-#else
-			pthread_t thr;
-			pthread_create(&thr, 0, &liveupdate_thread, (void*)skt);
-#endif
-		}
-		putki::liveupdate::stop_server(s_live_update);
-
+		putki::liveupdate::editor_listen_thread();
 	}
 
 	return 0;

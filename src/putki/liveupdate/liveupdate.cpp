@@ -8,6 +8,7 @@
 #include <putki/builder/write.h>
 #include <putki/builder/build-db.h>
 #include <putki/builder/package.h>
+#include <putki/builder/log.h>
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
 
@@ -18,103 +19,20 @@
 #include <set>
 #include <cstdio>
 
+#include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
-#if defined(USE_WINSOCK)
-	#include <winsock2.h>
-	#pragma comment (lib, "wsock32.lib")
-	#pragma comment (lib, "ws2_32.lib")
-#else
-	#include <pthread.h>
-	#include <sys/socket.h>
-	#include <arpa/inet.h>
-	#include <unistd.h>
-	
-	#include <netinet/in.h>
-#endif
-
+#include <netinet/in.h>
 
 namespace putki
 {
 
 	namespace liveupdate
 	{
-#if defined(USE_WINSOCK)
 
-		struct data
-		{
-			SOCKET socket;
-			CRITICAL_SECTION _cr0;
-			std::vector<std::string> _assets_updates;
-			db::data *source_db;
-		};
-
-		data* start_server(db::data *use_this_db)
-		{
-			data *d = new data();
-
-			sockaddr_in addrLocal = {};
-
-			addrLocal.sin_family = AF_INET;
-			addrLocal.sin_port = htons(6788);
-			addrLocal.sin_addr.s_addr = htonl(0x7f000001);
-
-			d->socket = socket(AF_INET, SOCK_STREAM, 0);
-			if (bind(d->socket, (sockaddr*)&addrLocal, sizeof(addrLocal)) < 0)
-			{
-				std::cerr << "Could not open listening socket" << std::endl;
-				return 0;
-			}
-
-			d->source_db = use_this_db ? use_this_db : db::create();
-			InitializeCriticalSection(&d->_cr0);
-			listen(d->socket, 16);
-
-			return d;
-		}
-
-		void enter_lock(data *lu)
-		{
-			EnterCriticalSection(&lu->_cr0);
-		}
-
-		void leave_lock(data *lu)
-		{
-			LeaveCriticalSection(&lu->_cr0);
-		}
-
-		void stop_server(data *which)
-		{
-			closesocket(which->socket);
-			delete which;
-		}
-
-		int accept(data *d)
-		{
-			sockaddr_in client;
-			int sz = sizeof(client);
-			return accept(d->socket, (sockaddr*)&client, &sz);
-		}
-
-		int read(int socket, char *buf, unsigned long sz)
-		{
-			return recv(socket, buf, (int)sz, 0);
-		}
-
-		void close(int socket)
-		{
-			closesocket(socket);
-		}
-
-#else
-		// null implementation
-		struct data {
-			int socket;
-			pthread_mutex_t mtx;
-			std::vector<std::string> _assets_updates;
-			db::data *source_db;
-		};
-
-		data* start_server(db::data *use_this_db)
+		int skt_listen(int port)
 		{
 			int s = socket(AF_INET, SOCK_STREAM, 0);
 			if (s < 0)
@@ -129,7 +47,7 @@ namespace putki
 			sockaddr_in srv;
 			srv.sin_family = AF_INET;
 			srv.sin_addr.s_addr = INADDR_ANY;
-			srv.sin_port = htons( 6788 );
+			srv.sin_port = htons(port);
 			if (bind(s, (sockaddr*)&srv, sizeof(srv)) < 0)
 			{
 				std::cerr << "Binding failed." << std::endl;
@@ -138,45 +56,35 @@ namespace putki
 			}
 
 			listen(s, 10);
-
-			data* d = new data();
-			d->socket = s;
-			d->source_db = use_this_db ? use_this_db : db::create();
-
-			pthread_mutex_init(&d->mtx, 0);
-			std::cout << "Started listening for live updates on socket " << s << std::endl;
-
-			putki::set_loglevel(LOG_WARNING);
-			return d;
+			return s;
 		}
-
-		void enter_lock(data *d)
-		{
-			pthread_mutex_lock(&d->mtx);
-		}
-
-		void leave_lock(data *d)
-		{
-			pthread_mutex_unlock(&d->mtx);
-		}
-
-		int accept(data *d)
+		
+		int skt_accept(int lp)
 		{
 			sockaddr_in client;
 			socklen_t sz = sizeof(client);
-			return accept(d->socket, (sockaddr*)&client, &sz);
+			return accept(lp, (sockaddr*)&client, &sz);
 		}
-
-		void stop_server(data *d)
+		
+		void* editor_client_thread(void *ptr)
 		{
-			close(d->socket);
-			delete d;
+			int skt = (int)ptr;
+			APP_INFO("Editor client connected on socket " << skt)
+			return 0;
 		}
-
-		void send_update(data *lu, db::data *data, const char *path) {
+		
+		void editor_listen_thread()
+		{
+			int s = skt_listen(5555);
+			while (true)
+			{
+				int ed = skt_accept(s);
+				sys::thread_create(&editor_client_thread, (void*)ed);
+			}
 		}
-#endif
+	}
 
+/*
 		struct db_merge : public db::enum_i
 		{
 			db::data *_output;
@@ -451,5 +359,6 @@ namespace putki
 		}
 
 	}
+*/
 
 }

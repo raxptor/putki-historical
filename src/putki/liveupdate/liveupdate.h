@@ -5,10 +5,14 @@ namespace putki
 	namespace liveupdate
 	{
 		struct data;
+		
+		void editor_listen_thread();
 
 		data* start_server(db::data *use_this_db);
 		int accept(data *which);
 		void stop_server(data *which);
+		
+		
 		void service_client(data *lu, const char *sourcepath, int socket);
 		void send_update(data *lu, const char *path);
 	}
