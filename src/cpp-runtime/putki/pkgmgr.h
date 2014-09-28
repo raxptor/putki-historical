@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include "types.h"
 
 namespace putki
@@ -9,9 +10,12 @@ namespace putki
 		struct loaded_package;
 		struct resolve_status;
 
+		// look at the first bytes and say if valid and how big the header is.
+		bool get_header_info(char *beg, char *end, uint32_t *total_header_size, uint32_t *total_data_size);
+
 		// parse from buffer, takes ownership.
 		// if opt_out is passed in, it will be filled with resolve stauts.
-		loaded_package * parse(char *beg, char *end, resolve_status *opt_out);
+		loaded_package * parse(char *header, char *data, resolve_status *opt_out);
 		void free_on_release(loaded_package *);
 		void release(loaded_package *);
 

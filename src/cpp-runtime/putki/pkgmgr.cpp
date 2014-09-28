@@ -10,16 +10,23 @@
 #include <vector>
 #include <cstdlib>
 #include <cstring>
+#include <cstddef>
 
 namespace putki
 {
 	namespace pkgmgr
 	{
+		static const int PKG_FLAG_PATH       = 1;
+		static const int PKG_FLAG_EXTERNAL   = 2;
+		static const int PKG_FLAG_INTERNAL   = 4;
+		static const int PKG_FLAG_UNRESOLVED = 8;
+	
 		struct package_slot
 		{
 			const char *path;
-			instance_t obj;
-			u32 type_id;
+			instance_t obj, obj_end;
+			int16_t flags, type_id;
+			int16_t file_index, file_slot_index;
 		};
 
 		struct loaded_package
@@ -106,101 +113,193 @@ namespace putki
 
 			return unresolved;
 		}
-
-		// parse from buffer
-		loaded_package * parse(char *beg, char *end, resolve_status *out)
+		
+		uint16_t parse_int16(char **src)
 		{
-			loaded_package *lp = new loaded_package;
-			lp->beg = beg;
-			lp->end = end;
+			uint16_t *ptr = (uint16_t*) *src;
+			(*src) += 2;
+			return *ptr;
+		}
+		
+		uint32_t parse_int32(char **src)
+		{
+			uint32_t *ptr = (uint32_t*) *src;
+			(*src) += 4;
+			return *ptr;
+		}
+
+		// look at the first bytes and say if valid and how big the header is.
+		bool get_header_info(char *beg, char *end, uint32_t *total_header_size, uint32_t *total_data_size)
+		{		
+			if (end - beg < 16)
+				return false;
+								
+			beg += 8; // skip header & flags
+			
+			*total_header_size = parse_int32(&beg);
+			*total_data_size = parse_int32(&beg);
+			return true;
+		}
+		
+		// parse from buffer
+		loaded_package * parse(char *header, char *data, resolve_status *out)
+		{
+			char *hdr_rp = header;
+			const int16_t max_imports = 256;
+		
+			// grab headers.
+			/* const int32_t hdr_tag = */ parse_int32(&hdr_rp);
+			/* const int32_t flags = */ parse_int32(&hdr_rp);
+			const int32_t hdr_sz = parse_int32(&hdr_rp);
+			const int32_t data_sz = parse_int32(&hdr_rp);
+			
+			const int16_t num_imports = parse_int16(&hdr_rp);
+			
+			if (num_imports > max_imports)
+			{
+				PTK_ERROR("num_imports too large! bump max_imports or fix the problem otherwise")
+				return 0;
+			}
+			
+			struct import
+			{
+				char *import_path;
+				char *remap_table;
+				uint16_t remaps_count;
+			} parsed_imports[max_imports];
+						
+			for (int16_t i=0;i!=num_imports;i++)
+			{
+				import *imp = &parsed_imports[i];
+				
+				uint16_t name_length = parse_int16(&hdr_rp);
+				imp->remaps_count = parse_int16(&hdr_rp);
+				
+				imp->import_path = hdr_rp;
+				imp->remap_table = hdr_rp + name_length;
+				
+				hdr_rp += name_length;
+				hdr_rp += 2 * imp->remaps_count;
+				
+				PTK_DEBUG("Import " << i << ", name:" << imp->import_path << " remaps:" << imp->remap_table);
+			}
+			
+			PTK_DEBUG("File has " << num_imports << " external imports, and it will be " << data_sz << " when loaded");
+			PTK_DEBUG("Throw-away header is " << hdr_sz << " bytes")
+			
+			int slot_count = parse_int16(&hdr_rp);
+			
+			loaded_package *lp = new loaded_package();
+			lp->beg = data;
+			lp->end = data + data_sz;
 			lp->should_free = false;
 			lp->unresolved = 0;
-
-			// slot entries.
-			char *ptr = beg;
-			lp->slots_size = *((u32*)ptr);
-			lp->slots = new package_slot[lp->slots_size];
-
-			ptr += 4;
-
-			// store on the stack if nothing provided.
+			lp->unresolved_size = 0;
+			lp->slots_size = slot_count;
+			lp->slots = new package_slot[slot_count];
+			
 			pkg_ptrs _out_internal;
 			pkg_ptrs &ptrs = out ? out->ptrs : _out_internal;
-
-			for (unsigned int i=0; i!=lp->slots_size; i++)
+			
+			for (int i=0;i!=slot_count;i++)
 			{
-				const u32 has_path_flag = 1 << 31;
-				const u32 type_id = (*((u32 *)ptr)) & (~has_path_flag);
-				const bool has_path = (*((u32 *)ptr) & has_path_flag) != 0;
-
-				ptr += 4;
-
-				if (has_path)
+				// path if wanted.
+				uint16_t flags = parse_int16(&hdr_rp);
+			
+				if (flags & PKG_FLAG_PATH)
 				{
-					const unsigned short pathlen = *((unsigned short *)ptr);
-					lp->slots[i].path = ptr + 2;
-					ptr += pathlen + 2;
+					uint16_t path_len = parse_int16(&hdr_rp);
+					lp->slots[i].path = strdup(hdr_rp);
+					hdr_rp += path_len;
 				}
 				else
 				{
-					lp->slots[i].path = "N/A";
+					lp->slots[i].path = "<>";
 				}
-
-				lp->slots[i].obj = (instance_t) ptr;
-				lp->slots[i].type_id = type_id;
-
-				// std::cout << "post_load_by_type(type=" << type_id << ") for path [" << lp->slots[i].path << "]" << std::endl;
-
-				char *next = post_load_by_type(type_id, &ptrs, ptr, end);
-				if (!next)
+				
+				lp->slots[i].flags = flags;
+				
+				if (flags & PKG_FLAG_EXTERNAL)
 				{
-					PTK_ERROR("failed loading blob!")
-					release(lp);
-					return 0;
+					lp->slots[i].file_index = parse_int16(&hdr_rp);
+					lp->slots[i].file_slot_index = parse_int16(&hdr_rp);
+					lp->slots[i].type_id = parse_int16(&hdr_rp);
 				}
-
-				ptr = next;
-			}
-
-			lp->unresolved_size = (*((u32 *)ptr));
-			lp->unresolved = new const char * [lp->unresolved_size];
-			ptr += 4;
-			for (unsigned int i=0; i!=lp->unresolved_size && ptr < end; i++)
-			{
-				const unsigned short pathlen = *((unsigned short *)ptr);
-				lp->unresolved[i] = ptr + 2;
-				ptr += pathlen + 2;
-			}
-
-			if (end == ptr)
-			{
-				int resolved = 0, unresolved = 0;
-				for (unsigned int i=0; i<ptrs.entries.size(); i++)
+				else if (flags & PKG_FLAG_INTERNAL)
 				{
-					if (ptrs.entries[i].index > 0 && ptrs.entries[i].index <= (int)lp->slots_size)
+					lp->slots[i].file_index = -1;
+					lp->slots[i].obj = data + (parse_int32(&hdr_rp) - hdr_sz);
+					lp->slots[i].obj_end = data + (parse_int32(&hdr_rp) - hdr_sz);
+					lp->slots[i].type_id = parse_int16(&hdr_rp);
+				}
+				else
+				{
+					if (!flags & PKG_FLAG_UNRESOLVED)
 					{
-						*(ptrs.entries[i].ptr) = lp->slots[ptrs.entries[i].index-1].obj;
-						resolved++;
+						PTK_WARNING("Flag is not set to any valid combination, changing to unresolved: " << flags);
+						lp->slots[i].flags = PKG_FLAG_UNRESOLVED;
 					}
+
+					lp->slots[i].file_index = -1;
+					lp->slots[i].obj = 0;
+					lp->slots[i].type_id = 0;
+					
+					lp->unresolved_size++;
+				}
+				
+				PTK_DEBUG("Slot " << i << " path:" << lp->slots[i].path << " file:" << lp->slots[i].file_index << " obj:" << lp->slots[i].obj << " type:" << lp->slots[i].type_id);
+			}
+			
+			// resolve objects
+			for (unsigned int i=0;i!=slot_count;i++)
+			{
+				if (lp->slots[i].obj)
+				{
+					 if (post_load_by_type(lp->slots[i].type_id, &ptrs, (char*) lp->slots[i].obj, (char*) lp->slots[i].obj_end) != lp->slots[i].obj_end)
+					 {
+						PTK_WARNING("Post load by type (" << lp->slots[i].type_id << " did not consume all data.")
+					 }
+				}
+					 
+			}
+
+			int resolved = 0, unresolved = 0;
+			for (unsigned int i=0;i<ptrs.entries.size(); i++)
+			{
+				if (ptrs.entries[i].index > 0 && ptrs.entries[i].index <= (int)lp->slots_size)
+				{
+					package_slot *slot = &lp->slots[ptrs.entries[i].index-1];
+					*(ptrs.entries[i].ptr) = slot->obj;
+					
+					if (slot->flags & PKG_FLAG_UNRESOLVED)
+						unresolved++;
 					else
-					{
-						*(ptrs.entries[i].ptr) = 0;
-						if (ptrs.entries[i].index != 0)
-						{
-
-							PTK_DEBUG("Unresolved to " << lp->unresolved[(-ptrs.entries[i].index) - 1]);
-							unresolved++;
-						}
-					}
+						resolved++;
 				}
-
-				if (unresolved) {
-					PTK_DEBUG("Package loaded with unresolved ptrs! Count:" << unresolved);
+				else
+				{
+					*(ptrs.entries[i].ptr) = 0;
 				}
 			}
-			else
+		
+			int op = 0;
+			lp->unresolved = lp->unresolved_size ? (new const char*[lp->unresolved_size]) : 0;
+			for (int i=0;i!=slot_count;i++)
 			{
-				PTK_DEBUG("Loaded with spare bytes! " << (end - ptr) <<  " bytes remaining.");
+				if (lp->slots[i].flags & PKG_FLAG_UNRESOLVED)
+				{
+					lp->unresolved[op++] = strdup(lp->slots[i].path);
+				}
+			}
+			
+			if (op != lp->unresolved_size)
+			{
+				PTK_ERROR("Unresolved calculation malfunctionin");
+			}
+			
+			if (unresolved++)
+			{
+				PTK_DEBUG("Package loaded with " << unresolved << " pointers.")
 			}
 
 			return lp;

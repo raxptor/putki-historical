@@ -35,6 +35,7 @@ namespace putki
 			type_handler_i *th;
 			instance_t obj;
 			
+			int pack_slot_index;
 			int file_index, file_slot_index;
 			unsigned int ofs_begin;
 			unsigned int ofs_end;
@@ -86,6 +87,35 @@ namespace putki
 			std::vector<preliminary> list;
 			std::vector<use_previous> previous2use;
 		};
+		
+		void compute_previous_slot_mapping(data *target, use_previous *out)
+		{
+			for (int i=0;i!=out->slots_i_want.size();i++)
+			{
+				int slot_index = out->slots_i_want[i];
+				manifest_slot & slot = out->previous->slots[slot_index];
+				
+				for (int j=0;j!=slot.deps.size();j++)
+				{
+					manifest_slot & depslot = out->previous->slots[slot.deps[j]];
+					blobmap_t::iterator m = target->blobs.find(depslot.path);
+					if (m == target->blobs.end())
+					{
+						APP_WARNING("Could not produce remapping for extdep " << depslot.path << " in package " << out->previous->file);
+						APP_WARNING("I originally wanted to pack " << slot.path << " and this was a dependency.")
+						continue;
+					}
+					out->slot_remapping[slot.deps[j]] = m->second.pack_slot_index;
+				}
+			}
+			
+			std::map<int, int>::iterator i = out->slot_remapping.begin();
+			while (i != out->slot_remapping.end())
+			{
+				APP_DEBUG("Import " << out->previous->file << " remap [" << i->first << "] => [" << i->second << "]")
+				++i;
+			}
+		}
 		
 		void add_previous_package(package::data *data, const char *basepath, const char *path)
 		{
@@ -611,6 +641,7 @@ namespace putki
 					continue;
 
 				packorder[i->first] = packlist.size();
+				i->second.pack_slot_index = packlist.size();
 				packlist.push_back(&(i->second));
 			}
 
@@ -621,188 +652,271 @@ namespace putki
 				if (packorder.find(i->first) == packorder.end())
 				{
 					packorder[i->first] = packlist.size();
+					i->second.pack_slot_index = packlist.size();
 					packlist.push_back(&(i->second));
 				}
 				++i;
 			}
 
 			data->list.clear();
+			
+			// Go through all the pointers in the object, writing slot indices (as +1 though as 0=0)
+			// where the unpacked slots end up as the last ones after the one in the packlist.
+			
 
 			// the packlist is now doomed if we manipulate with the blobmap
 			// pack all pointers so they point into the slot list.
 			pointer_rewriter pp;
 			pp.db = data->source;
 
-			// get all pointerts rewritten to be pure indices.
+			// get all pointers rewritten to be pure indices.
+			APP_DEBUG("Converting pointers into indices and finding unresolved pointers...")
 			for (unsigned int i = 0;i < packlist.size();i++)
 			{
 				if (packlist[i]->file_slot_index == -1)
 					packlist[i]->th->walk_dependencies(packlist[i]->obj, &pp, true, true);
 			}
-
-			// change pointers and add pending strings.
-
+			
 			int written = 0;
 			std::vector<std::string> unpacked;
-
 			for (unsigned int i = 0;i < pp.ptrs.size();i++)
 			{
 				const char *path = db::pathof_including_unresolved(data->source, pp.ptrs[i].value);
 				if (!path)
 				{
 					APP_ERROR("Pointer not in output db")
+					continue;
+				}
+				
+				short write = 0;
+				if (!packorder.count(path))
+				{
+					for (unsigned int i = 0;i < unpacked.size();i++)
+						if (unpacked[i] == path)
+							write = packlist.size() + i + 1;
+
+					if (!write)
+					{
+						write = packlist.size() + unpacked.size() + 1;
+						unpacked.push_back(path);
+					}
 				}
 				else
 				{
-					short write = 0;
-
-					if (!packorder.count(path))
-					{
-						for (unsigned int i = 0;i < unpacked.size();i++)
-							if (unpacked[i] == path)
-							{
-								write = -(int)i - 1;
-							}
-
-						if (!write)
-						{
-							unpacked.push_back(path);
-							write = -((int)unpacked.size());
-						}
-					}
-					else
-					{
-						write = 1 + packorder[path];
-						// std::cout << " " << path << " => slot " << write << std::endl;
-					}
-
-					// clear whole field.
-					*(pp.ptrs[i].ptr) = 0;
-					*((short*)pp.ptrs[i].ptr) = write;
-
-					++written;
+					write = 1 + packorder[path];
 				}
+
+				// clear whole field.
+				*(pp.ptrs[i].ptr) = 0;
+				*((short*)pp.ptrs[i].ptr) = write;
+
+				++written;
 			}
-
-			APP_DEBUG(" * " << packlist.size() << " blobs, " << written << " pointer writes.")
-
+		
+			APP_DEBUG("In pack list: " << packlist.size() << ", unresolved:" << unpacked.size())
+			
+			// --- Write package information
 			char *ptr = buffer;
 			char *end = buffer + available;
 
-			ptr = pack_int32_field(ptr, packlist.size());
+			// PTKP
+			const unsigned int header = 0x504B5450;
+			const unsigned int flags = 0x0;
+			
+			ptr = pack_int32_field(ptr, header);
+			ptr = pack_int32_field(ptr, flags);
+			
+			char *header_size_pos = ptr;
+			ptr = pack_int32_field(ptr, 0); // size of header
+			ptr = pack_int32_field(ptr, 0); // size of all data
+			
+			// File import list
+			ptr = pack_int16_field(ptr, data->previous2use.size());
+			for (int i=0;i!=data->previous2use.size();i++)
+			{
+				use_previous *use = &data->previous2use[i];
+				previous_pkg *prev = use->previous;
+				
+				compute_previous_slot_mapping(data, use);
 
+				const char *name = prev->file.c_str();
+				const size_t len = prev->file.size() + 1;
+				ptr = pack_int16_field(ptr, (short)len);
+				ptr = pack_int32_field(ptr, (short)use->slot_remapping.size());
+				
+				memcpy(ptr, name, len);
+				ptr += len;
+				
+				std::map<int, int>::iterator j = use->slot_remapping.begin();
+				while (j != use->slot_remapping.end())
+				{
+					ptr = pack_int32_field(ptr, (short)j->first);
+					ptr = pack_int32_field(ptr, (short)j->second);
+					j++;
+				}
+			}
+			
+			APP_DEBUG("File import list: " << (ptr - buffer) << " bytes.")
+			
+			std::vector<char*> filepospos;
+
+			// Now comes slot list, we add both packed & unpacked.
+			ptr = pack_int16_field(ptr, packlist.size() + unpacked.size());
+			for (int i=0;i!=(packlist.size() + unpacked.size());i++)
+			{
+				const int PKG_FLAG_PATH       = 1;
+				const int PKG_FLAG_EXTERNAL   = 2;
+				const int PKG_FLAG_INTERNAL   = 4;
+				const int PKG_FLAG_UNRESOLVED = 8;
+				
+				const char *path;
+				unsigned short flags = 0;
+				
+				if (i < packlist.size())
+				{
+					path = packlist[i]->path.c_str();
+			
+					if (packlist[i]->save_path)
+						flags |= PKG_FLAG_PATH;
+					if (packlist[i]->file_index != -1)
+						flags |= PKG_FLAG_EXTERNAL;
+					else
+						flags |= PKG_FLAG_INTERNAL;
+				}
+				else
+				{
+					path = unpacked[i - packlist.size()].c_str();
+					flags |= PKG_FLAG_PATH;
+					flags |= PKG_FLAG_UNRESOLVED;
+				}
+				
+				// path if wanted.
+				ptr = pack_int16_field(ptr, flags);
+				if (flags & PKG_FLAG_PATH)
+				{
+					ptr = pack_int16_field(ptr, strlen(path) + 1);
+					memcpy(ptr, path, strlen(path) + 1);
+					ptr += strlen(path) + 1;
+				}
+				
+				// we come back later to fill these in!
+				if (flags & PKG_FLAG_EXTERNAL)
+				{
+					filepospos.push_back(0);
+					ptr = pack_int16_field(ptr, packlist[i]->file_index);
+					ptr = pack_int16_field(ptr, packlist[i]->file_slot_index);
+					ptr = pack_int16_field(ptr, packlist[i]->th->id());
+				}
+				else if (flags & PKG_FLAG_INTERNAL)
+				{
+					filepospos.push_back(ptr);
+					ptr = pack_int32_field(ptr, 0);
+					ptr = pack_int32_field(ptr, 0);
+					ptr = pack_int16_field(ptr, packlist[i]->th->id());
+				}
+			}
+			
+			APP_DEBUG("Total header is " << (ptr - buffer) << " bytes.")
+			header_size_pos = pack_int32_field(header_size_pos, ptr - buffer);
+		
+			int total_loaded_data_size = 0;
+			
+			// Write actual slot content
 			for (unsigned int i = 0;i < packlist.size();i++)
 			{
-				const unsigned int has_path_flag = 1 << 31;
-				if (packlist[i]->save_path)
-				{
-					ptr = pack_int32_field(ptr, packlist[i]->th->id() | has_path_flag);
-
-					/// write string prefixed with int16 length
-					ptr = pack_int16_field(ptr, (unsigned short) packlist[i]->path.size() + 1);
-					memcpy(ptr, packlist[i]->path.c_str(), packlist[i]->path.size() + 1);
-					ptr += packlist[i]->path.size() + 1;
-				}
-				else
-				{
-					ptr = pack_int32_field(ptr, packlist[i]->th->id());
-				}
-				
 				char *start = ptr;
 				
-				if (packlist[i]->file_slot_index != -1)
-				{
-					ptr++;
-					APP_DEBUG("slot " << i << " is from file " << packlist[i]->file_slot_index << "!")
-				}
-				else
+				if (packlist[i]->file_slot_index == -1)
 				{
 					ptr = packlist[i]->th->write_into_buffer(rt, packlist[i]->obj, ptr, end);
-				}
-				
-				if (!ptr)
-				{
-					std::cout << "HELP! Wrote 0 bytes after packing " << i << " objects!" << std::endl;
-					std::cout << "  - Buffer could be too small (" << available << " bytes)" << std::endl;
-					std::cout << "  - Writer could fail because output platform not recognized" << std::endl;
-					std::cout << "Attempted to write_into_buffer on " << packlist[i]->th->name() << std::endl;
-					APP_ERROR("HELP")
-					packlist[i]->ofs_begin = 0;
-					packlist[i]->ofs_end = 0;
+					if (!ptr)
+					{
+						APP_WARNING("HELP! Wrote 0 bytes after packing " << i << " objects!")
+						APP_WARNING("  - Buffer could be too small (" << available << " bytes)")
+						APP_WARNING("  - Writer could fail because output platform not recognized")
+						APP_WARNING("Attempted to write_into_buffer on " << packlist[i]->th->name())
+						APP_ERROR("HELP")
+						packlist[i]->ofs_begin = 0;
+						packlist[i]->ofs_end = 0;
+						continue;
+					}
+					
+					packlist[i]->ofs_begin = start - buffer;
+					packlist[i]->ofs_end = ptr - buffer;
+					
+					// fill in with start & end offsets in this file.
+					char *tmp_ptr = filepospos[i];
+					tmp_ptr = pack_int32_field(tmp_ptr, start - buffer);
+					tmp_ptr = pack_int32_field(tmp_ptr, ptr - buffer);
+					total_loaded_data_size += ptr - start;
 				}
 				else
 				{
-					if (packlist[i]->file_index == -1)
-					{
-						packlist[i]->ofs_begin = start - buffer;
-						packlist[i]->ofs_end = ptr - buffer;
-					}
-					
-					build_db::record *r = 0;
-					
-					char buf[2048];
-					if (db::is_aux_path(packlist[i]->path.c_str()))
-					{
-						db::base_asset_path(packlist[i]->path.c_str(), buf, sizeof(buf));
-						r = build_db::find(build_db, buf);
-					}
-					else
-					{
-						r = build_db::find(build_db, packlist[i]->path.c_str());
-					}
-					
-					if (!r)
-					{
-						APP_ERROR("Could not grab signature for " << packlist[i]->path << "!")
-					}
+					// this comes from when it was added from external resource
+					total_loaded_data_size += (packlist[i]->ofs_end - packlist[i]->ofs_begin);
+				}
+			
+				build_db::record *r = 0;
+				
+				char buf[2048];
+				if (db::is_aux_path(packlist[i]->path.c_str()))
+				{
+					db::base_asset_path(packlist[i]->path.c_str(), buf, sizeof(buf));
+					r = build_db::find(build_db, buf);
+				}
+				else
+				{
+					r = build_db::find(build_db, packlist[i]->path.c_str());
+				}
+				
+				if (!r)
+				{
+					APP_ERROR("Could not grab signature for " << packlist[i]->path << "!")
+				}
 
-					// write manifest entry
-					manifest << "#" << i << ":" << packlist[i]->th->name() << ":" <<
-						   packlist[i]->path << ":" << build_db::get_signature(r) << ":";
+				// write manifest entry
+				manifest << "#" << i << ":" << packlist[i]->th->name() << ":" <<
+					   packlist[i]->path << ":" << build_db::get_signature(r) << ":";
+				
+				if (packlist[i]->file_slot_index == -1)
+					manifest << "!self";
+				else
+					manifest << data->previous2use[packlist[i]->file_index].previous->file;
 					
-					if (packlist[i]->file_slot_index == -1)
-						manifest << "!self";
-					else
-						manifest << data->previous2use[packlist[i]->file_index].previous->file;
-						
-					manifest << ":" << packlist[i]->ofs_begin << ":" << packlist[i]->ofs_end << "\n";
-						   
-					int p = 0;
-					while (r)
+				manifest << ":" << packlist[i]->ofs_begin << ":" << packlist[i]->ofs_end << "\n";
+					   
+				int p = 0;
+				while (r)
+				{
+					const char *ptr = build_db::get_pointer(r, p);
+					if (ptr)
 					{
-						const char *ptr = build_db::get_pointer(r, p);
-						if (ptr)
+						blobmap_t::iterator b = data->blobs.find(ptr);
+						if (b != data->blobs.end())
 						{
-							blobmap_t::iterator b = data->blobs.find(ptr);
-							if (b != data->blobs.end())
-								manifest << "p:" << packorder[ptr] << ":" << ptr << "\n";
-							else
-								manifest << "p:?:" << ptr << "\n";
-							p++;
+							manifest << "p:" << packorder[ptr] << ":" << ptr << "\n";
 						}
 						else
 						{
-							break;
+							manifest << "p:?:" << ptr << "\n";
 						}
+						p++;
+					}
+					else
+					{
+						break;
 					}
 				}
 			}
+			
+			// compute total size
+			pack_int32_field(header_size_pos, total_loaded_data_size);
 
-			// Write all the pending paths that are indexed with negative numbers for ptr references.
-			ptr = pack_int32_field(ptr, unpacked.size());
-			for (unsigned int i = 0;i < unpacked.size();i++)
-			{
-				APP_DEBUG("Writing path for unresolved asset " << unpacked[i])
-				ptr = pack_int16_field(ptr, (unsigned short) unpacked[i].size() + 1);
-				memcpy(ptr, unpacked[i].c_str(), unpacked[i].size() + 1);
-				ptr += unpacked[i].size() + 1;
-			}
-
-			// revert all the changes!
+			// Revert all the changes!
 			for (unsigned int i = 0;i < pp.ptrs.size();i++)
 				*(pp.ptrs[i].ptr) = pp.ptrs[i].value;
 
-			APP_DEBUG("Package ready: wrote " << (ptr - buffer) << " bytes.")
+			APP_DEBUG("Package ready: wrote " << (ptr - buffer) << " bytes in total.")
 
 			return ptr - buffer;
 		}
