@@ -2,7 +2,10 @@
 #define __PUTKISYS_SSTREAM_H__
 
 #include <cstdlib>
+#include <cstddef>
+#include <cstring>
 #include <string>
+
 
 namespace putki
 {

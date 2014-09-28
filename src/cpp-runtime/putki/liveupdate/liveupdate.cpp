@@ -102,7 +102,7 @@ namespace putki
 			}
 
 			s_pathid_counter++;
-			s_path2id.insert(std::make_pair<std::string, pathid_t>(path, s_pathid_counter));
+			s_path2id.insert(PathToId::value_type(path, s_pathid_counter));
 			return s_pathid_counter;
 		}
 
