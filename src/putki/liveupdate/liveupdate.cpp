@@ -736,32 +736,23 @@ namespace putki
 					long bytes = package::write(pkg, rt, buf, sz, builder::get_build_db(builder), mf);
 					
 					APP_INFO("Package is " << bytes << " bytes")
-					
-					const int piece = 65536;
-					for (int s=0;s<bytes;s+=piece)
+
+					if (send(ptr->socket, buf, bytes, 0) != bytes)
 					{
-						int amt = bytes - s;
-						if (amt > piece) amt = piece;
-						
-						fd_set ds;
-						FD_ZERO(&ds);
-						FD_SET(ptr->socket, &ds);
-						
-						// wait for read
-						select(ptr->socket+1, 0, &ds, 0, 0);
-						
-						if (send(ptr->socket, buf + s, amt, 0) != amt)
-						{
-							// broken pipe
-							APP_INFO("Failed to write all data. Aborting")
-							break;
-						}
+						// broken pipe
+						APP_INFO("Failed to write all data, socket was closed?")
+						close(ptr->socket);
+						ptr->socket = -1;
+						break;
 					}
 
 					delete [] buf;
 					
 					db::free_and_destroy_objs(output_db);
 				}
+
+				if (ptr->socket == -1)
+					break;
 			
 				for (int i=parsed;i!=readpos;i++)
 					buf[i-parsed] = buf[i];
@@ -776,6 +767,9 @@ namespace putki
 					break;
 				}
 			}
+
+			if (ptr->socket != -1)
+				close(ptr->socket);
 			
 			db::free_and_destroy_objs(input_db);
 			db::free_and_destroy_objs(tmp_db);
@@ -821,6 +815,7 @@ namespace putki
 		
 		void run_server(data *d)
 		{
+			signal(SIGPIPE, SIG_IGN);
 			sys::thread *thr0 = sys::thread_create(editor_listen_thread, d);
 			sys::thread *thr1 = sys::thread_create(client_listen_thread, d);
 			sys::thread_join(thr0);

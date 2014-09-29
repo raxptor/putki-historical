@@ -4,13 +4,21 @@
 public partial class MainWindow
 {
 	private global::Gtk.HBox hbox2;
+	
 	private global::Gtk.VBox vbox4;
+	
 	private global::Gtk.ScrolledWindow GtkScrolledWindow;
+	
 	private global::Gtk.TreeView m_fileTree;
+	
 	private global::Gtk.HBox hbox6;
+	
 	private global::Gtk.Button button7;
+	
 	private global::Gtk.Button button1;
+	
 	private global::Gtk.VBox vbox3;
+	
 	private global::Gtk.Button button3;
 
 	protected virtual void Build ()

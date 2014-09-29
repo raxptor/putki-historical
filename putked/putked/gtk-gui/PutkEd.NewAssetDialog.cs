@@ -5,9 +5,13 @@ namespace PutkEd
 	public partial class NewAssetDialog
 	{
 		private global::Gtk.VBox vbox2;
+		
 		private global::Gtk.Entry m_path;
+		
 		private global::Gtk.ComboBox m_types;
+		
 		private global::Gtk.Button buttonCancel;
+		
 		private global::Gtk.Button buttonOk;
 
 		protected virtual void Build ()

@@ -5,7 +5,9 @@ namespace PutkEd
 	public partial class NewInstanceDialog
 	{
 		private global::Gtk.ComboBox m_types;
+		
 		private global::Gtk.Button buttonCancel;
+		
 		private global::Gtk.Button buttonOk;
 
 		protected virtual void Build ()

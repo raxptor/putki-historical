@@ -5,8 +5,11 @@ namespace PutkEd
 	public partial class PointerEditor
 	{
 		private global::Gtk.HBox hbox1;
+		
 		private global::Gtk.Entry m_tbox;
+		
 		private global::Gtk.Button button132;
+		
 		private global::Gtk.Button button133;
 
 		protected virtual void Build ()

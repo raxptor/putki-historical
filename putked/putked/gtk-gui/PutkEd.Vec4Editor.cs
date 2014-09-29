@@ -5,13 +5,21 @@ namespace PutkEd
 	public partial class Vec4Editor
 	{
 		private global::Gtk.HBox hbox2;
+		
 		private global::Gtk.Label m_lX;
+		
 		private global::Gtk.Entry m_eX;
+		
 		private global::Gtk.Label m_lY;
+		
 		private global::Gtk.Entry m_eY;
+		
 		private global::Gtk.Label m_lZ;
+		
 		private global::Gtk.Entry m_eZ;
+		
 		private global::Gtk.Label m_lW;
+		
 		private global::Gtk.Entry m_eW;
 
 		protected virtual void Build ()

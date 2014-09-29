@@ -56,7 +56,7 @@ namespace putki
 	namespace liveupdate
 	{
 		enum {
-			READBUF_SIZE = 10*1024*1024
+			READBUF_SIZE = 256*1024*1024
 		};
 
 		struct data
@@ -407,7 +407,7 @@ namespace putki
 			timeval tv;
 			tv.tv_sec = 0;
 			tv.tv_usec = 0;
-			if (select(d->socket + 1, &fds, (fd_set *) 0, (fd_set *) 0, &tv))
+			while (d->connected && select(d->socket + 1, &fds, (fd_set *) 0, (fd_set *) 0, &tv))
 			{
 				int read;
 				if ((read = recv(d->socket, &d->readbuf[d->readpos], READBUF_SIZE - d->readpos, 0)) > 0)
@@ -418,6 +418,13 @@ namespace putki
 				else
 				{
 					d->connected = false;
+				}
+
+				if (d->readpos == READBUF_SIZE)
+				{
+					d->connected = false;
+					PTK_WARNING("Read buffer filled up! Must disconnect.")
+					break;
 				}
 			}
 		}

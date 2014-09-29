@@ -5,8 +5,11 @@ namespace PutkEd
 	public partial class InstancePickerDialog
 	{
 		private global::Gtk.ScrolledWindow GtkScrolledWindow;
+		
 		private global::Gtk.TreeView m_assets;
+		
 		private global::Gtk.Button buttonCancel;
+		
 		private global::Gtk.Button buttonOk;
 
 		protected virtual void Build ()

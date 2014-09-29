@@ -5,10 +5,15 @@ namespace PutkEd
 	public partial class AssetEditor
 	{
 		private global::Gtk.VBox vbox1;
+		
 		private global::Gtk.HBox hbox1;
+		
 		private global::Gtk.Button m_save;
+		
 		private global::Gtk.Label m_path;
+		
 		private global::Gtk.ScrolledWindow scrolledwindow1;
+		
 		private global::Gtk.Fixed m_propEd;
 
 		protected virtual void Build ()
