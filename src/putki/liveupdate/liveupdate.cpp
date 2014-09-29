@@ -52,7 +52,7 @@ namespace putki
 			{
 				std::cerr << "Binding failed." << std::endl;
 				close(s);
-				return 0;
+				return -1;
 			}
 
 			listen(s, 10);
@@ -322,7 +322,22 @@ namespace putki
 			data *d;
 			int socket;
 		};
-		
+
+		void clean_sessions(data *d)
+		{
+			sys::scoped_maybe_lock lk(&d->mtx);
+			for (int i=0;i<d->editors.size();i++)
+			{
+				if (!d->editors[i]->clients && d->editors[i]->finished)
+				{
+					APP_INFO("Cleaning up finished session " << d->editors[i]->name << " because no clients remain on it")
+					delete d->editors[i];
+					d->editors.erase(d->editors.begin() + i);
+					i--;
+				}
+			}
+		}
+
 		// called on the server side from network connection.
 		void editor_on_object(ed_session *session, const char *path, sstream *stream)
 		{
@@ -456,8 +471,10 @@ namespace putki
 			
 			ed->finished = true;
 			ed->ready = true;
-			
 			delete ptr;
+
+			clean_sessions(d);
+
 			return 0;
 		}
 		
@@ -469,22 +486,9 @@ namespace putki
 			data *d = ptr->d;
 			
 			// wait for session.
-			sys::scoped_maybe_lock dlk(&d->mtx);
-			if (d->editors.empty())
-			{
-				const char *wait = "wait\n";
-				send(ptr->socket, wait, strlen(wait), 0);
-				close(ptr->socket);
-				APP_DEBUG("Client told to wait on socket " << ptr->socket)
-				return 0;
-			}
-			
-			ed_session *session = d->editors.back();
-			session->clients++;
-			dlk.unlock();
-			
-			APP_INFO("Client on socket " << ptr->socket << " attached to session " << session->name << "!")
-			
+			ed_session *session = 0;
+
+			APP_INFO("Client on socket " << ptr->socket << " connected")
 			
 			builder::data *builder = 0;
 			runtime::descptr rt = 0;
@@ -502,6 +506,18 @@ namespace putki
 			char buf[4096];
 			while ((rd = read(ptr->socket, &buf[readpos], sizeof(buf)-readpos)) > 0)
 			{
+				// try to connect to session
+				if (!session)
+				{
+					sys::scoped_maybe_lock dlk(&d->mtx);
+					if (!d->editors.empty())
+					{
+						APP_INFO("Client on socket " << ptr->socket << " attached to session " << d->editors.back()->name)
+						session = d->editors.back();
+						session->clients++;
+					}
+				}
+
 				std::vector<std::string> client_requests;
 				std::vector<std::string> updated_objects;
 				
@@ -543,7 +559,7 @@ namespace putki
 							argstring.erase(0, del + 1);
 						}
 						
-						if (!strcmp(cmd.c_str(), "poll") && builder)
+						if (!strcmp(cmd.c_str(), "poll") && builder && session)
 						{
 							sys::scoped_maybe_lock lk_(&session->mtx);
 							edits_t::iterator e = session->edits.begin();
@@ -608,7 +624,7 @@ namespace putki
 							
 							if (!builder)
 							{
-								builder = builder::create(rt, sourcepath, false, args[1].c_str(), 1);
+								builder = builder::create(rt, sourcepath, false, args[1].c_str(), 3);
 								if (builder)
 								{
 									builder::enable_liveupdate_builds(builder);
@@ -768,6 +784,16 @@ namespace putki
 				}
 			}
 
+			APP_INFO("Client session ended")
+
+			if (session)
+			{
+				sys::scoped_maybe_lock dlk(&d->mtx);
+				session->clients--;
+				dlk.unlock();
+				clean_sessions(d);
+			}
+
 			if (ptr->socket != -1)
 				close(ptr->socket);
 			
@@ -781,15 +807,21 @@ namespace putki
 		
 		void* editor_listen_thread(void *arg)
 		{
+			APP_INFO("Live update: waiting for editors...");
+
 			data *d = (data *)arg;
 			int s = skt_listen(EDITOR_PORT);
 			
-			APP_INFO("Started live update service, waiting for connections.");
-			
-			while (true)
+
+			while (s != -1)
 			{
 				thr_info *inf = new thr_info();
 				inf->socket = skt_accept(s);
+				if (inf->socket <= 0)
+				{
+					delete inf;
+					break;
+				}
 				inf->d = d;
 				sys::thread_create(&editor_client_thread, inf);
 			}
@@ -798,15 +830,20 @@ namespace putki
 		
 		void* client_listen_thread(void *arg)
 		{
+			APP_INFO("Live update: waiting for clients...");
+
 			data *d = (data *)arg;
 			int s = skt_listen(CLIENT_PORT);
-			
-			APP_INFO("Started client service, waiting for connections.");
-			
-			while (true)
+
+			while (s != -1)
 			{
 				thr_info *inf = new thr_info();
 				inf->socket = skt_accept(s);
+				if (inf->socket <= 0)
+				{
+					delete inf;
+					break;
+				}
 				inf->d = d;
 				sys::thread_create(&client_thread, inf);
 			}

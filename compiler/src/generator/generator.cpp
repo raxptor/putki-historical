@@ -42,6 +42,8 @@ namespace putki
 			return "int ";
 		else if (runtime::ptr_size(rt) == 8)
 			return "long long ";
+		else if (runtime::ptr_size(rt) == 2)
+			return "short ";
 		else
 			return "<unknown ptr sub>";
 	}

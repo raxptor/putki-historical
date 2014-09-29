@@ -14,7 +14,6 @@ int run_putki_builder(int argc, char **argv)
 
 	// configure builder with app handlers.
 
-	putki::runtime::descptr rt = putki::runtime::running();
 
 	const char *single_asset = 0;
 	const char *build_config = "Default";
@@ -22,6 +21,19 @@ int run_putki_builder(int argc, char **argv)
 	bool patch = false;
 	int threads = 0;
 	bool liveupdate = false;
+
+	std::string runtime_name;
+
+#if defined(BUILDER_DEFAULT_RUNTIME)
+	#define BXSTR(x) BSTR(x)
+	#define BSTR(x) #x
+	runtime_name = BXSTR(BUILDER_DEFAULT_RUNTIME);
+	putki::runtime::descptr rt = 0;
+#else
+	putki::runtime::descptr rt = putki::runtime::running();
+#endif
+
+	// putki::runtime::get(j);
 
 	for (int i=1; i<argc; i++)
 	{
@@ -43,6 +55,11 @@ int run_putki_builder(int argc, char **argv)
 		{
 			if (i+1 < argc)
 				build_config = argv[++i];
+		}
+		else if (!strcmp(argv[i], "--platform"))
+		{
+			if (i+1 < argc)
+				runtime_name = argv[++i];
 		}
 		else if (!strcmp(argv[i], "--patch"))
 		{
@@ -93,6 +110,29 @@ int run_putki_builder(int argc, char **argv)
 			}
 		}
 	}
+
+	if (!rt || !runtime_name.empty())
+	{
+		for (int j=0;;j++)
+		{
+			putki::runtime::descptr r = putki::runtime::get(j);
+			if (!r)
+			{
+				std::cerr << "Unknown runtime " << runtime_name << std::endl;
+				return -1;
+			}
+			else
+			{
+				if (!strcmp(putki::runtime::desc_str(r), runtime_name.c_str()))
+				{
+					rt = r;
+					break;
+				}
+			}
+		}
+	}
+
+
 
 	// reload build database if incremental build
 	putki::builder::data *builder = putki::builder::create(rt, ".", !incremental, build_config, threads);

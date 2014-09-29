@@ -27,11 +27,14 @@ namespace putki
 					break;
 			}
 
-			if (rt->ptrsize == 8) {
-				strcat(buf, "64");
-			}
-			else{
-				strcat(buf, "32");
+			if (buf[0] == 'x')
+			{
+				if (rt->ptrsize == 8)
+					strcat(buf, "64");
+				else if (rt->ptrsize == 4)
+					strcat(buf, "32");
+				else if (rt->ptrsize == 2)
+					strcat(buf, "16");
 			}
 
 			return buf;
@@ -44,7 +47,8 @@ namespace putki
 			static const desc rtd[count] = {
 				{PLATFORM_64BIT,   LANGUAGE_CPP,     8,     1,     true       },
 				{PLATFORM_32BIT,   LANGUAGE_CPP,     4,     1,     true       },
-				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  4,     1,     true       }
+				// We use 16-bit pointers here!
+				{PLATFORM_CSHARP,  LANGUAGE_CSHARP,  2,     1,     true       }
 			};
 
 			if (index < count) {
