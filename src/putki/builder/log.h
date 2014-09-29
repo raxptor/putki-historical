@@ -17,6 +17,8 @@ namespace putki
 	void print_log(const char *indent, LogType level, const char *message);
 	void set_loglevel(LogType loglevel);
 	bool check_filter(LogType);
+	void set_use_ansi_color(bool enabled);
+	
 	
 	inline bool show_line(LogType lt)
 	{

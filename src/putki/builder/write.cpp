@@ -22,7 +22,7 @@ namespace putki
 			instance_t base, start;
 			type_handler_i *th;
 
-			virtual bool pointer_pre(instance_t *on)
+			virtual bool pointer_pre(instance_t *on, const char *ptr_type)
 			{
 				instance_t obj = *on;
 				if (!obj) {

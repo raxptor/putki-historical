@@ -14,7 +14,7 @@ namespace putki
 			bool follow_ptrs;
 			int check_flags;
 			
-			bool pointer_pre(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on, const char *ptr_type)
 			{
 				if (!*on) return false;
 				
@@ -67,6 +67,19 @@ namespace putki
 		dc.follow_ptrs = follow_ptrs;
 		th->walk_dependencies(obj, &dc, true);
 	}
+	
+	bool is_valid_pointer(type_handler_i *th, const char *ptr_type)
+	{
+		type_handler_i *trav = th;
+		while (trav)
+		{
+			if (!strcmp(trav->name(), ptr_type))
+				return true;
+			trav = trav->parent_type();
+		}
+		return false;
+	}
+	
 
 	namespace
 	{
@@ -74,7 +87,7 @@ namespace putki
 		{
 			db::data *db;
 
-			bool pointer_pre(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on, const char *ptr_type)
 			{
 				if (!*on) return false;
 
@@ -89,6 +102,12 @@ namespace putki
 						}
 						else
 						{
+							if (!is_valid_pointer(th, ptr_type))
+							{
+								APP_WARNING("Have pointer to " << path_unres << ", which is of type " << th->name() << " but expected object compatible with " << ptr_type << "! Zeroing pointer.")
+								*on = 0;
+							}
+					
 							return true;
 						}
 					}
@@ -122,7 +141,7 @@ namespace putki
 		{
 			db::data *db;
 
-			bool pointer_pre(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on, const char *ptr_type)
 			{
 				if (!*on) return false;
 

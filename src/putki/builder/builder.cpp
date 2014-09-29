@@ -419,7 +419,7 @@ namespace putki
 			build_db::record *record;
 			const char *name;
 
-			bool pointer_pre(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on, const char *type_name)
 			{
 				if (!*on)
 					return false;

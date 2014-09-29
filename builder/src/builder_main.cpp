@@ -78,6 +78,10 @@ int run_putki_builder(int argc, char **argv)
 		{
 			liveupdate = true;
 		}
+		else if (!strcmp(argv[i], "--no-color"))
+		{
+			putki::set_use_ansi_color(false);
+		}
 		else if (!strcmp(argv[i], "--loglevel"))
 		{
 			bool match = false;

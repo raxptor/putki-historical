@@ -34,11 +34,11 @@ namespace PutkEd
 			m_ptr_target = r.Length > 0 ? DLLLoader.MemInstance.Load(r) : null;
 			if (m_ptr_target == null)
 			{
-				m_tbox.ModifyBase(StateType.Normal, new Gdk.Color(200, 10, 10));
+				m_tbox.ModifyBase(StateType.Insensitive, new Gdk.Color(200, 10, 10));
 			}
 			else
 			{
-				m_tbox.ModifyBase(StateType.Normal);
+				m_tbox.ModifyBase(StateType.Insensitive);
 			}
 
 			m_tbox.Text = r;

@@ -35,7 +35,6 @@ namespace PutkEd
 		public void OnConnect(AssetEditor root)
 		{
 		}
-
 	}
 }
 

@@ -35,17 +35,23 @@ namespace putki
 		virtual ~depwalker_i();
 		struct visited_set;
 		visited_set *_visited;
-		bool pointer_pre_filter(instance_t *on);
+		bool pointer_pre_filter(instance_t *on, const char *ptr_type_name);
 
 		void reset_visited();
-		virtual bool pointer_pre(instance_t *on) = 0; // pre descending into pointer.
-		virtual void pointer_post(instance_t *on) = 0; // post descending into pointer.
+
+		// pre descending into pointer.
+		virtual bool pointer_pre(instance_t *on, const char *ptr_type_name) = 0;
+	
+		// after visited it.
+		virtual void pointer_post(instance_t *on) { }; // post descending into pointer.
 	};
 
 	struct type_handler_i
 	{
 		// info
 		virtual const char *name() = 0;
+		virtual type_handler_i *parent_type() = 0;
+		
 		virtual int id() = 0; // unique type id
 		virtual bool in_output() = 0;
 

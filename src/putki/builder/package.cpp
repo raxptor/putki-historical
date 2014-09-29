@@ -242,7 +242,7 @@ namespace putki
 			std::set<std::string> deps;
 			blobmap_t *already_added;
 
-			virtual bool pointer_pre(instance_t * on)
+			virtual bool pointer_pre(instance_t * on, const char *ptr_type)
 			{
 				if (!*on)
 				{
@@ -600,7 +600,7 @@ namespace putki
 			db::data *db;
 			std::vector<entry> ptrs;
 
-			bool pointer_pre(instance_t *p)
+			bool pointer_pre(instance_t *p, const char *ptr_type)
 			{
 				if (*p) // don't modify null pointer
 				{

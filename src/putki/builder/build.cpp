@@ -52,7 +52,7 @@ namespace
 			domain_switch *parent;
 			putki::instance_t source;
 
-			bool pointer_pre(putki::instance_t *on)
+			bool pointer_pre(putki::instance_t *on, const char *ptr_type)
 			{
 				// ignore nulls.
 				if (!*on) {
@@ -68,7 +68,7 @@ namespace
 					// this would mean the object exists neither in the input nor output domain.
 					if (!putki::db::pathof_including_unresolved(parent->output, *on)) 
 					{
-						APP_ERROR("!!! A wild object appears! [" << *on << "]")
+						APP_ERROR("!!! A wild object appears! [" << *on << "]. Might be a [" << ptr_type << "]")
 					}
 					return false;
 				}

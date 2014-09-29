@@ -431,7 +431,7 @@ namespace putki
 			db::data *db;
 			metadata *out;
 
-			virtual bool pointer_pre(instance_t * on)
+			virtual bool pointer_pre(instance_t * on, const char *ptr_type)
 			{
 				if (!*on) {
 					return true;

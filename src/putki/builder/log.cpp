@@ -10,7 +10,7 @@ namespace putki
 {
 	namespace
 	{
-		bool tty_out = false && isatty(1);
+		bool use_ansi_color = isatty(1);
 		LogType loglevel = LOG_INFO;
 		sys::mutex mtx;
 	}
@@ -18,6 +18,11 @@ namespace putki
 	void set_loglevel(LogType level)
 	{
 		loglevel = level;
+	}
+	
+	void set_use_ansi_color(bool enabled)
+	{
+		use_ansi_color = enabled;
 	}
 
 	bool check_filter(LogType level)
@@ -36,21 +41,21 @@ namespace putki
 
 		for (unsigned int i=0;i!=count;i++)
 		{
-			if (tty_out)
+			if (use_ansi_color)
 			{
 				buf << "\033[34m";
 			}
 
 			buf << indent;
 
-			if (tty_out)
+			if (use_ansi_color)
 			{
 				buf << "\033[0m";
 			}
 
 			buf << " => ";
 			
-			if (tty_out)
+			if (use_ansi_color)
 			{
 				switch (levels[i])
 				{
@@ -72,7 +77,7 @@ namespace putki
 			
 			buf << messages[i];
 			
-			if (tty_out)
+			if (use_ansi_color)
 			{
 				buf << "\033[0m";
 			}

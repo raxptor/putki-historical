@@ -8,6 +8,7 @@ namespace PutkEd
 {
 	public class PutkEdMain
 	{
+		public static string s_objPath, s_resPath;
 		public static Loader s_loader = null;
 		public static FileIndex s_fileIndex = null;
 		public static DLLLoader s_dataDll = null;
@@ -73,11 +74,14 @@ namespace PutkEd
 
 			s_loader = new Loader();
 
+			s_objPath = s_loader.m_configOpts["datapath"] + "/data/objs";
+			s_resPath = s_loader.m_configOpts["datapath"] + "/data/res";
+
 			s_dataDll = new DLLLoader();
 			s_dataDll.Load(s_loader.m_configOpts["datadll"], s_loader.m_configOpts["datapath"]);
 
 			s_fileIndex = new FileIndex();
-			s_fileIndex.Load(s_loader.m_configOpts["datapath"] + "/data/objs");
+			s_fileIndex.Load(s_objPath);
 
 			// -------------------------------------------------------
 			// If we made it all the way here, store the config!

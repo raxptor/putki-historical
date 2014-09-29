@@ -863,7 +863,7 @@ namespace putki
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
-					out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << "))";
+					out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", \"" << fd.ref_type << "\"))";
 					out.line() << "{";
 					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker "
 					            << (runtime ? "" : ", true ") << inkiArgs << "); }";
@@ -1028,6 +1028,13 @@ namespace putki
 			out.line();
 			out.line() << "// info";
 			out.line() << "const char *name() { return \"" << s->name << "\"; }";
+			out.line() << "type_handler_i *parent_type() { return ";
+			if (!s->parent.empty())
+				out.cont() << "get_" << s->parent << "_type_handler();";
+			else
+				out.cont() << "0;";
+			out.cont() << " }";
+			
 			out.line() << "int id() { return " << s->unique_id << "; }";
 			out.line() << "bool in_output() { return " << (s->domains & putki::DOMAIN_RUNTIME ? "true" : "false") << "; }";
 			out.line();

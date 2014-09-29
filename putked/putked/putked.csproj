@@ -82,7 +82,6 @@
     <Compile Include="FileIndex.cs" />
     <Compile Include="TypeEditor.cs" />
     <Compile Include="EditorCreator.cs" />
-    <Compile Include="gtk-gui\PutkEd.TextEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.ArrayEditor.cs" />
     <Compile Include="Looks.cs" />
     <Compile Include="EmptyClass.cs" />
@@ -112,6 +111,9 @@
     <Compile Include="EnumEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.EnumEditor.cs" />
     <Compile Include="PutkEd.cs" />
+    <Compile Include="FileEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.FileEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.TextEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

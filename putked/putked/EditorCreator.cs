@@ -14,6 +14,7 @@ namespace PutkEd
 
 			switch (fh.GetFieldType())
 			{
+				//
 				case 5:
 				{
 					string RT = fh.GetRefType();
@@ -32,6 +33,8 @@ namespace PutkEd
 
 					return new ObjectEditor();
 				}
+				case 7:
+					return new FileEditor();
 				case 3:
 					return new PointerEditor();
 				case 8:

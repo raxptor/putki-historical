@@ -220,7 +220,7 @@ namespace putki
 			DepsToLoad deps_required;
 			unsigned int unresolved_count;
 
-			bool pointer_pre(instance_t *on)
+			bool pointer_pre(instance_t *on, const char *ptr_type)
 			{
 				if (!*on)
 				{
@@ -251,13 +251,22 @@ namespace putki
 						}
 						else
 						{
+							if (!is_valid_pointer(th, ptr_type))
+							{
+								APP_WARNING("Have pointer to " << path << ", which is of type " << th->name() << " but expected object compatible with " << ptr_type << "! Zeroing pointer.")
+								*on = 0;
+							}
+
+							// can convert?
 							return true;
 						}
 					}
 				}
 
 				unresolved_count++;
-				APP_ERROR("Permanent resolve failure on path [" << path << "]")
+				APP_WARNING("Permanent resolve failure on path [" << path << "]")
+				*on = 0;
+				
 				return false;
 			}
 
@@ -323,9 +332,11 @@ namespace putki
 
 		if (!db::fetch(db, path, th, obj, false, true))
 		{
-			APP_ERROR("Failed to load object " << path)
+			APP_WARNING("Failed to load object " << path << ", it will be nothing")
 			*th = 0;
 			*obj = 0;
+			
+			db::done_loading(db, path);
 			return false;
 		}
 

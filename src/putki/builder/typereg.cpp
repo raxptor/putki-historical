@@ -1,4 +1,6 @@
 #include "typereg.h"
+#include "log.h"
+
 #include <map>
 #include <set>
 #include <vector>
@@ -44,9 +46,9 @@ namespace putki
 		delete _visited;
 	}
 
-	bool depwalker_i::pointer_pre_filter(instance_t *on)
+	bool depwalker_i::pointer_pre_filter(instance_t *on, const char *ptr_type)
 	{
-		bool ret = pointer_pre(on);
+		bool ret = pointer_pre(on, ptr_type);
 		if (ret)
 		{
 			if (!_visited)
@@ -82,6 +84,10 @@ namespace putki
 
 	type_handler_i *typereg_get_handler(int type_id)
 	{
+		if (!g_reg()->by_number[type_id])
+		{
+			APP_ERROR("Type id " << type_id << " has no handler");
+		}
 		return g_reg()->by_number[type_id];
 	}
 
@@ -95,6 +101,11 @@ namespace putki
 
 	type_handler_i *typereg_get_handler(type_t t)
 	{
+		if (!g_reg()->handlers[t])
+		{
+			APP_ERROR("Type " << t << " has no handler")
+		}
+	
 		return g_reg()->handlers[t];
 	}
 }
