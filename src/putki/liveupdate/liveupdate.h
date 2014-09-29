@@ -5,7 +5,8 @@ namespace putki
 	namespace liveupdate
 	{
 		enum {
-			EDITOR_PORT      = 5555
+			EDITOR_PORT      = 5555,
+			CLIENT_PORT	     = 5556
 		};
 	
 		struct data;

@@ -446,7 +446,13 @@ namespace putki
 				
 				if (!db::exists(data->source, addpath))
 				{
-					APP_WARNING("Trying to add [" << addpath << "] to package, but not found!")
+					APP_WARNING("Trying to add [" << addpath << "] to package, but not found in db output!")
+					
+					if (!bulkadd)
+						return;
+
+					bulkadd->erase(bulkadd->begin() + i);
+					i--;
 					continue;
 				}
 				

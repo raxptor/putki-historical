@@ -31,12 +31,11 @@ namespace putki
 
 		struct loaded_package
 		{
+			char *data;
 			bool should_free;
-			char *beg, *end;
 			package_slot *slots;
 			unsigned int slots_size;
-			const char **unresolved;
-			unsigned int unresolved_size;
+			unsigned int unresolved;
 		};
 
 		struct pkg_ptrs : public depwalker_i
@@ -94,21 +93,22 @@ namespace putki
 			for (unsigned int i=0; i<s->ptrs.entries.size(); i++)
 			{
 				pkg_ptrs::entry &e = s->ptrs.entries[i];
+				if (!e.index || (*e.ptr))
+					continue;
 
-				unsigned int path_index = (-e.index) - 1;
-				if (path_index < target->unresolved_size)
+				int slot = e.index - 1;
+				if (!target->slots[slot].obj)
 				{
-					instance_t nw = resolve(aux, target->unresolved[path_index]);
+					instance_t nw = resolve(aux, target->slots[slot].path);
 					if (nw)
 					{
 						resolved++;
 						(*e.ptr) = nw;
 					}
 				}
-
-				if (e.index < 0 && !*e.ptr) {
+				
+				if (!target->slots[slot].obj && !(*e.ptr))
 					unresolved++;
-				}
 			}
 
 			return unresolved;
@@ -190,13 +190,11 @@ namespace putki
 			int slot_count = parse_int16(&hdr_rp);
 			
 			loaded_package *lp = new loaded_package();
-			lp->beg = data;
-			lp->end = data + data_sz;
 			lp->should_free = false;
-			lp->unresolved = 0;
-			lp->unresolved_size = 0;
+			lp->data = data;
 			lp->slots_size = slot_count;
 			lp->slots = new package_slot[slot_count];
+			lp->unresolved = 0;
 			
 			pkg_ptrs _out_internal;
 			pkg_ptrs &ptrs = opt_out ? opt_out->ptrs : _out_internal;
@@ -252,8 +250,6 @@ namespace putki
 					lp->slots[i].file_index = -1;
 					lp->slots[i].obj = 0;
 					lp->slots[i].type_id = 0;
-					
-					lp->unresolved_size++;
 				}
 				
 				PTK_DEBUG("Slot " << i << " path:" << lp->slots[i].path << " file:" << lp->slots[i].file_index << " obj:" << lp->slots[i].obj << " type:" << lp->slots[i].type_id);
@@ -349,29 +345,33 @@ namespace putki
 					*(ptrs.entries[i].ptr) = 0;
 				}
 			}
-		
-			int op = 0;
-			lp->unresolved = lp->unresolved_size ? (new const char*[lp->unresolved_size]) : 0;
-			for (int i=0;i!=slot_count;i++)
+			
+			if (unresolved)
 			{
-				if (lp->slots[i].flags & PKG_FLAG_UNRESOLVED)
-				{
-					lp->unresolved[op++] = strdup(lp->slots[i].path);
-				}
+				PTK_DEBUG("Package loaded with " << unresolved << " unresolved pointers.")
 			}
 			
-			if (op != lp->unresolved_size)
-			{
-				PTK_ERROR("Unresolved calculation malfunctionin");
-			}
-			
-			if (unresolved++)
-			{
-				PTK_DEBUG("Package loaded with " << unresolved << " pointers.")
-			}
+			lp->unresolved = unresolved;
 
 			return lp;
 		}
+		
+		int num_unresolved_slots(loaded_package *lp)
+		{
+			return lp->unresolved;
+		}
+		
+		int next_unresolved_slot(loaded_package *p, int start)
+		{
+			while (start < p->slots_size)
+			{
+				if (p->slots[start].flags & PKG_FLAG_UNRESOLVED)
+					return start;
+				start++;
+			}
+			return -1;
+		}
+		
 
 		void register_for_liveupdate(loaded_package *lp)
 		{
@@ -380,19 +380,19 @@ namespace putki
 
 			for (unsigned int i=0; i!=lp->slots_size; i++)
 			{
-				if (lp->slots[i].path) {
+				if (lp->slots[i].obj && lp->slots[i].path)
 					putki::liveupdate::hookup_object(lp->slots[i].obj, lp->slots[i].path);
-				}
 			}
 		}
 
 		void release(loaded_package *lp)
 		{
-			if (lp->should_free) {
-				delete [] lp->beg;
-			}
+			if (lp->should_free)
+				delete [] lp->data;
+			
+			for (int i=0;i!=lp->slots_size;i++)
+				::free((void*)lp->slots[i].path);
 
-			delete [] lp->unresolved;
 			delete [] lp->slots;
 			delete lp;
 		}
@@ -402,25 +402,21 @@ namespace putki
 		{
 			for (unsigned int i=0; i<p->slots_size; i++)
 			{
-				if (p->slots[i].path && !strcmp(p->slots[i].path, path)) {
+				if (p->slots[i].obj && p->slots[i].path && !strcmp(p->slots[i].path, path)) {
 					return p->slots[i].obj;
 				}
 			}
 			return 0;
 		}
 
-		const char *path_in_package_slot(loaded_package *pkg, unsigned int slot)
+		const char *path_in_package_slot(loaded_package *pkg, unsigned int slot, bool only_if_content)
 		{
-			if (slot < pkg->slots_size) {
-				return pkg->slots[slot].path;
-			}
-			return 0;
-		}
+			if (slot < pkg->slots_size)
+			{
+				if (only_if_content && !pkg->slots[slot].obj)
+					return 0;
 
-		const char *unresolved_reference(loaded_package *pkg, unsigned int index)
-		{
-			if (index < pkg->unresolved_size) {
-				return pkg->unresolved[index];
+				return pkg->slots[slot].path;
 			}
 			return 0;
 		}

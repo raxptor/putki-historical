@@ -324,6 +324,7 @@ namespace putki
 
 					if (builder->liveupdates)
 					{
+						strcpy(inputsig, "<broken signature>");
 						db::signature(input, entrypath, inputsig);
 					}
 					else
@@ -537,25 +538,22 @@ namespace putki
 
 			db::data *outputdb = context->output;
 
-			if (!db::exists(outputdb, path))
+			// if it has been sucked into input (check without triggering delayed load),
+			// then a clone must be inserted
+			if (output_obj)
 			{
-				// if it has been sucked into input (check without triggering delayed load),
-				// then a clone must be inserted
-				if (output_obj)
+				// if we have the ptr already it was processed/cloned
+				db::insert(outputdb, path, th, output_obj);
+			}
+			else
+			{
+				if (!input_obj && !db::fetch(input, path, &th, &input_obj, true))
 				{
-					// if we have the ptr already it was processed/cloned
-					db::insert(outputdb, path, th, output_obj);
+					APP_ERROR("Could not fetch")
 				}
-				else
-				{
-					if (!input_obj && !db::fetch(input, path, &th, &input_obj, true))
-					{
-						APP_ERROR("Could not fetch")
-					}
 
-					output_obj = th->clone(input_obj);
-					db::insert(outputdb, path, th, output_obj);
-				}
+				output_obj = th->clone(input_obj);
+				db::insert(outputdb, path, th, output_obj);
 			}
 
 			get_aux_deps ad;
@@ -668,7 +666,7 @@ namespace putki
 					type_name = inputset::get_object_type(context->builder->tmp_input_set, item->path.c_str());
 					if (!inputset::get_object_sig(context->builder->tmp_input_set, item->path.c_str(), sig))
 					{
-						BUILD_ERROR(context->builder, "No signature");
+						BUILD_WARNING(context->builder, "No signature on " << item->path);
 						strcpy(sig, "tmp-obj-sig");
 					}
 				}
@@ -704,6 +702,7 @@ namespace putki
 						continue;
 					}
 					
+					// if from cache, data is already there. aux objs are not stored separately
 					if (!from_cache && !db::is_aux_path(cr_path_ptr))
 					{
 						RECORD_INFO(record, "Build created [" << cr_path_ptr << "]")

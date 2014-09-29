@@ -14,6 +14,7 @@
 #include <putki/builder/db.h>
 #include <putki/builder/log.h>
 #include <putki/builder/tool.h>
+#include <putki/builder/build.h>
 
 namespace putki
 {
@@ -54,6 +55,98 @@ namespace putki
 			}
 		};
 	}
+	
+
+	bool load_parsed_into_db(db::data *db, const char *path, parse::data *pd, deferred_loader *loader = 0, sys::mutex *insert_mtx = 0, bool recycle = false)
+	{
+		sys::mutex *lk_mtx = 0;
+	
+		parse::node *root = parse::get_root(pd);
+		std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
+		instance_t rootobj = 0;
+
+		type_handler_i *h = typereg_get_handler(objtype.c_str());
+		if (h)
+		{
+			type_handler_i* old_th;
+			if (recycle && db::fetch(db, path, &old_th, &rootobj))
+			{
+				if (old_th->id() != h->id())
+				{
+					APP_WARNING("Replacing object with different type..?")
+					return false;
+				}
+			}
+	
+			if (!rootobj)
+			{
+				if (recycle)
+				{
+					APP_DEBUG("recycle flag is set, but could not find old object " << path)
+				}
+				
+				rootobj = h->alloc();
+			}
+				
+			load_resolver_store_db_ref d;
+			d.objpath = path;
+			d.db = db;
+			h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
+			
+			if (insert_mtx)
+			{
+				insert_mtx->lock();
+				lk_mtx = insert_mtx;
+			}
+				
+			db::insert(db, path, h, rootobj);
+		}
+		else
+		{
+			APP_WARNING("Unrecognized type [" << objtype << "]")
+			return false;
+		}
+
+		// go grab all the auxs
+		parse::node *aux = parse::get_object_item(root, "aux");
+		if (aux)
+		{
+			for (int i=0;; i++)
+			{
+				parse::node *aux_obj = parse::get_array_item(aux, i);
+				if (!aux_obj)
+				{
+					break;
+				}
+
+				std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
+				std::string refpath = std::string(path) + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
+
+				type_handler_i *h = typereg_get_handler(objtype.c_str());
+
+				if (h)
+				{
+					instance_t obj = h->alloc();
+
+					load_resolver_store_db_ref d;
+					d.objpath = path;
+					d.db = db;
+					h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
+
+					db::start_loading(db, refpath.c_str());
+					db::insert(db, refpath.c_str(), h, obj);
+				}
+			}
+		}
+		
+		if (lk_mtx)
+		{
+			lk_mtx->unlock();
+		}
+		
+		return true;
+	}
+
 
 	// adds unresolved pointer to the db through resolve_pointer.
 	bool load_json_into_db(db::data *db, const char *fullpath, const char *name, deferred_loader *loader = 0, sys::mutex *insert_mtx = 0)
@@ -78,83 +171,42 @@ namespace putki
 			return true;
 		}
 		
-		sys::mutex *lk_mtx = 0;
-		
 		parse::data *pd = parse::parse(fullpath);
+		
 		if (!pd)
 		{
 			APP_WARNING("Failed to parse into db <" << fullpath << "> <" << name << ">")
 			return false;
 		}
-
-		parse::node *root = parse::get_root(pd);
-		std::string objtype = parse::get_value_string(parse::get_object_item(root, "type"));
-		instance_t rootobj;
-
-		type_handler_i *h = typereg_get_handler(objtype.c_str());
-		if (h)
+		
+		bool success = load_parsed_into_db(db, asset_name.c_str(), pd, loader, insert_mtx, false);
+		putki::parse::free(pd);
+		return success;
+	}
+	
+	
+	bool update_with_json(db::data *db, const char *path, char *json, int size)
+	{
+		parse::data *pd = parse::parse_json(json, size);
+		if (!pd)
 		{
-			rootobj = h->alloc();
-			load_resolver_store_db_ref d;
-			d.objpath = asset_name;
-			d.db = db;
-			h->fill_from_parsed(parse::get_object_item(root, "data"), rootobj, &d);
-			
-			if (insert_mtx)
-			{
-				insert_mtx->lock();
-				lk_mtx = insert_mtx;
-			}
-				
-			db::insert(db, asset_name.c_str(), h, rootobj);
-		}
-		else
-		{
-			APP_WARNING("Unrecognized type [" << objtype << "]")
-			putki::parse::free(pd);
 			return false;
 		}
-
-		// go grab all the auxs
-		parse::node *aux = parse::get_object_item(root, "aux");
-		if (aux)
-		{
-			for (int i=0;; i++)
-			{
-				parse::node *aux_obj = parse::get_array_item(aux, i);
-				if (!aux_obj)
-				{
-					break;
-				}
-
-				std::string objtype = parse::get_value_string(parse::get_object_item(aux_obj, "type"));
-				std::string refpath = asset_name + parse::get_value_string(parse::get_object_item(aux_obj, "ref"));
-
-				type_handler_i *h = typereg_get_handler(objtype.c_str());
-
-				if (h)
-				{
-					instance_t obj = h->alloc();
-
-					load_resolver_store_db_ref d;
-					d.objpath = asset_name;
-					d.db = db;
-					h->fill_from_parsed(parse::get_object_item(aux_obj, "data"), obj, &d);
-
-					db::start_loading(db, refpath.c_str());
-					db::insert(db, refpath.c_str(), h, obj);
-				}
-			}
-		}
 		
-		if (lk_mtx)
-		{
-			lk_mtx->unlock();
-		}
-		
+		const bool succ = load_parsed_into_db(db, path, pd, 0, 0, true);
 		putki::parse::free(pd);
-		return true;
+
+		APP_DEBUG("Json update on " << path << " success=" << succ);
+		
+		if (succ)
+		{
+			APP_DEBUG("Resolving object.")
+			build::resolve_object(db, path);
+		}
+		
+		return succ;
 	}
+	
 
 	namespace
 	{

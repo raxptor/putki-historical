@@ -33,6 +33,12 @@ namespace putki
 			std::vector<std::string> auxrefs;
 			std::string signature;
 		};
+		
+		struct alloc_entry
+		{
+			type_handler_i *th;
+			instance_t obj;
+		};
 
 		struct deferred
 		{
@@ -52,6 +58,7 @@ namespace putki
 		struct data
 		{
 			std::map<std::string, entry> objs;
+			std::vector<alloc_entry> overwritten;
 			std::map<instance_t, std::string> paths;
 			std::set<const char *> unresolved;
 			std::map<std::string, const char *> strpool;
@@ -63,6 +70,7 @@ namespace putki
 			std::set<std::string> isloading;
 			char auxpathbuf[256];
 			data *parent;
+			bool erase_on_overwrite;
 		};
 
 		db::data * create(data *parent, sys::mutex *mtx)
@@ -70,7 +78,13 @@ namespace putki
 			data *d = new data();
 			d->parent = parent;
 			d->mtx = mtx;
+			d->erase_on_overwrite = false;
 			return d;
+		}
+		
+		void enable_erase_on_overwrite(data *d)
+		{
+			d->erase_on_overwrite = true;
 		}
 
 		void register_on_destroy(data *d, on_destroy_fn fn, void *userptr)
@@ -264,7 +278,25 @@ namespace putki
 		void insert(data *d, const char *path, type_handler_i *th, instance_t i)
 		{
 			sys::scoped_maybe_lock _lk(d->mtx);
-			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj ");
+			APP_DEBUG("DB:" << d << " db insert on path [" << path << "] obj=" << i << "th=" << th);
+			//APP_DEBUG("Type:" << th->name() << " id:" << th->id())
+			
+			if (d->erase_on_overwrite)
+			{
+				std::map<std::string, entry>::iterator old = d->objs.find(path);
+				if (old != d->objs.end() && old->second.obj != i)
+				{
+					APP_DEBUG("Erasing old overwritten object..")
+					old->second.th->free(old->second.obj);
+				}
+			}
+			else
+			{
+				std::map<std::string, entry>::iterator old = d->objs.find(path);
+				if (old != d->objs.end() && old->second.obj != i)
+					APP_WARNING("Overwriting object, but I will not erase on overwrite! (" << path << ")")
+			}
+			
 			entry e;
 			e.th = th;
 			e.obj = i;

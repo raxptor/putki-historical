@@ -11,6 +11,7 @@ namespace putki
 		struct node;
 
 		data * parse(const char *full_path);
+		data * parse_json(char *json, int size);
 		void free(data *d);
 
 		node *get_root(data*);

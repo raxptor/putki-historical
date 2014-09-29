@@ -20,6 +20,7 @@ namespace putki
 
 		// parent db will be used for forwarding path lookups
 		data * create(data *parent=0, sys::mutex *mtx=0);
+		void enable_erase_on_overwrite(data *d);
 
 		void register_on_destroy(data *d, on_destroy_fn fn, void *userptr);
 		void free_and_destroy_objs(data *d);

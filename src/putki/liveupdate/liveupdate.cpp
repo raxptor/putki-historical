@@ -9,6 +9,7 @@
 #include <putki/builder/build-db.h>
 #include <putki/builder/package.h>
 #include <putki/builder/log.h>
+#include <putki/builder/parse.h>
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
 
@@ -17,6 +18,7 @@
 #include <vector>
 #include <cstdio>
 #include <map>
+#include <set>
 
 #include <pthread.h>
 #include <sys/socket.h>
@@ -80,6 +82,7 @@ namespace putki
 			sys::mutex mtx;
 			sys::condition cond;
 			
+			int clients;
 			bool finished;
 			bool ready;
 			
@@ -299,6 +302,8 @@ namespace putki
 		
 		struct data
 		{
+			sys::mutex mtx;
+			sys::condition cond;
 			std::vector<ed_session*> editors;
 		};
 		
@@ -362,7 +367,12 @@ namespace putki
 			ed->finished = false;
 			ed->ready = false;
 			ed->num_edits = 0;
+			ed->clients = 0;
+			
+			sys::scoped_maybe_lock dlk(&d->mtx);
 			d->editors.push_back(ed);
+			d->cond.broadcast();
+			dlk.unlock();
 			
 			char buf[65536];
 			
@@ -439,8 +449,6 @@ namespace putki
 					APP_INFO("Read buffer overflowed. Malfunction in communication.");
 					break;
 				}
-				
-				APP_INFO("Readpos " << readpos << " parsed:" << parsed << " scanned:" << scanned)
 			}
 			
 			APP_INFO("Editor session " << name.c_str() << " finished.")
@@ -452,6 +460,330 @@ namespace putki
 			delete ptr;
 			return 0;
 		}
+		
+		void* client_thread(void *arg)
+		{
+			const char *sourcepath = ".";
+			
+			thr_info *ptr = (thr_info *) arg;
+			data *d = ptr->d;
+			
+			// wait for session.
+			sys::scoped_maybe_lock dlk(&d->mtx);
+			if (d->editors.empty())
+			{
+				const char *wait = "wait\n";
+				send(ptr->socket, wait, strlen(wait), 0);
+				close(ptr->socket);
+				APP_DEBUG("Client told to wait on socket " << ptr->socket)
+				return 0;
+			}
+			
+			ed_session *session = d->editors.back();
+			session->clients++;
+			dlk.unlock();
+			
+			APP_INFO("Client on socket " << ptr->socket << " attached to session " << session->name << "!")
+			
+			
+			builder::data *builder = 0;
+			runtime::descptr rt = 0;
+			std::string config = "Default";
+			
+			db::data *input_db = 0, *tmp_db = 0;
+			sys::mutex in_db_mtx, out_db_mtx, tmp_db_mtx;
+			
+			//
+			std::map<std::string, int> sent;
+			
+			int rd;
+			int readpos = 0;
+			int parsed = 0, scanned = 0;
+			char buf[4096];
+			while ((rd = read(ptr->socket, &buf[readpos], sizeof(buf)-readpos)) > 0)
+			{
+				std::vector<std::string> client_requests;
+				std::vector<std::string> updated_objects;
+				
+				readpos += rd;
+				for (;scanned!=readpos;scanned++)
+				{
+					if (buf[scanned] == 0xd || buf[scanned] == 0xa)
+					{
+						buf[scanned] = 0x0;
+
+						// ignore empty lines
+						if (scanned == parsed)
+						{
+							parsed++;
+							continue;
+						}
+						
+						std::string cmd(buf + parsed, buf + scanned);
+						std::string argstring;
+
+						std::vector<std::string> args;
+						int del = cmd.find_first_of(' ');
+						if (del != std::string::npos)
+						{
+							argstring = cmd.substr(del+1, cmd.size() - del);
+							cmd = cmd.substr(0, del);
+						}
+
+						while (!argstring.empty())
+						{
+							del = argstring.find_first_of(' ');
+							if (del == std::string::npos)
+							{
+								args.push_back(argstring);
+								break;
+							}
+							
+							args.push_back(argstring.substr(0, del));
+							argstring.erase(0, del + 1);
+						}
+						
+						if (!strcmp(cmd.c_str(), "poll") && builder)
+						{
+							sys::scoped_maybe_lock lk_(&session->mtx);
+							edits_t::iterator e = session->edits.begin();
+							while (e != session->edits.end())
+							{
+								if (sent[e->first] != e->second.version)
+								{
+									type_handler_i *th;
+									instance_t obj;
+									
+									char main_object[1024];
+									if (db::base_asset_path(e->first.c_str(), main_object, sizeof(main_object)))
+									{
+										// trigger a forced load so it isn't later, with our aux object getting overwritten.
+										// if it is not loaded we would create a new object here.
+										if (!db::fetch(input_db, main_object, &th, &obj))
+										{
+											e++;
+											continue;
+										}
+									}
+									else
+									{
+										if (!db::fetch(input_db, e->first.c_str(), &th, &obj))
+										{
+											e++;
+											continue;
+										}
+									}
+			
+									char *tmp = strdup(e->second.data.c_str());
+									if (!update_with_json(input_db, e->first.c_str(), tmp, e->second.data.size()))
+									{
+										APP_WARNING("Json update failed. I am broken now and will exit");
+									}
+									::free(tmp);
+
+									sent[e->first] = e->second.version;
+									updated_objects.push_back(e->first);
+									APP_INFO("Adding to build new version [" << e->first << "]");
+								}
+								++e;
+							}
+						}
+						
+						if (!strcmp(cmd.c_str(), "build") && args.size() > 0)
+						{
+							client_requests.push_back(args[0]);
+						}
+						
+						if (!strcmp(cmd.c_str(), "init") && args.size() > 1)
+						{
+							// see what runtime it is.
+							for (int i=0;; i++)
+							{
+								runtime::descptr p = runtime::get(i);
+								if (!p) break;
+								
+								if (!strcmp(args[0].c_str(), runtime::desc_str(p)))
+									rt = p;
+							}
+							
+							if (!builder)
+							{
+								builder = builder::create(rt, sourcepath, false, args[1].c_str(), 1);
+								if (builder)
+								{
+									builder::enable_liveupdate_builds(builder);
+									APP_INFO("Client has builder " << args[0] << ":" << args[1] << ". Loading DB.")
+									input_db = db::create(0, &in_db_mtx);
+									tmp_db = db::create(input_db, &tmp_db_mtx);
+									load_tree_into_db(builder::obj_path(builder), input_db);
+									APP_DEBUG("DB loaded with " << db::size(input_db) << " entries")
+									
+									db::enable_erase_on_overwrite(tmp_db);
+								}
+							}
+						}
+						parsed = scanned + 1;
+					}
+				}
+				
+				std::set<std::string> buildset;
+
+				for (int i=0;i!=client_requests.size();i++)
+				{
+					const char *orgpath = client_requests[i].c_str();
+
+					char main_object[1024];
+					if (!db::base_asset_path(orgpath, main_object, sizeof(main_object)))
+						strcpy(main_object, orgpath);
+
+					APP_DEBUG("Client requested [" << client_requests[i] << "], for which [" << orgpath << "] will be built.");
+					buildset.insert(main_object);
+				}
+				
+				// this array will be empty till there are builders.
+				for (int k=0;k!=updated_objects.size();k++)
+				{
+					// find all objects that need a rebuild because of this update.
+					build_db::data *bdb = builder::get_build_db(builder);
+					build_db::deplist *dl = build_db::deplist_get(bdb, updated_objects[k].c_str());
+					for (int i=-1;; i++)
+					{
+						const char *path = (i == -1) ? updated_objects[k].c_str() : build_db::deplist_entry(dl, i);
+						if (!path) {
+							break;
+						}
+
+						// main object always -1
+						if (i != -1 && !strcmp(path, updated_objects[k].c_str()))
+							continue;
+					
+						type_handler_i *th;
+						instance_t obj;
+						if (db::fetch(input_db, path, &th, &obj) && !th->in_output())
+						{
+							// skip this, not in output.
+							continue;
+						}
+				
+						buildset.insert(path);
+						
+						if (!dl)
+						{
+							APP_WARNING("deplist_get(build, '" << updated_objects[k] << "') returned 0!")
+							break;
+						}
+					}
+				}
+				
+				std::set<std::string>::iterator bq = buildset.begin();
+				while (bq != buildset.end())
+				{
+					std::string tobuild = *(bq++);
+					APP_DEBUG("Building [" << tobuild << "]...")
+
+					char b[1024];
+					if (db::is_aux_path(tobuild.c_str()))
+					{
+						if (db::base_asset_path(tobuild.c_str(), b, 1024))
+						{
+							if (buildset.count(b))
+							{
+								APP_DEBUG("Main object already in set, skipping")
+								continue;
+							}
+							
+							APP_DEBUG("...actually " << b)
+							tobuild = b;
+						}
+					}
+
+					// walk up the parent chain of this and find out where we need to start to make this asset.
+					while (true)
+					{
+						if (db::exists(tmp_db, tobuild.c_str(), true) || db::exists(input_db, tobuild.c_str(), true))
+							break;
+	
+						build_db::record *rec = build_db::find(builder::get_build_db(builder), tobuild.c_str());
+						if (!rec || !build_db::get_parent(rec))
+							break;
+
+						tobuild = build_db::get_parent(rec);
+					}
+
+					// load asset into source db if missing.
+					if (!db::exists(tmp_db, tobuild.c_str(), true) && !db::exists(input_db, tobuild.c_str(), true))
+					{
+						APP_WARNING("This object cannot be built!")
+						continue;
+					}
+
+					build::resolve_object(input_db, tobuild.c_str());
+					
+					db::data *output_db = db::create(tmp_db, &out_db_mtx);
+					
+					builder::build_source_object(builder, input_db, tmp_db, output_db, tobuild.c_str());
+					build::post_build_ptr_update(input_db, output_db);
+					build::post_build_ptr_update(tmp_db, output_db);
+
+					package::data *pkg = package::create(output_db);
+					package::add(pkg, tobuild.c_str(), true);
+					
+					// monster buffer.. make bigger?
+					const unsigned int sz = 256*1024*1024;
+					char *buf = new char[sz];
+					
+					putki::sstream mf;
+					long bytes = package::write(pkg, rt, buf, sz, builder::get_build_db(builder), mf);
+					
+					APP_INFO("Package is " << bytes << " bytes")
+					
+					const int piece = 65536;
+					for (int s=0;s<bytes;s+=piece)
+					{
+						int amt = bytes - s;
+						if (amt > piece) amt = piece;
+						
+						fd_set ds;
+						FD_ZERO(&ds);
+						FD_SET(ptr->socket, &ds);
+						
+						// wait for read
+						select(ptr->socket+1, 0, &ds, 0, 0);
+						
+						if (send(ptr->socket, buf + s, amt, 0) != amt)
+						{
+							// broken pipe
+							APP_INFO("Failed to write all data. Aborting")
+							break;
+						}
+					}
+
+					delete [] buf;
+					
+					db::free_and_destroy_objs(output_db);
+				}
+			
+				for (int i=parsed;i!=readpos;i++)
+					buf[i-parsed] = buf[i];
+				
+				scanned -= parsed;
+				readpos -= parsed;
+				parsed = 0;
+				
+				if (readpos == sizeof(buf))
+				{
+					APP_INFO("Read buffer overflowed. Malfunction in communication.");
+					break;
+				}
+			}
+			
+			db::free_and_destroy_objs(input_db);
+			db::free_and_destroy_objs(tmp_db);
+	
+			delete ptr;
+			return 0;
+		}
+		
 		
 		void* editor_listen_thread(void *arg)
 		{
@@ -470,288 +802,29 @@ namespace putki
 			return 0;
 		}
 		
+		void* client_listen_thread(void *arg)
+		{
+			data *d = (data *)arg;
+			int s = skt_listen(CLIENT_PORT);
+			
+			APP_INFO("Started client service, waiting for connections.");
+			
+			while (true)
+			{
+				thr_info *inf = new thr_info();
+				inf->socket = skt_accept(s);
+				inf->d = d;
+				sys::thread_create(&client_thread, inf);
+			}
+			return 0;
+		}
+		
 		void run_server(data *d)
 		{
-			sys::thread *thr = sys::thread_create(editor_listen_thread, d);
-			sys::thread_join(thr);
+			sys::thread *thr0 = sys::thread_create(editor_listen_thread, d);
+			sys::thread *thr1 = sys::thread_create(client_listen_thread, d);
+			sys::thread_join(thr0);
+			sys::thread_join(thr1);
 		}
 	}
-
-/*
-		struct db_merge : public db::enum_i
-		{
-			db::data *_output;
-			void record(const char *path, type_handler_i *th, instance_t i)
-			{
-				db::insert(_output, path, th, i);
-			}
-		};
-
-		void send_update(data *lu, const char *path)
-		{
-			std::cout << "Registered update on " << path << "!" << std::endl;
-			enter_lock(lu);
-			lu->_assets_updates.push_back(path);
-			leave_lock(lu);
-		}
-
-		// These are all-platform stuff.
-		void service_client(data *lu, const char *sourcepath, int skt)
-		{
-			char parsebuf[4096];
-			char buf[256];
-			int bytes;
-			int parse = 0;
-
-			std::queue<std::string> lines;
-			int accepted_updates = 0;
-
-			builder::data *builder = 0;
-			runtime::descptr rt = 0;
-			std::string config = "Default";
-
-			sys::mutex db_mtx, output_db_mtx, tmp_db_mtx;
-			db::data *tmp = db::create(lu->source_db, &tmp_db_mtx);
-
-			while ((bytes = recv(skt, buf, sizeof(buf), 0)) > 0)
-			{
-				if (bytes + parse > sizeof(parsebuf)-1)
-				{
-					std::cerr << "Client filled parse buffer." << std::endl;
-					close(skt);
-					return;
-				}
-				memcpy(&parsebuf[parse], buf, bytes);
-				parse += bytes;
-
-				for (int i=0; i<parse; i++)
-				{
-					if (parsebuf[i] == 0xD || parsebuf[i] == 0xA)
-					{
-						parsebuf[i] = 0;
-						if (i > 0) {
-							lines.push(parsebuf);
-						}
-
-						const int count = i+1;
-						for (int j=0; j<(parse-count); j++)
-							parsebuf[j] = parsebuf[j+count];
-
-						parse -= count;
-						i = -1;
-						continue;
-					}
-				}
-
-				while (!lines.empty())
-				{
-					std::string cmd = lines.front();
-					std::string argstring;
-
-					std::vector<std::string> args;
-					int del = cmd.find_first_of(' ');
-					if (del != std::string::npos)
-					{
-						argstring = cmd.substr(del+1, cmd.size() - del);
-						cmd = cmd.substr(0, del);
-					}
-
-					while (!argstring.empty())
-					{
-						del = argstring.find_first_of(' ');
-						if (del == std::string::npos)
-						{
-							args.push_back(argstring);
-							break;
-						}
-						
-						args.push_back(argstring.substr(0, del));
-						argstring.erase(0, del + 1);
-					}
-
-					if (cmd != "poll")
-					{
-						std::cout << "client [" << cmd << "]";
-						if (args.size() > 0)
-							std::cout << " arg0=[" << args[0] << "]";
-						if (args.size() > 1)
-							std::cout << " arg1=[" << args[1] << "]";
-						if (args.size() > 2)
-							std::cout << " arg2=[" << args[2] << "]";
-						std::cout << std::endl;
-					}
-
-					if (cmd == "init")
-					{
-						// see what runtime it is.
-						for (int i=0;; i++)
-						{
-							runtime::descptr p = runtime::get(i);
-							if (!p) {
-								break;
-							}
-							if (!strcmp(args[0].c_str(), runtime::desc_str(p))) {
-								rt = p;
-							}
-						}
-						
-						if (args.size() > 1)
-							config = args[1];
-
-						if (!builder)
-						{
-							builder = builder::create(rt, sourcepath, false, config.c_str(), 1);
-							if (builder) {
-								builder::enable_liveupdate_builds(builder);
-								std::cout << "Created builder for client." << std::endl;
-							}
-						}
-					}
-
-					std::vector<std::string> buildforclient;
-
-					if (cmd == "poll" && builder)
-					{
-						std::set<std::string> already;
-						enter_lock(lu);
-						while (accepted_updates < (int)lu->_assets_updates.size())
-						{
-							const char *orgpath = lu->_assets_updates[accepted_updates++].c_str();
-
-							char main_object[1024];
-							if (!db::base_asset_path(orgpath, main_object, sizeof(main_object)))
-								strcpy(main_object, orgpath);
-
-							std::cout << "Client gets [" << main_object << "] (original: " << orgpath << " accepted_updates = " << accepted_updates << std::endl;
-
-							build_db::data *bdb = builder::get_build_db(builder);
-							build_db::deplist *dl = build_db::deplist_get(bdb, main_object);
-							for (int i=-1;; i++)
-							{
-								const char *path = (i == -1) ? main_object : build_db::deplist_entry(dl, i);
-								if (!path) {
-									break;
-								}
-
-								// main object always -1
-								if (i != -1 && !strcmp(path, main_object))
-									continue;
-
-								std::string path_str(path);
-								if (!already.count(path_str))
-								{
-									// need to be found in any of the output dbs.
-									buildforclient.push_back(path_str);
-									already.insert(path_str);
-								}
-								
-								if (!dl)
-								{
-									std::cout << "deplist_get(build, '" << main_object << "') returned 0!" << std::endl;
-									break;
-								}
-							}
-						}
-
-						leave_lock(lu);
-					}
-
-					if (cmd == "build" && !args.empty()) {
-						buildforclient.push_back(args[0]);
-					}
-
-					while (builder && !buildforclient.empty())
-					{
-						std::string & tobuild = buildforclient.front();
-						std::cout << " i want to build " << tobuild << std::endl;
-
-						enter_lock(lu);
-
-						char b[1024];
-						if (db::is_aux_path(tobuild.c_str()))
-						{
-							if (db::base_asset_path(tobuild.c_str(), b, 1024))
-							{
-								std::cout << "so it will be " << tobuild << std::endl;
-								tobuild = b;
-							}
-						}
-
-						//
-						while (true)
-						{
-							if (db::exists(tmp, tobuild.c_str(), true) || db::exists(lu->source_db, tobuild.c_str(), true))
-								break;
-
-							build_db::record *rec = build_db::find(builder::get_build_db(builder), tobuild.c_str());
-							if (!rec || !build_db::get_parent(rec))
-								break;
-
-
-							tobuild = build_db::get_parent(rec);
-						}
-
-
-						// load asset into source db if missing.
-						if (!db::exists(tmp, tobuild.c_str(), true) && !db::exists(lu->source_db, tobuild.c_str(), true))
-						{
-							std::cout << "Can't be built!" << std::endl;
-							leave_lock(lu);
-							buildforclient.erase(buildforclient.begin());
-							continue;
-						}
-
-						build::resolve_object(lu->source_db, tobuild.c_str());
-
-						db::data *output = db::create(tmp, &output_db_mtx);
-
-						std::cout << "Sending to client [" << tobuild << "]" << std::endl;
-
-						builder::build_source_object(builder, lu->source_db, tmp, output, tobuild.c_str());
-						build::post_build_ptr_update(lu->source_db, output);
-						build::post_build_ptr_update(tmp, output);
-
-						// should be done with this now.
-						leave_lock(lu);
-
-						package::data *pkg = package::create(output);
-						package::add(pkg, tobuild.c_str(), true);
-						putki::sstream mf;
-
-						const unsigned int sz = 10*1024*1024;
-						char *buf = new char[sz];
-						long bytes = package::write(pkg, rt, buf, sz, builder::get_build_db(builder), mf);
-
-						std::cout << "Got a package of " << bytes << " bytes for you." << std::endl;
-
-						char pkttype = 1;
-						send(skt, &pkttype, 1, 0);
-						for (int i=0; i<4; i++)
-						{
-							char sz = (bytes >> (i*8)) & 0xff;
-							send(skt, &sz, 1, 0);
-						}
-						send(skt, buf, bytes, 0);
-
-						db::free_and_destroy_objs(output);
-
-						delete [] buf;
-
-						buildforclient.erase(buildforclient.begin());
-					}
-
-					lines.pop();
-				}
-			}
-
-			if (builder) {
-				builder::free(builder);
-			}
-
-			db::free(tmp);
-		}
-
-	}
-*/
-
 }

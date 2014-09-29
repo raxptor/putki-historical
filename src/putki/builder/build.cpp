@@ -31,7 +31,7 @@
 
 namespace
 {
-	const unsigned long xbufSize = 32*1024*1024;
+	const unsigned long xbufSize = 512*1024*1024;
 	char xbuf[xbufSize];
 
 

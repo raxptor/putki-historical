@@ -33,7 +33,8 @@ namespace putki
 
 		// resolev from package.
 		instance_t resolve(loaded_package *, const char *path);
-		const char *path_in_package_slot(loaded_package *, unsigned int slot);
-		const char *unresolved_reference(loaded_package *, unsigned int index);
+		const char *path_in_package_slot(loaded_package *, unsigned int slot, bool only_if_content);
+		int num_unresolved_slots(loaded_package *);
+		int next_unresolved_slot(loaded_package *p, int start);
 	}
 }

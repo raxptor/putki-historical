@@ -196,9 +196,16 @@ namespace putki
 			::fclose(fp);
 
 			PARSE_DEBUG("Read " << rd << "bytes.." << std::endl);
-
+			
 			tmp[rd] = 0;
-
+			data *p = parse_json(tmp, rd);
+			p->alloc = tmp;
+			return p;
+		}
+			
+		
+		data * parse_json(char *json, int size)
+		{
 			jsmn_parser p;
 
 			int maxtok = 1024;
@@ -207,24 +214,24 @@ namespace putki
 			tok = new jsmntok_t[maxtok];
 
 			jsmn_init(&p);
-			int ret = jsmn_parse(&p, tmp, rd, tok, maxtok);
+			int ret = jsmn_parse(&p, json, size, tok, maxtok);
 			if (ret == JSMN_ERROR_NOMEM)
 			{
 				jsmn_init(&p);
-				ret = jsmn_parse(&p, tmp, rd, 0, 0);
+				ret = jsmn_parse(&p, json, size, 0, 0);
 				if (ret > maxtok)
 				{
 					maxtok = ret;
 					delete [] tok;
 					tok = new jsmntok_t[maxtok];
 					jsmn_init(&p);
-					ret = jsmn_parse(&p, tmp, rd, tok, maxtok);
+					ret = jsmn_parse(&p, json, size, tok, maxtok);
 				}
 			}
 			
 			if (ret <= 0)
 			{
-				APP_ERROR("Failed to parse " << full_path << " with jsmn err:" << ret);
+				APP_ERROR("Failed to parse with jsmn err:" << ret);
 				delete [] tok;
 				return 0;
 			}
@@ -232,7 +239,7 @@ namespace putki
 			if (tok[0].type != JSMN_OBJECT)
 			{
 				delete [] tok;
-				APP_ERROR("First element is not object in " << full_path);
+				APP_ERROR("First element is not object");
 				return 0;
 			}
 
@@ -262,8 +269,8 @@ namespace putki
 				current->children_left = tok[loc].size;
 
 				// chop chop!
-				current->value = &tmp[current->token->start];
-				tmp[current->token->end] = 0;
+				current->value = &json[current->token->start];
+				json[current->token->end] = 0;
 				current->length = current->token->end - current->token->start;
 
 				if (top)
@@ -311,7 +318,7 @@ namespace putki
 			delete [] tok;
 
 			pd->root = root;
-			pd->alloc = tmp;
+			pd->alloc = 0;
 			return pd;
 		}
 

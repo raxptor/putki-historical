@@ -148,7 +148,7 @@ namespace putki
 
 			sockaddr_in addrLocal = {};
 			addrLocal.sin_family = AF_INET;
-			addrLocal.sin_port = htons(6788);
+			addrLocal.sin_port = htons(5556);
 			addrLocal.sin_addr.s_addr = htonl(0x7f000001);
 			d->socket = socket(AF_INET, SOCK_STREAM, 0);
 			if (connect(d->socket, (sockaddr*)&addrLocal, sizeof(addrLocal)) < 0)
@@ -183,8 +183,8 @@ namespace putki
 
 		bool same_root(pkgmgr::loaded_package *a, pkgmgr::loaded_package *b)
 		{
-			const char *A = pkgmgr::path_in_package_slot(a, 0);
-			const char *B = pkgmgr::path_in_package_slot(b, 0);
+			const char *A = pkgmgr::path_in_package_slot(a, 0, true);
+			const char *B = pkgmgr::path_in_package_slot(b, 0, true);
 			return A && B && !strcmp(A, B);
 		}
 
@@ -200,7 +200,7 @@ namespace putki
 
 			for (unsigned int i=0;; i++)
 			{
-				const char *objpath = pkgmgr::path_in_package_slot(p->pkg, i);
+				const char *objpath = pkgmgr::path_in_package_slot(p->pkg, i, true);
 				if (objpath)
 				{
 					LIVEUPDATE_DEBUG("Object [" << objpath << "] live-updated.")
@@ -223,10 +223,10 @@ namespace putki
 			// attempt cross-resolve.
 			for(unsigned int i=0; i<d->pending.size(); i++)
 			{
-				LIVEUPDATE_DEBUG("Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0))
+				LIVEUPDATE_DEBUG("Processing package with " << pkgmgr::path_in_package_slot(d->pending[i].pkg, 0, true))
 
 				// if there are no unresolved references, send directly.
-				if (!pkgmgr::unresolved_reference(d->pending[i].pkg, 0))
+				if (!num_unresolved_slots(d->pending[i].pkg))
 				{
 					LIVEUPDATE_DEBUG(" -> No unresolved references.")
 					d->pending[i].resolved = true;
@@ -240,7 +240,7 @@ namespace putki
 							if (attempt_resolve_with_aux(d, &d->pending[i], &d->pending[j]))
 							{
 								d->pending[i].resolved = true;
-								LIVEUPDATE_DEBUG("Resolved with pending package")
+								LIVEUPDATE_DEBUG("-> Resolved with pending package")
 							}
 						}
 					}
@@ -295,21 +295,21 @@ namespace putki
 				}
 				else
 				{
-					// make requests for all unresolved assets.
-					for (unsigned int j=0;; j++)
+					int next = 0;
+					while ((next = pkgmgr::next_unresolved_slot(d->pending[i].pkg, next)) >= 0)
 					{
-						const char *ref = pkgmgr::unresolved_reference(d->pending[i].pkg, j);
-						if (!ref) {
-							break;
-						}
-
-						if (!d->askedfor.count(ref))
+						const char *ref = pkgmgr::path_in_package_slot(d->pending[i].pkg, next, false);
+						if (ref)
 						{
-							char req[1024];
-							sprintf(req, "build %s", ref);
-							command(d, req);
-							d->askedfor.insert(ref);
+							if (!d->askedfor.count(ref))
+							{
+								char req[1024];
+								sprintf(req, "build %s", ref);
+								command(d, req);
+								d->askedfor.insert(ref);
+							}
 						}
+						next++;
 					}
 				}
 			}
@@ -322,72 +322,73 @@ namespace putki
 		void on_recv(data *d)
 		{
 			// need at least this.
-			if (d->readpos < 5) {
+			if (d->readpos < 16) {
 				return;
 			}
+			
+			uint32_t hdr_size, data_size;
+			if (!pkgmgr::get_header_info(d->readbuf, d->readbuf + d->readpos, &hdr_size, &data_size))
+				return;
+				
+			if (d->readpos < hdr_size + data_size)
+				return;
+				
+			data::pkg_e pe;
+			pe.rs = pkgmgr::alloc_resolve_status();
 
-			unsigned long sz = 0;
+			char *buf = new char[data_size];
+			memcpy(buf, &d->readbuf[hdr_size], data_size);
+		
+			pe.pkg = pkgmgr::parse(d->readbuf, buf, 0, pe.rs);
+			
+			pkgmgr::free_on_release(pe.pkg);
 
-			for (int i=0; i<4; i++)
-				sz |= (((unsigned char)d->readbuf[i+1]) << 8*i);
-
-			if (d->readpos >= (sz + 5))
+			pe.resolved = false;
+			if (!pe.pkg)
 			{
-				data::pkg_e pe;
-				pe.rs = pkgmgr::alloc_resolve_status();
-
-				char *buf = new char[sz];
-				memcpy(buf, &d->readbuf[5], sz);
-
-				pe.pkg = pkgmgr::parse(buf, buf + sz, 0, pe.rs);
-				pkgmgr::free_on_release(pe.pkg);
-
-				pe.resolved = false;
-				if (!pe.pkg)
-				{
-					LIVEUPDATE_DEBUG("! Read broken package !")
-					pkgmgr::free_resolve_status(pe.rs);
-				}
-				else
-				{
-
-					for (unsigned int i=0;; i++)
-					{
-						const char *objpath = pkgmgr::path_in_package_slot(pe.pkg, i);
-						if (!objpath) {
-							break;
-						}
-						LIVEUPDATE_DEBUG(" slot[" << i << "] is [" << objpath << "]")
-					}
-
-					bool replaced = false;
-					for (unsigned int i=0; i<d->pending.size(); i++)
-					{
-						if (same_root(d->pending[i].pkg, pe.pkg))
-						{
-							pkgmgr::release(d->pending[i].pkg);
-							pkgmgr::free_resolve_status(d->pending[i].rs);
-							d->pending[i] = pe;
-							replaced = true;
-							LIVEUPDATE_DEBUG("Cleaned out package")
-						}
-					}
-
-					if (!replaced) {
-						d->pending.push_back(pe);
-					}
-
-					process_pending(d);
-				}
-
-				// peel off this package.
-				unsigned long peel = sz + 5;
-				for (unsigned long bk=0; bk<(d->readpos-peel); bk++)
-					d->readbuf[bk] = d->readbuf[bk + peel];
-				d->readpos -= peel;
-
-				on_recv(d);
+				LIVEUPDATE_DEBUG("! Read broken package !")
+				pkgmgr::free_resolve_status(pe.rs);
 			}
+			else
+			{
+
+				for (unsigned int i=0;; i++)
+				{
+					const char *objpath = pkgmgr::path_in_package_slot(pe.pkg, i, false);
+					if (!objpath) {
+						break;
+					}
+					LIVEUPDATE_DEBUG(" slot[" << i << "] is [" << objpath << "]")
+				}
+
+				bool replaced = false;
+				for (unsigned int i=0; i<d->pending.size(); i++)
+				{
+					if (same_root(d->pending[i].pkg, pe.pkg))
+					{
+						pkgmgr::release(d->pending[i].pkg);
+						pkgmgr::free_resolve_status(d->pending[i].rs);
+						d->pending[i] = pe;
+						replaced = true;
+						LIVEUPDATE_DEBUG("Cleaned out package")
+					}
+				}
+
+				if (!replaced) {
+					d->pending.push_back(pe);
+				}
+
+				process_pending(d);
+			}
+
+			// peel off this package.
+			unsigned long peel = hdr_size + data_size;
+			for (unsigned long bk=0; bk<(d->readpos-peel); bk++)
+				d->readbuf[bk] = d->readbuf[bk + peel];
+			d->readpos -= peel;
+
+			on_recv(d);
+
 		}
 
 		void update(data *d)
