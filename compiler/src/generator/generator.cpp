@@ -273,7 +273,7 @@ namespace putki
 			if (!s->parent.empty())
 			{
 				out.line() << "template<typename Target>";
-				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return this; return parent.up_cast<Target>(); }";
+				out.line() << "inline Target* up_cast() { if (" << s->unique_id << " == Target::type_id()) return (Target*)this; return parent.up_cast<Target>(); }";
 			}
 			else if (s->is_type_root)
 			{
