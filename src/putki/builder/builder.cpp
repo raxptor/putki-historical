@@ -651,7 +651,7 @@ namespace putki
 
 			// We use db::signature
 			char sig[SIG_BUF_SIZE];
-			type_handler_i *th;
+			type_handler_i *th = 0;
 			const char *type_name = 0;
 			
 			if (db::is_aux_path(item->path.c_str()))
@@ -672,8 +672,23 @@ namespace putki
 				}
 			}
 			
-			if (!type_name) BUILD_ERROR(context->builder, "I cannot build because " << item->path << " has unknown type!");	
-			th = typereg_get_handler(type_name);
+			if (!type_name)
+			{
+				// Fall back for inserted object during live update
+				if (context->builder->liveupdates)
+				{
+					// recover by getting th
+					instance_t tmp;
+					db::fetch(item->input, item->path.c_str(), &th, &tmp);
+					type_name = "live-update-insertede-object";
+				}
+				else
+				{
+					BUILD_ERROR(context->builder, "I cannot build because " << item->path << " has unknown type!");
+				}
+			}
+
+			if (!th) th = typereg_get_handler(type_name);
 			if (!th) BUILD_ERROR(context->builder, "No type handler for [" << type_name << "]");
 
 			build_db::record *record = build_db::create_record(item->path.c_str(), sig);

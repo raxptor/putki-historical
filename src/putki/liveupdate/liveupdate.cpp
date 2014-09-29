@@ -585,8 +585,7 @@ namespace putki
 									{
 										if (!db::fetch(input_db, e->first.c_str(), &th, &obj))
 										{
-											e++;
-											continue;
+											APP_INFO("Adding new object " << e->first)
 										}
 									}
 			
