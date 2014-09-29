@@ -32,8 +32,10 @@ Builder
 
 When using this system you will typically arrange your data like this
 
+```
 data/obj/<JSON files here>
 data/res/<Any other resources>
+```
 
 Then you run the data builder on this, where you specify what assets you want, and what the resulting packages will be. 
 
@@ -91,3 +93,40 @@ Patches
 
 The system also supports making incremental builds and writing patch packages, that reference already existing packages but add anything that was modified and added. 
 
+Editor and live editing
+-----------------------
+
+Putki comes with a C#/Mono based editor which lets you edit your assets. It also supports live updates, so that you can get instant feedback in your application
+when you make changes in the editor (although your application needs to be aware of what goes on).
+
+Of course, if you have build steps on your objects, these are performed onto the edited assets. So you can sit in the editor and tweak build step parameters and
+enjoy direct feedback in your application.
+
+It is also possible to write custom editor plugins for your own data types, should the built-in property editor not be enough. (For instance for level maps).
+
+This functionality is enabled or disabled with the preprocessor, so it can be stripped out from your final builds.
+
+```
+if (LIVE_UPDATE(&object_pointer))
+{
+	// object has been updated! pointer has now changed and
+	// we might want to do stuff here to handle getting new
+	// data.
+}
+
+if (LIVE_UPDATE_ISNULL(object_pointer->sub_thing))
+{
+	// here we check for null conditions that we are only
+	// ever interested in handling while doing live updates
+	return;
+}
+```
+
+Building without live updates enabled turns those expressions into permanent false.
+
+
+C# support
+----------
+
+Putki also comes with code generation for C# and a small runtime library, so you can load
+the binary packages into your C# applications as well.
