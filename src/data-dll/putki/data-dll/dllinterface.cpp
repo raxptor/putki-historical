@@ -42,6 +42,7 @@ namespace putki
 		db::data *_db;
 		sys::mutex _db_mtx;
 		std::string _path;
+		std::string _status;
 		
 		liveupdate::ed_client *_client;
 		
@@ -51,6 +52,9 @@ namespace putki
 			
 			// hax.
 			_path.append("/data/objs");
+
+			_status = "Objects at ";
+			_status.append(_path);
 			
 			_db = db::create(0, &_db_mtx);
 			_client = liveupdate::create_editor_connection();
@@ -62,6 +66,14 @@ namespace putki
 		~data_dll()
 		{
 			db::free(_db);
+		}
+
+		const char *get_status()
+		{
+			static char buf[1024];
+			sys::scoped_maybe_lock lk(&_db_mtx);
+			strcpy(buf, _status.c_str());
+			return buf;
 		}
 
 		mem_instance* create_instance(const char *path, ext_type_handler_i *eth)

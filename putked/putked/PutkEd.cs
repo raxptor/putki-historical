@@ -43,7 +43,7 @@ namespace PutkEd
 
 				if (File.Exists(configPath))
 					break;
-
+					
 				Gtk.FileChooserDialog fcd = new Gtk.FileChooserDialog("PutkEd - Choose project root", null, FileChooserAction.Open, 
 				                                                      "Cancel",ResponseType.Cancel, "Open",ResponseType.Accept);
 

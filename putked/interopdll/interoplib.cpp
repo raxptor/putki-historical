@@ -67,6 +67,11 @@ extern "C"
 		return g_loaded_dll != 0;
 	}
 
+	DSPEC const char *MED_GetStatus()
+	{
+		return g_loaded_dll->get_status();
+	}
+
 	DSPEC putki::ext_type_handler_i* MED_TypeByIndex(int i)
 	{
 		return g_loaded_dll->type_by_index(i);

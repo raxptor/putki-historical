@@ -864,7 +864,7 @@ namespace putki
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
 					if (runtime)
-						out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", ))";
+						out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << "))";
 					else
 						out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", \"" << fd.ref_type << "\"))";
 

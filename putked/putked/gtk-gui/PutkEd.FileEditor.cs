@@ -4,7 +4,11 @@ namespace PutkEd
 {
 	public partial class FileEditor
 	{
+		private global::Gtk.HBox hbox2;
+		
 		private global::Gtk.Entry m_text;
+		
+		private global::Gtk.Button m_browse;
 
 		protected virtual void Build ()
 		{
@@ -14,13 +18,31 @@ namespace PutkEd
 			this.HeightRequest = 25;
 			this.Name = "PutkEd.FileEditor";
 			// Container child PutkEd.FileEditor.Gtk.Container+ContainerChild
+			this.hbox2 = new global::Gtk.HBox ();
+			this.hbox2.Name = "hbox2";
+			this.hbox2.Spacing = 6;
+			// Container child hbox2.Gtk.Box+BoxChild
 			this.m_text = new global::Gtk.Entry ();
 			this.m_text.HeightRequest = 25;
 			this.m_text.CanFocus = true;
 			this.m_text.Name = "m_text";
 			this.m_text.IsEditable = true;
 			this.m_text.InvisibleChar = '●';
-			this.Add (this.m_text);
+			this.hbox2.Add (this.m_text);
+			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.m_text]));
+			w1.Position = 0;
+			// Container child hbox2.Gtk.Box+BoxChild
+			this.m_browse = new global::Gtk.Button ();
+			this.m_browse.CanFocus = true;
+			this.m_browse.Name = "m_browse";
+			this.m_browse.UseUnderline = true;
+			this.m_browse.Label = global::Mono.Unix.Catalog.GetString ("Browse");
+			this.hbox2.Add (this.m_browse);
+			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.m_browse]));
+			w2.Position = 1;
+			w2.Expand = false;
+			w2.Fill = false;
+			this.Add (this.hbox2);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}

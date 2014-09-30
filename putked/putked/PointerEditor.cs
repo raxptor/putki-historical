@@ -32,7 +32,7 @@ namespace PutkEd
 
 			String r = fi.GetPointer(mi);
 			m_ptr_target = r.Length > 0 ? DLLLoader.MemInstance.Load(r) : null;
-			if (m_ptr_target == null)
+			if (r.Length > 0 && m_ptr_target == null)
 			{
 				m_tbox.ModifyBase(StateType.Insensitive, new Gdk.Color(200, 10, 10));
 			}

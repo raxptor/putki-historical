@@ -10,6 +10,9 @@ namespace PutkEd
 		private static extern int MED_Initialize(string DllPath, string DataPath);
 
 		[DllImport("monoed-interop")]
+		private static extern IntPtr MED_GetStatus();
+
+		[DllImport("monoed-interop")]
 		private static extern IntPtr MED_TypeByIndex(int i);
 
 		[DllImport("monoed-interop")]
@@ -138,6 +141,11 @@ namespace PutkEd
 		private static string MSTR(IntPtr a)
 		{
 			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(a);
+		}
+			
+		public static string GetStatus()
+		{
+			return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(MED_GetStatus());
 		}
 
 		public class Types

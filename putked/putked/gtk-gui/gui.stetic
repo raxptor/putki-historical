@@ -6,7 +6,7 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="../bin/Debug/PutkEd.exe" internal="true" />
+    <widget-library name="../bin/Release/PutkEd.exe" internal="true" />
   </import>
   <widget class="Gtk.Bin" id="PutkEd.AssetEditor" design-size="850 477">
     <property name="MemberName" />
@@ -85,18 +85,6 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Bin" id="MainWindow" design-size="392 30">
-    <property name="MemberName" />
-    <property name="Visible">False</property>
-    <child>
-      <widget class="Gtk.Entry" id="m_text">
-        <property name="MemberName" />
-        <property name="CanFocus">True</property>
-        <property name="IsEditable">True</property>
-        <property name="InvisibleChar">●</property>
-      </widget>
-    </child>
-  </widget>
   <widget class="Gtk.Bin" id="PutkEd.ArrayEditor" design-size="658 96">
     <property name="MemberName" />
     <property name="Visible">False</property>
@@ -107,7 +95,7 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Window" id="MainWindow" design-size="416 472">
+  <widget class="Gtk.Window" id="MainWindow" design-size="548 472">
     <property name="MemberName" />
     <property name="Title" translatable="yes">PutkEd</property>
     <property name="WindowPosition">CenterOnParent</property>
@@ -122,19 +110,68 @@
             <property name="MemberName" />
             <property name="Spacing">6</property>
             <child>
-              <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
+              <widget class="Gtk.VBox" id="vbox2">
                 <property name="MemberName" />
-                <property name="ShadowType">In</property>
+                <property name="Spacing">6</property>
                 <child>
-                  <widget class="Gtk.TreeView" id="m_fileTree">
-                    <property name="MemberName">m_fileTree</property>
-                    <property name="CanFocus">True</property>
-                    <property name="ShowScrollbars">True</property>
-                    <property name="EnableSearch">False</property>
-                    <property name="SearchColumn">0</property>
-                    <signal name="RowActivated" handler="OnRowActivated" />
-                    <signal name="CursorChanged" handler="OnCursorChanged" />
+                  <widget class="Gtk.HBox" id="hbox1">
+                    <property name="MemberName" />
+                    <property name="Spacing">6</property>
+                    <child>
+                      <widget class="Gtk.Label" id="label1">
+                        <property name="MemberName" />
+                        <property name="HeightRequest">25</property>
+                        <property name="LabelProp" translatable="yes">Search
+</property>
+                        <property name="SingleLineMode">True</property>
+                      </widget>
+                      <packing>
+                        <property name="Position">0</property>
+                        <property name="AutoSize">True</property>
+                        <property name="Expand">False</property>
+                        <property name="Fill">False</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="Gtk.Entry" id="m_searchFilter">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
+                        <property name="IsEditable">True</property>
+                        <property name="InvisibleChar">●</property>
+                      </widget>
+                      <packing>
+                        <property name="Position">1</property>
+                        <property name="AutoSize">True</property>
+                      </packing>
+                    </child>
                   </widget>
+                  <packing>
+                    <property name="Position">0</property>
+                    <property name="AutoSize">True</property>
+                    <property name="Expand">False</property>
+                    <property name="Fill">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
+                    <property name="MemberName" />
+                    <property name="ShadowType">In</property>
+                    <child>
+                      <widget class="Gtk.TreeView" id="m_fileTree">
+                        <property name="MemberName">m_fileTree</property>
+                        <property name="CanFocus">True</property>
+                        <property name="ShowScrollbars">True</property>
+                        <property name="EnableSearch">False</property>
+                        <property name="SearchColumn">0</property>
+                        <signal name="RowActivated" handler="OnRowActivated" />
+                        <signal name="CursorChanged" handler="OnCursorChanged" />
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="Position">1</property>
+                    <property name="AutoSize">True</property>
+                  </packing>
                 </child>
               </widget>
               <packing>
@@ -182,7 +219,19 @@
                   <placeholder />
                 </child>
                 <child>
-                  <placeholder />
+                  <widget class="Gtk.Label" id="m_statusText">
+                    <property name="MemberName" />
+                    <property name="LabelProp" translatable="yes">label2</property>
+                    <property name="Justify">Right</property>
+                    <property name="SingleLineMode">True</property>
+                  </widget>
+                  <packing>
+                    <property name="PackType">End</property>
+                    <property name="Position">3</property>
+                    <property name="AutoSize">True</property>
+                    <property name="Expand">False</property>
+                    <property name="Fill">False</property>
+                  </packing>
                 </child>
               </widget>
               <packing>
@@ -696,12 +745,40 @@
     <property name="HeightRequest">25</property>
     <property name="Visible">False</property>
     <child>
-      <widget class="Gtk.Entry" id="m_text">
+      <widget class="Gtk.HBox" id="hbox2">
         <property name="MemberName" />
-        <property name="HeightRequest">25</property>
-        <property name="CanFocus">True</property>
-        <property name="IsEditable">True</property>
-        <property name="InvisibleChar">●</property>
+        <property name="Spacing">6</property>
+        <child>
+          <widget class="Gtk.Entry" id="m_text">
+            <property name="MemberName" />
+            <property name="HeightRequest">25</property>
+            <property name="CanFocus">True</property>
+            <property name="IsEditable">True</property>
+            <property name="InvisibleChar">●</property>
+          </widget>
+          <packing>
+            <property name="Position">0</property>
+            <property name="AutoSize">True</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="Gtk.Button" id="m_browse">
+            <property name="MemberName" />
+            <property name="CanFocus">True</property>
+            <property name="Type">TextOnly</property>
+            <property name="Label" translatable="yes">Browse</property>
+            <property name="UseUnderline">True</property>
+          </widget>
+          <packing>
+            <property name="Position">1</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder />
+        </child>
       </widget>
     </child>
   </widget>
