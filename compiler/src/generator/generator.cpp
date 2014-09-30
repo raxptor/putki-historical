@@ -863,7 +863,11 @@ namespace putki
 				}
 				else if (fd.type == putki::FIELDTYPE_POINTER)
 				{
-					out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", \"" << fd.ref_type << "\"))";
+					if (runtime)
+						out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", ))";
+					else
+						out.line() << "if (walker->pointer_pre_filter((putki::instance_t *)&" << ref << ", \"" << fd.ref_type << "\"))";
+
 					out.line() << "{";
 					out.line(1) << "if (" << ref << ") { " << levelCheck << " walk_dependencies_" << fd.ref_type << "(" << ref << ", walker "
 					            << (runtime ? "" : ", true ") << inkiArgs << "); }";
