@@ -30,11 +30,11 @@ namespace Putki
 			try
 			{
 				m_loader = loader;
-				m_client = new TcpClient(host, 6788);
+				m_client = new TcpClient(host, 5556);
 				if (m_client.Connected)
 				{
 					m_writer = new StreamWriter(m_client.GetStream());
-					m_writer.WriteLine("init csharp32\n");
+					m_writer.WriteLine("init csharp Unity\n");
 					m_writer.Flush();
 				}
 			}
@@ -136,26 +136,32 @@ namespace Putki
 
 		public void Process()
 		{
-			if (m_bufferPos < 5)
+			if (m_bufferPos < 16)
 				return;
 
 			// - forgot the point of this.
 			// byte pkt_type = m_buffer[0];
 
-			int sz = 0;
+			int sz0 = 0, sz1 = 0;
 			for (int i = 0; i < 4; i++)
-				sz |= (((byte)m_buffer[i + 1]) << 8 * i);
+				sz0 |= (((byte)m_buffer[8 + i]) << 8 * i);
 
-			byte[] ut = new byte[sz];
-			for (int i = 0; i < sz; i++)
-				ut[i] = m_buffer[5 + i];
+			for (int i = 0; i < 4; i++)
+				sz1 |= (((byte)m_buffer[12 + i]) << 8 * i);
+
+			if (m_bufferPos < (sz0 + sz1))
+				return;
+				
+			byte[] ut =new byte[sz0+sz1];
+			for (int i=0;i<(sz0+sz1);i++)
+				ut[i] = m_buffer[i];
 
 			PkgE p = new PkgE();
 			p.resolved = false;
 			p.package = Putki.PackageManager.LoadFromBytes(ut, m_loader);
 			m_pending.Add(p);
 
-			int peel = sz + 5;
+			int peel = sz0 + sz1;
 			for (int bk = 0; bk < m_bufferPos - peel; bk++)
 				m_buffer[bk] = m_buffer[bk + peel];
 
