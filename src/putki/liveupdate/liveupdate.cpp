@@ -24,7 +24,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
+#include <signal.h>
 #include <netinet/in.h>
 
 namespace putki

@@ -77,6 +77,8 @@ namespace putki
 				return;
 			}
 
+			sys::scoped_maybe_lock lk(&d->mtx);
+
 			asset_name = asset_name.substr(0, p);
 			ObjMap::iterator i = d->objs.find(asset_name);
 			if (i == d->objs.end())
@@ -86,9 +88,9 @@ namespace putki
 				tmp.path = name;
 				tmp.info.size = 0;
 				tmp.info.mtime = 0;
+				
 				d->objs.insert(std::make_pair(asset_name, tmp));
 				d->has_changes = true;
-				i = d->objs.find(asset_name);
 			}
 
 			o_record & record = i->second;
@@ -188,6 +190,8 @@ namespace putki
 			
 			if (name[0] == '.')
 				return;
+
+			sys::scoped_maybe_lock lk(&d->mtx);
 
 			// parse
 			ResMap::iterator i = d->res.find(name);
