@@ -42,7 +42,7 @@ int run_putki_builder(int argc, char **argv)
 			static putki::runtime::desc r;
 			r.platform = putki::runtime::PLATFORM_CSHARP;
 			r.language = putki::runtime::LANGUAGE_CSHARP;
-			r.ptrsize = 4;
+			r.ptrsize = 2;
 			r.low_byte_first = true;
 			rt = &r;
 		}

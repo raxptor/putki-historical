@@ -91,6 +91,8 @@ namespace putki
 				
 				d->objs.insert(std::make_pair(asset_name, tmp));
 				d->has_changes = true;
+				
+				i = d->objs.find(asset_name);
 			}
 
 			o_record & record = i->second;

@@ -43,7 +43,7 @@ namespace putki
 			case FIELDTYPE_BYTE:
 				return "1";
 			case FIELDTYPE_POINTER:
-				return "4";
+				return "2";
 			case FIELDTYPE_BOOL:
 				return "1";
 			case FIELDTYPE_STRUCT_INSTANCE:
@@ -116,7 +116,7 @@ namespace putki
 					continue;
 
 				if (s->fields[i].is_array)
-					size += 8; // ptr & count
+					size += 6; // ptr & count
 				else
 					switch (s->fields[i].type)
 					{
@@ -128,19 +128,18 @@ namespace putki
 						case FIELDTYPE_BYTE:
 							size++;
 							break;
+						case FIELDTYPE_STRING: // these are pointers in the normal runtime!
 						case FIELDTYPE_POINTER:
-							size += 4;
+							size += 2;
 							break;
 						case FIELDTYPE_BOOL:
 							size += 1;
 							break;
 						case FIELDTYPE_STRUCT_INSTANCE:
-							size += 0;
 							expr_size_add.append(" + " + s->fields[i].ref_type + ".SIZE");
 							break;
 						case FIELDTYPE_PATH:
 						case FIELDTYPE_FILE:
-						case FIELDTYPE_STRING:
 							size += 4;
 							break;
 					}
@@ -210,7 +209,7 @@ namespace putki
 					out.line() << "// array reader";
 					out.line() << "{";
 					out.indent(1);
-					out.line() << "reader.ReadInt32(); // where the pointer would go in c++";
+					out.line() << "reader.ReadInt16(); // where the pointer would go in c++";
 					out.line() << "int count = reader.ReadInt32();";
 					if (s->fields[i].type == FIELDTYPE_POINTER)
 						out.line() << ptr_slot_ref << " = new int[count];";
@@ -246,8 +245,6 @@ namespace putki
 						break;
 					case FIELDTYPE_POINTER:
 						out.line() << ptr_slot_ref << " = (short) " << content_reader << ".ReadInt16();";
-						out.line() << content_reader << ".ReadInt16(); // throw away since ptr refs are 16-bit";
-						//out.cont() << f->ref_type;
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.line() << field_ref << " = " << s->fields[i].ref_type << ".LoadFromPackage(" << content_reader << ", aux);";
@@ -256,7 +253,7 @@ namespace putki
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_PATH:
 					{
-						out.line() << field_ref << " = aux.ReadString(" << content_reader << ".ReadInt32());";
+						out.line() << field_ref << " = aux.ReadString(" << content_reader << ".ReadInt16());";
 					}
 					break;
 				}
