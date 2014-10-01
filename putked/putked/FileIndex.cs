@@ -103,6 +103,10 @@ namespace PutkEd
 					e.Info = li;
 					e.DisplayType = mi.GetTypeName();
 				}
+				else
+				{
+					e.DisplayType = "unknown!";
+				}
 
 				m_assets.Add(e);
 				// Console.WriteLine("[" + e.FilePath + "] contains [" + e.AssetName + "]");

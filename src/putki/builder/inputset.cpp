@@ -1,4 +1,5 @@
 #include "inputset.h"
+#include "tok.h"
 
 #include <putki/sys/files.h>
 #include <putki/builder/source.h>
@@ -6,6 +7,7 @@
 #include <putki/builder/write.h>
 #include <putki/builder/log.h>
 #include <putki/sys/thread.h>
+
 
 #include <fstream>
 #include <string>
@@ -245,20 +247,20 @@ namespace putki
 
 		void load_directory(data *d)
 		{
-			std::ifstream f(d->dbfile.c_str());
-			while (f.good() && !f.eof())
+			tok::data *tk = tok::load(d->dbfile.c_str());
+			if (!tk) return;
+			
+			tok::tokenize_newlines(tk);
+				
+			int index = 0;
+			while (true)
 			{
-				std::string line;
-				std::getline(f, line);
-				if (f.eof())
-				{
+				const char *ln = tok::get(tk, index++);
+				if (!ln)
 					break;
-				}
-				if (line.empty())
-				{
-					continue;
-				}
-
+					
+				std::string line(ln);
+				
 				int spl[64], spls = 0;
 				for (int i = 0;i < line.size();i++)
 				{
@@ -293,6 +295,9 @@ namespace putki
 					}
 				}
 			}
+			
+			// cleanup
+			if (tk) tok::free(tk);
 		}
 
 		void write(data *d)

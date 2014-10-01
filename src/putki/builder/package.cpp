@@ -1,4 +1,5 @@
 #include "package.h"
+#include "tok.h"
 
 #include <putki/builder/typereg.h>
 #include <putki/builder/db.h>
@@ -133,9 +134,8 @@ namespace putki
 			real_path.append(path);
 			
 			APP_DEBUG("Loading previous package " << path << " (" << real_path << ")");
-			
+	
 			std::string manifest_name = (real_path + ".manifest");
-			std::ifstream mf(manifest_name.c_str());
 
 			previous_pkg tmppkg;
 			data->previous.insert(previous_t::value_type(path, tmppkg));
@@ -145,13 +145,23 @@ namespace putki
 			manifest_slot *slot = 0;
 			
 			pkg->file = path;
-			
-			while (mf.good())
+
+			tok::data *mf = tok::load(manifest_name.c_str());
+			if (mf)
 			{
-				std::string line;
-				std::getline(mf, line);
-				if (line.empty())
-					continue;
+				tok::tokenize_newlines(mf);
+				// educated guess
+				pkg->slots.reserve(tok::size(mf) / 2 + 10);
+			}
+
+			int index = 0;
+			while (mf)
+			{
+				const char *ln = tok::get(mf, index++);
+				if (!ln)
+					break;
+					
+				std::string line(ln);
 					
 				if (line[0] == 'p')
 				{
@@ -232,6 +242,7 @@ namespace putki
 			for (int i=0;i<pkg->slots.size();i++)
 				pkg->path_to_slot[pkg->slots[i].path] = i;
 
+			tok::free(mf);
 			APP_DEBUG("Loaded previous package with " << pkg->slots.size() << " slots!")
 		}
 		
