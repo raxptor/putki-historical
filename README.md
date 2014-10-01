@@ -1,5 +1,7 @@
-putki
+Putki
 =====
+
+![Putki](misc/putkico-5.png)
 
 Putki - Generic data system with C++ and C# support, with Mono/GTK-based editor too.
 
