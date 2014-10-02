@@ -35,43 +35,12 @@ namespace putki
 		return 0;
 	}
 
-	bool need_swap()
-	{
-		char b[] = {1, 0};
-		return *reinterpret_cast<short*>(b) != 1;
-	}
-
-	void prep_int16_field(char *where)
-	{
-		if (need_swap())
-		{
-			char tmp = where[0];
-			where[0] = where[1];
-			where[1] = tmp;
-		}
-	}
-
-	void prep_int32_field(char *where)
-	{
-		if (need_swap())
-		{
-			char tmp = where[0];
-			where[0] = where[3];
-			where[3] = tmp;
-
-			tmp = where[1];
-			where[1] = where[2];
-			where[2] = tmp;
-		}
-	}
-
 	char* post_blob_load_string(const char **string, char *aux_beg, char *aux_end)
 	{
 		if (!aux_beg) {
 			return 0;
 		}
 
-		prep_int32_field((char*) string);
 		unsigned int *lptr = (unsigned int*) string;
 		unsigned int len = *lptr;
 

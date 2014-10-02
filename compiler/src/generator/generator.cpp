@@ -298,9 +298,6 @@ namespace putki
 			out.line();
 			out.line() << "} // namespace outki";
 			out.line();
-
-			if (rt)
-				out.line() << "char *write_" << s->name << "_aux(inki::" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);";
 		}
 
 		if (!rt)
@@ -332,11 +329,27 @@ namespace putki
 			out.line() << "{";
 			out.indent(1);
 
+			if (s->is_type_root)
+				out.line() << "d->rtti_type_ref() = " << s->name << "::type_id();";
+
 			for (size_t j=0; j<s->fields.size(); j++)
 			{
 				putki::parsed_field *f = &s->fields[j];
 				if (!(f->domains & putki::DOMAIN_RUNTIME))
 					continue;
+
+				bool needs_loop = false;
+				switch (s->fields[j].type)
+				{
+					// field types which might need fixup
+					case FIELDTYPE_STRUCT_INSTANCE:
+					case FIELDTYPE_PATH:
+					case FIELDTYPE_STRING:
+						needs_loop = true;
+						break;
+					default:
+						break;
+				}
 
 				std::string fref = std::string("d->") + s->fields[j].name;
 
@@ -358,10 +371,13 @@ namespace putki
 						out.line() << "aux_cur += sizeof(" << win32_field_type(s->fields[j].type) << ") * d->" << s->fields[j].name << "_size;";
 					}
 
-					out.line() << "if (aux_cur > aux_end) return 0; ";
-					out.line() << "for (unsigned int i=0;i<d->" << s->fields[j].name + "_size;i++)";
-					out.line() << "{";
-					out.indent(1);
+					if (needs_loop)
+					{
+						out.line() << "if (aux_cur > aux_end) return 0; ";
+						out.line() << "for (unsigned int i=0;i<d->" << s->fields[j].name + "_size;i++)";
+						out.line() << "{";
+						out.indent(1);
+					}
 					fref = fref + "[i]";
 				}
 
@@ -369,9 +385,8 @@ namespace putki
 				{
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.line() << "aux_cur = outki::post_blob_load_" << s->fields[j].ref_type << "(&" << fref << ", aux_cur, aux_end);";
-						break;
-					case FIELDTYPE_INT32:
-						out.line() << "putki::prep_int32_field((char*)&" << fref <<  ");";
+						if (!strcmp(s->fields[j].name.c_str(), "parent"))
+							out.line() << "d->rtti_type_ref() = " << s->name << "::type_id();";
 						break;
 					case FIELDTYPE_PATH:
 					case FIELDTYPE_STRING:
@@ -381,17 +396,14 @@ namespace putki
 						break;
 				}
 
-				if (s->fields[j].is_array)
+				if (s->fields[j].is_array && needs_loop)
 				{
 					out.indent(-1);
 					out.line() << "}";
 				}
 			}
 
-			if (s->is_type_root || !s->parent.empty())
-				out.line() << "d->rtti_type_ref() = " << s->name << "::type_id(); // update type" << std::endl;
 
-			out.line();
 			out.line() << "return aux_cur;";
 			out.indent(-1);
 			out.line() << "}";
