@@ -32,24 +32,34 @@ namespace putki
 	}
 	
 	// buffer must be at least 128 bytes
-	void format_package_path(const char *name, char *outbuf)
+	const char* format_package_path(const char *name, char *outbuf)
 	{
+#ifdef PUTKI_NO_RT_PATH_PREFIX
+		return outbuf;
+#else
 		char tmp[128];
 		sprintf(tmp, "%s-%s", runtime::desc_str(), build_config);
 		for (int i=0;i<127;i++)
 			tmp[i] = ::tolower(tmp[i]);
 		
 		sprintf(outbuf, "%s/%s/packages/%s", output_path, tmp, name);
+		return outbuf;
+#endif
 	}
 
-	void format_file_path(const char *name, char *outbuf)
+	const char* format_file_path(const char *name, char *outbuf)
 	{
+#ifdef PUTKI_NO_RT_PATH_PREFIX
+		return outbuf;
+#else
 		char tmp[128];
 		sprintf(tmp, "%s-%s", runtime::desc_str(), build_config);
 		for (int i=0;i<127;i++)
 			tmp[i] = ::tolower(tmp[i]);
 
 		sprintf(outbuf, "%s/%s/%s", output_path, tmp, name);
+		return outbuf;
+#endif
 	}
 
 }
