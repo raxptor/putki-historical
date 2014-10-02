@@ -1157,7 +1157,7 @@ namespace putki
 				}
 
 				if (fd.type == FIELDTYPE_STRING || fd.type == FIELDTYPE_PATH)
-					out.line() << "out_beg = putki::pack_string_field((char*) &" << outd << ", " << srcd << ".c_str(), out_beg, out_end);";
+					out.line() << "out_beg = putki::pack_string_field(" << rt->ptrsize << ", (char*) &" << outd << ", " << srcd << ".c_str(), out_beg, out_end);";
 				else if (fd.type == FIELDTYPE_INT32)
 					out.line() << "putki::pack_int32_field((char*)&" << outd << ", " << srcd << ");";
 				else if (fd.type == FIELDTYPE_STRUCT_INSTANCE)

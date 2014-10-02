@@ -16,7 +16,7 @@ namespace Putki
 		{
 			foreach (Package.Slot s in package.m_slots)
 			{
-				if (s.path.Length > 0)
+				if (s.path.Length > 0 && s.inst != null)
 				{
 					// someone loaded this before, point them to this new version.
 					if (m_currentMapping.ContainsKey(s.path))

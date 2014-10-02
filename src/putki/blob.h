@@ -18,5 +18,14 @@ namespace putki
 		return where + 4;
 	}
 
-	char *pack_string_field(char *where, const char *src, char *aux_beg, char *aux_end);
+	inline char *pack_int64_field(char *where, long long val)
+	{
+		where[0] = (val) & 0xff;
+		where[1] = (val >> 8) & 0xff;
+		where[2] = (val >> 16) & 0xff;
+		where[3] = (val >> 24) & 0xff;
+		return where + 4;
+	}
+
+	char *pack_string_field(int size_size, char *where, const char *src, char *aux_beg, char *aux_end);
 }

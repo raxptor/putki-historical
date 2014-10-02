@@ -51,7 +51,7 @@ namespace putki
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
 			case FIELDTYPE_PATH:
-				return "4";
+				return "2";
 			default:
 				return "1000000";
 		}
