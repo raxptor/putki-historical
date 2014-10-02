@@ -1,8 +1,6 @@
 #pragma once
 
 #include <putki/runtime.h>
-#include <cstring>
-#include <iostream>
 
 namespace putki
 {
@@ -13,11 +11,6 @@ namespace putki
 	{
 		const char *name;
 	};
-
-	inline bool type_eq(type_t a, type_t b)
-	{
-		return !strcmp(a, b);
-	}
 
 	namespace parse { struct node; }
 	namespace db { struct data; }

@@ -410,7 +410,6 @@ namespace putki
 		out.line() << "#define " << deftok;
 
 		out.line();
-		out.line() << "#include <stdlib.h>";
 		out.line() << "#include <string>";
 		out.line() << "#include <vector>";
 		out.line() << "#include <putki/builder/write.h>";

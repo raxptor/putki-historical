@@ -1,14 +1,15 @@
 #ifndef __PUTKI_WRITER_H__
 #define __PUTKI_WRITER_H__
 
-#include <putki/builder/typereg.h>
-#include <putki/builder/db.h>
-#include <putki/sys/sstream.h>
 #include <vector>
 
 namespace putki
 {
 	namespace db { struct data; }
+
+	struct sstream;
+	struct type_handler_i;
+	typedef void* instance_t;
 
 	namespace write
 	{
