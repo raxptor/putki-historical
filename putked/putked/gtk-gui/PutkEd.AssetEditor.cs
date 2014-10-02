@@ -6,12 +6,6 @@ namespace PutkEd
 	{
 		private global::Gtk.VBox vbox1;
 		
-		private global::Gtk.HBox hbox1;
-		
-		private global::Gtk.Button m_save;
-		
-		private global::Gtk.Label m_path;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow1;
 		
 		private global::Gtk.Fixed m_propEd;
@@ -28,58 +22,27 @@ namespace PutkEd
 			this.vbox1.Name = "vbox1";
 			this.vbox1.Spacing = 6;
 			// Container child vbox1.Gtk.Box+BoxChild
-			this.hbox1 = new global::Gtk.HBox ();
-			this.hbox1.Name = "hbox1";
-			this.hbox1.Spacing = 6;
-			// Container child hbox1.Gtk.Box+BoxChild
-			this.m_save = new global::Gtk.Button ();
-			this.m_save.CanFocus = true;
-			this.m_save.Name = "m_save";
-			this.m_save.UseUnderline = true;
-			this.m_save.Label = global::Mono.Unix.Catalog.GetString ("Save");
-			this.hbox1.Add (this.m_save);
-			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_save]));
-			w1.Position = 0;
-			w1.Expand = false;
-			w1.Fill = false;
-			w1.Padding = ((uint)(10));
-			// Container child hbox1.Gtk.Box+BoxChild
-			this.m_path = new global::Gtk.Label ();
-			this.m_path.Name = "m_path";
-			this.m_path.LabelProp = global::Mono.Unix.Catalog.GetString ("label1");
-			this.hbox1.Add (this.m_path);
-			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.m_path]));
-			w2.Position = 1;
-			w2.Expand = false;
-			w2.Fill = false;
-			this.vbox1.Add (this.hbox1);
-			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.hbox1]));
-			w3.Position = 0;
-			w3.Expand = false;
-			w3.Fill = false;
-			// Container child vbox1.Gtk.Box+BoxChild
 			this.scrolledwindow1 = new global::Gtk.ScrolledWindow ();
 			this.scrolledwindow1.CanFocus = true;
 			this.scrolledwindow1.Name = "scrolledwindow1";
 			this.scrolledwindow1.ShadowType = ((global::Gtk.ShadowType)(1));
 			// Container child scrolledwindow1.Gtk.Container+ContainerChild
-			global::Gtk.Viewport w4 = new global::Gtk.Viewport ();
-			w4.ShadowType = ((global::Gtk.ShadowType)(0));
+			global::Gtk.Viewport w1 = new global::Gtk.Viewport ();
+			w1.ShadowType = ((global::Gtk.ShadowType)(0));
 			// Container child GtkViewport.Gtk.Container+ContainerChild
 			this.m_propEd = new global::Gtk.Fixed ();
 			this.m_propEd.Name = "m_propEd";
 			this.m_propEd.HasWindow = false;
-			w4.Add (this.m_propEd);
-			this.scrolledwindow1.Add (w4);
+			w1.Add (this.m_propEd);
+			this.scrolledwindow1.Add (w1);
 			this.vbox1.Add (this.scrolledwindow1);
-			global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.scrolledwindow1]));
-			w7.Position = 1;
+			global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.scrolledwindow1]));
+			w4.Position = 0;
 			this.Add (this.vbox1);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}
 			this.Show ();
-			this.m_save.Clicked += new global::System.EventHandler (this.OnSaveClicked);
 		}
 	}
 }

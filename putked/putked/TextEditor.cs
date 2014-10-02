@@ -5,35 +5,24 @@ using System.Collections.Generic;
 namespace PutkEd
 {
 	[System.ComponentModel.ToolboxItem(true)]
-	public partial class TextEditor : Gtk.Bin, TypeEditor
-	{
-		public TextEditor()
-		{
-			this.Build();
-		}
+	public partial class TextEditor : Gtk.Window {
 
-		public Widget GetRoot()
+		public TextEditor() : base (Gtk.WindowType.Toplevel)
 		{
-			return this;
+			SetPosition(WindowPosition.CenterAlways);
+			this.SetDefaultSize(300, 500);
+			this.Build();
+			SetPosition(WindowPosition.Center);
 		}
 
 		public void SetObject(DLLLoader.MemInstance mi, DLLLoader.PutkiField fi, int arrayIndex)
 		{
-			fi.SetArrayIndex(arrayIndex);
-			m_text.Text = fi.GetString(mi);
-			m_text.Changed += delegate {
-				fi.SetArrayIndex(arrayIndex);
-				fi.SetString(mi, m_text.Text);
+			this.Title = mi.GetPath() + ":" + fi.GetName();
+			m_text.Buffer.Text = fi.GetString(mi);
+			m_text.Buffer.Changed += delegate {
+				fi.SetArrayIndex(0);
+				fi.SetString(mi, m_text.Buffer.Text);
 			};
-		}
-
-		public List<AssetEditor.RowNode> GetChildRows()
-		{
-			return new List<AssetEditor.RowNode>();
-		}
-
-		public void OnConnect(AssetEditor root)
-		{
 		}
 	}
 }

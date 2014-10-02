@@ -116,7 +116,7 @@ namespace PutkEd
 
 
 			MainWindow win = new MainWindow();
-			win.Show();
+			win.Present();
 
 			Application.Run ();
 		}

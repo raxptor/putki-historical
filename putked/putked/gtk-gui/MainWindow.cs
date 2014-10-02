@@ -37,7 +37,7 @@ public partial class MainWindow
 		// Widget MainWindow
 		this.Name = "MainWindow";
 		this.Title = global::Mono.Unix.Catalog.GetString ("PutkEd");
-		this.WindowPosition = ((global::Gtk.WindowPosition)(4));
+		this.WindowPosition = ((global::Gtk.WindowPosition)(3));
 		this.BorderWidth = ((uint)(6));
 		// Container child MainWindow.Gtk.Container+ContainerChild
 		this.hbox2 = new global::Gtk.HBox ();
@@ -169,7 +169,7 @@ public partial class MainWindow
 		}
 		this.DefaultWidth = 548;
 		this.DefaultHeight = 472;
-		this.Show ();
+		this.Hide ();
 		this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 		this.m_fileTree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnRowActivated);
 		this.m_fileTree.CursorChanged += new global::System.EventHandler (this.OnCursorChanged);

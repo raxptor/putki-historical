@@ -4,10 +4,9 @@ using Gtk;
 
 namespace PutkEd
 {
-	public partial class AssetEditor : Gtk.Window
+	public partial class AssetEditor : Gtk.Bin
 	{
 		ObjectEditor m_rootObj;
-		DLLLoader.MemInstance m_mi;
 		List<RowNode> m_tree = new List<RowNode>();
 		List<Widget> m_destroyList = new List<Widget>();
 
@@ -22,7 +21,7 @@ namespace PutkEd
 			public bool expanded = false;
 		}
 
-		public AssetEditor() : base (Gtk.WindowType.Toplevel)
+		public AssetEditor()
 		{
 			Build();
 			ShowAll();
@@ -33,11 +32,7 @@ namespace PutkEd
 			// m_label.Visibility = Visibility.Collapsed; // nly for structs.
 			m_rootObj = new ObjectEditor();
 			m_rootObj.SetObject(mi, null, 0);
-			m_mi = mi;
-			m_path.Text = "[" + mi.GetPath() + "]";
-
 			OnStructureChanged();
-			this.Title = "[" + mi.GetPath() + "] " + mi.GetTypeName() + " editor";
 		}
 
 		public void OnStructureChanged()
@@ -142,11 +137,6 @@ namespace PutkEd
 			node.fh.SetArrayIndex(node.arrayIndex);
 			node.fh.ArrayErase(node.mi);
 			OnStructureChanged();
-		}
-
-		protected void OnSaveClicked (object sender, EventArgs e)
-		{
-			m_mi.DiskSave();
 		}
 	}
 

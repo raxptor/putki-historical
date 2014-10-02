@@ -23,7 +23,7 @@ public partial class MainWindow : Gtk.Window
 	public MainWindow() : base (Gtk.WindowType.Toplevel)
 	{
 		Build();
-
+	
 		// Path
 		Gtk.CellRendererText r0 = new Gtk.CellRendererText();
 		TreeViewColumn c0 = new TreeViewColumn("Path", r0);
@@ -54,6 +54,8 @@ public partial class MainWindow : Gtk.Window
 		ScanFiles();
 
 		m_statusText.Text = DLLLoader.GetStatus();
+
+		SetPosition(WindowPosition.Center);
 	}
 
 
@@ -117,7 +119,7 @@ public partial class MainWindow : Gtk.Window
 		{
 			if (plugin == null)
 			{
-				AssetEditor ae = new AssetEditor();
+				AssetEditorWindow ae = new AssetEditorWindow();
 				ae.SetObject(mi);
 				ae.Show();
 			}

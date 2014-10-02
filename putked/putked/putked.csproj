@@ -31,7 +31,7 @@
     </EnvironmentVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -47,7 +47,7 @@
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug/x64|x86' ">
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\x86\Debug\x64</OutputPath>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
@@ -113,7 +113,13 @@
     <Compile Include="PutkEd.cs" />
     <Compile Include="FileEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.FileEditor.cs" />
+    <Compile Include="AssetEditorWindow.cs" />
+    <Compile Include="gtk-gui\PutkEd.AssetEditorWindow.cs" />
+    <Compile Include="StringEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.StringEditor.cs" />
     <Compile Include="gtk-gui\PutkEd.TextEditor.cs" />
+    <Compile Include="TextFieldEditor.cs" />
+    <Compile Include="gtk-gui\PutkEd.TextFieldEditor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
