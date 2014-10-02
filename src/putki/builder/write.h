@@ -2,6 +2,7 @@
 #define __PUTKI_WRITER_H__
 
 #include <vector>
+#include <string>
 
 namespace putki
 {

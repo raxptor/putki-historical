@@ -410,12 +410,13 @@ namespace putki
 		out.line() << "#define " << deftok;
 
 		out.line();
-		out.line() << "#include <string>";
-		out.line() << "#include <vector>";
+		write_includes(file, out, true);
+		out.line();
 		out.line() << "#include <putki/builder/write.h>";
 		out.line() << "#include <putki/builder/typereg.h>";
-		out.line();
-		write_includes(file, out, true);
+		out.line() << "#include <string>";
+		out.line() << "#include <cstring>";
+		out.line() << "#include <vector>";
 		out.line();
 		out.line() << "namespace putki { struct depwalker_i; }";
 		out.line();
@@ -1198,6 +1199,7 @@ namespace putki
 		out.line() << "#include <putki/builder/typereg.h>";
 		out.line() << "#include <putki/sys/sstream.h>";
 		out.line() << "#include <putki/runtime.h>";
+		out.line() << "#include <cstring>";
 
 		out.line();
 
