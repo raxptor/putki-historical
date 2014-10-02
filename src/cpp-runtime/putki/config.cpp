@@ -35,6 +35,7 @@ namespace putki
 	const char* format_package_path(const char *name, char *outbuf)
 	{
 #ifdef PUTKI_NO_RT_PATH_PREFIX
+		sprintf(outbuf, "packages/%s", name);
 		return outbuf;
 #else
 		char tmp[128];
@@ -50,6 +51,7 @@ namespace putki
 	const char* format_file_path(const char *name, char *outbuf)
 	{
 #ifdef PUTKI_NO_RT_PATH_PREFIX
+		strcpy(outbuf, name);
 		return outbuf;
 #else
 		char tmp[128];
