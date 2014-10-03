@@ -298,6 +298,9 @@ namespace putki
 			out.line();
 			out.line() << "} // namespace outki";
 			out.line();
+
+			if (rt)
+				out.line() << "char *write_" << s->name << "_aux(inki::" << s->name << " *in, outki::" << s->name << " *d, char *out_beg, char *out_end);";
 		}
 
 		if (!rt)
