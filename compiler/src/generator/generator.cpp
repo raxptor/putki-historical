@@ -1259,10 +1259,11 @@ namespace putki
 				continue;
 
 			out.line() << "case " << s->unique_id << ":";
-			out.line() << "	{ char *out = post_blob_load_" << s->name << "((" << s->name << "*)begin, begin + sizeof(" << s->name << "), end);";
-			out.line() << "	  if (out) walk_dependencies_" << s->name << "((" << s->name << "*)begin, ptr_reg);"<< std::endl;
-			out.line() << "	  return out;";
-			out.line() << "	}";
+			out.line() << "{";
+			out.line(1) << "char *out = post_blob_load_" << s->name << "((" << s->name << "*)begin, begin + sizeof(" << s->name << "), end);";
+			out.line(1) << "if (out) walk_dependencies_" << s->name << "((" << s->name << "*)begin, ptr_reg);";
+			out.line(1) << "return out;";
+			out.line() << "}";
 		}
 	}
 

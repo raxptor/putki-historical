@@ -2,6 +2,7 @@
 #define __PUTKI_PARSE_H__
 
 #include <putki/fieldtypes.h>
+
 #include "buildconfigs.h"
 
 #include <sstream>
@@ -9,11 +10,16 @@
 
 namespace putki
 {
+	struct parsed_struct;
+	struct parsed_enum;
+
 	struct parsed_field
 	{
 		parsed_field()
 		{
 			_WROTE_DLL_FIELD_INDEX = -1;
+			resolved_ref_struct = 0;
+			resolved_ref_enum = 0;
 		}
 
 		int domains;
@@ -29,7 +35,10 @@ namespace putki
 		std::string ref_type;
 		std::string def_value;
 
-		int _WROTE_DLL_FIELD_INDEX;
+		parsed_struct *resolved_ref_struct;
+		parsed_enum *resolved_ref_enum;
+
+		int _WROTE_DLL_FIELD_INDEX; // remove
 	};
 
 	struct enum_value
@@ -52,6 +61,7 @@ namespace putki
 		std::vector<parsed_field> fields;
 		std::string parent;
 		std::string inline_editor;
+		std::vector<std::string> targets;
 		bool is_type_root;
 		bool permit_as_auxptr;
 		bool permit_as_asset;
@@ -68,7 +78,7 @@ namespace putki
 		std::vector<std::string> includes;
 	};
 
-	void parse(const char *in_path, const char *name, int *type_id_counter, parsed_file *out);
+	bool parse(const char *in_path, const char *name, parsed_file *out);
 }
 
 #endif

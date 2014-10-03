@@ -13,7 +13,7 @@ function putki_typedefs_runtime(path, use_impls, pathbase)
 	
 	includedirs (pathbase .. "/_gen")
 	if use_impls == true then
-		files {pathbase .. "/_gen/outki/**.cpp" }
+		files {pathbase .. "/_gen/*runtime-master.cpp" }
 	end
 
 	files { pathbase .. "/_gen/outki/**.h" }

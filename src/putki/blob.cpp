@@ -17,8 +17,10 @@ namespace putki
 		unsigned int len = strlen(src);
 
 		// write the length into the pointer slot.
-		if (size_size == 4)
+		if (size_size == 8)
 			pack_int64_field(where, len+1);
+		else if (size_size == 4)
+			pack_int32_field(where, len+1);
 		else if (size_size == 2)
 			pack_int16_field(where, len+1);
 		else if (size_size == 1)

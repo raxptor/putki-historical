@@ -17,7 +17,6 @@ solution "Compiler"
 		files { "src/**.h" }
 
 		files { "../src/putki/sys/**.cpp" }
-		files { "../src/putki/sys/**.h" }
 		files { "../src/putki/runtime.cpp"}
 		files { "../src/putki/**.h" }
 

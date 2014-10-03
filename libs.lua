@@ -16,7 +16,7 @@ function putki_typedefs_builder(path, use_impls, pathbase)
 	includedirs (pathbase .. "/_gen")
 	files { pathbase .. "/" .. path .. "/**.typedef" }
 	if use_impls == true then
-		files { pathbase .. "/_gen/*putki-master.cpp", pathbase .. "/_gen/inki/**.h", pathbase ..  "/_gen/data-dll/**.h" }
+		files { pathbase .. "/_gen/*inki-master.cpp", pathbase .. "/_gen/inki/**.h", pathbase ..  "/_gen/editor/**.h" }
 	end
 end
 

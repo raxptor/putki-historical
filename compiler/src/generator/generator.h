@@ -3,7 +3,7 @@
 
 #include <parser/typeparser.h>
 #include <putki/runtime.h>
-#include <generator/indentedwriter.h>
+#include <writetools/indentedwriter.h>
 
 namespace putki
 {
