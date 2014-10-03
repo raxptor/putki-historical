@@ -233,14 +233,14 @@ void generate_project(putki::project *p)
 		save_stream(csharp_outki + "/" + p->loader_name + "DataLoader.cs", csharp_outki_loader);
 	}
 
-	save_stream(csharp_outki + "/" + p->loader_name + ".cs", csharp_runtime);
+	save_stream(csharp_outki + "/" + p->module_name + ".cs", csharp_runtime);
 
 	{
 		std::stringstream ik;
 		ik << "using PutkEd;\n";
 		ik << "\n";
 		ik << csharp_inki_code.str();
-		save_stream(csharp_inki + "/" + p->loader_name + ".cs", ik);
+		save_stream(csharp_inki + "/" + p->module_name + ".cs", ik);
 	}
 }
 
