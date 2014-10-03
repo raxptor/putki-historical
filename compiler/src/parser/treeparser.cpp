@@ -1,4 +1,5 @@
 #include "treeparser.h"
+#include "../buildconfigs.h"
 
 #include <fstream>
 #include <iostream>
@@ -66,6 +67,7 @@ namespace putki
 				{
 					std::string config = add.substr(config_pfx.size(), add.size() - config_pfx.size());
 					tmp.build_configs.push_back(config.c_str());
+					add_build_config(config.c_str());
 				}
 			}
 

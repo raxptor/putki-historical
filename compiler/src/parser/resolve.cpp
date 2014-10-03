@@ -7,8 +7,13 @@ namespace putki
 {
 	bool resolve_parse(grand_parse *parse, resolved_parse *output)
 	{
+		int type_id = 0;
+		
 		for (int i=0;i!=parse->projects.size();i++)
 		{
+			// round to next hundreds
+			type_id = 100 * ((type_id + 99) / 100);
+			
 			project *proj = &parse->projects[i];
 			for (int f=0;f!=proj->files.size();f++)
 			{
@@ -28,6 +33,8 @@ namespace putki
 						std::cerr << "There exists more than one struct with the name [" << str->name << "]" << std::endl;
 						return false;
 					}
+					
+					str->unique_id = ++type_id;
 					output->structs.insert(StructMapT::value_type(str->name, str));
 				}
 
@@ -54,14 +61,11 @@ namespace putki
 
 		std::cout << "Resolved with " << output->enums.size() << " enums and " << output->structs.size() << " structs" << std::endl;
 
-		int type_id = 1;
-
 		// cross resolve all structs
 		StructMapT::iterator k = output->structs.begin();
 		while (k != output->structs.end())
 		{
 			parsed_struct *s = (k++)->second;
-			s->unique_id = type_id++;
 			for (int f=0;f!=s->fields.size();f++)
 			{
 				parsed_field *pf = &s->fields[f];

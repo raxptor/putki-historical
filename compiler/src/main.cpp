@@ -22,7 +22,7 @@ void save_stream(std::string path, std::stringstream &str)
 		{
 			if (!memcmp(tmp, str.str().c_str(), str.str().size()))
 			{
-				std::cout << path << "is identical and not writing" << std::endl;
+				std::cout << "Skipped writing " << path << ", reason: unchanged content." << std::endl;
 				return;
 			}
 		}
@@ -33,7 +33,7 @@ void save_stream(std::string path, std::stringstream &str)
 	putki::sys::mk_dir_for_path(path.c_str());
 	std::ofstream f(path.c_str());
 	f << str.str();
-	std::cout << "writing " << path << std::endl;
+	std::cout << "Wrote " << path << std::endl;
 }
 
 void generate_project(putki::project *p)
@@ -58,7 +58,6 @@ void generate_project(putki::project *p)
 	std::stringstream csharp_switch_case;
 	std::stringstream csharp_switch_case_resolve;
 	std::stringstream csharp_runtime, csharp_inki_code;
-
 
 	for (int i=0;i!=p->files.size();i++)
 	{
