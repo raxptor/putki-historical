@@ -100,17 +100,6 @@ namespace putki
 		wr.line() << "{";
 		wr.indent(1);
 
-		if (s->unique_id < 128)
-		{
-			wr.line() << "bitstream::insert_bits<1>(dest, 0);";
-			wr.line() << "bitstream::insert_bits<7>(dest, " << s->unique_id << ");";
-		}
-		else
-		{
-			wr.line() << "bitstream::insert_bits<1>(dest, 1);";
-			wr.line() << "bitstream::insert_bits<15>(dest, " << s->unique_id << ");";
-		}
-
 		for (int i=0;i!=s->fields.size();i++)
 		{
 			parsed_field *field = &s->fields[i];
@@ -140,7 +129,6 @@ namespace putki
 					break;
 				case FIELDTYPE_STRING:
 					wr.line() << "bitstream::insert_bits<16>(dest, strlen(" << field_ref << "));";
-					wr.line() << "bitstream::sync_byte(dest);";
 					wr.line() << "bitstream::insert_bytes(dest, (uint8_t*) " << field_ref << ", strlen(" << field_ref << "));";
 					break;
 				case FIELDTYPE_ENUM:
