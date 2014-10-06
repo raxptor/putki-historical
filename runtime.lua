@@ -5,7 +5,6 @@ function putki_use_runtime_lib()
 	includedirs (PUTKI_RT_INCLUDES)
         links {"putki-runtime-lib"}
 end
-
 function putki_typedefs_runtime(path, use_impls, pathbase)
 	if pathbase == nil then
 		pathbase = "."
@@ -17,6 +16,7 @@ function putki_typedefs_runtime(path, use_impls, pathbase)
 	end
 
 	files { pathbase .. "/_gen/outki/**.h" }
+	files { pathbase .. "/_gen/netki/**.h" }
 	files { pathbase .. "/" .. path .. "/**.typedef" }
 end
 
@@ -26,4 +26,3 @@ project "putki-runtime-lib"
 	kind "StaticLib"	
 	files { "src/cpp-runtime/**.cpp", "src/cpp-runtime/**.h" }
 	includedirs { "src/cpp-runtime" }
-

@@ -9,6 +9,8 @@
 #include <fstream>
 
 #include "inki-outki-generator/generator.h"
+#include "netki-generator/netki-generator.h"
+
 #include "writetools/indentedwriter.h"
 #include "writetools/save_stream.h"
 
@@ -177,7 +179,7 @@ void generate_project(putki::project *p)
 	}
 
 	putki::save_stream(out_base + "/" + p->module_name + "-inki-master.cpp", inki_master);
-	putki::save_stream(out_base + "/" + p->module_name + "-runtime-master.cpp", runtime_master);
+	putki::save_stream(out_base + "/" + p->module_name + "-outki-runtime-master.cpp", runtime_master);
 
 	// runtime c# switch case blob load
 	{
@@ -238,6 +240,7 @@ int main (int argc, char *argv[])
 	for (int i=0;i!=parse.projects.size();i++)
 	{
 		generate_project(&parse.projects[i]);
+		putki::build_netki_project(&parse.projects[i]);
 	}
 
 	return 0;

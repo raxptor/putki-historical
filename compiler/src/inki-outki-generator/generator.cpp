@@ -8,6 +8,14 @@
 
 namespace putki
 {
+	bool is_putki_struct(putki::parsed_struct *s)
+	{
+		for (int i=0;i!=s->targets.size();i++)
+			if (!strcmp(s->targets[i].c_str(), "putki"))
+				return true;
+		return false;
+	}
+
 	void write_ptr_walker(putki::parsed_file *file, putki::indentedwriter out, bool runtime);
 
 	void write_includes(putki::parsed_file *file, putki::indentedwriter out, bool inki)
