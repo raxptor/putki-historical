@@ -11,7 +11,6 @@ namespace PutkEd
 		{
 			SetPosition(WindowPosition.CenterAlways);
 			this.SetDefaultSize(300, 500);
-			this.Build();
 			SetPosition(WindowPosition.Center);
 		}
 

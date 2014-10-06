@@ -8,33 +8,9 @@
 #include <sstream>
 #include <fstream>
 
-#include <generator/generator.h>
-#include <writetools/indentedwriter.h>
-
-void save_stream(std::string path, std::stringstream &str)
-{
-	char *tmp = new char[str.str().size()];
-	std::ifstream p(path.c_str());
-	if (p.good())
-	{
-		p.read(tmp, str.str().size());
-		if (p.gcount() == str.str().size())
-		{
-			if (!memcmp(tmp, str.str().c_str(), str.str().size()))
-			{
-				std::cout << "Skipped writing " << path << ", reason: unchanged content." << std::endl;
-				return;
-			}
-		}
-	}
-	p.close();
-	delete [] tmp;
-
-	putki::sys::mk_dir_for_path(path.c_str());
-	std::ofstream f(path.c_str());
-	f << str.str();
-	std::cout << "Wrote " << path << std::endl;
-}
+#include "inki-outki-generator/generator.h"
+#include "writetools/indentedwriter.h"
+#include "writetools/save_stream.h"
 
 void generate_project(putki::project *p)
 {
@@ -71,12 +47,12 @@ void generate_project(putki::project *p)
 		// c++ runtime header
 		std::stringstream rt_header;
 		putki::write_runtime_header(pf, 0, putki::indentedwriter(rt_header));
-		save_stream(rt_path + ".h", rt_header);
+		putki::save_stream(rt_path + ".h", rt_header);
 
 		// c++ runtime implementation
 		std::stringstream rt_impl;
 		putki::write_runtime_impl(pf, 0, putki::indentedwriter(rt_impl));
-		save_stream(rt_path + ".cpp", rt_impl);
+		putki::save_stream(rt_path + ".cpp", rt_impl);
 
 		// c++ runtime blob load calls
 		putki::indentedwriter iw(rt_blob_load_calls);
@@ -87,12 +63,12 @@ void generate_project(putki::project *p)
 		// c++ inki header
 		std::stringstream inki_header;
 		putki::write_putki_header(pf, putki::indentedwriter(inki_header));
-		save_stream(inki_path + ".h", inki_header);
+		putki::save_stream(inki_path + ".h", inki_header);
 
 		// c++ runtime implementation
 		std::stringstream inki_impl;
 		putki::write_putki_impl(pf, putki::indentedwriter(inki_impl));
-		save_stream(inki_path + ".cpp", inki_impl);
+		putki::save_stream(inki_path + ".cpp", inki_impl);
 
 		// csharp runtime
 		putki::indentedwriter casewriter(csharp_switch_case);
@@ -105,7 +81,7 @@ void generate_project(putki::project *p)
 		std::stringstream dll_impl;
 		dll_impl << "#include <inki/" << subpath << ".h>\n";
 		putki::write_dll_impl(pf, putki::indentedwriter(dll_impl));
-		save_stream(editor_path + ".cpp", dll_impl);
+		putki::save_stream(editor_path + ".cpp", dll_impl);
 
 		// bindings
 		putki::write_bind_decl(pf, putki::indentedwriter(bind_decl));
@@ -139,7 +115,7 @@ void generate_project(putki::project *p)
 		iw.line() << "}";
 		iw.indent(-1);
 		iw.line() << "}";
-		save_stream(editor_base + "/bind.cpp", bind_editor);
+		putki::save_stream(editor_base + "/bind.cpp", bind_editor);
 		inki_master << "#include \"editor/bind.cpp\"\n";
 	}
 
@@ -161,7 +137,7 @@ void generate_project(putki::project *p)
 		iw.line() << "}";
 		iw.indent(-1);
 		iw.line() << "}";
-		save_stream(inki_base + "/bind.cpp", bind);
+		putki::save_stream(inki_base + "/bind.cpp", bind);
 
 		inki_master << "#include \"inki/bind.cpp\"\n";
 	}
@@ -195,13 +171,13 @@ void generate_project(putki::project *p)
 		iw.line() << "}" << std::endl;
 		iw.indent(-1);
 		iw.line() << "}";
-		save_stream(outki_base + "/blobload.cpp", output);
+		putki::save_stream(outki_base + "/blobload.cpp", output);
 
 		runtime_master << "#include \"outki/blobload.cpp\"\n";
 	}
 
-	save_stream(out_base + "/" + p->module_name + "-inki-master.cpp", inki_master);
-	save_stream(out_base + "/" + p->module_name + "-runtime-master.cpp", runtime_master);
+	putki::save_stream(out_base + "/" + p->module_name + "-inki-master.cpp", inki_master);
+	putki::save_stream(out_base + "/" + p->module_name + "-runtime-master.cpp", runtime_master);
 
 	// runtime c# switch case blob load
 	{
@@ -229,17 +205,17 @@ void generate_project(putki::project *p)
 		iw.line() << "		}";
 		iw.line() << "	}";
 		iw.line() << "}" ;
-		save_stream(csharp_outki + "/" + p->loader_name + "DataLoader.cs", csharp_outki_loader);
+		putki::save_stream(csharp_outki + "/" + p->loader_name + "DataLoader.cs", csharp_outki_loader);
 	}
 
-	save_stream(csharp_outki + "/" + p->module_name + ".cs", csharp_runtime);
+	putki::save_stream(csharp_outki + "/" + p->module_name + ".cs", csharp_runtime);
 
 	{
 		std::stringstream ik;
 		ik << "using PutkEd;\n";
 		ik << "\n";
 		ik << csharp_inki_code.str();
-		save_stream(csharp_inki + "/" + p->module_name + ".cs", ik);
+		putki::save_stream(csharp_inki + "/" + p->module_name + ".cs", ik);
 	}
 }
 
