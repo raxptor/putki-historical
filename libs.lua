@@ -7,6 +7,11 @@ PUTKI_LIB_LINKS = { "putki-lib", "jsmn", "libz" }
 function putki_use_builder_lib()
 	includedirs ( PUTKI_LIB_INCLUDES )
 	links (PUTKI_LIB_LINKS)
+	configuration {"windows"}
+		links {"ws2_32"}
+	configuration {"gmake", "linux"}
+		links {"pthread"}
+	configuration {}
 end
 
 function putki_typedefs_builder(path, use_impls, pathbase)
