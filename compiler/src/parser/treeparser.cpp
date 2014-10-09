@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <cstring>
 
 #include <putki/sys/files.h>
 
