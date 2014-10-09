@@ -32,6 +32,7 @@ public:
 
 		std::ostream& cont()
 		{
+			m_first = false;
 			return m_stream;
 		}
 
