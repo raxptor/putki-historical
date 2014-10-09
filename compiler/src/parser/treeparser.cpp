@@ -116,7 +116,7 @@ namespace putki
 			output->projects.push_back(tmp);
 			next.pop_back();
 
-			for (int i=0;i<tmp.deps.size();i++)
+			for (int i=0;i!=tmp.deps.size();i++)
 				next.push_back(tmp.deps[i]);
 		}
 

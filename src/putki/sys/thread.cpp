@@ -1,9 +1,2 @@
-#include <putki/sys/thread.h>
-#include <pthread.h>
+int removeme = 0;
 
-namespace putki
-{
-	namespace sys
-	{
-	}
-}

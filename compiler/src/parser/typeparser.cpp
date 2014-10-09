@@ -293,7 +293,7 @@ namespace putki
 
 			// erase comments
 			int comment = line.find_first_of('/');
-			if (comment != std::string::npos && (comment + 1) < line.size() && line[comment+1] == '/')
+			if (comment != std::string::npos && (comment + 1) < (int)line.size() && line[comment+1] == '/')
 				line.erase(comment, line.size() - comment);
 
 			if (line.empty())

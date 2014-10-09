@@ -1,65 +1,65 @@
-#ifndef __SYS_THREAD_H__
-#define __SYS_THREAD_H__
+// Do not include manually.
 
-#if defined(_WIN32)
-#include "thread_win32.h"
-#else
-
-#include <pthread.h>
+#include <windows.h>
 
 namespace putki
 {
 	namespace sys
 	{
 		typedef void* (*thread_fn)(void *userptr);
-		
+
 		struct thread
 		{
-			pthread_t t;
+			HANDLE thr;
+			thread_fn func;
+			void *userptr;
 		};
-		
+
 		inline thread* thread_create(thread_fn fn, void *userptr)
 		{
 			thread *t = new thread();
-			pthread_create(&t->t, 0, fn, userptr);
+			t->func = fn;
+			t->userptr = userptr;
+			t->thr = 0;
 			return t;
 		}
-		
+
 		inline void thread_join(thread* thr)
 		{
-			pthread_join(thr->t, 0);
+			WaitForSingleObject(thr->thr, 0);
 		}
-		
+
 		inline void thread_free(thread* thr)
 		{
+			CloseHandle(thr->thr);
 			delete thr;
 		}
-		
+
 		struct mutex
-		{
+		{	
 			mutex()
 			{
-				pthread_mutex_init(&mtx, 0);
+				InitializeCriticalSection(&_cs);
 			}
-			
+
 			~mutex()
 			{
-				pthread_mutex_destroy(&mtx);
+				DeleteCriticalSection(&_cs);
 			}
-			
+
 			void lock()
 			{
-				pthread_mutex_lock(&mtx);
+				EnterCriticalSection(&_cs);
 			}
-			
+
 			void unlock()
 			{
-				pthread_mutex_unlock(&mtx);
+				LeaveCriticalSection(&_cs);
 			}
-			
-			pthread_mutex_t mtx;
+
+			CRITICAL_SECTION _cs;
 		};
-		
+
 		struct scoped_maybe_lock
 		{
 			mutex *_m;
@@ -80,42 +80,31 @@ namespace putki
 				}
 			}
 		};
-		
+
 		struct condition
 		{
 			condition()
 			{
-				pthread_cond_init(&c, 0);
 			}
 			condition(const condition &a)
 			{
-				pthread_cond_init(&c, 0);
 			}
 			condition& operator=(condition &b)
 			{
 				return *this;
 			}
-			
+
 			~condition()
 			{
-				pthread_cond_destroy(&c);
 			}
-			
+
 			void broadcast()
 			{
-				pthread_cond_broadcast(&c);
 			}
-			
+
 			void wait(mutex *m)
 			{
-				if (m) pthread_cond_wait(&c, &m->mtx);
 			}
-			
-			pthread_cond_t c;
 		};
 	}
 }
-
-#endif
-
-#endif
