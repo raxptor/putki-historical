@@ -174,16 +174,20 @@ namespace putki
 
 		std::stringstream netki_master;
 
+		bool write_master = false;
+
 		for (int i=0;i!=proj->files.size();i++)
 		{
 			parsed_file *pf = &proj->files[i];
 			std::string subpath = pf->sourcepath.substr(proj->base_path.size()+1);
 			std::string rt_path = netki_base + "/" + subpath;
+			bool contained_anything = false;
 
 			{
 				std::stringstream hdr;
 				indentedwriter hw(hdr);
 				hw.cont() << "// Netki generated header";
+				hw.line() << "#include <cstdint>";
 				hw.line();
 				hw.line() << "namespace netki";
 				hw.line() << "{";
@@ -196,6 +200,8 @@ namespace putki
 					if (is_netki_struct(s))
 					{
 						write_struct_header(s, hw);
+						contained_anything = true;
+						write_master = true;
 					}
 				}
 				hw.indent(-1);
@@ -203,6 +209,7 @@ namespace putki
 				save_stream(rt_path + ".h", hdr);
 			}
 
+			if (contained_anything)
 			{
 				std::stringstream impl;
 				indentedwriter iw(impl);
@@ -232,7 +239,10 @@ namespace putki
 			}
 		}
 
-		putki::save_stream(out_base + "/" + proj->module_name + "-netki-runtime-master.cpp", netki_master);
+		if (write_master)
+		{
+			putki::save_stream(out_base + "/" + proj->module_name + "-netki-runtime-master.cpp", netki_master);
+		}
 	}
 
 }
