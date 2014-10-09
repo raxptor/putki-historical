@@ -6,17 +6,17 @@
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
 
-int isatty(int);
+#if defined(_WIN32)
+bool use_ansi_color = false;
+#else
+#include <unistd.h>
+bool use_ansi_color = isatty(1);
+#endif
 
 namespace putki
 {
 	namespace
 	{
-#if defined(_WIN32)
-		bool use_ansi_color = false;
-#else
-		bool use_ansi_color = isatty(1);
-#endif
 		LogType loglevel = LOG_INFO;
 		sys::mutex mtx;
 	}
