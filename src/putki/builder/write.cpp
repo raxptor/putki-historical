@@ -153,7 +153,7 @@ namespace putki
 
 			putki::sstream ss;
 			ss << "\"";
-			for (size_t i = 0; i < len; ++i) {
+			for (size_t i = 0; i != len; ++i) {
 				char val = input[i];
 				if (unsigned(val) < '\x20' || val == '\\' || val == '"') {
 					char buf[16];

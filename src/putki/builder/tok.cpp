@@ -68,7 +68,7 @@ namespace putki
 			return d->ptrs.size();
 		}
 		
-		const char *get(data *d, int index)
+		const char *get(data *d, unsigned int index)
 		{
 			if (index < d->ptrs.size())
 				return d->ptrs[index];

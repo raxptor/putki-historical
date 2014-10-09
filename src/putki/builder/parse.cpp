@@ -15,9 +15,6 @@
 #include <cstdlib>
 #include <unordered_map>
 
-#include <sys/time.h>
-#include <unistd.h>
-
 //#define PARSE_DEBUG(x) std::cout << x;
 #define PARSE_DEBUG(x) {}
 

@@ -1,5 +1,5 @@
 #include <iostream>
-#include <unistd.h>
+#include <stdint.h>
 #include <sstream>
 
 #include <putki/builder/log.h>
@@ -10,7 +10,11 @@ namespace putki
 {
 	namespace
 	{
+#if defined(_WIN32)
+		bool use_ansi_color = true;
+#else
 		bool use_ansi_color = isatty(1);
+#endif
 		LogType loglevel = LOG_INFO;
 		sys::mutex mtx;
 	}

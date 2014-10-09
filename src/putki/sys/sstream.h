@@ -17,8 +17,7 @@ namespace putki
 		static inline void run(char *out, T val)
 		{
 			*out = '0' + (val % 10);
-			format_dec_digit<digits-1, T> fdd;
-			fdd.run(out-1, val / 10);
+			format_dec_digit<digits-1, T>::run(out-1, val / 10);
 		}
 	};
 
@@ -37,7 +36,7 @@ namespace putki
 		if (val < 0)
 		{
 			*out++ = '-';
-			return format_dec(out, -val);
+			return format_dec(out, 0-val);
 		}
 		
 		if (!val)
@@ -48,25 +47,22 @@ namespace putki
 
 		if (val < 10)
 		{
-			*out++ = '0' + val;
+			*out++ = (char)('0' + val);
 			return out;
 		}
 		else if (val < 100)
 		{
-			format_dec_digit<2, T> fdd;
-			fdd.run(out+1, val);
+			format_dec_digit<2, T>::run(out+1, val);
 			return out + 2;
 		}
 		else if (val < 1000)
 		{
-			format_dec_digit<3, T> fdd;
-			fdd.run(out+2, val);
+			format_dec_digit<3, T>::run(out+2, val);
 			return out + 3;
 		}
 		else if (val < 10000)
 		{
-			format_dec_digit<4, T> fdd;
-			fdd.run(out+3, val);
+			format_dec_digit<4, T>::run(out+3, val);
 			return out + 4;
 		}
 
@@ -77,7 +73,7 @@ namespace putki
 		while (val > 0)
 		{
 			T digit = val % 10;
-			tmp[dig++] = '0' + digit;
+			tmp[dig++] = (char)('0' + digit);
 			val = val / 10;
 		}
 		

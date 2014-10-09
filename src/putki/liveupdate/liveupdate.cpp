@@ -12,6 +12,7 @@
 #include <putki/builder/parse.h>
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
+#include <putki/sys/socket.h>
 
 #include <iostream>
 #include <string>
@@ -20,12 +21,6 @@
 #include <map>
 #include <set>
 
-#include <pthread.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <signal.h>
-#include <netinet/in.h>
 
 namespace putki
 {
@@ -326,7 +321,7 @@ namespace putki
 		void clean_sessions(data *d)
 		{
 			sys::scoped_maybe_lock lk(&d->mtx);
-			for (int i=0;i<d->editors.size();i++)
+			for (int i=0;i!=d->editors.size();i++)
 			{
 				if (!d->editors[i]->clients && d->editors[i]->finished)
 				{
