@@ -83,11 +83,14 @@ namespace putki
 
 		struct condition
 		{
+			CONDITION_VARIABLE _cond;
 			condition()
 			{
+				InitializeConditionVariable(&_cond);
 			}
 			condition(const condition &a)
 			{
+				InitializeConditionVariable(&_cond);
 			}
 			condition& operator=(condition &b)
 			{
@@ -96,14 +99,17 @@ namespace putki
 
 			~condition()
 			{
+
 			}
 
 			void broadcast()
 			{
+				WakeAllConditionVariable(&_cond);
 			}
 
 			void wait(mutex *m)
 			{
+				SleepConditionVariableCS(&_cond, &m->_cs, INFINITE);
 			}
 		};
 	}

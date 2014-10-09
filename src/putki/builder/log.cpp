@@ -11,7 +11,7 @@ namespace putki
 	namespace
 	{
 #if defined(_WIN32)
-		bool use_ansi_color = true;
+		bool use_ansi_color = false;
 #else
 		bool use_ansi_color = isatty(1);
 #endif

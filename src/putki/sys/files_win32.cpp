@@ -1,13 +1,13 @@
 #if defined(_WIN32)
 
 #include <putki/sys/files.h>
+
 #include <windows.h>
 #include <direct.h>
-
+#include <sys/stat.h>
 #include <vector>
 #include <string>
 #include <iostream>
-
 
 namespace putki
 {
@@ -73,6 +73,28 @@ namespace putki
 			search_tree_internal(root_directory, callback, strlen(root_directory) + 1, userptr);
 		}
 
+		bool write_file(const char *path, const char *str, unsigned long size)
+		{
+			HANDLE hFile;
+			DWORD wmWritten;
+			hFile = CreateFile(path, GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+			WriteFile(hFile, str, (DWORD)(size), &wmWritten, NULL);
+			CloseHandle(hFile);
+			return wmWritten == size;
+		}
+
+		bool stat(const char *path, file_info *out)
+		{
+			struct ::stat tmp;
+			if (!::stat(path, &tmp))
+			{
+				out->mtime = tmp.st_mtime;
+				out->size = tmp.st_size;
+				return true;
+			}
+			return false;
+		}
 
 		void mk_dir_for_path(const char *path)
 		{
