@@ -11,7 +11,7 @@ namespace netki
 		
 		struct buffer
 		{
-			uint8_t buffer[512];
+			uint8_t buf[512];
 			bitofs_t bitpos;
 			int bytepos;
 		};
@@ -25,12 +25,12 @@ namespace netki
 		inline void insert_bits(buffer *target, uint8_t value)
 		{
 			const bitofs_t left = (8 - target->bitpos);
-			set_bits(&target->buffer[target->bytepos], value, target->bitpos);
+			set_bits(&target->buf[target->bytepos], value, target->bitpos);
 
 			bitofs_t np = target->bitpos + bits;
 			
 			if (bits > left)
-				set_bits(&target->buffer[target->bytepos+1], 0, bits - left);
+				set_bits(&target->buf[target->bytepos+1], 0, bits - left);
 			
 			target->bytepos = target->bytepos + (np >> 3);
 			target->bitpos = np & 7;		
@@ -49,7 +49,7 @@ namespace netki
 		{
 			sync_byte(target);
 			for (int i=0;i!=size;i++)
-				target->buffer[target->bytepos + i] = buf[i];
+				target->buf[target->bytepos + i] = buf[i];
 			target->bytepos += size; 
 		}
 	}

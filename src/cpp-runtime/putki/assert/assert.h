@@ -3,7 +3,8 @@
 
 #include <putki/log/log.h>
 
-#if true || defined(PUTKI_ENABLE_ASSERT)
+#if 1
+//defined(PUTKI_ENABLE_ASSERT)
 
 	#define PTK_LOG(type, stmt) { \
 		std::stringstream __DPRINT_LINE; \
