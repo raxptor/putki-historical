@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 namespace putki
 {
