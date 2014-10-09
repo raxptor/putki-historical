@@ -6,6 +6,8 @@
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
 
+int isatty(int);
+
 namespace putki
 {
 	namespace
