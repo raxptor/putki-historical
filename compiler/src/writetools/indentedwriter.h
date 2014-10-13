@@ -8,7 +8,7 @@ namespace putki
 	class indentedwriter
 	{
 public:
-		indentedwriter(std::ostream &ostr) : m_stream(ostr), m_first(true), m_indent(0)
+		indentedwriter(std::ostream &ostr) : m_stream(ostr), m_indent(0)
 		{
 
 		}
@@ -20,10 +20,7 @@ public:
 
 		std::ostream& line(int indentmod=0)
 		{
-			if (!m_first)
-				m_stream << std::endl;
-
-			m_first = false;
+			m_stream << std::endl;
 			for (int i=0; i<(m_indent+indentmod); i++)
 				m_stream << "\t";
 
@@ -32,7 +29,6 @@ public:
 
 		std::ostream& cont()
 		{
-			m_first = false;
 			return m_stream;
 		}
 
@@ -40,7 +36,6 @@ private:
 
 		std::ostream& m_stream;
 		int m_indent;
-		int m_first;
 	};
 }
 
