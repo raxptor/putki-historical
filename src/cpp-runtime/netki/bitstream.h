@@ -15,6 +15,7 @@ namespace netki
 			uint32_t bufsize;
 			bitofs_t bitpos;
 			int bytepos;
+			int error;
 		};
 
 		inline void flip_buffer(buffer *buf)
@@ -22,15 +23,17 @@ namespace netki
 			buf->bufsize = buf->bytepos + 1;
 			buf->bitpos = 0;
 			buf->bytepos = 0;
+			buf->error = 0;
 		}
 
 		template<int size>
 		inline void init_buffer(buffer *buf, char(&data)[size])
 		{
-			buf->bufsize = size;
 			buf->buf = (uint8_t*)data;
+			buf->bufsize = size;
 			buf->bitpos = 0;
 			buf->bytepos = 0;
+			buf->error = 0;
 		}
 
 		static const uint8_t bitmask[9] = {0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f, 0x7f, 0xff};
@@ -47,7 +50,14 @@ namespace netki
 
 		inline void set_bits(uint8_t *in, bitofs_t ofs, uint8_t value)
 		{
-			(*in) = (*in) | (value << ofs);
+			if (!ofs)
+			{
+				*in = value;
+			}
+			else
+			{
+				(*in) = (*in) | (value << ofs);
+			}
 		}
 
 		template<int bits>
@@ -59,6 +69,12 @@ namespace netki
 		template<int bits>
 		inline void insert_bits(buffer *target, uint32_t value)
 		{
+			if (bits_left(target) < bits)
+			{
+				target->error = 1;
+				return;
+			}
+			
 			if (bits > 8)
 			{
 				insert_bits<8>(target, value & 0xff);
@@ -93,14 +109,20 @@ namespace netki
 		template<int bits>
 		inline uint32_t read_bits(buffer *source)
 		{
+			if (bits_left(source) < bits)
+			{
+				source->error = 1;
+				return 0;
+			}
+		
 			if (bits > 8)
-				// this comes back with smaller pieces.
+			{
 				return read_bits(source, bits);
+			}
 
 			const bitofs_t left = (8 - source->bitpos);
 
 			uint32_t fetch_first = left < bits ? left : bits;
-
 			uint32_t value = (source->buf[source->bytepos] >> source->bitpos) & bitmask[fetch_first];
 
 			bitofs_t np = source->bitpos + bits;
@@ -113,7 +135,7 @@ namespace netki
 				value = value | ((source->buf[source->bytepos] & bitmask[remaining]) << fetch_first);
 				source->bitpos = remaining;
 			}
-
+			
 			return value;
 		}
 
@@ -144,32 +166,44 @@ namespace netki
 			}
 		}
 
-		inline void insert_bytes(buffer *target, uint8_t *buf, int size)
+		inline bool insert_bytes(buffer *target, uint8_t *buf, int size)
 		{
-			if (bytes_left(target) >= size)
+			sync_byte(target);
+			if (bytes_left(target) < size)
 			{
-				sync_byte(target);
-				for (int i=0; i!=size; i++)
-					target->buf[target->bytepos + i] = buf[i];
-				target->bytepos += size;
+				target->error = 1;
+				return false;
 			}
+				
+			for (int i=0; i!=size; i++)
+				target->buf[target->bytepos + i] = buf[i];
+			target->bytepos += size;
+			return true;
 		}
 
-		inline void read_bytes(buffer *source, uint8_t *buf, int size)
+		inline bool read_bytes(buffer *source, uint8_t *buf, int size)
 		{
-			if (bytes_left(source) >= size)
+			sync_byte(source);
+		
+			if (bytes_left(source) < size)
 			{
-				sync_byte(source);
-				for (int i=0; i!=size; i++)
-					buf[i] = source->buf[source->bytepos + i];
-				source->bytepos += size;
+				source->error = 1;
+				return false;
 			}
+				
+			for (int i=0; i!=size; i++)
+				buf[i] = source->buf[source->bytepos + i];
+			source->bytepos += size;
+			return true;
 		}
 
 		inline void *alloc(buffer *target, uint32_t size)
 		{
 			if (bytes_left(target) < size)
+			{
+				target->error = 1;
 				return 0;
+			}
 
 			void *ptr = &target->buf[target->bytepos];
 			target->bytepos += size;

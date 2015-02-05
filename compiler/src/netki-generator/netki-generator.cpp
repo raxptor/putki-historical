@@ -145,8 +145,8 @@ namespace putki
 					wr.line() << "{";
 					wr.indent(1);
 					wr.line() << "bitstream::insert_bits<16>(dest, 0xffff);";
+					wr.indent(-1);
 					wr.line() << "}";
-					wr.indent(1);
 					break;
 				case FIELDTYPE_ENUM:
 					wr.line() << "bitstream::insert_bits<32>(dest, (int)" << field_ref << ");";
@@ -169,7 +169,7 @@ namespace putki
 		}
 
 
-		wr.line() << "return false;";
+		wr.line() << "return (dest->error == 0);";
 		wr.indent(-1);
 		wr.line() << "}";
 		wr.line();
@@ -253,7 +253,7 @@ namespace putki
 			}
 		}
 
-		wr.line() << "return false;";
+		wr.line() << "return (source->error == 0);";
 		wr.indent(-1);
 		wr.line() << "}";
 		wr.line();
