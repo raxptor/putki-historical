@@ -47,6 +47,37 @@ namespace putki
 		return type;
 	}
 
+	std::string field_type_csharp(parsed_field *field)
+	{
+		std::string type = "err";
+		switch (field->type)
+		{
+			case FIELDTYPE_BOOL:
+				type = "bool";
+				break;
+			case FIELDTYPE_INT32:
+				type = "int";
+				break;
+			case FIELDTYPE_BYTE:
+				type = "byte";
+				break;
+			case FIELDTYPE_STRING:
+				type = "string";
+				break;
+			case FIELDTYPE_POINTER:
+				type = field->ref_type;
+				break;
+			case FIELDTYPE_ENUM:
+			case FIELDTYPE_STRUCT_INSTANCE:
+				type = field->ref_type;
+				break;
+			default:
+				type = "unknown!";
+				break;
+		}
+		return type;
+	}
+
 	void write_struct_header(parsed_struct *s, indentedwriter &wr)
 	{
 		wr.line();
@@ -259,7 +290,51 @@ namespace putki
 		wr.line();
 	}
 
-	void build_netki_project(project *proj)
+	void write_struct_csharp(parsed_struct *s, indentedwriter &wr)
+	{
+		wr.line();
+		wr.line() << "// Generated from struct '" << s->name << "'";
+		wr.line() << "class " << s->name;
+		wr.line() << "{";
+		wr.indent(1);
+		wr.line() << "public const int TYPE_ID = " << s->unique_id << ";";
+		wr.line();
+
+		for (int i=0; i!=s->fields.size(); i++)
+		{
+			parsed_field *field = &s->fields[i];
+
+			std::string type = field_type_csharp(field);
+			std::string defval = field->def_value;
+			if (!defval.empty())
+				defval = " = " + defval;
+
+			if (field->is_array)
+			{
+				wr.line() << "public " << type << "[] " << field->name << ";";
+			}
+			else
+			{
+				wr.line() << "public " << type << " " << field->name << defval << ";";
+			}
+		}
+
+		wr.line();
+		wr.line() << "public static bool WriteIntoBitstream()"; //" << s->name << " *source, netki::bitstream::buffer *dest);";
+		wr.line() << "{";
+		wr.line(1) << "return false;";
+		wr.line() << "}";
+		wr.line();
+		wr.line() << "public static bool ReadFromBitstream(" << s->name << " into)";
+		wr.line() << "{";
+		wr.line(1) << "return false;";
+		wr.line() << "}";
+		
+		wr.indent(-1);
+		wr.line() << "};";
+	}
+
+	void build_netki_project_c(project *proj)
 	{
 		std::string out_base(proj->start_path);
 		out_base.append("/_gen");
@@ -332,6 +407,49 @@ namespace putki
 
 		if (write_master)
 			putki::save_stream(out_base + "/" + proj->module_name + "-netki-runtime-master.cpp", netki_master);
+	}
+
+	void build_netki_project_csharp(project *proj)
+	{
+		std::string out_base(proj->start_path);
+		out_base.append("/_gen");
+		std::string netki_base(out_base + "/netki_csharp");
+
+		std::stringstream netki_master;
+		indentedwriter hw(netki_master);
+		
+		hw.cont() << "// Netki generated code";
+		hw.line() << "namespace netki";
+		hw.line() << "{";
+		hw.indent(1);
+		
+		bool write_master = false;
+
+		for (int i=0; i!=proj->files.size(); i++)
+		{
+			parsed_file *pf = &proj->files[i];
+			for (int j=0; j!=pf->structs.size(); j++)
+			{
+				parsed_struct *s = &pf->structs[j];
+				if (is_netki_struct(s))
+				{
+					write_struct_csharp(s, hw);
+					write_master = true;
+				}
+			}
+		}
+		
+		hw.indent(-1);
+		hw.line() << "}";
+
+		if (write_master)
+			putki::save_stream(out_base + "/" + proj->module_name + "-netki.cs", netki_master);
+	}
+	
+	void build_netki_project(project *proj)
+	{
+		build_netki_project_c(proj);
+		build_netki_project_csharp(proj);
 	}
 
 }
