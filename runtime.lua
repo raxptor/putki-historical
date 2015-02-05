@@ -5,6 +5,7 @@ function putki_use_runtime_lib()
 	includedirs (PUTKI_RT_INCLUDES)
         links {"putki-runtime-lib"}
 end
+
 function putki_typedefs_runtime(path, use_impls, pathbase)
 	if pathbase == nil then
 		pathbase = "."
@@ -17,6 +18,19 @@ function putki_typedefs_runtime(path, use_impls, pathbase)
 
 	files { pathbase .. "/_gen/outki/**.h" }
 	files { pathbase .. "/_gen/netki/**.h" }
+	files { pathbase .. "/" .. path .. "/**.typedef" }
+end
+
+function putki_typedefs_runtime_csharp(path, use_impls, pathbase)
+	if pathbase == nil then
+		pathbase = "."
+	end
+	
+	includedirs (pathbase .. "/_gen")
+	if use_impls == true then
+		files {pathbase .. "/_gen/*.cs" }
+	end
+
 	files { pathbase .. "/" .. path .. "/**.typedef" }
 end
 
