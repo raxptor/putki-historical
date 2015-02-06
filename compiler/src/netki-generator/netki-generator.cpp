@@ -290,7 +290,7 @@ namespace putki
 		wr.line();
 	}
 
-	void write_struct_csharp(parsed_struct *s, indentedwriter &wr)
+	void write_struct_csharp(parsed_struct *s, indentedwriter &wr, indentedwriter &sp)
 	{
 		wr.line();
 		wr.line() << "// Generated from struct '" << s->name << "'";
@@ -577,6 +577,9 @@ namespace putki
 		std::stringstream netki_master;
 		indentedwriter hw(netki_master);
 		
+		std::stringstream netki_switch_parse;
+		indentedwriter sp(netki_switch_parse);
+		
 		hw.cont() << "// Netki generated code";
 		hw.line() << "namespace netki";
 		hw.line() << "{";
@@ -592,13 +595,14 @@ namespace putki
 				parsed_struct *s = &pf->structs[j];
 				if (is_netki_struct(s))
 				{
-					write_struct_csharp(s, hw);
+					write_struct_csharp(s, hw, sp);
 					write_master = true;
 				}
 			}
 		}
 		
 		hw.indent(-1);
+		hw.line() << netki_switch_parse;
 		hw.line() << "}";
 
 		if (write_master)
