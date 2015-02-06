@@ -56,7 +56,7 @@ namespace putki
 				type = "bool";
 				break;
 			case FIELDTYPE_INT32:
-				type = "int";
+				type = "System.UInt32";
 				break;
 			case FIELDTYPE_BYTE:
 				type = "byte";
@@ -329,12 +329,20 @@ namespace putki
 			parsed_field *field = &s->fields[i];
 
 			std::string field_ref = std::string("obj.") + field->name;
+			
 			if (field->is_array)
 			{
 				wr.line() << "{";
 				wr.indent(1);
-				wr.line() << "int length = " << field->name << ".Length;";
-				wr.line() << "Bitstream.PutBits(buf, 32, length);";
+				wr.line() << "int length = " << field_ref << ".Length;";
+				wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)length);";
+				if (field->type == FIELDTYPE_BYTE)
+				{
+					wr.line() << "Bitstream.PutBytes(buf, " << field_ref << ");";
+					wr.indent(-1);
+					wr.line() << "}";
+					continue;
+				}
 				wr.line() << "for (int i=0;i!=length;i++)";
 				wr.line() << "{";
 				wr.indent(1);
@@ -350,14 +358,14 @@ namespace putki
 					wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)" << field_ref << ");";
 					break;
 				case FIELDTYPE_BYTE:
-					wr.line() << "Bitstream.PutBits(buf, " << field_ref << ");";
+					wr.line() << "Bitstream.PutBits(buf, 8, " << field_ref << ");";
 					break;
 				case FIELDTYPE_STRING:
 					wr.line() << "if (" << field_ref << " != null)";
 					wr.line() << "{";
 					wr.indent(1);
-					wr.line() << "byte[] data = System.Text.Encoding.ASCII.GetBytes(" << field_ref << ");";
-					wr.line() << "Bitstream.PutBits(buf, data.Length, 16);";
+					wr.line() << "byte[] data = System.Text.Encoding.UTF8.GetBytes(" << field_ref << ");";
+					wr.line() << "Bitstream.PutBits(buf, 16, (System.UInt32)data.Length);";
 					wr.line() << "Bitstream.PutBytes(buf, data);";
 					wr.indent(-1);
 					wr.line() << "}";
@@ -372,7 +380,7 @@ namespace putki
 					wr.line() << "Bitstream.PutBits(buf, 32, (int)" << field_ref << ");";
 					break;
 				case FIELDTYPE_STRUCT_INSTANCE:
-					wr.line() << field->ref_type << ".WriteIntoBitstream(buf, dest);";
+					wr.line() << field->ref_type << ".WriteIntoBitstream(buf, " << field_ref << ");";
 					break;
 				default:
 					wr.line() << "<compile error trying to write pointer field " << s->name << ">";
@@ -394,7 +402,91 @@ namespace putki
 		wr.line();
 		wr.line() << "public static bool ReadFromBitstream(Bitstream.Buffer buf, " << s->name << " into)";
 		wr.line() << "{";
-		wr.line(1) << "return false;";
+		wr.indent(1);
+
+		// parsers
+		for (int i=0; i!=s->fields.size(); i++)
+		{
+			parsed_field *field = &s->fields[i];
+
+			std::string field_ref = std::string("into.") + field->name;
+			std::string type = field_type(field);
+
+			if (field->is_array)
+			{
+				wr.line() << "{";
+				wr.indent(1);
+				wr.line() << "System.UInt32 size = Bitstream.ReadBits(buf, 32);";
+				if (field->type == FIELDTYPE_BYTE)
+				{
+					wr.line() << field_ref << " = Bitstream.ReadBytes(buf, (int)size);";
+					wr.line() << "if (" << field_ref << " == null) return false;";
+					wr.indent(-1);
+					wr.line() << "}";
+					continue;
+				}
+				
+				wr.line() << field_ref << " = new " << type << "[size];";
+				wr.line() << "for (System.UInt32 i=0;i!=size;i++)";
+				wr.line() << "{";
+				wr.indent(1);
+				field_ref.append("[i]");
+			}
+
+			switch (field->type)
+			{
+				case FIELDTYPE_BOOL:
+					wr.line() << field_ref << " = (Bitstream.ReadBits(buf, 1) != 0";
+					break;
+				case FIELDTYPE_INT32:
+					wr.line() << field_ref << " = Bitstream.ReadBits(buf, 32);";
+					break;
+				case FIELDTYPE_BYTE:
+					wr.line() << field_ref << " = (byte)Bitstream.ReadBits(buf, 8);";
+					break;
+				case FIELDTYPE_STRING:
+					wr.line() << "{";
+					wr.indent(1);
+					wr.line() << "int length = (int)Bitstream.ReadBits(buf, 16);";
+					wr.line() << "if (length == 0xffff)";
+					wr.line() << "{";
+					wr.line(1) << field_ref << " = null;";
+					wr.line() << "}";
+					wr.line() << "else";
+					wr.line() << "{";
+					wr.indent(1);
+					wr.line() << "byte[] strData = Bitstream.ReadBytes(buf, length);";
+					wr.line() << "if (strData == null) { buf.error = 1; return false; }";
+					wr.line() << field_ref << " = System.Text.Encoding.UTF8.GetString(strData);";
+					wr.indent(-1);
+					wr.line() << "}";
+					wr.indent(-1);
+					wr.line() << "}";
+					break;
+				case FIELDTYPE_ENUM:
+					wr.line() << field_ref << " = (" << type << ") = Bitstream.ReadBits(buf, 32);";
+					break;
+				case FIELDTYPE_STRUCT_INSTANCE:
+					wr.line() << field_ref << " = new " << type << "();";
+					wr.line() << "if (!" << field->ref_type << ".ReadFromBitstream(buf, " << field_ref << "))";
+					wr.line(1) << "return false;";
+					break;
+				default:
+					wr.line() << "<compile error trying to write field " << s->name << ">";
+					break;
+			}
+
+			if (field->is_array)
+			{
+				wr.indent(-1);
+				wr.line() << "}";
+				wr.indent(-1);
+				wr.line() << "}";
+			}
+		}
+
+		wr.line() << "return (buf.error == 0);";
+		wr.indent(-1);
 		wr.line() << "}";
 		
 		wr.indent(-1);
