@@ -320,12 +320,79 @@ namespace putki
 		}
 
 		wr.line();
-		wr.line() << "public static bool WriteIntoBitstream()"; //" << s->name << " *source, netki::bitstream::buffer *dest);";
+		wr.line() << "public static bool WriteIntoBitstream(Bitstream.Buffer buf, " << s->name << " obj)";
 		wr.line() << "{";
-		wr.line(1) << "return false;";
+		wr.indent(1);
+
+		for (int i=0; i!=s->fields.size(); i++)
+		{
+			parsed_field *field = &s->fields[i];
+
+			std::string field_ref = std::string("obj.") + field->name;
+			if (field->is_array)
+			{
+				wr.line() << "{";
+				wr.indent(1);
+				wr.line() << "int length = " << field->name << ".Length;";
+				wr.line() << "Bitstream.PutBits(buf, 32, length);";
+				wr.line() << "for (int i=0;i!=length;i++)";
+				wr.line() << "{";
+				wr.indent(1);
+				field_ref.append("[i]");
+			}
+
+			switch (field->type)
+			{
+				case FIELDTYPE_BOOL:
+					wr.line() << "Bitstream.PutBits(buf, 1, " << field_ref << ");";
+					break;
+				case FIELDTYPE_INT32:
+					wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)" << field_ref << ");";
+					break;
+				case FIELDTYPE_BYTE:
+					wr.line() << "Bitstream.PutBits(buf, " << field_ref << ");";
+					break;
+				case FIELDTYPE_STRING:
+					wr.line() << "if (" << field_ref << " != null)";
+					wr.line() << "{";
+					wr.indent(1);
+					wr.line() << "byte[] data = System.Text.Encoding.ASCII.GetBytes(" << field_ref << ");";
+					wr.line() << "Bitstream.PutBits(buf, data.Length, 16);";
+					wr.line() << "Bitstream.PutBytes(buf, data);";
+					wr.indent(-1);
+					wr.line() << "}";
+					wr.line() << "else";
+					wr.line() << "{";
+					wr.indent(1);
+					wr.line() << "Bitstream.PutBits(buf, 16, 0xffff);";
+					wr.indent(-1);
+					wr.line() << "}";
+					break;
+				case FIELDTYPE_ENUM:
+					wr.line() << "Bitstream.PutBits(buf, 32, (int)" << field_ref << ");";
+					break;
+				case FIELDTYPE_STRUCT_INSTANCE:
+					wr.line() << field->ref_type << ".WriteIntoBitstream(buf, dest);";
+					break;
+				default:
+					wr.line() << "<compile error trying to write pointer field " << s->name << ">";
+					break;
+			}
+
+			if (field->is_array)
+			{
+				wr.indent(-1);
+				wr.line() << "}";
+				wr.indent(-1);
+				wr.line() << "}";
+			}
+		}
+
+		wr.line() << "return (buf.error == 0);";
+		wr.indent(-1);
 		wr.line() << "}";
 		wr.line();
-		wr.line() << "public static bool ReadFromBitstream(" << s->name << " into)";
+		wr.line() << "public static bool ReadFromBitstream(Bitstream.Buffer buf, " << s->name << " into)";
 		wr.line() << "{";
 		wr.line(1) << "return false;";
 		wr.line() << "}";
