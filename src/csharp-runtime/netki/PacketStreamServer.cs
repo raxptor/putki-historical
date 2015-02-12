@@ -10,11 +10,16 @@ namespace netki
 		private StreamConnectionHandler _handler;
 		private Socket _listener;
 
-		struct Connection
+		class Connection : ConnectionOutput
 		{
 			public Socket socket;
 			public StreamConnection conn;
 			public byte[] recvbuf;
+
+			public void Send(byte[] data, int offset, int length)
+			{
+				socket.Send(data, offset, length, 0);
+			}
 		};
 
 		private List<int> _free_connections = new List<int>();
@@ -67,14 +72,13 @@ namespace netki
 				int connection_id = _free_connections[pos];
 				_free_connections.RemoveAt(pos);
 
-				byte[] recvbuf = _connections[connection_id].recvbuf;
-				if (recvbuf == null)
-					recvbuf = new byte[4096];
+				Connection c = new Connection();
+				c.socket = nsock;
+				c.recvbuf = new byte[4096];
+				c.conn = _handler.OnConnected(connection_id, c);
+				_connections[connection_id] = c;
 
-				_connections[connection_id].recvbuf = recvbuf;
-				_connections[connection_id].socket = nsock;
-				_connections[connection_id].conn = _handler.OnConnected(connection_id);
-				nsock.BeginReceive(recvbuf, 0, recvbuf.Length, 0, OnAsyncReceive, connection_id);
+				nsock.BeginReceive(c.recvbuf, 0, c.recvbuf.Length, 0, OnAsyncReceive, connection_id);
 			}
 
 			_listener.BeginAccept(OnAsyncAccepted, _listener);

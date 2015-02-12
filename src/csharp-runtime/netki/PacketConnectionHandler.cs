@@ -2,9 +2,9 @@
 
 namespace netki
 {
-	public interface PacketStreamOutput
+	public interface ConnectionOutput
 	{
-		void SendPacket(byte[] data, int offset, int length);
+		void Send(byte[] data, int offset, int length);
 	}
 
 	public interface StreamConnection
@@ -16,6 +16,6 @@ namespace netki
 	public interface StreamConnectionHandler
 	{
 		void OnStartup();
-		StreamConnection OnConnected(int connection_id);
+		StreamConnection OnConnected(int connection_id, ConnectionOutput output);
 	}
 }
