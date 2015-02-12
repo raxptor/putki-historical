@@ -290,14 +290,18 @@ namespace putki
 		wr.line();
 	}
 
-	void write_struct_csharp(parsed_struct *s, indentedwriter &wr, indentedwriter &sp)
+	void write_struct_csharp(parsed_struct *s, indentedwriter &wr, indentedwriter &sp, indentedwriter &enc)
 	{
 		wr.line();
 		wr.line() << "// Generated from struct '" << s->name << "'";
-		wr.line() << "class " << s->name;
+		wr.line() << "class " << s->name << " : Packet";
 		wr.line() << "{";
 		wr.indent(1);
 		wr.line() << "public const int TYPE_ID = " << s->unique_id << ";";
+		wr.line();
+		wr.line() << "public " << s->name << "() : base(TYPE_ID)";
+		wr.line() << "{";
+		wr.line() << "}";
 		wr.line();
 
 		for (int i=0; i!=s->fields.size(); i++)
@@ -410,7 +414,7 @@ namespace putki
 			parsed_field *field = &s->fields[i];
 
 			std::string field_ref = std::string("into.") + field->name;
-			std::string type = field_type(field);
+			std::string type = field_type_csharp(field);
 
 			if (field->is_array)
 			{
@@ -491,6 +495,24 @@ namespace putki
 		
 		wr.indent(-1);
 		wr.line() << "};";
+		
+		// decode
+		sp.line(4) << "case " << s->name << ".TYPE_ID:";
+		sp.line(5) << "{";
+		sp.line(6) << s->name << " dst = new " << s->name << "();";
+		sp.line(6) << "if (" << s->name << ".ReadFromBitstream(bs, dst))";
+		sp.line(6) << "{";
+		sp.line(7) << "pkt.packet = dst;";
+		sp.line(7) << "pkt.type_id = " << s->name << ".TYPE_ID;";
+		sp.line(7) << "return true;";
+		sp.line(6) << "}";
+		sp.line(6) << "return false;";
+		sp.line(5) << "}";
+
+		// encode
+		enc.line(4) << "case " << s->name << ".TYPE_ID:";
+		enc.line(5) << s->name << ".WriteIntoBitstream(buffer, (" << s->name << ") packet);";
+		enc.line(5) << "return;";
 	}
 
 	void build_netki_project_c(project *proj)
@@ -579,6 +601,8 @@ namespace putki
 		
 		std::stringstream netki_switch_parse;
 		indentedwriter sp(netki_switch_parse);
+		std::stringstream netki_switch_encode;
+		indentedwriter enc(netki_switch_encode);
 		
 		hw.cont() << "// Netki generated code";
 		hw.line() << "namespace netki";
@@ -595,15 +619,33 @@ namespace putki
 				parsed_struct *s = &pf->structs[j];
 				if (is_netki_struct(s))
 				{
-					write_struct_csharp(s, hw, sp);
+					write_struct_csharp(s, hw, sp, enc);
 					write_master = true;
 				}
 			}
 		}
 		
 		hw.indent(-1);
-		hw.line() << netki_switch_parse;
-		hw.line() << "}";
+		hw.line();
+		hw.line(1) << "public static class " << proj->loader_name << "Packets";
+		hw.line(1) << "{";
+		hw.line(2) << "public static bool Decode(Bitstream.Buffer bs, int type_id, out DecodedPacket pkt)";
+		hw.line(2) << "{";
+		hw.line(3) << "pkt.type_id = -1;";
+		hw.line(3) << "pkt.packet = null;";
+		hw.line(3) << "switch (type_id) {";
+		hw.line() << netki_switch_parse.str();
+		hw.line(3) << "}";
+		hw.line(3) << "return false;";
+		hw.line(2) << "}";
+		hw.line(2) << "public static void Encode(Packet packet, Bitstream.Buffer buffer)";
+		hw.line(2) << "{";
+		hw.line(3) << "switch (packet.type_id) {";
+		hw.line() << netki_switch_encode.str();
+		hw.line(3) << "}";
+		hw.line(2) << "}";
+		hw.line(1) << "}";
+		hw.line(0) << "}"; // namespace 
 
 		if (write_master)
 			putki::save_stream(out_base + "/" + proj->module_name + "-netki.cs", netki_master);
