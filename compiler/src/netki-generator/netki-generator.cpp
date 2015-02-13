@@ -367,7 +367,7 @@ namespace putki
 			switch (field->type)
 			{
 				case FIELDTYPE_BOOL:
-					wr.line() << "Bitstream.PutBits(buf, 1, " << field_ref << ");";
+					wr.line() << "Bitstream.PutBits(buf, 1, " << field_ref << " ? (uint)1 : (uint)0);";
 					break;
 				case FIELDTYPE_INT32:
 					wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)" << field_ref << ");";
@@ -454,7 +454,7 @@ namespace putki
 			switch (field->type)
 			{
 				case FIELDTYPE_BOOL:
-					wr.line() << field_ref << " = (Bitstream.ReadBits(buf, 1) != 0";
+					wr.line() << field_ref << " = (Bitstream.ReadBits(buf, 1) != 0);";
 					break;
 				case FIELDTYPE_INT32:
 					wr.line() << field_ref << " = Bitstream.ReadBits(buf, 32);";
