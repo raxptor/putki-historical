@@ -33,6 +33,8 @@ namespace putki
 			case FIELDTYPE_STRING:
 				type = "const char*";
 				break;
+			case FIELDTYPE_FLOAT:
+				type = "float";
 			case FIELDTYPE_POINTER:
 				type = field->ref_type + "*";
 				break;
@@ -60,6 +62,9 @@ namespace putki
 				break;
 			case FIELDTYPE_BYTE:
 				type = "byte";
+				break;
+			case FIELDTYPE_FLOAT:
+				type = "float";
 				break;
 			case FIELDTYPE_STRING:
 				type = "string";
