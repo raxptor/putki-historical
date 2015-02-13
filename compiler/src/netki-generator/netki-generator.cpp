@@ -169,6 +169,9 @@ namespace putki
 				case FIELDTYPE_BYTE:
 					wr.line() << "bitstream::insert_bits<8>(dest, " << field_ref << ");";
 					break;
+				case FIELDTYPE_FLOAT:
+					wr.line() << "// FIXME";
+					break;
 				case FIELDTYPE_STRING:
 					wr.line() << "if (" << field_ref << ")";
 					wr.line() << "{";
@@ -245,6 +248,9 @@ namespace putki
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << field_ref << " = bitstream::read_bits<8>(source);";
+					break;
+				case FIELDTYPE_FLOAT:
+					wr.line() << field_ref << " = 12345678.0;";
 					break;
 				case FIELDTYPE_STRING:
 					wr.line() << "{";
@@ -385,6 +391,9 @@ namespace putki
 					wr.indent(-1);
 					wr.line() << "}";
 					break;
+				case FIELDTYPE_FLOAT:
+					wr.line() << "// fix me";
+					break;
 				case FIELDTYPE_ENUM:
 					wr.line() << "Bitstream.PutBits(buf, 32, (int)" << field_ref << ");";
 					break;
@@ -471,6 +480,9 @@ namespace putki
 					wr.line() << "}";
 					wr.indent(-1);
 					wr.line() << "}";
+					break;
+				case FIELDTYPE_FLOAT:
+					wr.line() << field_ref << " = 1234567.0f;";
 					break;
 				case FIELDTYPE_ENUM:
 					wr.line() << field_ref << " = (" << type << ") = Bitstream.ReadBits(buf, 32);";
