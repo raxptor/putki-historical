@@ -49,14 +49,13 @@ namespace netki
 				while (rp < ret)
 				{
 					int amt = r.Next() % (ret - rp + 1);
-					//amt = ret - rp;
+					amt = ret - rp;
 					if (amt > 0)
 					{
 						conn.conn.OnStreamData(conn.recvbuf, rp, amt);
 						rp += amt;
 					}
 				}
-				Console.WriteLine(" end data pump");
 				conn.socket.BeginReceive(conn.recvbuf, 0, conn.recvbuf.Length, 0, OnAsyncReceive, connection_id);
 			}
 		}

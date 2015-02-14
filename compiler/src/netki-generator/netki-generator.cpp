@@ -305,7 +305,7 @@ namespace putki
 	{
 		wr.line();
 		wr.line() << "// Generated from struct '" << s->name << "'";
-		wr.line() << "class " << s->name << " : Packet";
+		wr.line() << "public class " << s->name << " : Packet";
 		wr.line() << "{";
 		wr.indent(1);
 		wr.line() << "public const int TYPE_ID = " << s->unique_id << ";";
@@ -349,7 +349,7 @@ namespace putki
 			{
 				wr.line() << "{";
 				wr.indent(1);
-				wr.line() << "int length = " << field_ref << ".Length;";
+				wr.line() << "int length = " << field_ref << " != null ? " << field_ref << ".Length : 0;";
 				wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)length);";
 				if (field->type == FIELDTYPE_BYTE)
 				{

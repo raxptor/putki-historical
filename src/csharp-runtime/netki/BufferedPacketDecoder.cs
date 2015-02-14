@@ -2,11 +2,14 @@
 
 namespace netki
 {
+	public delegate void OnPacketDelegate(netki.DecodedPacket packet);
+
 	public class BufferedPacketDecoder : PacketDecoder
 	{
 		byte[] _data;
 		PacketDecoder _decoder;
 		int _parsepos, _readpos;
+		bool _error = false;
 
 		public BufferedPacketDecoder(int bufsize, PacketDecoder decoder)
 		{
@@ -23,7 +26,14 @@ namespace netki
 			// When data exists in queue, add on and attempt decode.
 			if (_readpos > 0)
 			{
-				Save(data, offset, length);
+				if (!Save(data, offset, length))
+				{
+					_error = true;
+					pkt.packet = null;
+					pkt.type_id = -1;
+					return length;
+				}
+
 				ret = DoDecode(_data, _parsepos, _readpos - _parsepos, out pkt);
 				if (ret > 0)
 				{
@@ -37,7 +47,12 @@ namespace netki
 			if (pkt.type_id < 0)
 			{
 				// No decode yet. Consume what it wants and store the rest.
-				Save(data, offset + ret, length - ret);
+				if (!Save(data, offset + ret, length - ret))
+				{
+					pkt.packet = null;
+					pkt.type_id = -1;
+					_error = true;
+				}
 				return length;
 			}
 
@@ -54,13 +69,41 @@ namespace netki
 			}
 		}
 
-		public void Save(byte[] data, int offset, int length)
+		public void OnStreamData(byte[] data, int offset, int length, OnPacketDelegate handler)
 		{
+			while (true)
+			{
+				netki.DecodedPacket pkt;
+				int ret = Decode(data, offset, length, out pkt);
+				if (ret > length)
+					data[-1] = 100;
+
+				offset += ret;
+				length -= ret;
+				if (pkt.type_id < 0)
+					break;
+				handler(pkt);
+			}
+		}
+
+		public bool HasError()
+		{
+			return _error;
+		}
+
+		public bool Save(byte[] data, int offset, int length)
+		{
+			if (length < 0)
+				_data[-1] = 100;
+			if (_readpos + length > _data.Length)
+				return false;
+
 			for (int i = 0; i < length; i++)
 			{
 				_data[_readpos + i] = data[offset + i];
 			}
 			_readpos += length;
+			return true;
 		}
 
 		public int DoDecode(byte[] data, int offset, int length, out DecodedPacket pkt)
