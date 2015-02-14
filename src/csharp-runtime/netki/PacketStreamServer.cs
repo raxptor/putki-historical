@@ -18,7 +18,14 @@ namespace netki
 
 			public void Send(byte[] data, int offset, int length)
 			{
-				socket.Send(data, offset, length, 0);
+				try
+				{
+					if (socket.Connected)
+						socket.Send(data, offset, length, 0);
+				}
+				catch (System.ObjectDisposedException)
+				{
+				}
 			}
 		};
 
@@ -92,7 +99,7 @@ namespace netki
 			IPEndPoint localEP = new IPEndPoint(0, port);		
 			_listener = new Socket(localEP.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 			_listener.Bind(localEP);
-			_listener.Listen(10);
+			_listener.Listen(100);
 			_listener.BeginAccept(OnAsyncAccepted, _listener);
 		}
 	}
