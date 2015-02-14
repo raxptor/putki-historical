@@ -16,6 +16,11 @@ namespace netki
 			public StreamConnection conn;
 			public byte[] recvbuf;
 
+			~Connection()
+			{
+
+			}
+
 			public void Send(byte[] data, int offset, int length)
 			{
 				try
@@ -46,6 +51,7 @@ namespace netki
 			if (ret <= 0)
 			{
 				conn.conn.OnDisconnected();
+				_connections[connection_id] = null;
 				_free_connections.Add(connection_id);
 				conn.socket.Close();
 			}
