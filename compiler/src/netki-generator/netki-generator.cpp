@@ -1,4 +1,5 @@
 #include "netki-generator.h"
+#include "inki-outki-generator/generator.h"
 #include "writetools/save_stream.h"
 #include "writetools/indentedwriter.h"
 
@@ -631,6 +632,8 @@ namespace putki
 		for (int i=0; i!=proj->files.size(); i++)
 		{
 			parsed_file *pf = &proj->files[i];
+			write_csharp_enum(pf, hw);
+			
 			for (int j=0; j!=pf->structs.size(); j++)
 			{
 				parsed_struct *s = &pf->structs[j];
