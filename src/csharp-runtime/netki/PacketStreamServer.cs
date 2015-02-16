@@ -28,6 +28,9 @@ namespace netki
 					if (socket.Connected)
 						socket.Send(data, offset, length, 0);
 				}
+				catch (System.Net.Sockets.SocketException)
+				{
+				}
 				catch (System.ObjectDisposedException)
 				{
 				}
@@ -52,7 +55,11 @@ namespace netki
 			{
 				conn.conn.OnDisconnected();
 				_connections[connection_id] = null;
-				_free_connections.Add(connection_id);
+
+				lock (_free_connections)
+				{
+					_free_connections.Add(connection_id);
+				}
 				conn.socket.Close();
 			}
 			else
@@ -77,23 +84,39 @@ namespace netki
 		{
 			Socket nsock = _listener.EndAccept(result);
 
-			// Occupy new slot.
-			int pos = _free_connections.Count - 1;
-			if (pos > 0)
+			lock (_free_connections)
 			{
-				int connection_id = _free_connections[pos];
-				_free_connections.RemoveAt(pos);
+				// Occupy new slot.
+				int pos = _free_connections.Count - 1;
+				if (pos >= 0)
+				{
+					int connection_id = _free_connections[pos];
+					_free_connections.RemoveAt(pos);
 
-				Connection c = new Connection();
-				c.socket = nsock;
-				c.recvbuf = new byte[4096];
-				c.conn = _handler.OnConnected(connection_id, c);
-				_connections[connection_id] = c;
+					Connection c = new Connection();
+					c.socket = nsock;
+					c.recvbuf = new byte[4096];
+					c.conn = _handler.OnConnected(connection_id, c);
+					_connections[connection_id] = c;
 
-				nsock.BeginReceive(c.recvbuf, 0, c.recvbuf.Length, 0, OnAsyncReceive, connection_id);
+					nsock.BeginReceive(c.recvbuf, 0, c.recvbuf.Length, 0, OnAsyncReceive, connection_id);
+				}
+				else
+				{
+					Console.WriteLine("Dropping connection because i am full");
+					nsock.Close();
+				}
 			}
 
 			_listener.BeginAccept(OnAsyncAccepted, _listener);
+		}
+
+		public int GetNumConnections()
+		{
+			lock (_free_connections)
+			{
+				return _connections.Length - _free_connections.Count;
+			}
 		}
 
 		public void Start(int port, int max_connections=100)

@@ -350,16 +350,19 @@ namespace putki
 			{
 				wr.line() << "{";
 				wr.indent(1);
-				wr.line() << "int length = " << field_ref << " != null ? " << field_ref << ".Length : 0;";
+				wr.line() << "System.UInt32 length = 0xffffffff;";
+				wr.line() << "if (" << field_ref << " != null)";
+				wr.line(1) << "length = (uint)" << field_ref << ".Length;";
 				wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)length);";
 				if (field->type == FIELDTYPE_BYTE)
 				{
-					wr.line() << "Bitstream.PutBytes(buf, " << field_ref << ");";
+					wr.line() << "if (" << field_ref << " != null)";
+					wr.line(1) << "Bitstream.PutBytes(buf, " << field_ref << ");";
 					wr.indent(-1);
 					wr.line() << "}";
 					continue;
 				}
-				wr.line() << "for (int i=0;i!=length;i++)";
+				wr.line() << "for (int i=0;i!=length && length!=0xffffffff;i++)";
 				wr.line() << "{";
 				wr.indent(1);
 				field_ref.append("[i]");
@@ -436,10 +439,35 @@ namespace putki
 				wr.line() << "{";
 				wr.indent(1);
 				wr.line() << "System.UInt32 size = Bitstream.ReadBits(buf, 32);";
+				wr.line() << "if (size == 0xffffffff)";
+				wr.line() << "{";
+				wr.line(1) << field_ref << " = null;";
+				wr.line() << "}";
+				wr.line() << "else";
+				wr.line() << "{";
+				wr.indent(1);
+				
+				// minimum sizes to prevent allocation too much and also early exit
+				int size;
+				switch (field->type)
+				{
+					case FIELDTYPE_BOOL: size = 1; break;
+					case FIELDTYPE_STRING: size = 16; break;
+					case FIELDTYPE_INT32: size = 32; break;
+					default: size = 8; break;
+				}
+				wr.line() << "if (buf.BitsLeft() < " << size << " * size)";
+				wr.line() << "{";
+				wr.line(1) << "buf.error = 2;";
+				wr.line(1) << "return false;";
+				wr.line() << "};";
+				
 				if (field->type == FIELDTYPE_BYTE)
 				{
 					wr.line() << field_ref << " = Bitstream.ReadBytes(buf, (int)size);";
 					wr.line() << "if (" << field_ref << " == null) return false;";
+					wr.indent(-1);
+					wr.line() << "}";
 					wr.indent(-1);
 					wr.line() << "}";
 					continue;
@@ -504,6 +532,8 @@ namespace putki
 				wr.line() << "}";
 				wr.indent(-1);
 				wr.line() << "}";
+				wr.indent(-1);
+				wr.line() << "}";
 			}
 		}
 
@@ -512,7 +542,7 @@ namespace putki
 		wr.line() << "}";
 		
 		wr.indent(-1);
-		wr.line() << "};";
+		wr.line() << "}";
 		
 		// decode
 		sp.line(4) << "case " << s->name << ".TYPE_ID:";
