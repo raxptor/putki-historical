@@ -20,7 +20,10 @@ namespace netki
 
 		inline void flip_buffer(buffer *buf)
 		{
-			buf->bufsize = buf->bytepos + 1;
+			if (buf->bitpos)
+				buf->bufsize = buf->bytepos + 1;
+			else
+				buf->bufsize = buf->bytepos;
 			buf->bitpos = 0;
 			buf->bytepos = 0;
 			buf->error = 0;
