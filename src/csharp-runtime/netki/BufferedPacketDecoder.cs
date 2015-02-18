@@ -2,7 +2,7 @@
 
 namespace netki
 {
-	public delegate void OnPacketDelegate(netki.DecodedPacket packet);
+	public delegate void OnPacketDelegate(DecodedPacket packet);
 
 	public class BufferedPacketDecoder : PacketDecoder
 	{
@@ -73,7 +73,7 @@ namespace netki
 		{
 			while (true)
 			{
-				netki.DecodedPacket pkt;
+				DecodedPacket pkt;
 				int ret = Decode(data, offset, length, out pkt);
 				if (ret > length)
 					data[-1] = 100;

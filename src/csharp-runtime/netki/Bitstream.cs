@@ -42,6 +42,34 @@ namespace netki
 			}
 		}
 
+        public static void Copy(Buffer dst, Buffer src)
+        {
+            dst.buf = src.buf;
+            dst.bufsize = src.bufsize;
+            dst.bytepos = src.bytepos;
+            dst.bitpos = src.bitpos;
+            dst.error = src.error;
+        }
+
+        public static void Insert(Buffer dst, Buffer src)
+        {
+            while (src.BitsLeft() > 0)
+            {
+                if (src.bitpos > 0)
+                {
+                    Bitstream.PutBits(dst, 8 - src.bitpos, Bitstream.ReadBits(src, 8 - src.bitpos));
+                }
+                if (src.BitsLeft() > 32)
+                {
+                    Bitstream.PutBits(dst, 32, Bitstream.ReadBits(src, 32));
+                }
+                if (src.BitsLeft() >= 8)
+                {
+                    Bitstream.PutBits(dst, 8, Bitstream.ReadBits(src, 8));
+                }
+            }
+        }
+
 		public static bool PutBits(Buffer buf, int bits, UInt32 value)
 		{
 			if (buf.BitsLeft() < bits)
