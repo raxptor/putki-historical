@@ -167,9 +167,9 @@ namespace netki
 			}
 			
 			if (prefixes > 0)
-				PutBits(buf, prefixes, 0xffff);
+				PutBits(buf, prefixes, 0);
 			if (prefixes != 6)
-				PutBits(buf, 1, 0);
+				PutBits(buf, 1, 1);
 			if (bits > 0)
 				PutBits(buf, bits, value);
 		}
@@ -207,7 +207,7 @@ namespace netki
 
 		public static int ReadCompressedInt(Buffer buf)
 		{
-			if (ReadBits(buf, 1) == 1)
+			if (ReadBits(buf, 1) == 0)
 				return (int)ReadCompressedUint(buf);
 			else
                 return (int)-ReadCompressedUint(buf);

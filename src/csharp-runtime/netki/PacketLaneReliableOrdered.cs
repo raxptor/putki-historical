@@ -116,6 +116,10 @@ namespace netki
 				return ret;
 			}
 
+            // no send permitted.
+            if (dt < 0)
+                return null;
+
 			// advance ack tail.
 			while (_sendAckTail != _sendHead && _sent[_sendAckTail].buf == null)
 				_sendAckTail++;
