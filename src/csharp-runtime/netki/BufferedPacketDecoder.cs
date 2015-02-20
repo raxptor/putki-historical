@@ -36,9 +36,7 @@ namespace netki
 
 				ret = DoDecode(_data, _parsepos, _readpos - _parsepos, out pkt);
 				if (ret > 0)
-				{
 					OnParsed(ret);
-				}
 				return length;
 			}
 
@@ -112,4 +110,3 @@ namespace netki
 		}
 	}
 }
-

@@ -64,10 +64,8 @@ namespace netki
 
 			byte diff = (byte)(seq - _recvPos);
 			if (diff > 128)
-			{
 				// old packet, thorw.
 				return;
-			}
 
 			if (_recv[seq].buf == null)
 				_recvPending++;
@@ -136,9 +134,7 @@ namespace netki
 					outputFn(buf);
 					_ackFlushTimer = 0.0f;
 					if (_sendTimer[i] < 0.0f)
-					{
 						_resentTotal++;
-					}
 					_sendTimer[i] = _resendTime;
 					_sentTotal++;
 				}

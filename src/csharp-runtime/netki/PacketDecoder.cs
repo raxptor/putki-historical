@@ -15,4 +15,3 @@ namespace netki
 		int Decode(byte[] data, int offset, int length, out DecodedPacket pkt);
 	}
 }
-

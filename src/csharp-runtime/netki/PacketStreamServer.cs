@@ -119,13 +119,13 @@ namespace netki
 			}
 		}
 
-		public void Start(int port, int max_connections=100)
+		public void Start(int port, int max_connections = 100)
 		{
 			_connections = new Connection[max_connections];
 			for (int i = 0; i < max_connections; i++)
 				_free_connections.Add(max_connections - i - 1);
 
-			IPEndPoint localEP = new IPEndPoint(0, port);		
+			IPEndPoint localEP = new IPEndPoint(0, port);
 			_listener = new Socket(localEP.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 			_listener.Bind(localEP);
 			_listener.Listen(100);

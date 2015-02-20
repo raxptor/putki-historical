@@ -8,7 +8,7 @@ namespace netki
 	public delegate void OnDatagramDelegate(byte[] data, ulong EndPoint);
 
 	public class PacketDatagramServer
-	{ 
+	{
 		private Socket _listener;
 		private OnDatagramDelegate _pkt;
 		private int _port;
@@ -19,7 +19,7 @@ namespace netki
 			_host = "localhost";
 			_pkt = pkt;
 		}
-			
+
 		private void NextRead()
 		{
 		}
@@ -60,9 +60,9 @@ namespace netki
 			_listener.SendTo(data, offset, length, 0, ipep);
 		}
 
-		public void Start(int port, int max_peers=100)
+		public void Start(int port, int max_peers = 100)
 		{
-			IPEndPoint localEP = new IPEndPoint(0, 0);		
+			IPEndPoint localEP = new IPEndPoint(0, 0);
 			_listener = new Socket(localEP.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
 			_listener.Bind(localEP);
 			_port = ((IPEndPoint)_listener.LocalEndPoint).Port;
