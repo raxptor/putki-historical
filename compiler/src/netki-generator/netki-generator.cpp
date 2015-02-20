@@ -171,7 +171,10 @@ namespace putki
 					wr.line() << "bitstream::insert_bits<1>(dest, " << field_ref << ");";
 					break;
 				case FIELDTYPE_INT32:
-					wr.line() << "bitstream::insert_bits<32>(dest, " << field_ref << ");";
+					wr.line() << "bitstream::insert_compressed_int(dest, " << field_ref << ");";
+					break;
+				case FIELDTYPE_UINT32:
+					wr.line() << "bitstream::insert_compressed_uint(dest, " << field_ref << ");";
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << "bitstream::insert_bits<8>(dest, " << field_ref << ");";
@@ -251,10 +254,10 @@ namespace putki
 					wr.line() << field_ref << " = bitstream::read_bits<1>(source);";
 					break;
 				case FIELDTYPE_UINT32:
-					wr.line() << field_ref << " = (uint32_t) bitstream::read_bits<32>(source);";
+					wr.line() << field_ref << " = bitstream::read_compressed_uint(source);";
 					break;
 				case FIELDTYPE_INT32:
-					wr.line() << field_ref << " = (int32_t) bitstream::read_bits<32>(source);";
+					wr.line() << field_ref << " = bitstream::read_compressed_int(source);";
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << field_ref << " = bitstream::read_bits<8>(source);";
