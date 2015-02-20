@@ -63,7 +63,7 @@ namespace netki
 					Bitstream.PutBits(dst, 8, Bitstream.ReadBits(src, 8));
 			}
 		}
-
+		
 		public static bool PutBits(Buffer buf, int bits, UInt32 value)
 		{
 			if (buf.BitsLeft() < bits)
@@ -130,7 +130,64 @@ namespace netki
 			buf.bytepos += data.Length;
 			return false;
 		}
+	
+		public static void PutCompressedUInt(Buffer buf, uint value)
+		{
+			int bits = 0, prefixes = 0;
+			
+			if (value == 0xffffffff)
+			{
+				prefixes = 6;
+				bits = 0;
+			}
+			
+			if (value > 0xffff) 
+			{
+				bits = 32;
+				prefixes = 5;
+			}
+			else if (value > 0xfff)
+			{
+				bits = 16;
+				prefixes = 4;
+			}
+			else if (value > 0xff)
+			{
+				bits = 12;
+				prefixes = 3;
+			}
+			else if (value > 0xf)
+			{
+				bits = 8;
+				prefixes = 2;
+			}
+			else if (value > 0)
+			{
+				bits = 4;
+				prefixes = 1;
+			}
+			
+			if (prefixes > 0)
+				PutBits(buf, prefixes, 0xffff);
+			PutBits(buf, 1, 0);
+			if (bits > 0)
+				PutBits(buf, bits, value);
+		}
 
+		public static void PutCompressedInt(Buffer buf, int value)
+		{
+			if (value < 0)
+			{
+				PutBits(buf, 1, 1);
+				PutCompressedUInt(buf, (uint)(-value));
+			}
+			else
+			{
+				PutBits(buf, 1, 0);
+				PutCompressedUInt(buf, (uint)value);
+			}
+		}
+		
 		public static UInt32 ReadBits(Buffer buf, int bits)
 		{
 			if (buf.BitsLeft() < bits)

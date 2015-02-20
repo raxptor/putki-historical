@@ -13,6 +13,8 @@ namespace putki
 		{
 			case FIELDTYPE_INT32:
 				return "int";
+			case FIELDTYPE_UINT32:
+				return "uint";
 			case FIELDTYPE_BYTE:
 				return "byte";
 			case FIELDTYPE_FLOAT:
@@ -38,6 +40,7 @@ namespace putki
 		{
 			case FIELDTYPE_FLOAT:
 			case FIELDTYPE_ENUM:
+			case FIELDTYPE_UINT32:
 			case FIELDTYPE_INT32:
 				return "4";
 			case FIELDTYPE_BYTE:
@@ -126,6 +129,7 @@ namespace putki
 					{
 						case FIELDTYPE_INT32:
 						case FIELDTYPE_FLOAT:
+						case FIELDTYPE_UINT32:
 						case FIELDTYPE_ENUM:
 							size += 4;
 							break;
@@ -232,6 +236,9 @@ namespace putki
 
 				switch (s->fields[i].type)
 				{
+					case FIELDTYPE_UINT32:
+						out.line() << field_ref <<  " = (uint)" << content_reader << ".ReadInt32();";
+						break;
 					case FIELDTYPE_INT32:
 						out.line() << field_ref <<  " = " << content_reader << ".ReadInt32();";
 						break;
@@ -484,6 +491,9 @@ namespace putki
 					case FIELDTYPE_INT32:
 						out.line() << "public int " << get_name << args;
 						break;
+					case FIELDTYPE_UINT32:
+						out.line() << "public uint " << get_name << args;
+						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_PATH:
@@ -513,6 +523,9 @@ namespace putki
 				{
 					case FIELDTYPE_INT32:
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetInt32(m_mi);";
+						break;
+					case FIELDTYPE_UINT32:
+						out.line() << "return m_mi.GetField(" << dllindex << ").GetUInt32(m_mi);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -545,6 +558,9 @@ namespace putki
 					case FIELDTYPE_INT32:
 						out.line() << "public void " << set_name << "(" << args_set0 << "int value)";
 						break;
+					case FIELDTYPE_UINT32:
+						out.line() << "public void " << set_name << "(" << args_set0 << "uint value)";
+						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_POINTER:
@@ -569,6 +585,9 @@ namespace putki
 				{
 					case FIELDTYPE_INT32:
 						out.line() << "m_mi.GetField(" << dllindex << ").SetInt32(m_mi, value);";
+						break;
+					case FIELDTYPE_UINT32:
+						out.line() << "m_mi.GetField(" << dllindex << ").SetUInt32(m_mi, value);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:

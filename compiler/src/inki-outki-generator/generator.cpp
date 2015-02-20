@@ -65,6 +65,8 @@ namespace putki
 			case FIELDTYPE_ENUM:
 			case FIELDTYPE_INT32:
 				return "int";
+			case FIELDTYPE_UINT32:
+				return "unsigned int";
 			case FIELDTYPE_BYTE:
 				return "unsigned char";
 			case FIELDTYPE_FLOAT:
@@ -108,6 +110,8 @@ namespace putki
 				return "std::string";
 			case FIELDTYPE_INT32:
 				return "int";
+			case FIELDTYPE_UINT32:
+				return "unsigned int";
 			case FIELDTYPE_BYTE:
 				return "unsigned char";
 			case FIELDTYPE_POINTER:
@@ -213,6 +217,9 @@ namespace putki
 					{
 						case FIELDTYPE_INT32:
 							out.cont() << "int ";
+							break;
+						case FIELDTYPE_UINT32:
+							out.cont() << "unsigned int ";
 							break;
 						case FIELDTYPE_BYTE:
 							out.cont() << "unsigned char ";
@@ -532,6 +539,7 @@ namespace putki
 					switch (s->fields[j].type)
 					{
 						case FIELDTYPE_INT32:
+						case FIELDTYPE_UINT32:
 						case FIELDTYPE_BYTE:
 						case FIELDTYPE_FLOAT:
 						case FIELDTYPE_POINTER:
@@ -689,7 +697,7 @@ namespace putki
 		{
 			out.line() << ref << " = " << " putki::parse::get_value_string(" << node << "); ";
 		}
-		else if (f->type == FIELDTYPE_INT32 || f->type == FIELDTYPE_BYTE)
+		else if (f->type == FIELDTYPE_INT32 || f->type == FIELDTYPE_UINT32 || f->type == FIELDTYPE_BYTE)
 		{
 			out.line() << ref << " = " << "(" << putki_field_type(f) << ") putki::parse::get_value_int(" << node << "); ";
 		}
@@ -978,6 +986,10 @@ namespace putki
 			{
 				out.line() << "out << " << delim << "(int)" << ref << ";";
 			}
+			else if (fd.type == FIELDTYPE_UINT32)
+			{
+				out.line() << "out << " << delim << "(unsigned int)" << ref << ";";
+			}
 			else if (fd.type == FIELDTYPE_FLOAT || fd.type == FIELDTYPE_BOOL)
 			{
 				out.line() << "out << " << delim << "" << ref << ";";
@@ -1171,6 +1183,8 @@ namespace putki
 					out.line() << "out_beg = putki::pack_string_field(" << rt->ptrsize << ", (char*) &" << outd << ", " << srcd << ".c_str(), out_beg, out_end);";
 				else if (fd.type == FIELDTYPE_INT32)
 					out.line() << "putki::pack_int32_field((char*)&" << outd << ", " << srcd << ");";
+				else if (fd.type == FIELDTYPE_UINT32)
+					out.line() << "putki::pack_int32_field((char*)&" << outd << ", (int)" << srcd << ");";
 				else if (fd.type == FIELDTYPE_STRUCT_INSTANCE)
 					out.line() << "out_beg = write_" << fd.ref_type << "_aux(&" << srcd << ", &" << outd << ", out_beg, out_end);";
 				else if (fd.type == FIELDTYPE_POINTER)
