@@ -51,6 +51,8 @@ namespace netki
 			Bitstream.Buffer buf = Bitstream.Buffer.Make(new byte[stream.bufsize + 8]);
 			Bitstream.PutBits(buf, 8, _sendPos++);
 			Bitstream.Insert(buf, stream);
+            buf.Flip();
+            System.Console.WriteLine("sending " + stream.bufsize + " bytes unreliably");
 			_send.Add(buf);
 		}
 
