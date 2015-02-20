@@ -131,7 +131,7 @@ namespace netki
 			return false;
 		}
 	
-		public static void PutCompressedUInt(Buffer buf, uint value)
+		public static void PutCompressedUint(Buffer buf, uint value)
 		{
 			int bits = 0, prefixes = 0;
 			
@@ -140,8 +140,7 @@ namespace netki
 				prefixes = 6;
 				bits = 0;
 			}
-			
-			if (value > 0xffff) 
+			else if (value > 0xffff) 
 			{
 				bits = 32;
 				prefixes = 5;
@@ -169,9 +168,27 @@ namespace netki
 			
 			if (prefixes > 0)
 				PutBits(buf, prefixes, 0xffff);
-			PutBits(buf, 1, 0);
+			if (prefixes != 6)
+				PutBits(buf, 1, 0);
 			if (bits > 0)
 				PutBits(buf, bits, value);
+		}
+
+		public static uint ReadCompressedUint(Buffer buf)
+		{
+			if (ReadBits(buf, 1) == 1)
+				return 0;
+			if (ReadBits(buf, 1) == 1)
+				return ReadBits(buf, 4);
+			if (ReadBits(buf, 1) == 1)
+				return ReadBits(buf, 8);
+			if (ReadBits(buf, 1) == 1)
+				return ReadBits(buf, 12);
+			if (ReadBits(buf, 1) == 1)
+				return ReadBits(buf, 16);
+			if (ReadBits(buf, 1) == 1)
+				return ReadBits(buf, 32);
+			return 0xffffffff;
 		}
 
 		public static void PutCompressedInt(Buffer buf, int value)
@@ -179,13 +196,21 @@ namespace netki
 			if (value < 0)
 			{
 				PutBits(buf, 1, 1);
-				PutCompressedUInt(buf, (uint)(-value));
+				PutCompressedUint(buf, (uint)(-value));
 			}
 			else
 			{
 				PutBits(buf, 1, 0);
-				PutCompressedUInt(buf, (uint)value);
+				PutCompressedUint(buf, (uint)value);
 			}
+		}
+
+		public static int ReadCompressedInt(Buffer buf)
+		{
+			if (ReadBits(buf, 1) == 1)
+				return (int)ReadCompressedUint(buf);
+			else
+                return (int)-ReadCompressedUint(buf);
 		}
 		
 		public static UInt32 ReadBits(Buffer buf, int bits)
