@@ -116,6 +116,10 @@ namespace netki
 				return ret;
 			}
 
+            // no send permitted.
+            if (dt < 0)
+                return null;
+
 			// advance ack tail.
 			while (_sendAckTail != _sendHead && _sent[_sendAckTail].buf == null)
 				_sendAckTail++;
@@ -131,6 +135,7 @@ namespace netki
 				{
 					Bitstream.Buffer buf = Bitstream.Buffer.Make(new byte[1024]);
 					WrapOut(buf, _sent[i], i);
+                    buf.Flip();
 					outputFn(buf);
 					_ackFlushTimer = 0.0f;
 					if (_sendTimer[i] < 0.0f)
@@ -153,6 +158,7 @@ namespace netki
 				{
 					Bitstream.Buffer buf = Bitstream.Buffer.Make(new byte[1024]);
 					WrapOut(buf, null, 0);
+                    buf.Flip();
 					outputFn(buf);
 				}
 			}

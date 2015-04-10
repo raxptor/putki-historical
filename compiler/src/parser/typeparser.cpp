@@ -151,7 +151,7 @@ namespace putki
 					if (!strcmp(type.c_str(), "string")) {
 						out->type = putki::FIELDTYPE_STRING;
 					}
-					else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "i32")) {
+					else if (!strcmp(type.c_str(), "int") || !strcmp(type.c_str(), "s32")) {
 						out->type = putki::FIELDTYPE_INT32;
 					}
 					else if (!strcmp(type.c_str(), "uint") || !strcmp(type.c_str(), "u32")) {

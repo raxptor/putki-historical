@@ -40,6 +40,7 @@ namespace putki
 		{
 			case FIELDTYPE_FLOAT:
 			case FIELDTYPE_ENUM:
+			case FIELDTYPE_UINT32:
 			case FIELDTYPE_INT32:
 			case FIELDTYPE_UINT32:
 				return "4";
@@ -130,6 +131,7 @@ namespace putki
 						case FIELDTYPE_INT32:
 						case FIELDTYPE_UINT32:
 						case FIELDTYPE_FLOAT:
+						case FIELDTYPE_UINT32:
 						case FIELDTYPE_ENUM:
 							size += 4;
 							break;
@@ -236,6 +238,9 @@ namespace putki
 
 				switch (s->fields[i].type)
 				{
+					case FIELDTYPE_UINT32:
+						out.line() << field_ref <<  " = (uint)" << content_reader << ".ReadInt32();";
+						break;
 					case FIELDTYPE_INT32:
 						out.line() << field_ref <<  " = (uint) " << content_reader << ".ReadInt32();";
 					case FIELDTYPE_UINT32:
@@ -524,7 +529,7 @@ namespace putki
 						out.line() << "return m_mi.GetField(" << dllindex << ").GetInt32(m_mi);";
 						break;
 					case FIELDTYPE_UINT32:
-						out.line() << "return (uint) m_mi.GetField(" << dllindex << ").GetInt32(m_mi);";
+						out.line() << "return m_mi.GetField(" << dllindex << ").GetUInt32(m_mi);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -586,7 +591,7 @@ namespace putki
 						out.line() << "m_mi.GetField(" << dllindex << ").SetInt32(m_mi, value);";
 						break;
 					case FIELDTYPE_UINT32:
-						out.line() << "m_mi.GetField(" << dllindex << ").SetInt32(m_mi, (int)value);";
+						out.line() << "m_mi.GetField(" << dllindex << ").SetUInt32(m_mi, value);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:

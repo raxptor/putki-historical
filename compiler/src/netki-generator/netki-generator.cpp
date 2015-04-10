@@ -61,8 +61,16 @@ namespace putki
 			case FIELDTYPE_BOOL:
 				type = "bool";
 				break;
+<<<<<<< HEAD
 			case FIELDTYPE_UINT32:
 				type = "System.UInt32";
+=======
+			case FIELDTYPE_INT32:
+				type = "int";
+				break;
+			case FIELDTYPE_UINT32:
+				type = "uint";
+>>>>>>> origin/master
 				break;
 			case FIELDTYPE_INT32:
 				type = "System.Int32";
@@ -171,8 +179,15 @@ namespace putki
 					wr.line() << "bitstream::insert_bits<1>(dest, " << field_ref << ");";
 					break;
 				case FIELDTYPE_INT32:
+<<<<<<< HEAD
 				case FIELDTYPE_UINT32:
 					wr.line() << "bitstream::insert_bits<32>(dest, " << field_ref << ");";
+=======
+					wr.line() << "bitstream::insert_compressed_int(dest, " << field_ref << ");";
+					break;
+				case FIELDTYPE_UINT32:
+					wr.line() << "bitstream::insert_compressed_uint(dest, " << field_ref << ");";
+>>>>>>> origin/master
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << "bitstream::insert_bits<8>(dest, " << field_ref << ");";
@@ -252,7 +267,14 @@ namespace putki
 					wr.line() << field_ref << " = bitstream::read_bits<1>(source);";
 					break;
 				case FIELDTYPE_UINT32:
+<<<<<<< HEAD
 					wr.line() << field_ref << " = (uint32_t) bitstream::read_bits<32>(source);";
+=======
+					wr.line() << field_ref << " = bitstream::read_compressed_uint(source);";
+					break;
+				case FIELDTYPE_INT32:
+					wr.line() << field_ref << " = bitstream::read_compressed_int(source);";
+>>>>>>> origin/master
 					break;
 				case FIELDTYPE_INT32:
 					wr.line() << field_ref << " = (int32_t) bitstream::read_bits<32>(source);";
@@ -360,10 +382,10 @@ namespace putki
 			{
 				wr.line() << "{";
 				wr.indent(1);
-				wr.line() << "System.UInt32 length = 0xffffffff;";
+				wr.line() << "int length = -1;";
 				wr.line() << "if (" << field_ref << " != null)";
-				wr.line(1) << "length = (uint)" << field_ref << ".Length;";
-				wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)length);";
+				wr.line(1) << "length = " << field_ref << ".Length;";
+				wr.line() << "Bitstream.PutCompressedInt(buf, length);";
 				if (field->type == FIELDTYPE_BYTE)
 				{
 					wr.line() << "if (" << field_ref << " != null)";
@@ -372,7 +394,7 @@ namespace putki
 					wr.line() << "}";
 					continue;
 				}
-				wr.line() << "for (int i=0;i!=length && length!=0xffffffff;i++)";
+				wr.line() << "for (int i=0;i!=length && length > 0;i++)";
 				wr.line() << "{";
 				wr.indent(1);
 				field_ref.append("[i]");
@@ -384,8 +406,15 @@ namespace putki
 					wr.line() << "Bitstream.PutBits(buf, 1, " << field_ref << " ? (uint)1 : (uint)0);";
 					break;
 				case FIELDTYPE_INT32:
+<<<<<<< HEAD
 				case FIELDTYPE_UINT32:
 					wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)" << field_ref << ");";
+=======
+					wr.line() << "Bitstream.PutCompressedInt(buf, " << field_ref << ");";
+					break;
+				case FIELDTYPE_UINT32:
+					wr.line() << "Bitstream.PutCompressedUint(buf, " << field_ref << ");";
+>>>>>>> origin/master
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << "Bitstream.PutBits(buf, 8, " << field_ref << ");";
@@ -395,7 +424,7 @@ namespace putki
 					wr.line() << "{";
 					wr.indent(1);
 					wr.line() << "byte[] data = System.Text.Encoding.UTF8.GetBytes(" << field_ref << ");";
-					wr.line() << "Bitstream.PutBits(buf, 16, (System.UInt32)data.Length);";
+					wr.line() << "Bitstream.PutBits(buf, 16, (uint)data.Length);";
 					wr.line() << "Bitstream.PutBytes(buf, data);";
 					wr.indent(-1);
 					wr.line() << "}";
@@ -449,8 +478,8 @@ namespace putki
 			{
 				wr.line() << "{";
 				wr.indent(1);
-				wr.line() << "System.UInt32 size = Bitstream.ReadBits(buf, 32);";
-				wr.line() << "if (size == 0xffffffff)";
+				wr.line() << "int size = Bitstream.ReadCompressedInt(buf);";
+				wr.line() << "if (size < 0)";
 				wr.line() << "{";
 				wr.line(1) << field_ref << " = null;";
 				wr.line() << "}";
@@ -464,7 +493,11 @@ namespace putki
 				{
 					case FIELDTYPE_BOOL: size = 1; break;
 					case FIELDTYPE_STRING: size = 16; break;
+<<<<<<< HEAD
 					case FIELDTYPE_UINT32: 
+=======
+					case FIELDTYPE_UINT32:
+>>>>>>> origin/master
 					case FIELDTYPE_INT32: size = 32; break;
 					
 					default: size = 8; break;
@@ -487,7 +520,7 @@ namespace putki
 				}
 				
 				wr.line() << field_ref << " = new " << type << "[size];";
-				wr.line() << "for (System.UInt32 i=0;i!=size;i++)";
+				wr.line() << "for (int i=0;i!=size;i++)";
 				wr.line() << "{";
 				wr.indent(1);
 				field_ref.append("[i]");
@@ -499,10 +532,17 @@ namespace putki
 					wr.line() << field_ref << " = (Bitstream.ReadBits(buf, 1) != 0);";
 					break;
 				case FIELDTYPE_INT32:
+<<<<<<< HEAD
 					wr.line() << field_ref << " = (int) Bitstream.ReadBits(buf, 32);";
 					break;
 				case FIELDTYPE_UINT32:
 					wr.line() << field_ref << " = Bitstream.ReadBits(buf, 32);";
+=======
+					wr.line() << field_ref << " = Bitstream.ReadCompressedInt(buf);";
+					break;
+				case FIELDTYPE_UINT32:
+					wr.line() << field_ref << " = Bitstream.ReadCompressedUint(buf);";
+>>>>>>> origin/master
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << field_ref << " = (byte)Bitstream.ReadBits(buf, 8);";
@@ -722,5 +762,4 @@ namespace putki
 		build_netki_project_c(proj);
 		build_netki_project_csharp(proj);
 	}
-
 }

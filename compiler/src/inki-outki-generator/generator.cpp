@@ -986,6 +986,10 @@ namespace putki
 			{
 				out.line() << "out << " << delim << "(int)" << ref << ";";
 			}
+			else if (fd.type == FIELDTYPE_UINT32)
+			{
+				out.line() << "out << " << delim << "(unsigned int)" << ref << ";";
+			}
 			else if (fd.type == FIELDTYPE_FLOAT || fd.type == FIELDTYPE_BOOL)
 			{
 				out.line() << "out << " << delim << "" << ref << ";";
@@ -1179,6 +1183,8 @@ namespace putki
 					out.line() << "out_beg = putki::pack_string_field(" << rt->ptrsize << ", (char*) &" << outd << ", " << srcd << ".c_str(), out_beg, out_end);";
 				else if (fd.type == FIELDTYPE_INT32 || fd.type == FIELDTYPE_UINT32)
 					out.line() << "putki::pack_int32_field((char*)&" << outd << ", " << srcd << ");";
+				else if (fd.type == FIELDTYPE_UINT32)
+					out.line() << "putki::pack_int32_field((char*)&" << outd << ", (int)" << srcd << ");";
 				else if (fd.type == FIELDTYPE_STRUCT_INSTANCE)
 					out.line() << "out_beg = write_" << fd.ref_type << "_aux(&" << srcd << ", &" << outd << ", out_beg, out_end);";
 				else if (fd.type == FIELDTYPE_POINTER)
