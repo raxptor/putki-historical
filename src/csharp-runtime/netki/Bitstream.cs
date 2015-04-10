@@ -213,6 +213,22 @@ namespace netki
                 return (int)-ReadCompressedUint(buf);
 		}
 		
+		public static float ReadFloat(Buffer buf)
+		{
+			SyncByte(buf);
+			if (buf.BitsLeft() < 32)
+				return 0;
+			float f = BitConverter.ToSingle(buf.buf, buf.bytepos);
+			buf.bytepos += 4;
+			return f;
+		}
+		
+		public static void PutFloat(Buffer buf, float f)
+		{
+			byte[] val = BitConverter.GetBytes(f);
+			PutBytes(buf, val);
+		}
+		
 		public static UInt32 ReadBits(Buffer buf, int bits)
 		{
 			if (buf.BitsLeft() < bits)
