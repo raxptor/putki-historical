@@ -42,7 +42,6 @@ namespace putki
 			case FIELDTYPE_ENUM:
 			case FIELDTYPE_UINT32:
 			case FIELDTYPE_INT32:
-			case FIELDTYPE_UINT32:
 				return "4";
 			case FIELDTYPE_BYTE:
 				return "1";
@@ -129,7 +128,6 @@ namespace putki
 					switch (s->fields[i].type)
 					{
 						case FIELDTYPE_INT32:
-						case FIELDTYPE_UINT32:
 						case FIELDTYPE_FLOAT:
 						case FIELDTYPE_UINT32:
 						case FIELDTYPE_ENUM:
@@ -243,9 +241,6 @@ namespace putki
 						break;
 					case FIELDTYPE_INT32:
 						out.line() << field_ref <<  " = (uint) " << content_reader << ".ReadInt32();";
-					case FIELDTYPE_UINT32:
-						out.line() << field_ref <<  " = " << content_reader << ".ReadInt32();";
-						break;
 					case FIELDTYPE_BYTE:
 						out.line() << field_ref << " = " << content_reader << ".ReadByte();";
 						break;
