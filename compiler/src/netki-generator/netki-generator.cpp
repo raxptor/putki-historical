@@ -26,6 +26,9 @@ namespace putki
 				type = "bool";
 				break;
 			case FIELDTYPE_INT32:
+				type = "int32_t";
+				break;
+			case FIELDTYPE_UINT32:
 				type = "uint32_t";
 				break;
 			case FIELDTYPE_BYTE:
@@ -58,8 +61,11 @@ namespace putki
 			case FIELDTYPE_BOOL:
 				type = "bool";
 				break;
-			case FIELDTYPE_INT32:
+			case FIELDTYPE_UINT32:
 				type = "System.UInt32";
+				break;
+			case FIELDTYPE_INT32:
+				type = "System.Int32";
 				break;
 			case FIELDTYPE_BYTE:
 				type = "byte";
@@ -165,6 +171,7 @@ namespace putki
 					wr.line() << "bitstream::insert_bits<1>(dest, " << field_ref << ");";
 					break;
 				case FIELDTYPE_INT32:
+				case FIELDTYPE_UINT32:
 					wr.line() << "bitstream::insert_bits<32>(dest, " << field_ref << ");";
 					break;
 				case FIELDTYPE_BYTE:
@@ -244,8 +251,11 @@ namespace putki
 				case FIELDTYPE_BOOL:
 					wr.line() << field_ref << " = bitstream::read_bits<1>(source);";
 					break;
-				case FIELDTYPE_INT32:
+				case FIELDTYPE_UINT32:
 					wr.line() << field_ref << " = (uint32_t) bitstream::read_bits<32>(source);";
+					break;
+				case FIELDTYPE_INT32:
+					wr.line() << field_ref << " = (int32_t) bitstream::read_bits<32>(source);";
 					break;
 				case FIELDTYPE_BYTE:
 					wr.line() << field_ref << " = bitstream::read_bits<8>(source);";
@@ -374,6 +384,7 @@ namespace putki
 					wr.line() << "Bitstream.PutBits(buf, 1, " << field_ref << " ? (uint)1 : (uint)0);";
 					break;
 				case FIELDTYPE_INT32:
+				case FIELDTYPE_UINT32:
 					wr.line() << "Bitstream.PutBits(buf, 32, (System.UInt32)" << field_ref << ");";
 					break;
 				case FIELDTYPE_BYTE:
@@ -453,7 +464,9 @@ namespace putki
 				{
 					case FIELDTYPE_BOOL: size = 1; break;
 					case FIELDTYPE_STRING: size = 16; break;
+					case FIELDTYPE_UINT32: 
 					case FIELDTYPE_INT32: size = 32; break;
+					
 					default: size = 8; break;
 				}
 				wr.line() << "if (buf.BitsLeft() < " << size << " * size)";
@@ -486,6 +499,9 @@ namespace putki
 					wr.line() << field_ref << " = (Bitstream.ReadBits(buf, 1) != 0);";
 					break;
 				case FIELDTYPE_INT32:
+					wr.line() << field_ref << " = (int) Bitstream.ReadBits(buf, 32);";
+					break;
+				case FIELDTYPE_UINT32:
 					wr.line() << field_ref << " = Bitstream.ReadBits(buf, 32);";
 					break;
 				case FIELDTYPE_BYTE:
