@@ -264,5 +264,38 @@ namespace netki
 			buf.bytepos += count;
 			return dst;
 		}
+
+		public static void PutStringDumb(Buffer buf, string value)
+		{
+			if (value == null)
+			{
+				Bitstream.PutCompressedInt(buf, -1);
+				return;
+			}
+
+			byte[] bytes = System.Text.UTF8Encoding.UTF8.GetBytes(value);
+			PutCompressedInt(buf, bytes.Length);
+			PutBytes(buf, bytes); 
+		}
+
+		public static string ReadStringDumb(Buffer buf)
+		{
+			int len = ReadCompressedInt(buf);
+			if (len > 65536)
+			{
+				buf.error = 4;
+				return null;
+			}
+			if (len < 0)
+			{
+				return null;
+			}
+			byte[] data = ReadBytes(buf, len);
+			if (data == null || buf.error != 0)
+			{
+				return null;
+			}
+			return System.Text.UTF8Encoding.UTF8.GetString(data);
+		}
 	}
 }
