@@ -230,9 +230,21 @@ void generate_project(putki::project *p)
 		iw.line();
 		iw.line() << "public class " << p->loader_name;
 		iw.line() << "{";
-		iw.line();
+		iw.indent(1);
+		iw.line() << "public ProxyObject createProxy(String type)";
+		iw.line() << "{";
+		iw.indent(1);
+		
+		for (int i=0;i!=p->files.size();i++)
+		{
+			write_java_proxy_creator(&p->files[i], iw);
+		}
+		
+		iw.line() << "return null;";
+		iw.indent(-1);
+		iw.line() << "}";
+		iw.indent(-1);
 		iw.line() << java_inki_code.str();
-		iw.line();
 		iw.line() << "}";
 		putki::save_stream(java_inki + "/" + p->loader_name + ".java", java_inki_file);
 	}
