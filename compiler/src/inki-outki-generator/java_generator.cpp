@@ -330,12 +330,9 @@ namespace putki
 
 			out.line() << "// Generated constants";
 
-			std::string new_hide_str = "";
-			/*
-			if (!s->parent.empty())
-				new_hide_str = "new ";
-			*/
-			out.line() << new_hide_str << "public final int TYPE = " << s->unique_id << ";";
+			out.line() << "public final int TYPE = " << s->unique_id << ";";
+			out.line();
+			out.line() << "public static Interop.Type _getType() { return Interop.getTypeByName(\"" << s->name << "\"); }";
 
 			out.indent(-1);
 			out.line() << "}";

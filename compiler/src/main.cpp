@@ -228,7 +228,7 @@ void generate_project(putki::project *p)
 		iw.line();
 		iw.line() << "import putked.*;";
 		iw.line();
-		iw.line() << "public class " << p->loader_name;
+		iw.line() << "public class " << p->loader_name << " implements EditorTypeService";;
 		iw.line() << "{";
 		iw.indent(1);
 		iw.line() << "public ProxyObject createProxy(String type)";
