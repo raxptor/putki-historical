@@ -94,6 +94,16 @@ extern "C"
 	{
 		return g_loaded_dll->type_of(mi);
 	}
+	
+	DSPEC const char *MED_MakeJSON(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->make_json(mi);
+	}
+	
+	DSPEC const char *MED_ContentHash(putki::mem_instance *mi)
+	{
+		return g_loaded_dll->content_hash(mi);
+	}
 
 	DSPEC const char *MED_PathOf(putki::mem_instance *mi)
 	{

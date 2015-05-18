@@ -20,7 +20,10 @@ public class Interop
 		public Pointer MED_DiskLoad(String path);
 		public Pointer MED_TypeOf(Pointer obj);
 		public String MED_PathOf(Pointer obj);
-				
+		
+		public String MED_MakeJSON(Pointer obj);		
+		public String MED_ContentHash(Pointer obj);
+		
 		// types
 		public String MED_Type_GetName(Pointer p);
 		public String MED_Type_GetModuleName(Pointer p);	
@@ -36,6 +39,7 @@ public class Interop
 		public boolean MED_Field_IsArray(Pointer p);
 		public boolean MED_Field_IsAuxPtr(Pointer p);
 		public boolean MED_Field_ShowInEditor(Pointer p);
+		public String MED_Type_GetInlineEditor(Pointer p);
 		
 		public int MED_Field_GetArraySize(Pointer field, Pointer mi);
 		public void MED_Field_SetArrayIndex(Pointer field, int index);
@@ -55,6 +59,9 @@ public class Interop
 
 		public int MED_Field_GetBool(Pointer field, Pointer mi);
 		public void MED_Field_SetBool(Pointer field, Pointer mi, int value);
+		
+		public byte MED_Field_GetByte(Pointer field, Pointer mi);
+		public void MED_Field_SetByte(Pointer field, Pointer mi, byte value);
 		
 		public String MED_Field_GetEnumPossibility(Pointer field, int i);
 		public String MED_Field_GetEnum(Pointer field, Pointer mi);
@@ -143,6 +150,16 @@ public class Interop
 		public boolean getBool(MemInstance mi)
 		{
 			return s_ni.MED_Field_GetBool(_p, mi._p) != 0;
+		}
+		
+		public void setByte(MemInstance mi, byte value)
+		{
+			s_ni.MED_Field_SetByte(_p, mi._p, value);
+		}
+		
+		public byte getByte(MemInstance mi)
+		{
+			return s_ni.MED_Field_GetByte(_p, mi._p);
 		}
 		
 		public String getEnum(MemInstance mi)
@@ -238,6 +255,11 @@ public class Interop
 			return s_ni.MED_Type_PermitAsAsset(_p) != 0;
 		}
 		
+		public String getInlineEditor()
+		{
+			return s_ni.MED_Type_GetInlineEditor(_p);
+		}		
+		
 		public boolean hasParent(Type t)
 		{
 			String name = t.getName();
@@ -284,6 +306,16 @@ public class Interop
 		{
 			return s_ni.MED_PathOf(_p);
 		}
+		
+		public String getContentHash()
+		{
+			return s_ni.MED_ContentHash(_p);
+		}
+		
+		public String buildJSON()
+		{
+			return s_ni.MED_MakeJSON(_p);
+		}
 	}
 
 	public static class NIWrap 
@@ -291,7 +323,6 @@ public class Interop
 		private NI _i;
 		private HashMap<Pointer, Field> s_fields = new HashMap<>();
 		private HashMap<Pointer, Type> s_types = new HashMap<>();
-		private HashMap<String, MemInstance> s_objs = new HashMap<>();
 		
 		public NIWrap(NI i)
 		{
@@ -323,6 +354,8 @@ public class Interop
 			Pointer p = s_ni.MED_DiskLoad(path);
 			if (p != Pointer.NULL)
 			{
+				System.out.println("hash[" + path +"] = " + s_ni.MED_ContentHash(p));
+				//System.out.println("json[" + path +"] = " + s_ni.MED_MakeJSON(p));
 				return new MemInstance(p);
 			}
 			return null;
@@ -359,6 +392,7 @@ public class Interop
 	
 	public static NI s_ni;
 	public static NIWrap s_wrap;
+	public static String s_resPath;
 	
 	public static Type getTypeByName(String name)
 	{
@@ -374,6 +408,7 @@ public class Interop
 	
 	public static void Initialize(String dllPath, String dataPath)
 	{
-		s_ni.MED_Initialize(dllPath,  dataPath);
+		s_ni.MED_Initialize(dllPath, dataPath);
+		s_resPath = dataPath + "data/res/";
 	}
 }

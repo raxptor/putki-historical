@@ -219,6 +219,23 @@ namespace putki
 		{
 			return ((mem_instance_real*)mi)->path;
 		}
+		
+		const char* make_json(mem_instance *mi)
+		{
+			static char buf[64*1024];
+			if (!type_of(mi)->write_json(buf, 1024))
+				strcpy(buf, "Failed to produce JSON.");
+			else
+				return buf;
+		}
+		
+		const char* content_hash(mem_instance *mi)
+		{
+			static char hash[256];
+			type_of(mi)->content_hash(hash);
+			return hash;
+		}
+		
 	};
 
 	data_dll_i * create_dll_interface(const char *datapath)

@@ -78,8 +78,11 @@ namespace putki
 
 		virtual bool permit_as_aux_instance() = 0;
 		virtual bool permit_as_asset() = 0;
-
+		
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
+		
+		virtual bool write_json(const char *buf, unsigned int size) = 0;
+		virtual void content_hash(const char *buf) = 0;
 	};
 
 	struct ext_build_result
@@ -104,6 +107,9 @@ namespace putki
 		virtual ext_type_handler_i* type_of(mem_instance *mi) = 0;
 		virtual ext_type_handler_i* type_by_index(unsigned int i) = 0;
 		virtual ext_type_handler_i* type_by_name(const char *name) = 0;
+		
+		virtual const char* make_json(mem_instance *mi) = 0;
+		virtual const char* content_hash(mem_instance *mi) = 0;
 
 		virtual void mem_build_asset(const char *path, ext_build_result *res) = 0;
 		virtual void on_object_modified(const char *path) = 0;

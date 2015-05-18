@@ -294,6 +294,19 @@ namespace putki
 				out.line() << "const char *parent_name() { return \"" << s->parent << "\"; }";
 
 			out.line() << "const char *inline_editor() { return \"" << s->inline_editor << "\"; }";
+			
+			out.line();
+			out.line() << "bool write_json(char *buffer, unsigned int size)";
+			out.line() << "{";
+			out.line(1) << "strcpy(buffer, \"Gurka\");";
+			out.line(1) << "return true;";
+			out.line() << "}";
+
+			out.line();
+			out.line() << "void content_hash(char *buffer)";
+			out.line() << "{";
+			out.line(1) << "strcpy(buffer, \"BADF00D\");";
+			out.line() << "}";
 
 			out.line();
 			out.line() << "putki::ext_field_handler_i *field(unsigned int idx)";
