@@ -20,6 +20,8 @@ public class Interop
 		public Pointer MED_DiskLoad(String path);
 		public Pointer MED_TypeOf(Pointer obj);
 		public String MED_PathOf(Pointer obj);
+		public void MED_DiskSave(Pointer p);
+		public void MED_OnObjectModified(Pointer p);
 		
 		public String MED_MakeJSON(Pointer obj);		
 		public String MED_ContentHash(Pointer obj);
@@ -121,41 +123,53 @@ public class Interop
 		{
 			return s_ni.MED_Field_GetInt32(_p, mi._p);
 		}
-		
-		public void setString(MemInstance mi, String value)
-		{
-			s_ni.MED_Field_SetString(_p, mi._p, value);
-		}
-		
-		public void setPointer(MemInstance mi, String value)
-		{
-			s_ni.MED_Field_SetPointer(_p, mi._p, value);
-		}
-		
-		public void setFloat(MemInstance mi, float value)
-		{
-			s_ni.MED_Field_SetFloat(_p, mi._p, value);
-		}
-		
-		public void setInt32(MemInstance mi, int value)
-		{
-			s_ni.MED_Field_SetInt32(_p, mi._p, value);
-		}
 
-		public void setBool(MemInstance mi, boolean value)
-		{
-			s_ni.MED_Field_SetBool(_p, mi._p, value ? 1 : 0);
-		}
-		
 		public boolean getBool(MemInstance mi)
 		{
 			return s_ni.MED_Field_GetBool(_p, mi._p) != 0;
 		}
 		
+		public void setString(MemInstance mi, String value)
+		{
+			s_ni.MED_Field_SetString(_p, mi._p, value);
+			mi.onModified();
+		}
+		
+		public void setPointer(MemInstance mi, String value)
+		{
+			s_ni.MED_Field_SetPointer(_p, mi._p, value);
+			mi.onModified();
+		}
+		
+		public void setFloat(MemInstance mi, float value)
+		{
+			s_ni.MED_Field_SetFloat(_p, mi._p, value);
+			mi.onModified();
+		}
+		
+		public void setInt32(MemInstance mi, int value)
+		{
+			s_ni.MED_Field_SetInt32(_p, mi._p, value);
+			mi.onModified();
+		}
+
+		public void setBool(MemInstance mi, boolean value)
+		{
+			s_ni.MED_Field_SetBool(_p, mi._p, value ? 1 : 0);
+			mi.onModified();
+		}
+		
 		public void setByte(MemInstance mi, byte value)
 		{
 			s_ni.MED_Field_SetByte(_p, mi._p, value);
+			mi.onModified();
 		}
+		
+		public void setEnum(MemInstance mi, String value)
+		{
+			s_ni.MED_Field_SetEnum(_p,  mi._p, value);
+			mi.onModified();
+		}		
 		
 		public byte getByte(MemInstance mi)
 		{
@@ -171,12 +185,7 @@ public class Interop
 		{
 			return s_ni.MED_Field_GetEnumPossibility(_p,  i);
 		}
-		
-		public void setEnum(MemInstance mi, String value)
-		{
-			s_ni.MED_Field_SetEnum(_p,  mi._p, value);
-		}
-		
+	
 		public String getRefType()
 		{
 			return s_ni.MED_Field_GetRefType(_p);
@@ -200,11 +209,13 @@ public class Interop
 		public void arrayInsert(MemInstance mi)
 		{
 			s_ni.MED_Field_ArrayInsert(_p,  mi._p);
+			mi.onModified();
 		}
 		
 		public void arrayErase(MemInstance mi)
 		{
 			s_ni.MED_Field_ArrayErase(_p,  mi._p);
+			mi.onModified();
 		}
 		
 		public int getType()
@@ -280,6 +291,7 @@ public class Interop
 	{
 		public Pointer _p;
 		public Type _type;
+		public boolean _hasUnsavedChanges;
 		
 		public MemInstance(Pointer p)
 		{
@@ -307,6 +319,17 @@ public class Interop
 			return s_ni.MED_PathOf(_p);
 		}
 		
+		public boolean hasUnsavedChanges()
+		{
+			return _hasUnsavedChanges;
+		}
+		
+		public void diskSave()
+		{
+			s_ni.MED_DiskSave(_p);
+			_hasUnsavedChanges = false;
+		}
+		
 		public String getContentHash()
 		{
 			return s_ni.MED_ContentHash(_p);
@@ -315,6 +338,12 @@ public class Interop
 		public String buildJSON()
 		{
 			return s_ni.MED_MakeJSON(_p);
+		}
+		
+		public void onModified()
+		{
+			// Mostly for live updates.
+			s_ni.MED_OnObjectModified(_p);
 		}
 	}
 
@@ -354,8 +383,6 @@ public class Interop
 			Pointer p = s_ni.MED_DiskLoad(path);
 			if (p != Pointer.NULL)
 			{
-				System.out.println("hash[" + path +"] = " + s_ni.MED_ContentHash(p));
-				//System.out.println("json[" + path +"] = " + s_ni.MED_MakeJSON(p));
 				return new MemInstance(p);
 			}
 			return null;
@@ -387,7 +414,7 @@ public class Interop
 				s_types.put(p, f);
 			}
 			return f;
-		}		
+		}
 	}
 	
 	public static NI s_ni;
