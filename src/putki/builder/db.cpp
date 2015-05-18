@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include <ctime>
+
 #include <putki/sys/compat.h>
 #include <putki/sys/thread.h>
 #include <putki/sys/sstream.h>
@@ -328,10 +330,18 @@ namespace putki
 			std::map<instance_t, std::string>::iterator i = d->paths.find(onto);
 			if (i != d->paths.end())
 			{
+				int q = 0;
+				const char *digits = "0123456789abcdef";
 				do
 				{
 					// nice!
-					sprintf(d->auxpathbuf, "%s#%c%c%c%c", i->second.c_str(), 'a' + (rand()%20), 'a' + (rand()%20), 'a' + (rand()%20), 'a' + (rand()%20));
+					int t = time(0) + rand();
+					char ap[16];
+					for (int j=0;j<6;j++)
+						ap[j] = digits[ (t >> j*4) & 0xf];
+					ap[6] = 0;
+						
+					sprintf(d->auxpathbuf, "%s#%s", i->second.c_str(), ap);
 				}
 				while (d->objs.find(d->auxpathbuf) != d->objs.end());
 				return d->auxpathbuf;
