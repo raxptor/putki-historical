@@ -80,9 +80,6 @@ namespace putki
 		virtual bool permit_as_asset() = 0;
 		
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
-		
-		virtual bool write_json(const char *buf, unsigned int size) = 0;
-		virtual void content_hash(const char *buf) = 0;
 	};
 
 	struct ext_build_result

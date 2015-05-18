@@ -6,7 +6,7 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="../bin/Release/PutkEd.exe" internal="true" />
+    <widget-library name="../bin/x86/Debug/x64/PutkEd.exe" internal="true" />
   </import>
   <widget class="Gtk.Bin" id="PutkEd.AssetEditor" design-size="850 477">
     <property name="MemberName" />
