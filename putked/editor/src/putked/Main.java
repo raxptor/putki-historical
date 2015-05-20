@@ -423,6 +423,16 @@ public class Main extends Application
     	// survived this far so save it.
     	prefs.put("config",  configFile.getAbsolutePath());
     	prefs.flush();
+    	    	
+    	for (EditorPluginDescription desc : m_pluginDescs) {
+    		switch (desc.getType()) {
+    			case PLUGIN_EDITOR:
+    				System.out.println("Booting editor plugin " + desc.getName());
+    				desc.start();
+    			default:
+   					break;
+    		}
+    	}    	
     	
     	stage.setTitle(m_confParser.getSingle("title"));
     	
