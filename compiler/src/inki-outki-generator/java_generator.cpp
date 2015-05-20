@@ -6,7 +6,20 @@
 
 namespace putki
 {
+	std::string java_ref_struct(putki::parsed_field *f)
+	{
+		if (f->resolved_ref_struct)
+			return f->resolved_ref_struct->loadername + "." + f->resolved_ref_struct->name;
+		return "UNRESOLVED";
+	}
 
+	std::string java_ref_enum(putki::parsed_field *f)
+	{
+		if (f->resolved_ref_enum)
+			return f->resolved_ref_enum->loadername + "." + f->resolved_ref_enum->name;
+		return "UNRESOLVED";
+	}
+	
 	std::string java_type_name(putki::parsed_field *f)
 	{
 		switch (f->type)
@@ -21,8 +34,9 @@ namespace putki
 				return "bool";
 			case FIELDTYPE_POINTER:
 			case FIELDTYPE_STRUCT_INSTANCE:
+				return java_ref_struct(f);
 			case FIELDTYPE_ENUM:
-				return f->ref_type;
+				return java_ref_enum(f);
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
 			case FIELDTYPE_PATH:
@@ -47,7 +61,7 @@ namespace putki
 			case FIELDTYPE_BOOL:
 				return "1";
 			case FIELDTYPE_STRUCT_INSTANCE:
-				return f->ref_type + ".SIZE";
+				return java_ref_struct(f) + ".SIZE";
 			case FIELDTYPE_FILE:
 			case FIELDTYPE_STRING:
 			case FIELDTYPE_PATH:
@@ -212,7 +226,10 @@ namespace putki
 						out.line() << "public String " <<get_name << args;
 						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
-						out.line() << "public " << s->fields[i].ref_type << " " << get_name << args;
+						out.line() << "public " << java_ref_struct(&s->fields[i]) << " " << get_name << args;
+						break;
+					case FIELDTYPE_ENUM:
+						out.line() << "public " << java_ref_enum(&s->fields[i]) << " " << get_name << args;
 						break;
 					case FIELDTYPE_FLOAT:
 						out.line() << "public float " << get_name << args;
@@ -239,10 +256,13 @@ namespace putki
 					case FIELDTYPE_PATH:
 						out.line() << "return m_mi.getField(" << dllindex << ").getString(m_mi);";
 						break;
+					case FIELDTYPE_ENUM:
+						out.line() << "return " << java_ref_enum(&s->fields[i]) << ".valueOf(m_mi.getField(" << dllindex << ").getEnum(m_mi));";
+						break;
 					case FIELDTYPE_STRUCT_INSTANCE:
 						out.line() << "Interop.MemInstance ml = m_mi.getField(" << dllindex << ").getStructInstance(m_mi);";
 						out.line() << "if (ml == null) return null;";
-						out.line() << s->fields[i].ref_type << " p = new " << s->fields[i].ref_type << "();";
+						out.line() << java_ref_struct(&s->fields[i]) << " p = new " << java_ref_struct(&s->fields[i]) << "();";
 						out.line() << "p.connect(ml);";
 						out.line() << "return p;";
 						break;
@@ -274,6 +294,9 @@ namespace putki
 					case FIELDTYPE_FLOAT:
 						out.line() << "public void " << set_name << "(" << args_set0 << "float value)";
 						break;
+					case FIELDTYPE_ENUM:
+						out.line() << "public void " << set_name << "(" << args_set0 << java_ref_enum(&s->fields[i]) << " value)";
+						break;
 					default:
 						out.line() << "public void  " << set_name << "(" << args_set0 << "int dummy)";
 						break;
@@ -299,6 +322,9 @@ namespace putki
 					case FIELDTYPE_FLOAT:
 						out.line() << "m_mi.getField(" << dllindex << ").setFloat(m_mi, value);";
 						break;
+					case FIELDTYPE_ENUM:
+						out.line() << "m_mi.getField(" << dllindex << ").setEnum(m_mi, value.toString());";
+						break;
 					default:
 						out.line() << "// nothing";
 						break;
@@ -311,14 +337,14 @@ namespace putki
 				if (s->fields[i].type == FIELDTYPE_POINTER)
 				{
 					out.line();
-					out.line() << "public " << s->fields[i].ref_type << " " << resolvepfx << s->fields[i].name << args;
+					out.line() << "public " << java_ref_struct(&s->fields[i]) << " " << resolvepfx << s->fields[i].name << args;
 					out.line() << "{";
 
 					if (s->fields[i].is_array)
 						out.line(1) << "m_mi.getField(" << dllindex << ").setArrayIndex(arrayIndex);";
 
 					out.line(1) << "Interop.MemInstance ml = Interop.s_wrap.load(m_mi.getField(" << dllindex << ").getPointer(m_mi));";
-					out.line(1) << "return ml != null ? (" << s->fields[i].ref_type << ") DataHelper.createPutkEdObj(ml) : null;";
+					out.line(1) << "return ml != null ? (" << java_ref_struct(&s->fields[i]) << ") DataHelper.createPutkEdObj(ml) : null;";
 					out.line() << "}";
 				}
 
