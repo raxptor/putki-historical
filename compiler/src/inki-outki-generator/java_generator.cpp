@@ -217,6 +217,9 @@ namespace putki
 					case FIELDTYPE_INT32:
 						out.line() << "public int " << get_name << args;
 						break;
+					case FIELDTYPE_BYTE:
+						out.line() << "public byte " << get_name << args;
+						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_PATH:
@@ -249,6 +252,9 @@ namespace putki
 				{
 					case FIELDTYPE_INT32:
 						out.line() << "return m_mi.getField(" << dllindex << ").getInt32(m_mi);";
+						break;
+					case FIELDTYPE_BYTE:
+						out.line() << "return m_mi.getField(" << dllindex << ").getByte(m_mi);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -285,6 +291,9 @@ namespace putki
 					case FIELDTYPE_INT32:
 						out.line() << "public void " << set_name << "(" << args_set0 << "int value)";
 						break;
+					case FIELDTYPE_BYTE:
+						out.line() << "public void " << set_name << "(" << args_set0 << "byte value)";
+						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
 					case FIELDTYPE_POINTER:
@@ -312,6 +321,9 @@ namespace putki
 				{
 					case FIELDTYPE_INT32:
 						out.line() << "m_mi.getField(" << dllindex << ").setInt32(m_mi, value);";
+						break;
+					case FIELDTYPE_BYTE:
+						out.line() << "m_mi.getField(" << dllindex << ").setByte(m_mi, value);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -356,7 +368,8 @@ namespace putki
 
 			out.line() << "// Generated constants";
 
-			out.line() << "public final int TYPE = " << s->unique_id << ";";
+			out.line() << "public static final int TYPE = " << s->unique_id << ";";
+			out.line() << "public static final String NAME = \"" << s->name << "\";";
 			out.line();
 			out.line() << "public static Interop.Type _getType() { return Interop.getTypeByName(\"" << s->name << "\"); }";
 

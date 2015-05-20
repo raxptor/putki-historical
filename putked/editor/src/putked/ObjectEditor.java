@@ -14,98 +14,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
-class EditorCreator
-{
-    public static FieldEditor createEditor(MemInstance mi, Field field, int index, boolean asArray)
-    {
-        field.setArrayIndex(index);
-        if (asArray)
-            return new ArrayEditor(mi, field);
-
-        switch (field.getType())
-        {
-            case 5:
-            {
-                String name = field.getName();
-                if (field.isArray())
-                    name += "[" + index + "]";
-
-                MemInstance _mi = field.getStructInstance(mi);
-                System.out.println("field ed [" + _mi.getType().getInlineEditor() + "]");
-                if (_mi.getType().getInlineEditor().equals("Vec4"))
-                    return new StructEditor(_mi, name, true);
-
-                return new StructEditor(_mi, name, false);
-            }
-            case 3:
-                return new PointerEditor(mi, field, index);
-            case 0:
-                return new Int32Editor(mi, field, index);
-            case 1:
-                return new UInt8Editor(mi, field, index);
-            // 8 => bool
-            case 8:
-                return new BooleanEditor(mi, field, index);
-            // 7 => file
-            case 9:
-                return new FloatEditor(mi, field, index);
-            case 10:
-                return new EnumEditor(mi, field, index);
-            default:
-                return new StringEditor(mi, field, index);
-        }
-    }
-
-    public static Node makeArrayFieldLabel(Field fi, int index)
-    {
-        Label lbl = new Label(fi.getName() + "[" + index + "]");
-        lbl.setMinWidth(120);
-        return lbl;
-    }
-
-    public static Node makeFieldLabel(Field fi)
-    {
-        Label lbl = new Label(fi.getName());
-        lbl.getStyleClass().add("field-label");
-        lbl.setAlignment(Pos.CENTER_LEFT);
-        return lbl;
-    }
-    
-    public static Node makeInlineEditorHeader(String name)
-    {
-        Label lbl = new Label(name);
-        lbl.getStyleClass().add("field-label");
-        lbl.setAlignment(Pos.CENTER_LEFT); 
-        return lbl;
-    }
-
-    public static Node makeLabel(Field fi, int index)
-    {
-        if (fi.isArray())
-            return makeArrayFieldLabel(fi, index);
-        else
-            return makeFieldLabel(fi);
-    }
-
-    public static String makeInlineAuxTitle(MemInstance mi)
-    {
-        return mi.getType().getName() + " [" + filterAux(mi.getPath()) + "]";
-    }
-
-    public static String makeInlineTitle(MemInstance mi)
-    {
-        return mi.getPath() + " (" + mi.getType().getName() + ")";
-    }
-    
-    public static String filterAux(String input)
-    {
-    	for (int i=0;i<input.length();i++)
-    		if (input.charAt(i) == '#')
-    			return input.substring(i);
-    	return input;
-    }
-}
-
 class StringEditor implements FieldEditor
 {
     MemInstance m_mi;
@@ -376,7 +284,7 @@ class PointerEditor implements FieldEditor
 
                     m_f.setArrayIndex(m_index);
                     m_f.setPointer(m_mi, naux.getPath());
-                    tf.textProperty().set(EditorCreator.makeInlineAuxTitle(naux));
+                    tf.textProperty().set(EditorCreatorUtil.makeInlineAuxTitle(naux));
 
                     VBox aux = makeObjNode(naux);
                     aux.setVisible(true);
@@ -495,7 +403,7 @@ class PointerEditor implements FieldEditor
                     ptrbar.getChildren().setAll(expand, tf, point, clear);
                     tot.getChildren().setAll(ptrbar, aux);
                     tf.getStyleClass().remove("error");
-                    tf.textProperty().set(EditorCreator.makeInlineAuxTitle(mi));
+                    tf.textProperty().set(EditorCreatorUtil.makeInlineAuxTitle(mi));
                 }
                 else
                 {
@@ -584,7 +492,7 @@ class ArrayEditor implements FieldEditor
         int size = m_f.getArraySize(m_mi);
         for (int i=0;i<size;i++)
         {
-            FieldEditor fe = EditorCreator.createEditor(m_mi, m_f, i, false);
+            FieldEditor fe = ObjectEditor.createEditor(m_mi, m_f, i, false);
             m_editors.add(fe.createUI());
         }
 
@@ -665,7 +573,7 @@ class StructEditor implements FieldEditor
             if (f == null || !f.showInEditor())
                 break;
 
-            FieldEditor fe = EditorCreator.createEditor(m_mi, f, 0, f.isArray());
+            FieldEditor fe = ObjectEditor.createEditor(m_mi, f, 0, f.isArray());
             Node ed = fe.createUI();
 
             // array or struct or pointer or bools dont get labels.
@@ -681,7 +589,7 @@ class StructEditor implements FieldEditor
                     VBox b = new VBox();
                     b.setMaxWidth(Double.MAX_VALUE);
                     b.setFillWidth(true);
-                    b.getChildren().setAll(EditorCreator.makeLabel(f, 0), ed);
+                    b.getChildren().setAll(EditorCreatorUtil.makeLabel(f, 0), ed);
                     nodes.add(b);
                 }
                 else
@@ -699,7 +607,7 @@ class StructEditor implements FieldEditor
                         // fields get hbox
                         HBox hb = new HBox();
                         hb.setMaxWidth(Double.MAX_VALUE);
-                        hb.getChildren().setAll(EditorCreator.makeLabel(f, 0), ed);
+                        hb.getChildren().setAll(EditorCreatorUtil.makeLabel(f, 0), ed);
                         HBox.setHgrow(ed, Priority.ALWAYS);
                         nodes.add(hb);
                     }
@@ -715,7 +623,7 @@ class StructEditor implements FieldEditor
                 return box;
 
             HBox main = new HBox();
-            main.getChildren().setAll(EditorCreator.makeInlineEditorHeader(m_name), box);
+            main.getChildren().setAll(EditorCreatorUtil.makeInlineEditorHeader(m_name), box);
             return main;
         }
 
@@ -736,6 +644,7 @@ public class ObjectEditor
     VBox m_props;
     MemInstance m_mi;
     StructEditor m_root;
+	private static ArrayList<FieldEditorCreator> s_cedts = new ArrayList<>();
 
     public ObjectEditor(MemInstance mi)
     {
@@ -757,4 +666,61 @@ public class ObjectEditor
         return m_props;
     }
 
+	public static void addCustomTypeEditorCreator(FieldEditorCreator c)
+	{
+		s_cedts.add(c);
+	}
+	
+    public static FieldEditor createEditor(MemInstance mi, Field field, int index, boolean asArray)
+    {
+    	for (FieldEditorCreator c : s_cedts) {
+    		FieldEditor res = c.createEditor(mi, field, index,  asArray);
+    		if (res != null)
+    			return res;
+    	}
+    	
+        field.setArrayIndex(index);
+        
+        if (asArray)
+            return new ArrayEditor(mi, field);
+        
+    	for (FieldEditorCreator c : s_cedts) {
+    		FieldEditor res = c.createEditor(mi, field, index, false);
+    		if (res != null)
+    			return res;
+    	}
+
+        switch (field.getType())
+        {
+            case 5:
+            {
+                String name = field.getName();
+                if (field.isArray())
+                    name += "[" + index + "]";
+
+                MemInstance _mi = field.getStructInstance(mi);
+                System.out.println("field ed [" + _mi.getType().getInlineEditor() + "]");
+                if (_mi.getType().getInlineEditor().equals("Vec4"))
+                    return new StructEditor(_mi, name, true);
+
+                return new StructEditor(_mi, name, false);
+            }
+            case 3:
+                return new PointerEditor(mi, field, index);
+            case 0:
+                return new Int32Editor(mi, field, index);
+            case 1:
+                return new UInt8Editor(mi, field, index);
+            // 8 => bool
+            case 8:
+                return new BooleanEditor(mi, field, index);
+            // 7 => file
+            case 9:
+                return new FloatEditor(mi, field, index);
+            case 10:
+                return new EnumEditor(mi, field, index);
+            default:
+                return new StringEditor(mi, field, index);
+        }
+    }	
 }
