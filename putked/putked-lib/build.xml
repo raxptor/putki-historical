@@ -27,6 +27,7 @@
     <mkdir dir="${dist}" />
     <jar jarfile="${dist}/putked-lib.jar" basedir="${build}" />
     <copy file="lib/jna.jar" todir="${dist}" />
+    <copy file="../interopdll/libputked-java-interop.dylib" tofile="${build}/putked/native/interop.dylib" />
   </target>
 
   <target name="clean">

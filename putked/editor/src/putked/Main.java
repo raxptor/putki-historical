@@ -49,6 +49,11 @@ public class Main extends Application
         Application.launch(args);
     }
     
+    public static void addPluginDesc(EditorPluginDescription plug)
+    {
+    	m_pluginDescs.add(plug);
+    }
+    
     public static void initEditor()
     {
     	addEditor(new PropertyEditor()); 	
@@ -334,40 +339,58 @@ public class Main extends Application
     	m_pane.getSelectionModel().select(t);
     	return t;
     }
+ 
+    public static void interopInit(String interopPath, String dllPath)
+    {
+    	System.out.println("Interop init " + interopPath + " and " + dllPath);   	
+    	if (Interop.Load(interopPath))
+    	{
+    		Interop.Initialize(dllPath, m_projectPath);
+    	}
+    }
+    
+    private static String m_projectPath = null;
+    private static ConfigParser m_confParser = null;
     
     @Override
     public void start(Stage stage) throws BackingStoreException, IOException
     {
     	s_instance = this;
-    	
-    	ConfigParser confParser;
+
     	Preferences prefs = Preferences.userRoot().node("putked");
-    	String config = prefs.get("config", null);
-    	if (config == null)
+    	
+    	String configPath = prefs.get("config", null);
+    	File configFile = null;
+    	if (configPath != null) {
+    		configFile = new File(configPath);
+    		if (!configFile.exists())
+    			configFile = null;
+    	}
+       	
+    	if (configFile == null)
     	{
     		FileChooser fileChooser = new FileChooser();
     		fileChooser.setTitle("Open root");
     		fileChooser.getExtensionFilters().addAll(new ExtensionFilter("PutkEd Configuration Files", "putked.config"));
-    		File selectedFile = fileChooser.showOpenDialog(null);
-    		if (selectedFile == null)
-    			return;    		
-    		config = selectedFile.getAbsolutePath();
+    		configFile = fileChooser.showOpenDialog(null);
        	}
     	
-    	File f = new File(config);
-    	if (!f.exists())
-    	{
+    	if (configFile == null) {
     		prefs.clear();
-    		prefs.flush();
+    		prefs.flush(); 
+    		return;
     	}
+     	
+    	m_projectPath = configFile.getParent();
+    	m_confParser = new ConfigParser(configFile);
     	
-    	confParser = new ConfigParser(f);
-    	for (String val : confParser.getMulti("plugin")) {
+    	for (String val : m_confParser.getMulti("plugin")) {
     		try {
 	    		@SuppressWarnings("unchecked")
 				Class<EditorPluginDescription> desc = (Class<EditorPluginDescription>) Main.class.getClassLoader().loadClass(val);
 	    		EditorPluginDescription epd = desc.newInstance(); 
 	    		System.out.println("Plugin (" + epd.getName() + ":" + epd.getVersion() + ") loaded.");
+	    		m_pluginDescs.add(epd);
 	        } catch (ClassNotFoundException e) { 		
 	    		System.out.println("Error loading plugin [" + val + "] " + e.toString());
 	        } catch (IllegalAccessException e) { 		
@@ -377,16 +400,31 @@ public class Main extends Application
 	        }
     	}
     	
-    	if (!Interop.Load("/tmp/libputked-java-interop.dylib"))
-    	{
-    		System.out.println("Could not load interop lib");
-    		return;
+       	EditorPluginDescription buildLoader = null;
+    	for (EditorPluginDescription desc : m_pluginDescs) {
+    		switch (desc.getType()) {
+    			case PLUGIN_PROJECT_BUILD:
+    				buildLoader = desc;
+    				break;
+    			case PLUGIN_PROJECT_DEV_BUILD:
+    				if (buildLoader == null) {
+    					buildLoader = desc;
+    				}
+    				break;
+    			default:
+   					break;
+    		}
     	}
-
-    	String base = "/Users/dannilsson/git/lilwiz";
-    	Interop.Initialize(base + "/build/liblilwiz-data-dll.dylib", base);
-
-    	stage.setTitle(confParser.getSingle("title"));
+    	
+    	System.out.println("Using build loader:" + buildLoader.getName());
+    	buildLoader.start();
+    	System.out.println("Did build setup");
+    	
+    	// survived this far so save it.
+    	prefs.put("config",  configFile.getAbsolutePath());
+    	prefs.flush();
+    	
+    	stage.setTitle(m_confParser.getSingle("title"));
     	
     	SplitPane pane = new SplitPane();
     	m_pane = new TabPane();

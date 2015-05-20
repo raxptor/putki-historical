@@ -255,7 +255,7 @@ public class ObjectLibrary {
 		m_allObjects.clear();
 		final TreeItem<String> root = new TreeItem<>("/");
 		root.setExpanded(true);
-		System.out.println("gurka " + Interop.getObjsPath());
+		System.out.println("Obj paths is " + Interop.getObjsPath());
 		scanDirectory(root, new File(Interop.getObjsPath()), "");
 		m_dirView.setRoot(root);
 	}

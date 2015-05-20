@@ -452,7 +452,7 @@ public class Interop
 	public static void Initialize(String dllPath, String dataPath)
 	{
 		s_ni.MED_Initialize(dllPath, dataPath);
-		s_resPath = dataPath + "data/res/";
-		s_objsPath = dataPath + "data/objs/";
+		s_resPath = dataPath + "/data/res/";
+		s_objsPath = dataPath + "/data/objs/";
 	}
 }
