@@ -22,7 +22,7 @@
     </classpath>
     <src path="src" />
     </javac>
-    <copy file="src/putked/application.css" tofile="${build}/application.css" />
+    <copy file="src/putked/application.css" tofile="${build}/putked/application.css" />
   </target>
 
   <target name="dist" depends="compile">
