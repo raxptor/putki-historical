@@ -33,6 +33,8 @@ public class Interop
 		public Pointer MED_Type_GetParentType(Pointer type);
 		int MED_Type_PermitAsAsset(Pointer type);
 		int MED_Type_PermitAsAuxInstance(Pointer type);
+		
+		public Pointer MED_CreateInstance(String path, Pointer type);
 
 		// fields
 		public String MED_Field_GetName(Pointer p);
@@ -271,6 +273,14 @@ public class Interop
 			return s_ni.MED_Type_GetInlineEditor(_p);
 		}		
 		
+		public MemInstance createInstance(String path)
+		{
+			Pointer p = s_ni.MED_CreateInstance(path, _p);
+			MemInstance mi = new MemInstance(p);
+			mi.diskSave();
+			return s_wrap.load(path);
+		}
+		
 		public boolean hasParent(Type t)
 		{
 			String name = t.getName();
@@ -420,10 +430,16 @@ public class Interop
 	public static NI s_ni;
 	public static NIWrap s_wrap;
 	public static String s_resPath;
+	public static String s_objsPath;
 	
 	public static Type getTypeByName(String name)
 	{
 		return s_wrap.getTypeByName(name);
+	}
+	
+	public static String getObjsPath()
+	{
+		return s_objsPath;
 	}
 	
 	public static boolean Load(String file)
@@ -437,5 +453,6 @@ public class Interop
 	{
 		s_ni.MED_Initialize(dllPath, dataPath);
 		s_resPath = dataPath + "data/res/";
+		s_objsPath = dataPath + "data/objs/";
 	}
 }
