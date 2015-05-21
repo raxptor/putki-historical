@@ -5,10 +5,10 @@ import java.nio.file.Files;
 public class DefaultBuildLoader implements EditorPluginDescription 
 {
 	Class<?> m_class;
-	String m_interop, m_user;
+	String m_interop, m_user, m_builder;
 	String[] m_extras;
 	
-	public DefaultBuildLoader(Class<?> c, String interop, String user, String[] extras)
+	public DefaultBuildLoader(Class<?> c, String interop, String user, String builder, String[] extras)
 	{
 		m_class = c;
 		m_interop = interop;
@@ -46,16 +46,19 @@ public class DefaultBuildLoader implements EditorPluginDescription
 			File whereTo = Files.createTempDirectory("loader").toFile();
 			File s1 = new File(whereTo, m_interop);
 			File s2 = new File(whereTo, m_user);
+			File s3 = new File(whereTo, m_builder);
 		    InputStream link1 = open("/putked/native/" + m_interop);		    
 		    Files.copy(link1, s1.getAbsoluteFile().toPath());
 		    InputStream link2 = open("/native/" + m_user);
 		    Files.copy(link2, s2.getAbsoluteFile().toPath());		    
+		    InputStream link3 = open("/native/" + m_user);
+		    Files.copy(link3, s3.getAbsoluteFile().toPath());		    
 		    for (String extra : m_extras) {
-				File s3 = new File(whereTo, m_user);
-		    	InputStream link3 = open("/native/" + extra);
-		    	Files.copy(link3, s3.getAbsoluteFile().toPath());	
+				File sE = new File(whereTo, m_user);
+		    	InputStream linkE = open("/native/" + extra);
+		    	Files.copy(linkE, sE.getAbsoluteFile().toPath());	
 		    }
-		    Main.interopInit(s1.getAbsolutePath(),  s2.getAbsolutePath());
+		    Main.interopInit(s1.getAbsolutePath(),  s2.getAbsolutePath(), s3.getAbsolutePath());
 		}
 		catch (Exception e) {
 			System.out.println(e.toString());

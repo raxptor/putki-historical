@@ -42,6 +42,7 @@ public class Main extends Application
 	private static ArrayList<OpenEditors> m_openEditors = new ArrayList<OpenEditors>();
 	private static Editor m_defaultEditor =  new PropertyEditor();
 	private static ArrayList<EditorPluginDescription> m_pluginDescs = new ArrayList<EditorPluginDescription>();
+	private static String s_builderPath;
 	
     public static void main(String[] args) 
     {
@@ -340,13 +341,14 @@ public class Main extends Application
     	return t;
     }
  
-    public static void interopInit(String interopPath, String dllPath)
+    public static void interopInit(String interopPath, String dllPath, String builderPath)
     {
-    	System.out.println("Interop init " + interopPath + " and " + dllPath);   	
+    	System.out.println("Interop init " + interopPath + " and " + dllPath); 
     	if (Interop.Load(interopPath))
     	{
     		Interop.Initialize(dllPath, m_projectPath);
     	}
+    	s_builderPath = builderPath;
     }
     
     private static String m_projectPath = null;
