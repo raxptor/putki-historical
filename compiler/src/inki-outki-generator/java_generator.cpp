@@ -24,6 +24,7 @@ namespace putki
 	{
 		switch (f->type)
 		{
+			case FIELDTYPE_UINT32:
 			case FIELDTYPE_INT32:
 				return "int";
 			case FIELDTYPE_BYTE:
@@ -52,6 +53,7 @@ namespace putki
 		{
 			case FIELDTYPE_FLOAT:
 			case FIELDTYPE_ENUM:
+			case FIELDTYPE_UINT32:
 			case FIELDTYPE_INT32:
 				return "4";
 			case FIELDTYPE_BYTE:
@@ -215,10 +217,9 @@ namespace putki
 				switch (s->fields[i].type)
 				{
 					case FIELDTYPE_INT32:
-						out.line() << "public int " << get_name << args;
-						break;
+					case FIELDTYPE_UINT32:
 					case FIELDTYPE_BYTE:
-						out.line() << "public byte " << get_name << args;
+						out.line() << "public long " << get_name << args;
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -251,10 +252,9 @@ namespace putki
 				switch (s->fields[i].type)
 				{
 					case FIELDTYPE_INT32:
-						out.line() << "return m_mi.getField(" << dllindex << ").getInt32(m_mi);";
-						break;
+					case FIELDTYPE_UINT32:
 					case FIELDTYPE_BYTE:
-						out.line() << "return m_mi.getField(" << dllindex << ").getByte(m_mi);";
+						out.line() << "return m_mi.getField(" << dllindex << ").getInteger(m_mi);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -289,10 +289,9 @@ namespace putki
 				switch (s->fields[i].type)
 				{
 					case FIELDTYPE_INT32:
-						out.line() << "public void " << set_name << "(" << args_set0 << "int value)";
-						break;
+					case FIELDTYPE_UINT32:
 					case FIELDTYPE_BYTE:
-						out.line() << "public void " << set_name << "(" << args_set0 << "byte value)";
+						out.line() << "public void " << set_name << "(" << args_set0 << "long value)";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -319,11 +318,10 @@ namespace putki
 
 				switch (s->fields[i].type)
 				{
+					case FIELDTYPE_UINT32:
 					case FIELDTYPE_INT32:
-						out.line() << "m_mi.getField(" << dllindex << ").setInt32(m_mi, value);";
-						break;
 					case FIELDTYPE_BYTE:
-						out.line() << "m_mi.getField(" << dllindex << ").setByte(m_mi, value);";
+						out.line() << "m_mi.getField(" << dllindex << ").setInteger(m_mi, value);";
 						break;
 					case FIELDTYPE_STRING:
 					case FIELDTYPE_FILE:
@@ -351,7 +349,6 @@ namespace putki
 					out.line();
 					out.line() << "public " << java_ref_struct(&s->fields[i]) << " " << resolvepfx << s->fields[i].name << args;
 					out.line() << "{";
-
 					if (s->fields[i].is_array)
 						out.line(1) << "m_mi.getField(" << dllindex << ").setArrayIndex(arrayIndex);";
 

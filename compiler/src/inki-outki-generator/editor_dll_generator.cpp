@@ -108,6 +108,7 @@ namespace putki
 			{
 				case FIELDTYPE_STRING: out.cont() << " putki::EXT_FIELDTYPE_STRING; "; break;
 				case FIELDTYPE_INT32: out.cont() << " putki::EXT_FIELDTYPE_INT32; "; break;
+				case FIELDTYPE_UINT32: out.cont() << " putki::EXT_FIELDTYPE_UINT32; "; break;
 				case FIELDTYPE_POINTER: out.cont() << " putki::EXT_FIELDTYPE_POINTER; "; break;
 				case FIELDTYPE_FILE: out.cont() << " putki::EXT_FIELDTYPE_FILE; "; break;
 				case FIELDTYPE_PATH: out.cont() << " putki::EXT_FIELDTYPE_PATH; "; break;
@@ -207,7 +208,7 @@ namespace putki
 					write_integer_set_get(out, 0, 256, "unsigned char", s, j, field_ref);
 					break;
 				case FIELDTYPE_UINT32:
-					write_integer_set_get(out, 0, 0x10000000, "unsigned int", s, j, field_ref);
+					write_integer_set_get(out, 0, 0x100000000, "unsigned int", s, j, field_ref);
 					break;
 				case FIELDTYPE_INT32:
 					write_integer_set_get(out, -0x80000000, 0x80000000, "int", s, j, field_ref);

@@ -55,17 +55,11 @@ public class Interop
 		public void MED_Field_SetPointer(Pointer field, Pointer mi, String value);
 
 		public Pointer MED_Field_GetStructInstance(Pointer field, Pointer mi);
-		public int MED_Field_GetInt32(Pointer field, Pointer mi);
-		public void MED_Field_SetInt32(Pointer field, Pointer mi, int value);
+		public long MED_Field_GetInteger(Pointer field, Pointer mi);
+		public void MED_Field_SetInteger(Pointer field, Pointer mi, long value);
 
 		public float MED_Field_GetFloat(Pointer field, Pointer mi);
 		public void MED_Field_SetFloat(Pointer field, Pointer mi, float value);
-
-		public int MED_Field_GetBool(Pointer field, Pointer mi);
-		public void MED_Field_SetBool(Pointer field, Pointer mi, int value);
-		
-		public byte MED_Field_GetByte(Pointer field, Pointer mi);
-		public void MED_Field_SetByte(Pointer field, Pointer mi, byte value);
 		
 		public String MED_Field_GetEnumPossibility(Pointer field, int i);
 		public String MED_Field_GetEnum(Pointer field, Pointer mi);
@@ -76,6 +70,19 @@ public class Interop
 		
 		public Pointer MED_CreateAuxInstance(Pointer onto, Pointer type);
 	}
+
+    public static final int FT_INT32 = 0;
+    public static final int FT_BYTE = 1;
+    public static final int FT_STRING = 2;
+    public static final int FT_POINTER = 3;
+    public static final int FT_PATH = 4;
+    public static final int FT_STRUCT_INSTANCE = 5;
+    public static final int FT_FILE = 7;
+    public static final int FT_BOOL = 8;
+    public static final int FT_FLOAT = 9;
+    public static final int FT_ENUM = 10;
+    public static final int FT_UINT32 = 11;
+    public static final int FT_INVALID = 12;
 	
 	public static class Field
 	{
@@ -121,16 +128,6 @@ public class Interop
 			return s_ni.MED_Field_GetFloat(_p, mi._p);
 		}
 		
-		public int getInt32(MemInstance mi)
-		{
-			return s_ni.MED_Field_GetInt32(_p, mi._p);
-		}
-
-		public boolean getBool(MemInstance mi)
-		{
-			return s_ni.MED_Field_GetBool(_p, mi._p) != 0;
-		}
-		
 		public void setString(MemInstance mi, String value)
 		{
 			s_ni.MED_Field_SetString(_p, mi._p, value);
@@ -149,21 +146,9 @@ public class Interop
 			mi.onModified();
 		}
 		
-		public void setInt32(MemInstance mi, int value)
+		public void setInteger(MemInstance mi, long value)
 		{
-			s_ni.MED_Field_SetInt32(_p, mi._p, value);
-			mi.onModified();
-		}
-
-		public void setBool(MemInstance mi, boolean value)
-		{
-			s_ni.MED_Field_SetBool(_p, mi._p, value ? 1 : 0);
-			mi.onModified();
-		}
-		
-		public void setByte(MemInstance mi, byte value)
-		{
-			s_ni.MED_Field_SetByte(_p, mi._p, value);
+			s_ni.MED_Field_SetInteger(_p, mi._p, value);
 			mi.onModified();
 		}
 		
@@ -173,9 +158,9 @@ public class Interop
 			mi.onModified();
 		}		
 		
-		public byte getByte(MemInstance mi)
+		public long getInteger(MemInstance mi)
 		{
-			return s_ni.MED_Field_GetByte(_p, mi._p);
+			return s_ni.MED_Field_GetInteger(_p, mi._p);
 		}
 		
 		public String getEnum(MemInstance mi)

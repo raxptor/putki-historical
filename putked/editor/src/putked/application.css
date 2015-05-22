@@ -69,7 +69,7 @@
 	-fx-min-height: 20 px;
 }
 
-.int32-field
+.integer-field
 {
        -fx-max-width: 120px;
 }

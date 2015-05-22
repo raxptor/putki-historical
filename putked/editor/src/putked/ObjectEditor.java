@@ -2,6 +2,7 @@ package putked;
 
 import java.util.ArrayList;
 
+
 import putked.Interop.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -58,10 +59,10 @@ class BooleanEditor implements FieldEditor
     {
         m_f.setArrayIndex(m_index);
         CheckBox cb = new CheckBox(m_f.getName());
-        cb.setSelected(m_f.getBool(m_mi));
+        cb.setSelected(m_f.getInteger(m_mi) != 0);
         cb.selectedProperty().addListener( (obs, old, ny) -> {
             m_f.setArrayIndex(m_index);
-            m_f.setBool(m_mi,  ny);
+            m_f.setInteger(m_mi, ny ? 1 : 0);
         });
         return cb;
     }
@@ -109,75 +110,36 @@ class EnumEditor implements FieldEditor
     }
 }
 
-class Int32Editor implements FieldEditor
+class IntegerEditor implements FieldEditor
 {
     MemInstance m_mi;
     Field m_f;
     int m_index;
+    long m_min, m_max;
 
-    public Int32Editor(MemInstance mi, Field f, int index)
+    public IntegerEditor(MemInstance mi, Field f, int index, long min, long max)
     {
         m_mi = mi;
         m_f = f;
         m_index = index;
+        m_min = min;
+        m_max = max;
     }
 
     @Override
     public Node createUI()
     {
         m_f.setArrayIndex(m_index);
-        TextField tf = new TextField(new Integer(m_f.getInt32(m_mi)).toString());
-        tf.getStyleClass().add("int32-field");
+        TextField tf = new TextField(new Long(m_f.getInteger(m_mi)).toString());
+        tf.getStyleClass().add("integer-field");
         tf.textProperty().addListener( (obs, oldValue, newValue) -> {
             try
             {
-                int val = Integer.parseInt(newValue);
+                long val = Long.parseLong(newValue);
+                if (val < m_min || val > m_max)
+                	throw new NumberFormatException("Out of range");
                 m_f.setArrayIndex(m_index);
-                m_f.setInt32(m_mi, val);
-                tf.getStyleClass().remove("error");
-            }
-            catch (NumberFormatException u)
-            {
-                tf.getStyleClass().remove("error");
-                tf.getStyleClass().add("error");
-            }
-        });
-        return tf;
-    }
-}
-
-class UInt8Editor implements FieldEditor
-{
-    MemInstance m_mi;
-    Field m_f;
-    int m_index;
-
-    public UInt8Editor(MemInstance mi, Field f, int index)
-    {
-        m_mi = mi;
-        m_f = f;
-        m_index = index;
-    }
-
-    @Override
-    public Node createUI()
-    {
-        m_f.setArrayIndex(m_index);
-
-        int tmp = m_f.getByte(m_mi);
-        if (tmp < 0)
-            tmp = 256 + tmp;
-
-        TextField tf = new TextField(new Integer(tmp).toString());
-        tf.getStyleClass().add("int8-field");
-        tf.textProperty().addListener( (obs, oldValue, newValue) -> {
-            try
-            {
-                int val = Integer.parseInt(newValue);
-                if (val > 255 || val < 0)
-                    throw new NumberFormatException();
-                m_f.setArrayIndex(m_index);
-                m_f.setByte(m_mi, (byte)val);
+                m_f.setInteger(m_mi, val);
                 tf.getStyleClass().remove("error");
             }
             catch (NumberFormatException u)
@@ -577,13 +539,13 @@ class StructEditor implements FieldEditor
             Node ed = fe.createUI();
 
             // array or struct or pointer or bools dont get labels.
-            if (f.isArray() || f.getType() == 5 || f.getType() == 8)
+            if (f.isArray() || f.getType() == Interop.FT_STRUCT_INSTANCE || f.getType() == Interop.FT_BOOL)
             {
                 nodes.add(ed);
             }
             else
             {
-                if (f.getType() == 3 && f.isAuxPtr())
+                if (f.getType() == Interop.FT_POINTER && f.isAuxPtr())
                 {
                     // aux objs get vbox
                     VBox b = new VBox();
@@ -692,7 +654,7 @@ public class ObjectEditor
 
         switch (field.getType())
         {
-            case 5:
+            case Interop.FT_STRUCT_INSTANCE:
             {
                 String name = field.getName();
                 if (field.isArray())
@@ -705,19 +667,21 @@ public class ObjectEditor
 
                 return new StructEditor(_mi, name, false);
             }
-            case 3:
+            case Interop.FT_POINTER:
                 return new PointerEditor(mi, field, index);
-            case 0:
-                return new Int32Editor(mi, field, index);
-            case 1:
-                return new UInt8Editor(mi, field, index);
-            // 8 => bool
-            case 8:
+            case Interop.FT_INT32:
+                return new IntegerEditor(mi, field, index, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            case Interop.FT_UINT32:
+                return new IntegerEditor(mi, field, index, 0, 0xffffffffL );
+            case Interop.FT_BYTE:
+                return new IntegerEditor(mi, field, index, 0, 255);
+            case Interop.FT_BOOL:
                 return new BooleanEditor(mi, field, index);
-            // 7 => file
-            case 9:
+            case Interop.FT_FILE:
+                return new StringEditor(mi, field, index);
+            case Interop.FT_FLOAT:
                 return new FloatEditor(mi, field, index);
-            case 10:
+            case Interop.FT_ENUM:
                 return new EnumEditor(mi, field, index);
             default:
                 return new StringEditor(mi, field, index);

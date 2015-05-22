@@ -112,9 +112,13 @@ public class Main extends Application
     		}
     	}
    
-    	Tab t = addTab(mi, editor.createUI(mi), path);
-    	
     	OpenEditors oe = new OpenEditors();
+    	
+    	Tab t = addTab(mi, editor.createUI(mi), path);
+    	t.setOnCloseRequest( (evt) -> {
+    		m_openEditors.remove(oe);    		
+    	});
+    	
     	oe._editor = editor;
     	oe._mi = mi;
     	oe._tab = t;
