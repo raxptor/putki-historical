@@ -46,6 +46,15 @@ public class Main extends Application
 	
     public static void main(String[] args) 
     {
+    	if (args.length > 0 && args[0].equals("--clear")) {
+    		try {
+	        	Preferences prefs = Preferences.userRoot().node("putked");
+	        	prefs.remove("config");
+	        	prefs.flush();
+    		} catch (BackingStoreException e) {
+    			
+    		}
+    	}
     	initEditor();
         Application.launch(args);
     }
@@ -354,6 +363,11 @@ public class Main extends Application
     private static String m_projectPath = null;
     private static ConfigParser m_confParser = null;
     
+    public static String getProjectPath()
+    {
+    	return m_projectPath;
+    }
+    
     @Override
     public void start(Stage stage) throws BackingStoreException, IOException
     {
@@ -380,6 +394,7 @@ public class Main extends Application
     	if (configFile == null) {
     		prefs.clear();
     		prefs.flush(); 
+    		System.exit(1);
     		return;
     	}
      	
