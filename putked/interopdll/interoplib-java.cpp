@@ -5,7 +5,6 @@
 #include <windows.h>
 #endif
 
-// SIMPLIFIED INTERFACE FOR MONO ED
 #ifdef _WIN32
 #define DSPEC __declspec(dllexport)
 #else
@@ -230,19 +229,9 @@ extern "C"
 		return field->get_pointer(mi);
 	}
 
-	DSPEC int MED_Field_GetInt32(putki::ext_field_handler_i * field, putki::mem_instance * mi)
+	DSPEC uint64_t MED_Field_GetInteger(putki::ext_field_handler_i * field, putki::mem_instance * mi)
 	{
-		return field->get_int32(mi);
-	}
-
-	DSPEC int MED_Field_GetByte(putki::ext_field_handler_i * field, putki::mem_instance * mi)
-	{
-		return field->get_byte(mi);
-	}
-
-	DSPEC int MED_Field_GetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi)
-	{
-		return field->get_bool(mi);
+		return field->get_integer(mi);
 	}
 
 	DSPEC putki::mem_instance* MED_Field_GetStructInstance(putki::ext_field_handler_i * field, putki::mem_instance * mi)
@@ -275,24 +264,16 @@ extern "C"
 		return field->set_pointer(mi, value);
 	}
 
-	DSPEC void MED_Field_SetInt32(putki::ext_field_handler_i * field, putki::mem_instance * mi, int value)
+	DSPEC void MED_Field_SetInteger(putki::ext_field_handler_i * field, putki::mem_instance * mi, int64_t value)
 	{
-		return field->set_int32(mi, value);
+		if (!field->set_integer(mi, value)) {
+			std::cerr << "MED_Field_SetInteger:set_integer returned failure." << std::endl;
+		}
 	}
 
 	DSPEC void MED_Field_SetFloat(putki::ext_field_handler_i * field, putki::mem_instance * mi, float value)
 	{
 		return field->set_float(mi, value);
-	}
-
-	DSPEC void MED_Field_SetBool(putki::ext_field_handler_i * field, putki::mem_instance * mi, bool value)
-	{
-		return field->set_bool(mi, value);
-	}
-
-	DSPEC void MED_Field_SetByte(putki::ext_field_handler_i * field, putki::mem_instance * mi, int value)
-	{
-		return field->set_byte(mi, (char)value);
 	}
 }
 

@@ -1,6 +1,8 @@
 #ifndef __PUTKI_DLL_INTERFACE_H__
 #define __PUTKI_DLL_INTERFACE_H__
 
+#include <stdint.h>
+
 namespace putki
 {
 	// putki internal
@@ -48,22 +50,16 @@ namespace putki
 		virtual void set_string(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_string(mem_instance *obj) = 0;
 
-		virtual void set_bool(mem_instance *obj, bool value) = 0;
-		virtual bool get_bool(mem_instance *obj) = 0;
-
-		virtual void set_int32(mem_instance *obj, int value) = 0;
-		virtual int get_int32(mem_instance *obj) = 0;
-
+		// Integer based values (bools, ints etc)
+		virtual int set_integer(mem_instance *obj, int64_t value) = 0;
+		virtual int64_t get_integer(mem_instance *obj) = 0;
+		
 		virtual void set_float(mem_instance *obj, float value) = 0;
 		virtual float get_float(mem_instance *obj) = 0;
 
 		// Pointer
 		virtual void set_pointer(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_pointer(mem_instance *obj) = 0;
-
-		// Byte
-		virtual void set_byte(mem_instance *obj, unsigned char value) = 0;
-		virtual unsigned char get_byte(mem_instance *obj) = 0;
 
 		virtual mem_instance* make_struct_instance(mem_instance *obj) = 0;
 	};
