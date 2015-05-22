@@ -1,0 +1,6 @@
+
+test_struct_types
+{
+	string v_string
+	int v_int
+}
