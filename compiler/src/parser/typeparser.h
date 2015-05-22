@@ -50,6 +50,7 @@ namespace putki
 	struct parsed_enum
 	{
 		std::string name;
+		std::string loadername;
 		std::vector<enum_value> values;
 	};
 
@@ -58,6 +59,7 @@ namespace putki
 		int domains;
 		int unique_id;
 		std::string name;
+		std::string loadername;
 		std::vector<parsed_field> fields;
 		std::string parent;
 		std::string inline_editor;

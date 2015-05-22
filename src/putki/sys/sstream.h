@@ -272,6 +272,13 @@ namespace putki
 			return *this;
 		}
 
+		inline sstream & operator<<(unsigned long long val)
+		{
+			need_x_more(32);
+			_writeptr = format_dec<unsigned long long>(_writeptr, val);
+			return *this;
+		}
+
 		inline sstream & operator<<(float val)
 		{
 			char tmp[64];
