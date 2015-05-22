@@ -68,8 +68,7 @@ project "putki-lib"
 		links {"pthread"}
 
 
-if os.get() == "windows" then
-
+if os.get() == "windows" and false then
 	project "putki-runtime-csharp"
 		kind "SharedLib"
 		language "C#"
