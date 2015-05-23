@@ -266,8 +266,12 @@ extern "C"
 
 	DSPEC void MED_Field_SetInteger(putki::ext_field_handler_i * field, putki::mem_instance * mi, int64_t value)
 	{
-		if (!field->set_integer(mi, value)) {
-			std::cerr << "MED_Field_SetInteger:set_integer returned failure setting " << value << std::endl;
+		int ret = field->set_integer(mi, value);
+		if (!ret) {
+			std::cerr << "MED_Field_SetInteger:set_integer returned failure (ret=" << ret << ") setting " << value << std::endl;
+			std::cerr << "Field is " << field->name() << std::endl;
+			std::cerr << "Type is " << field->type() << std::endl;
+			std::cerr << "Path is " << g_loaded_dll->path_of(mi) << std::endl;
 		}
 	}
 

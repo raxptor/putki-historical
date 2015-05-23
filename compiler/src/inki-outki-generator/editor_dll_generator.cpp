@@ -31,7 +31,7 @@ namespace putki
 	{
 		out.line() << "int set_integer(putki::mem_instance *obj, int64_t v) {";
 		out.indent(1);
-		out.line() << "if (v < " << min << " || v >= " << max << ")";
+		out.line() << "if (v < " << min << "LL || v >= " << max << "LL)";
 		out.line(1) << "return 0;";
 		out.line() << type_name << " value = (" << type_name << ") v;";
 		write_plain_set(out, s, j, field_ref);
@@ -208,10 +208,10 @@ namespace putki
 					write_integer_set_get(out, 0, 256, "unsigned char", s, j, field_ref);
 					break;
 				case FIELDTYPE_UINT32:
-					write_integer_set_get(out, 0, 0x100000000, "unsigned int", s, j, field_ref);
+					write_integer_set_get(out, 0, 0x100000000LL, "unsigned int", s, j, field_ref);
 					break;
 				case FIELDTYPE_INT32:
-					write_integer_set_get(out, -0x80000000, 0x80000000, "int", s, j, field_ref);
+					write_integer_set_get(out, -0x80000000LL, 0x80000000LL, "int", s, j, field_ref);
 					break;
 				case FIELDTYPE_BOOL:
 					write_integer_set_get(out, 0, 2, "bool", s, j, field_ref);
