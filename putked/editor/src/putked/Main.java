@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -128,9 +129,9 @@ public class Main extends Application
     
     public Stage makeDialogStage(javafx.scene.Scene scene)
     {
-        scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());       
- 	
+        scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
     	Stage s = new Stage();
+    	s.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
     	s.initModality(Modality.APPLICATION_MODAL);
     	s.setTitle("Question");
     	s.setScene(scene);
@@ -376,7 +377,7 @@ public class Main extends Application
     public void start(Stage stage) throws BackingStoreException, IOException
     {
     	s_instance = this;
-
+    	
     	Preferences prefs = Preferences.userRoot().node("putked");
     	
     	String configPath = prefs.get("config", null);
@@ -469,6 +470,8 @@ public class Main extends Application
         final Scene scene = new Scene(pane, 800, 400);
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());       
         stage.setScene(scene);
+        
+    	stage.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
         stage.show();
     }     
 }
