@@ -56,6 +56,15 @@ public class Main extends Application
     			
     		}
     	}
+    	if (args.length > 1 && args[0].equals("--path")) {
+    		try {
+	        	Preferences prefs = Preferences.userRoot().node("putked");
+	        	prefs.put("config", args[1]);
+	        	prefs.flush();
+    		} catch (BackingStoreException e) {
+    			
+    		}
+    	}
     	initEditor();
         Application.launch(args);
     }
@@ -131,7 +140,7 @@ public class Main extends Application
     {
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
     	Stage s = new Stage();
-    	s.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
+//    	s.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
     	s.initModality(Modality.APPLICATION_MODAL);
     	s.setTitle("Question");
     	s.setScene(scene);
@@ -471,7 +480,7 @@ public class Main extends Application
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());       
         stage.setScene(scene);
         
-    	stage.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
+//    	stage.getIcons().add(new Image(getClass().getResourceAsStream("misc/putkico-5.png")));
         stage.show();
     }     
 }
