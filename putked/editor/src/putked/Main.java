@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.xml.sax.HandlerBase;
+
 import putked.Interop.MemInstance;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -457,16 +459,24 @@ public class Main extends Application
     	
     	stage.setTitle(m_confParser.getSingle("title"));
     	
-    	SplitPane pane = new SplitPane();
-    	m_pane = new TabPane();
     	
+    	m_pane = new TabPane();
     	m_objectLibrary = new ObjectLibrary();
     	    	
+    	SplitPane pane = new SplitPane();    	
     	pane.orientationProperty().set(Orientation.VERTICAL);
     	pane.getItems().add(m_pane);
     	pane.getItems().add(m_objectLibrary.getRoot());
+    
     	
-        final Scene scene = new Scene(pane, 800, 400);
+    	final HBox buildBar = new HBox();
+    	buildBar.getStyleClass().add("build-bar");
+    	buildBar.getChildren().add(new Button("Build default"));
+    	
+    	VBox outer = new VBox();
+    	outer.getChildren().setAll(pane, buildBar);
+    	
+        final Scene scene = new Scene(outer, 800, 400);
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());       
         stage.setScene(scene);
         stage.show();

@@ -220,22 +220,22 @@ public class Interop
 			_p = p;
 		}
 		
-		String getName()
+		public String getName()
 		{
 			return s_ni.MED_Type_GetName(_p); 
 		}
 		
-		String getModule()
+		public String getModule()
 		{
 			return s_ni.MED_Type_GetModuleName(_p);
 		}
 		
-		Field getField(int i)
+		public Field getField(int i)
 		{
 			return s_wrap.getFieldWrapper(s_ni.MED_Type_GetField(_p,  i));
 		}
 		
-		Type getParent()
+		public Type getParent()
 		{
 			Pointer p = s_ni.MED_Type_GetParentType(_p);
 			if (p == Pointer.NULL)

@@ -6,7 +6,8 @@ public interface EditorPluginDescription
 	{
 		PLUGIN_EDITOR,
 		PLUGIN_PROJECT_DEV_BUILD,
-		PLUGIN_PROJECT_BUILD
+		PLUGIN_PROJECT_BUILD,
+		PLUGIN_PROJECT_PIPELINE
 	}
 
 	String getName();
