@@ -31,7 +31,10 @@ namespace putki
 	// c sharp
 	void write_csharp_runtime_class(putki::parsed_file *file, putki::indentedwriter out, putki::indentedwriter switch_case_out, putki::indentedwriter switch_case_resolve);
 	void write_csharp_inki_class(putki::parsed_file *file, putki::indentedwriter out);
+	void write_csharp_enum(putki::parsed_file *file, putki::indentedwriter out);
 
+	void write_java_inki_class(putki::parsed_file *file, putki::indentedwriter out);
+	void write_java_proxy_creator(putki::parsed_file *file, putki::indentedwriter out);
 }
 
 #endif

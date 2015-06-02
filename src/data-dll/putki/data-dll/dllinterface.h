@@ -1,6 +1,8 @@
 #ifndef __PUTKI_DLL_INTERFACE_H__
 #define __PUTKI_DLL_INTERFACE_H__
 
+#include <stdint.h>
+
 namespace putki
 {
 	// putki internal
@@ -19,7 +21,8 @@ namespace putki
 		EXT_FIELDTYPE_BOOL = 8,
 		EXT_FIELDTYPE_FLOAT = 9,
 		EXT_FIELDTYPE_ENUM = 10,
-		EXT_FIELDTYPE_INVALID = 11
+		EXT_FIELDTYPE_UINT32 = 11,
+		EXT_FIELDTYPE_INVALID = 12
 	};
 
 	struct mem_instance { };
@@ -48,22 +51,16 @@ namespace putki
 		virtual void set_string(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_string(mem_instance *obj) = 0;
 
-		virtual void set_bool(mem_instance *obj, bool value) = 0;
-		virtual bool get_bool(mem_instance *obj) = 0;
-
-		virtual void set_int32(mem_instance *obj, int value) = 0;
-		virtual int get_int32(mem_instance *obj) = 0;
-
+		// Integer based values (bools, ints etc)
+		virtual int set_integer(mem_instance *obj, int64_t value) = 0;
+		virtual int64_t get_integer(mem_instance *obj) = 0;
+		
 		virtual void set_float(mem_instance *obj, float value) = 0;
 		virtual float get_float(mem_instance *obj) = 0;
 
 		// Pointer
 		virtual void set_pointer(mem_instance *obj, const char *value) = 0;
 		virtual const char* get_pointer(mem_instance *obj) = 0;
-
-		// Byte
-		virtual void set_byte(mem_instance *obj, unsigned char value) = 0;
-		virtual unsigned char get_byte(mem_instance *obj) = 0;
 
 		virtual mem_instance* make_struct_instance(mem_instance *obj) = 0;
 	};
@@ -78,7 +75,7 @@ namespace putki
 
 		virtual bool permit_as_aux_instance() = 0;
 		virtual bool permit_as_asset() = 0;
-
+		
 		virtual ext_field_handler_i * field(unsigned int i) = 0;
 	};
 
@@ -104,6 +101,9 @@ namespace putki
 		virtual ext_type_handler_i* type_of(mem_instance *mi) = 0;
 		virtual ext_type_handler_i* type_by_index(unsigned int i) = 0;
 		virtual ext_type_handler_i* type_by_name(const char *name) = 0;
+		
+		virtual const char* make_json(mem_instance *mi) = 0;
+		virtual const char* content_hash(mem_instance *mi) = 0;
 
 		virtual void mem_build_asset(const char *path, ext_build_result *res) = 0;
 		virtual void on_object_modified(const char *path) = 0;

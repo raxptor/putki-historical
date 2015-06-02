@@ -1,0 +1,113 @@
+.root 
+{
+    -fx-font-size: 9pt;
+    -fx-font-family: "Verdana";
+    -fx-base: #eef;
+    -fx-background: #111;
+    -fx-color: #222;
+}
+
+.context-menu {
+  -fx-font-size: 9pt;
+  -fx-font-family: "Verdana";
+  -fx-background-color: #111;
+  -fx-text-fill: #eef;
+}
+
+.proped-header {
+	-fx-padding: 4;
+	-fx-border-color: #444;
+}
+
+.proped-header .label {
+	-fx-min-height: 25;
+	-fx-padding: 4;
+}
+
+.menu-item .label {
+  -fx-text-fill: #eee;
+}
+
+.menu-item:focused .label {
+  -fx-text-fill: white;
+}
+
+.vbox-dialog
+{
+	-fx-padding: 10px;
+}
+
+.array-index 
+{
+ 	-fx-min-width: 25px;
+	-fx-background-color: #444;
+}
+
+.array-index.odd
+{
+	-fx-background-color: #222;
+}
+
+.rm-button
+{
+	-fx-color: #f00;
+}
+
+.add-button
+{
+	-fx-color: #0f0;	
+}
+
+.point-button
+{
+
+}
+
+.struct-header {
+	-fx-background-color: #334;
+	-fx-color: #999;
+	-fx-min-height: 20 px;
+}
+
+.integer-field
+{
+       -fx-max-width: 120px;
+}
+.error
+{
+       -fx-background-color: #f44;
+}
+
+.field-label
+{
+	-fx-min-width: 130 px;
+	-fx-min-height: 20 px;
+}
+
+.inline-value
+{
+	-fx-max-width: 65px;
+}
+
+.inline-label
+{
+	-fx-alignment: center;
+	-fx-min-width: 25px;
+	-fx-min-height: 20px;
+}
+
+.tab-pane
+{
+	-fx-open-tab-animation: none; 
+	-fx-close-tab-animation: none;
+}
+
+.drag-drop-ok
+{
+	-fx-background-color: #f4f;
+}
+
+.drag-drop-not-ok
+{
+	-fx-background-color: #f00;
+}

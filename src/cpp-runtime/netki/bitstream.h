@@ -18,16 +18,19 @@ namespace netki
 			int error;
 		};
 
-		inline void flip_buffer(buffer *buf)
+		void flip_buffer(buffer *buf)
 		{
-			buf->bufsize = buf->bytepos + 1;
+			if (buf->bitpos)
+				buf->bufsize = buf->bytepos + 1;
+			else
+				buf->bufsize = buf->bytepos;
 			buf->bitpos = 0;
 			buf->bytepos = 0;
 			buf->error = 0;
 		}
 
 		template<int size>
-		inline void init_buffer(buffer *buf, char(&data)[size])
+		void init_buffer(buffer *buf, char(&data)[size])
 		{
 			buf->buf = (uint8_t*)data;
 			buf->bufsize = size;
@@ -38,17 +41,17 @@ namespace netki
 
 		static const uint8_t bitmask[9] = {0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f, 0x7f, 0xff};
 
-		inline long bits_left(buffer *buf)
+		long bits_left(buffer *buf)
 		{
 			return (buf->bufsize - buf->bytepos) * 8 - buf->bitpos;
 		}
 
-		inline long bytes_left(buffer *buf)
+		long bytes_left(buffer *buf)
 		{
 			return buf->bufsize - buf->bytepos - 1;
 		}
 
-		inline void set_bits(uint8_t *in, bitofs_t ofs, uint8_t value)
+		void set_bits(uint8_t *in, bitofs_t ofs, uint8_t value)
 		{
 			if (!ofs)
 			{
@@ -61,13 +64,13 @@ namespace netki
 		}
 
 		template<int bits>
-		inline uint8_t get_bits(uint8_t *in, bitofs_t ofs)
+		uint8_t get_bits(uint8_t *in, bitofs_t ofs)
 		{
 			return ((*in) >> ofs) & bitmask[bits];
 		}
 
 		template<int bits>
-		inline void insert_bits(buffer *target, uint32_t value)
+		void insert_bits(buffer *target, uint32_t value)
 		{
 			if (bits_left(target) < bits)
 			{
@@ -94,20 +97,20 @@ namespace netki
 			target->bitpos = np & 7;
 		}
 
-		template<> inline void insert_bits<0>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-1>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-2>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-3>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-4>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-5>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-6>(buffer *target, uint32_t value) { }
-		template<> inline void insert_bits<-7>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<0>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-1>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-2>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-3>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-4>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-5>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-6>(buffer *target, uint32_t value) { }
+		template<> void insert_bits<-7>(buffer *target, uint32_t value) { }
 
-		inline uint32_t read_bits(buffer *source, unsigned int count);
+		uint32_t read_bits(buffer *source, unsigned int count);
 
 		// MAX bits is 8
 		template<int bits>
-		inline uint32_t read_bits(buffer *source)
+		uint32_t read_bits(buffer *source)
 		{
 			if (bits_left(source) < bits)
 			{
@@ -139,7 +142,7 @@ namespace netki
 			return value;
 		}
 
-		inline uint32_t read_bits(buffer *source, unsigned int count)
+		uint32_t read_bits(buffer *source, unsigned int count)
 		{
 			switch (count)
 			{
@@ -157,7 +160,7 @@ namespace netki
 			}
 		}
 
-		inline void sync_byte(buffer *target)
+		void sync_byte(buffer *target)
 		{
 			if (target->bitpos)
 			{
@@ -166,7 +169,7 @@ namespace netki
 			}
 		}
 
-		inline bool insert_bytes(buffer *target, uint8_t *buf, int size)
+		bool insert_bytes(buffer *target, uint8_t *buf, int size)
 		{
 			sync_byte(target);
 			if (bytes_left(target) < size)
@@ -181,7 +184,7 @@ namespace netki
 			return true;
 		}
 
-		inline bool read_bytes(buffer *source, uint8_t *buf, int size)
+		bool read_bytes(buffer *source, uint8_t *buf, int size)
 		{
 			sync_byte(source);
 		
@@ -197,7 +200,7 @@ namespace netki
 			return true;
 		}
 
-		inline void *alloc(buffer *target, uint32_t size)
+		void *alloc(buffer *target, uint32_t size)
 		{
 			if (bytes_left(target) < size)
 			{
@@ -208,6 +211,69 @@ namespace netki
 			void *ptr = &target->buf[target->bytepos];
 			target->bytepos += size;
 			return ptr;
+		}
+		
+		void insert_compressed_int(buffer *target, uint32_t value)
+		{
+			uint32_t bits;
+			if (value == 0xffffffff)
+			{
+				insert_bits<6>(target, 0);
+				insert_bits<6>(target, 1);
+			}
+			else if (value > 0xffff) 
+			{
+				insert_bits<5>(target, 0);
+				insert_bits<1>(target, 1);
+				insert_bits<32>(target, value);
+			}
+			else if (value > 0xfff)
+			{
+				insert_bits<4>(target, 0);
+				insert_bits<1>(target, 1);
+				insert_bits<15>(target, value);
+			}
+			else if (value > 0xff)
+			{
+				insert_bits<3>(target, 0);
+				insert_bits<1>(target, 1);
+				insert_bits<12>(target, value);
+			}
+			else if (value > 0xf)
+			{
+				insert_bits<2>(target, 0);
+				insert_bits<1>(target, 1);
+				insert_bits<8>(target, value);
+			}
+			else if (value > 0)
+			{
+				insert_bits<1>(target, 0);
+				insert_bits<1>(target, 1);
+				insert_bits<4>(target, value);
+			}
+			else
+			{
+				insert_bits<1>(target, 1);
+			}
+		}
+		
+		uint32_t read_compressed_int(buffer *source)
+		{
+			if (read_bits<1>(source) == 1)
+				return 0;
+			if (read_bits<1>(source) == 1)
+				return read_bits<4>(source);
+			if (read_bits<1>(source) == 1)
+				return read_bits<4>(source);
+			if (read_bits<1>(source) == 1)
+				return read_bits<8>(source);
+			if (read_bits<1>(source) == 1)
+				return read_bits<12>(source);
+			if (read_bits<1>(source) == 1)
+				return read_bits<16>(source);
+			if (read_bits<1>(source) == 1)
+				return read_bits<32>(source);
+			return 0xffffffff;
 		}
 	}
 }

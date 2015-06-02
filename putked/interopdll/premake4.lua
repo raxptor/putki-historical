@@ -1,16 +1,13 @@
-solution "MonoEdInterop"
-
-	platforms { "x32" }
+solution "PutkEdInteropJava"
+	platforms { "x64" }
 	flags {"StaticRuntime"}
-
 	configurations "Release"
-
-	project "monoedinterop"
+	project "interopjava"
 
 		kind "SharedLib"	
 		language "C++"
-		targetname "monoed-interop"
+		targetname "putked-java-interop"
 
-		files { "interoplib.cpp" }
+		files { "interoplib-java.cpp" }
 		files { "../../src/data-dll/**.h" }
 		includedirs { "../../src/data-dll/putki" }

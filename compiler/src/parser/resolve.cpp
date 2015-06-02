@@ -21,6 +21,9 @@ namespace putki
 				for (int s=0;s!=pf->structs.size();s++)
 				{
 					parsed_struct *str = &pf->structs[s];
+					
+					str->loadername = proj->loader_name;
+					
 					if (str->name.empty())
 					{
 						std::cerr << "Struct with empty name in file " << pf->filename << std::endl;
@@ -46,6 +49,8 @@ namespace putki
 						std::cerr << "Enum with empty name in file " << pf->filename << std::endl;
 						return false;
 					}
+					
+					en->loadername = proj->loader_name;
 
 					EnumMapT::iterator si = output->enums.find(en->name);
 					if (si != output->enums.end())

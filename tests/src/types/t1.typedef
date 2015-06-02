@@ -1,0 +1,10 @@
+
+test_struct_types
+{
+	string v_string
+	int v_int
+	s32 v_s32
+	u32 v_u32
+	byte v_byte
+	float v_float
+}

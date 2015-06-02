@@ -1,0 +1,41 @@
+<project name="com.rarh.putked" default="dist" basedir=".">
+  <description>
+  	Putked
+  </description>
+    
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <target name="build-deps">
+	<ant antfile="../putked-lib/build.xml" dir="../putked-lib" target="dist"/>
+  </target>
+                        
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init,build-deps">
+    <javac destdir="${build}" includeantruntime="false">
+    <classpath>
+      <pathelement path="${classpath}" />
+    </classpath>
+    <src path="src" />
+    </javac>
+    <copy file="src/putked/application.css" tofile="${build}/putked/application.css" />
+  </target>
+  <target name="dist" depends="compile">
+    <mkdir dir="${dist}" />
+    <jar jarfile="${dist}/putked.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="putked.Main"/>
+        <attribute name="Class-Path" value="jna.jar" />
+      </manifest>    
+    </jar>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>

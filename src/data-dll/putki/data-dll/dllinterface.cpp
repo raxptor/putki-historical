@@ -22,6 +22,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+extern "C"
+{
+      #include <md5/md5.h>
+}
+
 namespace putki
 {
 	data_dll_i::~data_dll_i()
@@ -218,6 +223,37 @@ namespace putki
 		const char *path_of(mem_instance *mi)
 		{
 			return ((mem_instance_real*)mi)->path;
+		}
+		
+		const char* make_json(mem_instance *mi)
+		{
+			static char buf[1024*1024];
+			
+			mem_instance_real *mir = (mem_instance_real*) mi;
+			
+			sstream str;
+			write::write_object_into_stream(str, mir->refs_db, mir->th, mir->inst);
+			
+			const char *cstr = str.c_str();
+			if (str.size() < sizeof(buf)) {
+				memcpy(buf, cstr, str.size()+1);
+				return buf;
+			} else {
+				return "ERR: Exceeded memory buffer";
+			}
+		}
+		
+		const char* content_hash(mem_instance *mi)
+		{
+                  static char signature[64];
+                  static char signature_string[64];
+			sstream str;
+			mem_instance_real *mir = (mem_instance_real*) mi;
+			write::write_object_into_stream(str, mir->refs_db, mir->th, mir->inst);
+			const char *cstr = str.c_str();
+                  md5_buffer(cstr, (long)str.size(), signature);
+                  md5_sig_to_string(signature, signature_string, 64);			
+			return signature_string;
 		}
 	};
 

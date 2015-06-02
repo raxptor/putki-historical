@@ -24,6 +24,7 @@ void generate_project(putki::project *p)
 	std::string editor_base(out_base + "/editor");
 	std::string csharp_outki(out_base + "/outki_csharp");
 	std::string csharp_inki(out_base + "/inki_csharp");
+	std::string java_inki(out_base + "/java/inki");
 
 	std::stringstream rt_blob_load_calls;
 	std::stringstream rt_blob_load_header;
@@ -36,6 +37,8 @@ void generate_project(putki::project *p)
 	std::stringstream csharp_switch_case;
 	std::stringstream csharp_switch_case_resolve;
 	std::stringstream csharp_runtime, csharp_inki_code;
+	
+	std::stringstream java_inki_code;
 
 	for (int i=0;i!=p->files.size();i++)
 	{
@@ -97,6 +100,11 @@ void generate_project(putki::project *p)
 
 		// csharp inki
 		putki::write_csharp_inki_class(pf, putki::indentedwriter(csharp_inki_code));
+		// java inki
+		
+		putki::indentedwriter jw(java_inki_code);
+		jw.indent(1);
+		putki::write_java_inki_class(pf, jw);
 	}
 
 	// bind dll calls
@@ -209,8 +217,39 @@ void generate_project(putki::project *p)
 		iw.line() << "}" ;
 		putki::save_stream(csharp_outki + "/" + p->loader_name + "DataLoader.cs", csharp_outki_loader);
 	}
-
+	
 	putki::save_stream(csharp_outki + "/" + p->module_name + ".cs", csharp_runtime);
+	
+	// java
+	{
+		std::stringstream java_inki_file;
+		putki::indentedwriter iw(java_inki_file);
+		iw.line() << "package inki;";
+		iw.line();
+		iw.line() << "import putked.*;";
+		iw.line();
+		iw.line() << "public class " << p->loader_name << " implements EditorTypeService";;
+		iw.line() << "{";
+		iw.indent(1);
+		iw.line() << "public ProxyObject createProxy(String type)";
+		iw.line() << "{";
+		iw.indent(1);
+		
+		for (int i=0;i!=p->files.size();i++)
+		{
+			write_java_proxy_creator(&p->files[i], iw);
+		}
+		
+		iw.line() << "return null;";
+		iw.indent(-1);
+		iw.line() << "}";
+		iw.indent(-1);
+		iw.line() << java_inki_code.str();
+		iw.line() << "}";
+		putki::save_stream(java_inki + "/" + p->loader_name + ".java", java_inki_file);
+	}
+
+
 
 	{
 		std::stringstream ik;

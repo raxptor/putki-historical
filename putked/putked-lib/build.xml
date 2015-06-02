@@ -1,0 +1,38 @@
+<project name="com.rarh.putki" default="dist" basedir=".">
+    <description>
+    	Putki lib
+    </description>
+    
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac destdir="${build}" includeantruntime="false">
+    <classpath>
+      <pathelement path="${classpath}" />
+      <fileset dir="lib">
+         <include name="**/*.jar"/>
+      </fileset>
+    </classpath>
+    	<src path="src" />
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile">
+    <mkdir dir="${dist}" />
+    <jar jarfile="${dist}/putked-lib.jar" basedir="${build}" />
+    <copy file="lib/jna.jar" todir="${dist}" />
+    <copy file="../interopdll/libputked-java-interop.dylib" tofile="${build}/putked/native/interop.dylib" failonerror="false" />
+    <copy file="../interopdll/putked-java-interop.dll" tofile="${build}/putked/native/interop.dll" failonerror="false" />
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>

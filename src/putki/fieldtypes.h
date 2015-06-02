@@ -6,6 +6,7 @@ namespace putki
 	enum field_type
 	{
 		FIELDTYPE_INT32,
+		FIELDTYPE_UINT32,
 		FIELDTYPE_FLOAT,
 		FIELDTYPE_BYTE,
 		FIELDTYPE_BOOL,
