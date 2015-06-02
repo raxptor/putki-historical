@@ -532,9 +532,11 @@ class StructEditor implements FieldEditor
         for (int i=0;true;i++)
         {
             Interop.Field f = m_mi.getType().getField(i);
-            if (f == null || !f.showInEditor())
+            if (f == null)
                 break;
-
+            if (!f.showInEditor())
+            	continue;
+            
             FieldEditor fe = ObjectEditor.createEditor(m_mi, f, 0, f.isArray());
             Node ed = fe.createUI();
 
