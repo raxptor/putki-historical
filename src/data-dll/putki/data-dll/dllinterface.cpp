@@ -65,7 +65,7 @@ namespace putki
 			_client = liveupdate::create_editor_connection();
 			sys::thread_create(connection_thread, _client);
 			
-			set_loglevel(LOG_DEBUG);
+			set_loglevel(LOG_INFO);
 		}
 
 		~data_dll()

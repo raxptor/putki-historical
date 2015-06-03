@@ -103,7 +103,28 @@ public class Main extends Application
     
     public void startEditing(String path)
     {   	
-    	startEditing(path, m_defaultEditor);
+    	if (path.length() == 0)
+    		return;
+    	
+    	int prio = 0;
+    	Editor e = m_defaultEditor;
+
+    	Interop.MemInstance mi = Interop.s_wrap.load(path);
+    	if (mi == null)
+    		return;
+    	
+    	Interop.Type t = mi.getType();
+
+    	// pick lowest priority editor
+    	for (Editor tmp : m_editors) {
+			int p = tmp.getPriority();
+			if (p < prio && tmp.canEdit(t)) {
+				prio = p;
+				e = tmp;
+    		}
+    	}
+    	
+    	startEditing(path, e);
     }
     
     public void startEditing(String path, Editor editor)
@@ -180,7 +201,7 @@ public class Main extends Application
     	
     	final Tmp holder = new Tmp();
 
-    	Scene scene = new Scene(box, 300, 400);
+    	Scene scene = new Scene(box, 400, 300);
         Stage stage = makeDialogStage(scene);
    	
     	ok.setOnAction((evt) -> {
@@ -469,7 +490,6 @@ public class Main extends Application
     	
     	stage.setTitle(m_confParser.getSingle("title"));
     	
-    	
     	m_pane = new TabPane();
     	m_objectLibrary = new ObjectLibrary();
     	    	
@@ -486,7 +506,10 @@ public class Main extends Application
     	VBox outer = new VBox();
     	outer.getChildren().setAll(pane, buildBar);
     	
-        final Scene scene = new Scene(outer, 800, 400);
+    	VBox.setVgrow(pane,  Priority.ALWAYS);
+    	VBox.setVgrow(buildBar, Priority.NEVER);
+    	
+        final Scene scene = new Scene(outer, 800, 800);
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());       
         stage.setScene(scene);
         

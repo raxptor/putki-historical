@@ -14,9 +14,19 @@
   -fx-text-fill: #eef;
 }
 
+.generic-custom-editor-box {
+	-fx-background-color: #000;
+	-fx-border-color: #333;
+}
+
 .proped-header {
 	-fx-padding: 4;
 	-fx-border-color: #444;
+}
+
+.image-box {
+	-fx-border-color: #fff;
+	-fx-border-width: 10px;
 }
 
 .proped-header .label {
@@ -61,6 +71,11 @@
 .point-button
 {
 
+}
+
+.build-bar {
+	-fx-max-height: 30 px;
+	-fx-background-color: #0f0;
 }
 
 .struct-header {

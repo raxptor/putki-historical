@@ -1,7 +1,11 @@
 package putked;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -36,7 +40,6 @@ public class ObjectLibrary {
 		public String name;
 		public String path;
 		public Interop.Type type;
-		public Interop.MemInstance mi;
 	};
 
 	class DirEntry {
@@ -138,7 +141,6 @@ public class ObjectLibrary {
 			}
 		});
 		
-
 		ContextMenu dirmenu = new ContextMenu();
 		ArrayList<DataImporter> importers = Main.getImporters();
 		for (DataImporter imp : importers)
@@ -227,7 +229,7 @@ public class ObjectLibrary {
     		{
     			MenuItem mi = new MenuItem(e.getName());
     			mi.setOnAction( (actionEvt) -> {
-    				Main.s_instance.startEditing(item.mi.getPath(),  e);
+    				Main.s_instance.startEditing(item.path,  e);
     			});
     			mn.getItems().add(mi);
     		}
@@ -284,7 +286,6 @@ public class ObjectLibrary {
 						&& !files[i].getName().equals("..")) {
 					TreeItem<String> ni = new TreeItem<>(files[i].getName());
 					out.add(ni);
-					System.out.println("Adding [" + files[i].getName() + "]");
 					scanDirectory(ni, files[i], path + files[i].getName() + "/");
 				}
 			} else {
@@ -295,14 +296,51 @@ public class ObjectLibrary {
 				if (!name.endsWith(ending))
 					continue;
 
+				Interop.Type objType = null;
+
+				try {
+					byte[] scan = new byte[64];
+					InputStream is = new FileInputStream(files[i]);
+					int bread = is.read(scan);
+					
+					if (bread > 0) {
+						String matchPrefix = "type: \"";
+						String s = new String(scan);
+						int where = s.indexOf(matchPrefix);
+						if (where > 0)
+						{
+							s = s.substring(where + matchPrefix.length());
+							int end = s.indexOf('"');
+							if (end > 0)
+							{
+								s = s.substring(0, end);
+								objType = Interop.s_wrap.getTypeByName(s);
+							}
+						}
+					}
+					is.close();
+				} 
+				catch (IOException e)
+				{
+				}
+
 				ObjEntry oe = new ObjEntry();
 				oe.name = name.substring(0, name.length() - ending.length());
 				oe.path = path + oe.name;
-				oe.mi = Interop.s_wrap.load(oe.path);
-				if (oe.mi != null)
-					oe.type = oe.mi.getType();
-				de.entries.add(oe);
-				m_allObjects.add(oe);
+
+				if (objType != null) {
+					oe.type = objType;
+				} else {
+					System.out.println("Slow-path loading [" + oe.path + "]");
+					Interop.MemInstance mi = Interop.s_wrap.load(oe.path);
+					if (mi != null)
+						oe.type = mi.getType();					
+				}
+
+				if (oe.type != null) {
+					de.entries.add(oe);
+					m_allObjects.add(oe);
+				}
 			}
 		}
 

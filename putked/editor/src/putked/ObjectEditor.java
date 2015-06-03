@@ -2,7 +2,6 @@ package putked;
 
 import java.util.ArrayList;
 
-
 import putked.Interop.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -12,6 +11,7 @@ import javafx.geometry.VPos;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
@@ -38,6 +38,37 @@ class StringEditor implements FieldEditor
             m_f.setString(m_mi, newValue);
         });
         return tf;
+    }
+}
+
+class FileEditor implements FieldEditor
+{
+    MemInstance m_mi;
+    Field m_f;
+    int m_index;
+
+    public FileEditor(MemInstance mi, Field f, int index)
+    {
+        m_mi = mi;
+        m_f = f;
+        m_index = index;
+    }
+
+    @Override
+    public Node createUI()
+    {
+        TextField tf = new TextField();
+        tf.getStyleClass().add("file-field");
+        tf.textProperty().addListener( (obs, oldValue, newValue) -> {
+    		tf.getStyleClass().remove("error");
+        	java.io.File f = new java.io.File(Interop.translateResPath(newValue));
+        	if (!f.exists() || f.isDirectory())
+        		tf.getStyleClass().add("error");
+        	m_f.setArrayIndex(m_index);
+        	m_f.setString(m_mi,  newValue);
+        });
+        tf.setText(m_f.getString(m_mi));
+        return tf;        
     }
 }
 
@@ -373,6 +404,18 @@ class PointerEditor implements FieldEditor
                 }
             }
         }
+        
+        if (!m_f.isAuxPtr())
+        {
+			ptrbar.setOnMousePressed(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
+						Main.s_instance.startEditing(tf.getText());
+					}
+				}
+			});
+        }
 
         tot.setFillWidth(true);
         tot.setMaxWidth(Double.MAX_VALUE);
@@ -680,7 +723,7 @@ public class ObjectEditor
             case Interop.FT_BOOL:
                 return new BooleanEditor(mi, field, index);
             case Interop.FT_FILE:
-                return new StringEditor(mi, field, index);
+                return new FileEditor(mi, field, index);
             case Interop.FT_FLOAT:
                 return new FloatEditor(mi, field, index);
             case Interop.FT_ENUM:

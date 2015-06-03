@@ -1,5 +1,6 @@
 package putked;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -287,11 +288,13 @@ public class Interop
 		public Pointer _p;
 		public Type _type;
 		public boolean _hasUnsavedChanges;
+		private int _version;
 		
 		public MemInstance(Pointer p)
 		{
 			_p = p;
 			_type = s_wrap.getTypeWrapper(s_ni.MED_TypeOf(p));
+			_version = 0;
 		}
 		
 		public Type getType()
@@ -339,6 +342,12 @@ public class Interop
 		{
 			// Mostly for live updates.
 			s_ni.MED_OnObjectModified(_p);
+			_version++;
+		}
+		
+		public int getVersion()
+		{
+			return _version;
 		}
 	}
 
@@ -427,6 +436,17 @@ public class Interop
 		return s_objsPath;
 	}
 	
+	public static String getResPath()
+	{
+		return s_resPath;
+	}
+	
+	public static String translateResPath(String path)
+	{
+		File f = new File(s_resPath, path);
+		return f.getAbsolutePath();
+	}
+		
 	public static boolean Load(String file)
 	{
 		s_ni = (NI) Native.loadLibrary(file, NI.class);

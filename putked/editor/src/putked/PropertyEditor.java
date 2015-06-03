@@ -50,7 +50,9 @@ public class PropertyEditor implements Editor
 		desc.getStyleClass().add("proped-header");
 		
 		ScrollPane sp = new ScrollPane(k);
+		sp.setPrefHeight(-1);
 		VBox.setVgrow(sp,  Priority.ALWAYS);
+		VBox.setVgrow(desc, Priority.NEVER);
 			
 		VBox box = new VBox();
 		box.getChildren().setAll(desc, sp);

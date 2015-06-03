@@ -5,7 +5,8 @@ import javafx.scene.Node;
 
 public interface Editor 
 {
-	String getName();
+	String getName();	
+	int getPriority();
 	boolean canEdit(Interop.Type type);
 	Node createUI(MemInstance mi);
 }
