@@ -470,7 +470,6 @@ namespace putki
 					case FIELDTYPE_STRING: size = 16; break;
 					case FIELDTYPE_UINT32:
 					case FIELDTYPE_INT32: size = 32; break;
-					
 					default: size = 8; break;
 				}
 				wr.line() << "if (buf.BitsLeft() < " << size << " * size)";

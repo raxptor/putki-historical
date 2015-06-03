@@ -210,7 +210,7 @@ namespace netki
 			if (ReadBits(buf, 1) == 0)
 				return (int)ReadCompressedUint(buf);
 			else
-                return (int)-ReadCompressedUint(buf);
+		                return (int)-ReadCompressedUint(buf);
 		}
 		
 		public static float ReadFloat(Buffer buf)
