@@ -1,6 +1,8 @@
 package putked;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -445,6 +447,12 @@ public class Interop
 	{
 		File f = new File(s_resPath, path);
 		return f.getAbsolutePath();
+	}
+	
+	public static void writeResFile(File source, String path) throws IOException
+	{
+		File target = new File(translateResPath(path));
+		Files.copy(source.toPath(), target.toPath());
 	}
 		
 	public static boolean Load(String file)

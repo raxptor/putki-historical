@@ -74,8 +74,10 @@
 }
 
 .build-bar {
-	-fx-max-height: 30 px;
-	-fx-background-color: #0f0;
+	-fx-spacing: 5;
+}
+
+.build-bar .button {
 }
 
 .struct-header {

@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import org.xml.sax.HandlerBase;
-
 import putked.Interop.MemInstance;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -18,7 +16,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -46,6 +43,7 @@ public class Main extends Application
 	private static Editor m_defaultEditor =  new PropertyEditor();
 	private static ArrayList<EditorPluginDescription> m_pluginDescs = new ArrayList<EditorPluginDescription>();
 	private static String s_builderPath;
+	private Builds m_builds;
 	
     public static void main(String[] args) 
     {
@@ -498,10 +496,10 @@ public class Main extends Application
     	pane.getItems().add(m_pane);
     	pane.getItems().add(m_objectLibrary.getRoot());
     
+
     	
-    	final HBox buildBar = new HBox();
-    	buildBar.getStyleClass().add("build-bar");
-    	buildBar.getChildren().add(new Button("Build default"));
+    	m_builds = new Builds();
+    	Node buildBar = m_builds.createBuildBarUI();
     	
     	VBox outer = new VBox();
     	outer.getChildren().setAll(pane, buildBar);
