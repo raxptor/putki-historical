@@ -395,6 +395,11 @@ public class Main extends Application
     	s_builderPath = builderPath;
     }
     
+    public static String getBuilderPath()
+    {
+    	return s_builderPath;
+    }
+    
     private static String m_projectPath = null;
     private static ConfigParser m_confParser = null;
     

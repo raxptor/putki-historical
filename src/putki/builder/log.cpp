@@ -94,6 +94,7 @@ namespace putki
 				mtx.lock();
 				std::cout.write(buf.c_str(), buf.size());
 				std::cout << std::endl;
+				std::cout.flush();
 				mtx.unlock();
 				// crash
 				int *p = (int *) 0x23414;
@@ -105,6 +106,7 @@ namespace putki
 		
 		mtx.lock();
 		std::cout.write(buf.c_str(), buf.size());
+		std::cout.flush();
 		mtx.unlock();
 	}
 }

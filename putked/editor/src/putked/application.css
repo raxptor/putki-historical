@@ -77,6 +77,13 @@
 	-fx-spacing: 5;
 }
 
+.build-status {
+	-fx-ellipsis-string: "...";
+	-fx-min-width: 400;
+	-fx-max-width: 400;
+	-fx-background-color: #030;
+}
+
 .build-bar .button {
 }
 
