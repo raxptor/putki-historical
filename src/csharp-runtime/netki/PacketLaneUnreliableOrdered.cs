@@ -53,7 +53,6 @@ namespace netki
 			Bitstream.PutBits(buf, 8, _sendPos++);
 			Bitstream.Insert(buf, stream);
             buf.Flip();
-            System.Console.WriteLine("sending " + stream.bufsize + " bytes unreliably");
 			_send.Add(buf);
 		}
 
@@ -77,10 +76,15 @@ namespace netki
 				}
 			}
 
-			foreach (Bitstream.Buffer b in _send)
-				outputFn(b);
+			if (dt >= 0)
+			{
+				foreach (Bitstream.Buffer b in _send)
+				{
+					outputFn(b);
+				}
+				_send.Clear();
+			}
 
-			_send.Clear();
 			return null;
 		}
 
