@@ -42,7 +42,8 @@ namespace netki
 				if (diff < 100)
 					_recvHead = newHead;
 			}
-
+	
+			Bitstream.SyncByte(stream);
 			Bitstream.Copy(_recv[seq], stream);
 		}
 

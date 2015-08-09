@@ -70,6 +70,7 @@ namespace netki
 			if (_recv[seq].buf == null)
 				_recvPending++;
 
+			Bitstream.SyncByte(stream);
 			Bitstream.Copy(_recv[seq], stream);
 		}
 
@@ -98,6 +99,9 @@ namespace netki
 				int bytepos = src.bytepos;
 				int bitpos = src.bitpos;
 				Bitstream.PutBits(dest, 8, seq);
+
+				// byte align where actual data is
+				Bitstream.SyncByte(dest);
 				Bitstream.Insert(dest, src);
 				src.bytepos = bytepos;
 				src.bitpos = bitpos;

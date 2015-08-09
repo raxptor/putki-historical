@@ -210,7 +210,7 @@ namespace netki
 			if (ReadBits(buf, 1) == 0)
 				return (int)ReadCompressedUint(buf);
 			else
-		                return (int)-ReadCompressedUint(buf);
+		        return (int)-ReadCompressedUint(buf);
 		}
 		
 		public static float ReadFloat(Buffer buf)
@@ -267,6 +267,7 @@ namespace netki
 
 		public static void PutStringDumb(Buffer buf, string value)
 		{
+			SyncByte (buf);
 			if (value == null)
 			{
 				Bitstream.PutCompressedInt(buf, -1);
@@ -275,11 +276,12 @@ namespace netki
 
 			byte[] bytes = System.Text.UTF8Encoding.UTF8.GetBytes(value);
 			PutCompressedInt(buf, bytes.Length);
-			PutBytes(buf, bytes); 
+			PutBytes(buf, bytes);
 		}
 
 		public static string ReadStringDumb(Buffer buf)
 		{
+			SyncByte (buf);
 			int len = ReadCompressedInt(buf);
 			if (len > 65536)
 			{
@@ -290,6 +292,7 @@ namespace netki
 			{
 				return null;
 			}
+
 			byte[] data = ReadBytes(buf, len);
 			if (data == null || buf.error != 0)
 			{
