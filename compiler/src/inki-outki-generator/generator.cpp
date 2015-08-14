@@ -154,11 +154,12 @@ namespace putki
 			out.line() << "#define " << deftok;
 			out.line();
 			write_includes(file, out);
+			out.line() << "#include <putki/types.h>";
 			out.line();
 		}
 
 		out.line();
-
+		
 
 		out.line() << "namespace outki {";
 		out.indent(1);
