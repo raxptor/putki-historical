@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace netki
 {
-	public delegate void OnDatagramDelegate(byte[] data, ulong EndPoint);
+	public delegate void OnDatagramDelegate(byte[] data, uint length, ulong EndPoint);
 
 	public class PacketDatagramServer
 	{
@@ -41,15 +41,16 @@ namespace netki
 			while (true)
 			{
 				int bytes = _listener.ReceiveFrom(_recvBuf, ref ep);
+				if (bytes > 0)
+				{
+					IPEndPoint ipep = (IPEndPoint)ep;
 
-				IPEndPoint ipep = (IPEndPoint)ep;
-				Console.WriteLine("got datagram " + bytes + " bytes [" + ipep + "]");
+					byte[] addr = ipep.Address.GetAddressBytes();
 
-				byte[] addr = ipep.Address.GetAddressBytes();
-
-				int addr_portion = (addr[3] << 24) | (addr[2] << 16) | (addr[1] << 8) | addr[0];
-				ulong endpoint = (ulong)addr_portion | ((ulong)ipep.Port) << 32;
-				_pkt(_recvBuf, endpoint);
+					int addr_portion = (addr[3] << 24) | (addr[2] << 16) | (addr[1] << 8) | addr[0];
+					ulong endpoint = (ulong)addr_portion | ((ulong)ipep.Port) << 32;
+					_pkt(_recvBuf, (uint)bytes, endpoint);
+				}
 			}
 		}
 

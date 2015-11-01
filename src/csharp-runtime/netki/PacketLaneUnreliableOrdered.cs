@@ -18,7 +18,7 @@ namespace netki
 			for (int i = 0; i < 256; i++)
 				_recv[i] = new Bitstream.Buffer();
 		}
-
+			
 		public void Incoming(Bitstream.Buffer stream)
 		{
 			byte seq = (byte)Bitstream.ReadBits(stream, 8);

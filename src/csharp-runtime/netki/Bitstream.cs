@@ -131,7 +131,7 @@ namespace netki
 			return false;
 		}
 	
-		public static void PutCompressedUint(Buffer buf, uint value)
+			public static void PutCompressedUint(Buffer buf, uint value)
 		{
 			int bits = 0, prefixes = 0;
 			
