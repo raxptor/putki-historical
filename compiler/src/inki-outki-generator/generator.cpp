@@ -154,16 +154,13 @@ namespace putki
 			out.line() << "#define " << deftok;
 			out.line();
 			write_includes(file, out);
+			out.line() << "#include <putki/types.h>";
 			out.line();
 		}
 
 		out.line();
+		
 
-
-		if (!rt)
-			out.line() << "#include <putki/types.h>";
-
-		out.line();
 		out.line() << "namespace outki {";
 		out.indent(1);
 		out.line() << "// Enums";
@@ -331,7 +328,6 @@ namespace putki
 		out.line();
 		out.line() << "// These includes go to the runtime headers";
 		out.line() << "#include <putki/blob.h>";
-		out.line() << "#include <putki/types.h>";
 		out.line() << "#include <putki/runtime.h>";
 		out.line();
 		out.line() << "namespace outki {";
