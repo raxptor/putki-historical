@@ -22,6 +22,7 @@ namespace netki
 		public void Incoming(Bitstream.Buffer stream)
 		{
 			byte seq = (byte)Bitstream.ReadBits(stream, 8);
+
 			if (stream.error != 0)
 			{
 				Error("Broken packet");

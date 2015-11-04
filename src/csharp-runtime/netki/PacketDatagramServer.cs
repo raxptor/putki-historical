@@ -44,11 +44,11 @@ namespace netki
 				if (bytes > 0)
 				{
 					IPEndPoint ipep = (IPEndPoint)ep;
-
 					byte[] addr = ipep.Address.GetAddressBytes();
 
-					int addr_portion = (addr[3] << 24) | (addr[2] << 16) | (addr[1] << 8) | addr[0];
-					ulong endpoint = (ulong)addr_portion | ((ulong)ipep.Port) << 32;
+					ulong port = (uint)ipep.Port;
+					ulong addr_portion = ((ulong)addr[3] << 24) | ((ulong)addr[2] << 16) | ((ulong)addr[1] << 8) | (ulong)addr[0];
+					ulong endpoint = addr_portion | (port << 32);
 					_pkt(_recvBuf, (uint)bytes, endpoint);
 				}
 			}
@@ -56,8 +56,10 @@ namespace netki
 
 		public void Send(byte[] data, int offset, int length, ulong endpoint)
 		{
+			ulong ep = endpoint >> 32;
+			int port = (int)(ep & 0xffff);
 			IPAddress p = new IPAddress((long)(endpoint & 0xffffffff));
-			IPEndPoint ipep = new IPEndPoint(p, (int)(endpoint >> 32));
+			IPEndPoint ipep = new IPEndPoint(p, port);
 			_listener.SendTo(data, offset, length, 0, ipep);
 		}
 

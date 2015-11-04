@@ -27,7 +27,7 @@ namespace netki
 				_recv[i] = new Bitstream.Buffer();
 			}
 		}
-			
+
 		public void Incoming(Bitstream.Buffer stream)
 		{
 			// read ack numbers
