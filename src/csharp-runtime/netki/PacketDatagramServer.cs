@@ -36,10 +36,10 @@ namespace netki
 
 		private void ReadLoop()
 		{
-			byte[] _recvBuf = new byte[65536];
 			EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
 			while (true)
 			{
+				byte[] _recvBuf = new byte[4096];
 				int bytes = _listener.ReceiveFrom(_recvBuf, ref ep);
 				if (bytes > 0)
 				{
