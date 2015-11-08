@@ -60,7 +60,17 @@ namespace netki
 			int port = (int)(ep & 0xffff);
 			IPAddress p = new IPAddress((long)(endpoint & 0xffffffff));
 			IPEndPoint ipep = new IPEndPoint(p, port);
-			_listener.SendTo(data, offset, length, 0, ipep);
+			try {
+				int ret = _listener.SendTo(data, offset, length, 0, ipep);
+				if (ret != length)
+				{
+					Console.WriteLine("Send failed");
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Exception during send " + e.ToString());
+			}
 		}
 
 		public void Start(int port, int max_peers = 100)

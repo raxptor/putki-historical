@@ -50,7 +50,17 @@ namespace netki
 			int connection_id = (int)result.AsyncState;
 			Connection conn = _connections[connection_id];
 
-			int ret = conn.socket.EndReceive(result);
+			int ret;
+			try 
+			{
+				ret = conn.socket.EndReceive(result);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Disconnected!");
+				ret = -1;
+			}
+				
 			if (ret <= 0)
 			{
 				conn.conn.OnDisconnected();

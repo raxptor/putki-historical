@@ -51,16 +51,24 @@ namespace netki
 			dst.error = src.error;
 		}
 
-		public static void Insert(Buffer dst, Buffer src)
+		public static void Insert(Buffer dest, Buffer source)
 		{
-			while (src.BitsLeft() > 0)
+			Bitstream.Buffer tmp = new Bitstream.Buffer();
+			Copy(tmp, source);
+
+			while (tmp.BitsLeft() > 0)
 			{
-				if (src.bitpos > 0)
-					Bitstream.PutBits(dst, 8 - src.bitpos, Bitstream.ReadBits(src, 8 - src.bitpos));
-				if (src.BitsLeft() > 32)
-					Bitstream.PutBits(dst, 32, Bitstream.ReadBits(src, 32));
-				if (src.BitsLeft() >= 8)
-					Bitstream.PutBits(dst, 8, Bitstream.ReadBits(src, 8));
+				if (tmp.bitpos > 0)
+				{
+					int bits = 8 - tmp.bitpos;
+					if (bits > tmp.BitsLeft())
+						bits = tmp.BitsLeft();
+					Bitstream.PutBits(dest, bits, Bitstream.ReadBits(tmp, bits));
+				}
+				if (tmp.BitsLeft() > 32)
+					Bitstream.PutBits(dest, 32, Bitstream.ReadBits(tmp, 32));
+				if (tmp.BitsLeft() >= 8)
+					Bitstream.PutBits(dest, 8, Bitstream.ReadBits(tmp, 8));
 			}
 		}
 		
