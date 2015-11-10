@@ -129,6 +129,12 @@ namespace netki
 			}
 		}
 
+		public int GetPort()
+		{
+			return ((IPEndPoint)_listener.LocalEndPoint).Port;
+		}
+
+		// returns port.
 		public void Start(int port, int max_connections = 100)
 		{
 			_connections = new Connection[max_connections];
@@ -140,6 +146,8 @@ namespace netki
 			_listener.Bind(localEP);
 			_listener.Listen(100);
 			_listener.BeginAccept(OnAsyncAccepted, _listener);
+
+			localEP = (IPEndPoint)_listener.LocalEndPoint;
 		}
 	}
 }

@@ -78,10 +78,12 @@ namespace netki
 			IPEndPoint localEP = new IPEndPoint(0, 0);
 			_listener = new Socket(localEP.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
 			_listener.Bind(localEP);
-			_port = ((IPEndPoint)_listener.LocalEndPoint).Port;
 
 			System.Threading.Thread th = new System.Threading.Thread(ReadLoop);
 			th.Start();
+
+			_port = ((IPEndPoint)_listener.LocalEndPoint).Port;
 		}
+
 	}
 }
