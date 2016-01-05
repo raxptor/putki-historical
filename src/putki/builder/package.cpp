@@ -239,7 +239,7 @@ namespace putki
 			}
 			
 			// make mapping table
-			for (int i=0;i<pkg->slots.size();i++)
+			for (unsigned int i=0;i<pkg->slots.size();i++)
 				pkg->path_to_slot[pkg->slots[i].path] = i;
 
 			tok::free(mf);
@@ -714,11 +714,11 @@ namespace putki
 				{
 					for (unsigned int i = 0;i < unpacked.size();i++)
 						if (unpacked[i] == path)
-							write = packlist.size() + i + 1;
+							write = (short)(packlist.size() + i + 1);
 
 					if (!write)
 					{
-						write = packlist.size() + unpacked.size() + 1;
+						write = (short)(packlist.size() + unpacked.size() + 1);
 						unpacked.push_back(path);
 					}
 				}
@@ -752,7 +752,7 @@ namespace putki
 			ptr = pack_int32_field(ptr, 0); // size of all data
 			
 			// File import list
-			ptr = pack_int16_field(ptr, data->previous2use.size());
+			ptr = pack_int16_field(ptr, (short)data->previous2use.size());
 			for (int i=0;i!=data->previous2use.size();i++)
 			{
 				use_previous *use = &data->previous2use[i];
